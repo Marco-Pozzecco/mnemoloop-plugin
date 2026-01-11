@@ -1,7 +1,7 @@
 {
   "name": "obs-knowledge-accelerator",
   "version": "1.0.0",
-  "description": "An obsidian plugin",
+  "description": "An obsidian plugin for spaced repetition learning",
   "homepage": "https://github.com/Marco-Pozzecco/obs-knowledge-accelerator#readme",
   "bugs": {
     "url": "https://github.com/Marco-Pozzecco/obs-knowledge-accelerator/issues"
@@ -12,9 +12,30 @@
   },
   "license": "ISC",
   "author": "Marco Pozzecco",
-  "type": "commonjs",
-  "main": "index.js",
+  "type": "module",
+  "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc && node esbuild.config.mjs --production",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts,.tsx",
+    "format": "prettier --write src/**/*.{ts,tsx,svelte}"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "builtin-modules": "^5.0.0",
+    "esbuild": "^0.19.0",
+    "esbuild-svelte": "^0.8.0",
+    "eslint": "^8.0.0",
+    "obsidian": "^1.4.0",
+    "prettier": "^3.0.0",
+    "svelte": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "dependencies": {
+    "svelte": "^4.0.0"
   }
 }
