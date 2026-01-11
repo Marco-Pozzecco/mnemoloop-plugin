@@ -1,0 +1,20 @@
+{
+  "name": "obs-knowledge-accelerator",
+  "version": "1.0.0",
+  "description": "An obsidian plugin",
+  "homepage": "https://github.com/Marco-Pozzecco/obs-knowledge-accelerator#readme",
+  "bugs": {
+    "url": "https://github.com/Marco-Pozzecco/obs-knowledge-accelerator/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Marco-Pozzecco/obs-knowledge-accelerator.git"
+  },
+  "license": "ISC",
+  "author": "Marco Pozzecco",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
