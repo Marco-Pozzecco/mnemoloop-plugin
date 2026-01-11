@@ -1,0 +1,10 @@
+{
+	"id": "obs-knowledge-accelerator",
+	"name": "Obsidian Knowledge Accelerator",
+	"version": "1.0.0",
+	"minAppVersion": "1.4.0",
+	"description": "A high-performance spaced repetition system for Obsidian.",
+	"author": "Marco Pozzecco",
+	"authorUrl": "https://github.com/Marco-Pozzecco",
+	"isDesktopOnly": false
+}
