@@ -28,15 +28,19 @@ export class SettingsManager implements ISettingsManager {
 			const adapter = this.app.vault.adapter;
 
 			if (await adapter.exists(this.CONFIG_FILE)) {
+				console.log(`Loading settings from ${this.CONFIG_FILE}`);
 				const data = await adapter.read(this.CONFIG_FILE);
 				const parsedSettings: unknown = JSON.parse(data);
 				const validatedSettings = this.validateSettings(parsedSettings);
 				this.settings = { ...this.DEFAULT_SETTINGS, ...validatedSettings };
+				console.log('Settings loaded successfully');
 			} else {
+				console.log('Settings file not found, creating with defaults');
 				await this.save();
 			}
 		} catch (error) {
 			console.error('Failed to load settings:', error);
+			console.log('Using default settings');
 			this.settings = { ...this.DEFAULT_SETTINGS };
 		}
 	}
@@ -54,15 +58,18 @@ export class SettingsManager implements ISettingsManager {
 		const validatedSettings = this.validateSettings(updatedSettings);
 		this.settings = validatedSettings;
 
+		console.log('Settings updated:', Object.keys(partialSettings));
 		await this.save();
 
 		this.notifyListeners();
 	}
 
 	async resetToDefaults(): Promise<void> {
+		console.log('Resetting settings to defaults');
 		this.settings = { ...this.DEFAULT_SETTINGS };
 		await this.save();
 		this.notifyListeners();
+		console.log('Settings reset to defaults');
 	}
 
 	validateSettings(settings: unknown): IPluginSettings {
@@ -71,11 +78,13 @@ export class SettingsManager implements ISettingsManager {
 
 	onSettingsChanged(callback: (settings: Readonly<IPluginSettings>) => void): () => void {
 		this.changeListeners.push(callback);
+		console.log(`Settings change listener registered (${this.changeListeners.length} total)`);
 
 		return () => {
 			const index = this.changeListeners.indexOf(callback);
 			if (index !== -1) {
 				this.changeListeners.splice(index, 1);
+				console.log(`Settings change listener removed (${this.changeListeners.length} remaining)`);
 			}
 		};
 	}
@@ -90,10 +99,12 @@ export class SettingsManager implements ISettingsManager {
 
 			const dir = this.CONFIG_FILE.split('/').slice(0, -1).join('/');
 			if (!(await adapter.exists(dir))) {
+				console.log(`Creating settings directory: ${dir}`);
 				await adapter.mkdir(dir);
 			}
 
 			await adapter.write(this.CONFIG_FILE, JSON.stringify(this.settings, null, 2));
+			console.log(`Settings saved to ${this.CONFIG_FILE}`);
 		} catch (error) {
 			console.error('Failed to save settings:', error);
 			throw new Error(
