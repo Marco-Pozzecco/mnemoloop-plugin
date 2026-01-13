@@ -1,4 +1,4 @@
-import { Plugin } from 'obsidian';
+import { Hotkey, Plugin } from 'obsidian';
 
 /**
  * Command definition
@@ -8,7 +8,7 @@ export interface ICommandDefinition {
 	name: string;
 	callback: () => Promise<void> | void;
 	checkCallback?: () => boolean;
-	hotkeys?: string[];
+	hotkeys: Hotkey[];
 }
 
 /**
@@ -56,7 +56,7 @@ export interface ICommandRegistry {
 	 * @param commandId - Command ID
 	 * @param hotkeys - New hotkey bindings
 	 */
-	updateHotkeys(commandId: string, hotkeys: string[]): void;
+	updateHotkeys(commandId: string, hotkeys: Hotkey[]): void;
 
 	/**
 	 * Get all registered command IDs
