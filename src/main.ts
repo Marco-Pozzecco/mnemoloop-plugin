@@ -1,16 +1,10 @@
 import { Plugin } from 'obsidian';
-import { PluginSettings } from './core/types';
+import { PluginSettings, DEFAULT_PLUGIN_SETTINGS } from './core/plugin/types';
 import { IndexManager } from './core/indexer/managers/IndexManager';
 import { VaultWatcher } from './obsidian/VaultWatcher';
 import { SettingsManager } from './obsidian/SettingsManager';
 import { CommandRegistry } from './obsidian/CommandRegistry';
 import { IVaultWatcherConfig } from './obsidian/contracts';
-
-const DEFAULT_SETTINGS: PluginSettings = {
-	flashcardsDirectory: 'Flashcards/',
-	reviewIntervals: [1, 3, 7, 14, 30],
-	baseEase: 2.5,
-};
 
 export default class KnowledgeAcceleratorPlugin extends Plugin {
 	settings!: PluginSettings;
@@ -34,7 +28,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.settings = Object.assign({}, DEFAULT_PLUGIN_SETTINGS, await this.loadData());
 	}
 
 	async saveSettings() {
