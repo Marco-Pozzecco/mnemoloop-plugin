@@ -1,4 +1,4 @@
-import { Notice, Plugin } from 'obsidian';
+import { Hotkey, Notice, Plugin } from 'obsidian';
 import { ICommandDefinition, CommandResult, ICommandRegistry } from './contracts/ICommandRegistry';
 
 export class CommandRegistry implements ICommandRegistry {
@@ -20,13 +20,14 @@ export class CommandRegistry implements ICommandRegistry {
 			this.plugin.addCommand({
 				id: command.id,
 				name: command.name,
+				hotkeys: command.hotkeys,
 				checkCallback: command.checkCallback ? () => this.canExecute(command.id) : undefined,
 				callback: async () => {
 					const result = await this.executeCommand(command.id);
 					if (result.success && result.message) {
-						new Notice(result.message);
+						new Notice(result.message, 5000);
 					} else if (!result.success) {
-						new Notice(result.error);
+						new Notice(result.error, 5000);
 					}
 				},
 			});
@@ -75,14 +76,15 @@ export class CommandRegistry implements ICommandRegistry {
 		return true;
 	}
 
-	updateHotkeys(commandId: string, hotkeys: string[]): void {
+	updateHotkeys(commandId: string, hotkeys: Hotkey[]): void {
 		const command = this.commands.get(commandId);
 
 		if (!command) {
 			throw new Error(`Command with id '${commandId}' not found`);
 		}
 
-		command.hotkeys = hotkeys;
+		this.unregisterCommand(command.id);
+		this.registerCommand({ ...command, hotkeys });
 	}
 
 	getRegisteredCommands(): string[] {
