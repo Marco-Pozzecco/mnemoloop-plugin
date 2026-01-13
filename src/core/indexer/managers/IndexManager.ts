@@ -163,6 +163,14 @@ export class IndexManager implements IIndexManager {
 		}
 	}
 
+	findCardsBySource(sourcePath: string): CardMetadata[] {
+		return this.cache.query((card) => card.source === sourcePath);
+	}
+
+	getAllCards(): CardMetadata[] {
+		return Array.from(this.cache.getAll().values());
+	}
+
 	private extractYamlMetadata(content: string, filePath: string): any | null {
 		try {
 			const yamlMatch = content.match(/^---\n([\s\S]*?)\n---/);
