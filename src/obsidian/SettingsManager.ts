@@ -1,6 +1,6 @@
 import { App } from 'obsidian';
-import { z } from 'zod';
 import { IPluginSettings, ISettingsManager } from './contracts/ISettingsManager';
+import { pluginSettingsSchema } from './schema/SettingsSchema';
 
 export class SettingsManager implements ISettingsManager {
 	private app: App;
@@ -80,17 +80,8 @@ export class SettingsManager implements ISettingsManager {
 		};
 	}
 
-	getSchema(): z.ZodType<IPluginSettings> {
-		return z.object({
-			flashcardsDirectory: z.string(),
-			watchDirectories: z.array(z.string()).min(1),
-			watchTags: z.array(z.string().startsWith('#')),
-			ignoredDirectories: z.array(z.string()),
-			debounceTimeoutMs: z.number().min(100).max(5000),
-			enableSoftDelete: z.boolean(),
-			softDeleteHours: z.number().min(1).max(168),
-			commandShortcuts: z.record(z.string(), z.string()),
-		});
+	getSchema() {
+		return pluginSettingsSchema;
 	}
 
 	private async save(): Promise<void> {
