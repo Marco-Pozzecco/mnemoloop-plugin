@@ -60,4 +60,10 @@ export interface IEventQueue {
    * Clear all queued events without processing
    */
   clear(): void;
+
+  /**
+   * Update queue configuration
+   * @param config - New configuration
+   */
+  updateConfig(config: IEventQueueConfig): void;
 }

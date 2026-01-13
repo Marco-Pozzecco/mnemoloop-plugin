@@ -52,6 +52,10 @@ export class EventQueue implements IEventQueue {
 		this.lastEventTime = null;
 	}
 
+	updateConfig(config: IEventQueueConfig): void {
+		this.config = config;
+	}
+
 	private async processQueue(): Promise<void> {
 		if (this.processing || this.events.length === 0) {
 			return;
