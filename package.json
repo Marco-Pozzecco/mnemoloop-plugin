@@ -37,6 +37,7 @@
 	},
 	"dependencies": {
 		"svelte": "^4.0.0",
+		"ts-fsrs": "^5.2.3",
 		"zod": "^4.3.5"
 	}
 }
