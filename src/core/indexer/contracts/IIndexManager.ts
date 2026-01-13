@@ -7,4 +7,6 @@ export interface IIndexManager {
   upsertCard(id: string, data: Partial<CardMetadata>): void;
   deleteCard(id: string): void;
   rebuildFromVault(): Promise<void>;
+  findCardsBySource(sourcePath: string): CardMetadata[];
+  getAllCards(): CardMetadata[];
 }

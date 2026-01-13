@@ -1,4 +1,8 @@
 // Vitest setup file
 import { vi } from 'vitest';
 
-// Add any global mocks here if needed
+// Mock obsidian module
+vi.mock('obsidian', () => ({
+	Notice: vi.fn(),
+	Plugin: class {},
+}));
