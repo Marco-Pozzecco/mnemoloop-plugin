@@ -8,7 +8,7 @@ export interface ICommandDefinition {
 	name: string;
 	callback: () => Promise<void> | void;
 	checkCallback?: () => boolean;
-	hotkeys: Hotkey[];
+	hotkeys?: Hotkey[];
 }
 
 /**
