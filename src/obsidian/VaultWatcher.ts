@@ -1,4 +1,4 @@
-import { App, TAbstractFile } from 'obsidian';
+import { App, TAbstractFile, TFile } from 'obsidian';
 import { IIndexManager } from '../core/indexer/contracts/IIndexManager';
 import { IEventQueue } from './contracts/IEventQueue';
 import {
@@ -27,28 +27,30 @@ export class VaultWatcher implements IVaultWatcher {
 	}
 
 	async initialize(): Promise<void> {
-		this.app.vault.on('modify', (file: TAbstractFile) => {
-			if (this.shouldWatch(file)) {
+		this.app.vault.on('modify', async (file: TAbstractFile) => {
+			if (await this.shouldWatch(file)) {
 				this.enqueueEvent(VaultEventType.MODIFY, file);
 			}
 		});
 
-		this.app.vault.on('delete', (file: TAbstractFile) => {
-			if (this.shouldWatch(file)) {
+		this.app.vault.on('delete', async (file: TAbstractFile) => {
+			if (await this.shouldWatch(file)) {
 				this.enqueueEvent(VaultEventType.DELETE, file);
 			}
 		});
 
-		this.app.vault.on('rename', (file: TAbstractFile, oldPath: string) => {
-			if (this.shouldWatch(file) || (oldPath && this.shouldWatchPath(oldPath))) {
+		this.app.vault.on('rename', async (file: TAbstractFile, oldPath: string) => {
+			if ((await this.shouldWatch(file)) || (oldPath && this.shouldWatchPath(oldPath))) {
 				this.enqueueEvent(VaultEventType.RENAME, file, oldPath);
 			}
 		});
 	}
 
-	private shouldWatch(file: any): boolean {
+	private async shouldWatch(file: any): Promise<boolean> {
 		if (file.extension !== 'md') return false;
-		return this.shouldWatchPath(file.path);
+		if (!this.shouldWatchPath(file.path)) return false;
+		if (!(await this.shouldWatchTags(file))) return false;
+		return true;
 	}
 
 	private shouldWatchPath(path: string): boolean {
@@ -64,6 +66,58 @@ export class VaultWatcher implements IVaultWatcher {
 		});
 
 		return isInWatchedDir;
+	}
+
+	private async shouldWatchTags(file: TFile): Promise<boolean> {
+		if (this.config.watchTags.length === 0) {
+			return true;
+		}
+
+		try {
+			const tags = await this.extractTagsFromFile(file);
+			if (tags.length === 0) {
+				return false;
+			}
+
+			return this.config.watchTags.some((watchTag) => {
+				const normalizedWatchTag = watchTag.startsWith('#') ? watchTag : `#${watchTag}`;
+				return tags.some((fileTag) => {
+					const normalizedFileTag = fileTag.startsWith('#') ? fileTag : `#${fileTag}`;
+					return normalizedFileTag.toLowerCase() === normalizedWatchTag.toLowerCase();
+				});
+			});
+		} catch (error) {
+			console.warn(`Failed to extract tags from ${file.path}:`, error);
+			return true;
+		}
+	}
+
+	private async extractTagsFromFile(file: TFile): Promise<string[]> {
+		const content = await this.app.vault.read(file);
+		const tags: string[] = [];
+
+		const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+		if (frontmatterMatch) {
+			const frontmatter = frontmatterMatch[1];
+			const tagsMatch = frontmatter.match(/tags:\s*\[(.*?)\]/) || frontmatter.match(/tags:\s*(.*)/);
+			if (tagsMatch) {
+				const tagsString = tagsMatch[1];
+				const parsedTags = tagsString
+					.split(',')
+					.map((tag) => tag.trim().replace(/^['"`]|['"`]$/g, ''));
+				tags.push(...parsedTags);
+			}
+		}
+
+		const inlineTags = content.matchAll(/(?<!\w)#([\w-]+)/g);
+		for (const match of inlineTags) {
+			const tag = match[1];
+			if (!tags.includes(tag)) {
+				tags.push(tag);
+			}
+		}
+
+		return tags;
 	}
 
 	private enqueueEvent(
@@ -116,7 +170,7 @@ export class VaultWatcher implements IVaultWatcher {
 			const cardId = this.generateCardId(card.file);
 			this.indexManager.upsertCard(cardId, {
 				status: 'DELETED',
-				deleted_at: new Date().toISOString(),
+				deleted_at: this.config.enableSoftDelete ? new Date().toISOString() : undefined,
 			});
 		}
 	}

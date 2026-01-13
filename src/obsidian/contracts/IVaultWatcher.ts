@@ -27,6 +27,8 @@ export interface IVaultWatcherConfig {
   watchTags: string[];
   ignoredDirectories: string[];
   debounceTimeoutMs: number;
+  enableSoftDelete: boolean;
+  softDeleteHours: number;
 }
 
 /**
