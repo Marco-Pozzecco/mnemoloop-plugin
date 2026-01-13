@@ -28,28 +28,51 @@ export class VaultWatcher implements IVaultWatcher {
 
 	async initialize(): Promise<void> {
 		this.app.vault.on('modify', async (file: TAbstractFile) => {
-			if (await this.shouldWatch(file)) {
-				this.enqueueEvent(VaultEventType.MODIFY, file);
+			try {
+				if (await this.shouldWatch(file)) {
+					this.enqueueEvent(VaultEventType.MODIFY, file);
+				}
+			} catch (error) {
+				console.error('Failed to process modify event:', error);
 			}
 		});
 
 		this.app.vault.on('delete', async (file: TAbstractFile) => {
-			if (await this.shouldWatch(file)) {
-				this.enqueueEvent(VaultEventType.DELETE, file);
+			try {
+				if (await this.shouldWatch(file)) {
+					this.enqueueEvent(VaultEventType.DELETE, file);
+				}
+			} catch (error) {
+				console.error('Failed to process delete event:', error);
 			}
 		});
 
 		this.app.vault.on('rename', async (file: TAbstractFile, oldPath: string) => {
-			if ((await this.shouldWatch(file)) || (oldPath && this.shouldWatchPath(oldPath))) {
-				this.enqueueEvent(VaultEventType.RENAME, file, oldPath);
+			try {
+				if ((await this.shouldWatch(file)) || (oldPath && this.shouldWatchPath(oldPath))) {
+					this.enqueueEvent(VaultEventType.RENAME, file, oldPath);
+				}
+			} catch (error) {
+				console.error('Failed to process rename event:', error);
 			}
 		});
+
+		console.log('VaultWatcher initialized');
 	}
 
 	private async shouldWatch(file: any): Promise<boolean> {
-		if (file.extension !== 'md') return false;
-		if (!this.shouldWatchPath(file.path)) return false;
-		if (!(await this.shouldWatchTags(file))) return false;
+		if (file.extension !== 'md') {
+			console.debug(`Skipping non-markdown file: ${file.path}`);
+			return false;
+		}
+		if (!this.shouldWatchPath(file.path)) {
+			console.debug(`Skipping file in ignored directory: ${file.path}`);
+			return false;
+		}
+		if (!(await this.shouldWatchTags(file))) {
+			console.debug(`Skipping file without matching tags: ${file.path}`);
+			return false;
+		}
 		return true;
 	}
 
@@ -134,30 +157,39 @@ export class VaultWatcher implements IVaultWatcher {
 			isMarkdown: file.name.endsWith('.md'),
 		};
 		this.eventQueue.enqueue(event);
+		console.debug(`Enqueued ${type} event for ${file.path}`);
 	}
 
 	shutdown(): void {
+		console.log('VaultWatcher shutting down');
 		this.eventQueue.flush().catch((err) => {
 			console.error('Failed to flush event queue on shutdown:', err);
 		});
 	}
 
 	async processEvent(event: IVaultEvent): Promise<void> {
-		switch (event.type) {
-			case VaultEventType.MODIFY:
-				await this.handleModify(event);
-				break;
-			case VaultEventType.DELETE:
-				await this.handleDelete(event);
-				break;
-			case VaultEventType.RENAME:
-				await this.handleRename(event);
-				break;
+		try {
+			switch (event.type) {
+				case VaultEventType.MODIFY:
+					await this.handleModify(event);
+					break;
+				case VaultEventType.DELETE:
+					await this.handleDelete(event);
+					break;
+				case VaultEventType.RENAME:
+					await this.handleRename(event);
+					break;
+			}
+		} catch (error) {
+			console.error(`Failed to process ${event.type} event for ${event.filePath}:`, error);
 		}
 	}
 
 	private async handleModify(event: IVaultEvent): Promise<void> {
 		const affectedCards = this.indexManager.findCardsBySource(event.filePath);
+		if (affectedCards.length > 0) {
+			console.log(`Marking ${affectedCards.length} card(s) as STALE for source: ${event.filePath}`);
+		}
 		for (const card of affectedCards) {
 			const cardId = this.generateCardId(card.file);
 			this.indexManager.upsertCard(cardId, { status: 'STALE' });
@@ -166,6 +198,9 @@ export class VaultWatcher implements IVaultWatcher {
 
 	private async handleDelete(event: IVaultEvent): Promise<void> {
 		const affectedCards = this.indexManager.findCardsBySource(event.filePath);
+		if (affectedCards.length > 0) {
+			console.log(`Marking ${affectedCards.length} card(s) as ${this.config.enableSoftDelete ? 'soft deleted' : 'DELETED'} for source: ${event.filePath}`);
+		}
 		for (const card of affectedCards) {
 			const cardId = this.generateCardId(card.file);
 			this.indexManager.upsertCard(cardId, {
@@ -179,6 +214,9 @@ export class VaultWatcher implements IVaultWatcher {
 		if (!event.oldPath) return;
 
 		const affectedCards = this.indexManager.findCardsBySource(event.oldPath);
+		if (affectedCards.length > 0) {
+			console.log(`Updating source path for ${affectedCards.length} card(s): ${event.oldPath} -> ${event.filePath}`);
+		}
 		for (const card of affectedCards) {
 			const cardId = this.generateCardId(card.file);
 			this.indexManager.upsertCard(cardId, {
@@ -193,10 +231,12 @@ export class VaultWatcher implements IVaultWatcher {
 	}
 
 	private async processEvents(events: IVaultEvent[]): Promise<void> {
+		console.log(`Processing ${events.length} queued event(s)`);
 		for (const event of events) {
 			await this.processEvent(event);
 		}
 		await this.indexManager.save();
+		console.log('Event processing complete, index saved');
 	}
 
 	updateConfiguration(config: IVaultWatcherConfig): void {
