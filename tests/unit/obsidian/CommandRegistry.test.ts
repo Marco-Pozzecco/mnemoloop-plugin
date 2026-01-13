@@ -306,14 +306,14 @@ describe('CommandRegistry', () => {
 			};
 
 			commandRegistry.registerCommand(command);
-			commandRegistry.updateHotkeys('test-command', ['Ctrl+R', 'Cmd+R']);
+			commandRegistry.updateHotkeys('test-command', [{ key: 'R', modifiers: ['Ctrl', 'Mod'] }]);
 
 			expect(mockPlugin.removeCommand).toHaveBeenCalledWith('test-command');
 			expect(mockPlugin.addCommand).toHaveBeenCalled();
 		});
 
 		it('should throw error when updating hotkeys for non-existent command', () => {
-			expect(() => commandRegistry.updateHotkeys('non-existent', ['Ctrl+R'])).toThrow(
+			expect(() => commandRegistry.updateHotkeys('non-existent', [])).toThrow(
 				"Command with id 'non-existent' not found",
 			);
 		});
