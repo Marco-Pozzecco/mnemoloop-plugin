@@ -37,6 +37,8 @@ describe('VaultWatcher', () => {
 			watchTags: [],
 			ignoredDirectories: ['.obsidian'],
 			debounceTimeoutMs: 100,
+			enableSoftDelete: true,
+			softDeleteHours: 24,
 		};
 
 		vaultWatcher = new VaultWatcher(mockApp, mockIndexManager, mockConfig);
