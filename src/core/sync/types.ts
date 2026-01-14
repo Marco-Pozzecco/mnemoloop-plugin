@@ -46,6 +46,11 @@ export interface Index {
   cards: Record<string, any>;
 }
 
+export interface ISyncNotifier {
+	notifyConflict(conflict: SyncConflict): void;
+	logError(message: string): void;
+}
+
 export const DEFAULT_INDEX: Index = {
   version: '1.0.0',
   last_updated: new Date().toISOString(),
