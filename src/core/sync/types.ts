@@ -51,6 +51,12 @@ export interface ISyncNotifier {
 	logError(message: string): void;
 }
 
+export interface IRecoveryNotifier {
+	notifyRecoveryStarted(): void;
+	notifyRecoveryComplete(result: IndexRecoveryResult): void;
+	logError(file: string, error: string): void;
+}
+
 export const DEFAULT_INDEX: Index = {
   version: '1.0.0',
   last_updated: new Date().toISOString(),

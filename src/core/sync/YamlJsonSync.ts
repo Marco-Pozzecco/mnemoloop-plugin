@@ -3,12 +3,21 @@ import { Index, SyncResult, SyncConflict, ISyncNotifier } from './types';
 import { YamlExtractor } from '../parser/YamlExtractor';
 import { FlashcardMetadata } from '../parser/types';
 
+/**
+ * Manager for bidirectional synchronization between JSON index and YAML frontmatter.
+ * Implements last-write-wins strategy for conflict resolution.
+ */
 export class YamlJsonSync {
 	private vaultAdapter: IVaultAdapter;
 	private index: Index;
 	private yamlExtractor: YamlExtractor;
 	private notifier?: ISyncNotifier;
 
+	/**
+	 * @param vaultAdapter Adapter for Obsidian Vault operations
+	 * @param index Flashcard index to synchronize
+	 * @param notifier Optional notifier for conflicts and errors
+	 */
 	constructor(vaultAdapter: IVaultAdapter, index: Index, notifier?: ISyncNotifier) {
 		this.vaultAdapter = vaultAdapter;
 		this.index = index;
@@ -19,6 +28,10 @@ export class YamlJsonSync {
 	/**
 	 * Detects conflicts between JSON index and YAML frontmatter.
 	 * Applies last-write-wins strategy based on 'updated' timestamp.
+	 * 
+	 * @param jsonMetadata Metadata from JSON index
+	 * @param yamlMetadata Metadata extracted from YAML
+	 * @returns A SyncConflict object if a conflict is detected, null otherwise
 	 */
 	detectConflict(jsonMetadata: FlashcardMetadata, yamlMetadata: FlashcardMetadata): SyncConflict | null {
 		const jsonUpdated = new Date(jsonMetadata.updated).getTime();
@@ -56,6 +69,9 @@ export class YamlJsonSync {
 
 	/**
 	 * Updates YAML file with FSRS parameters from JSON index.
+	 * 
+	 * @param uuid Unique identifier of the flashcard
+	 * @returns Result of the synchronization operation
 	 */
 	async syncJsonToYaml(uuid: string): Promise<SyncResult> {
 		const jsonMetadata = this.index.cards[uuid];
@@ -87,6 +103,9 @@ export class YamlJsonSync {
 
 	/**
 	 * Updates JSON index with metadata from YAML file.
+	 * 
+	 * @param filePath Path to the markdown file in the vault
+	 * @returns Result of the synchronization operation
 	 */
 	async syncYamlToJson(filePath: string): Promise<SyncResult> {
 		try {
@@ -127,6 +146,9 @@ export class YamlJsonSync {
 
 	/**
 	 * Updates file path in JSON index when flashcard is moved/renamed.
+	 * 
+	 * @param oldPath Original file path
+	 * @param newPath New file path
 	 */
 	handleFileRename(oldPath: string, newPath: string): void {
 		const card = Object.values(this.index.cards).find(c => c.file === oldPath);
@@ -137,6 +159,9 @@ export class YamlJsonSync {
 		}
 	}
 
+	/**
+	 * Helper to update frontmatter content with new metadata.
+	 */
 	private updateFrontmatter(content: string, metadata: FlashcardMetadata): string {
 		const yamlRegex = /^---\n([\s\S]*?)\n---/;
 		const match = content.match(yamlRegex);
@@ -149,6 +174,9 @@ export class YamlJsonSync {
 		return content.replace(yamlRegex, `---\n${newYaml}\n---`);
 	}
 
+	/**
+	 * Helper to generate YAML string from metadata.
+	 */
 	private generateYaml(metadata: FlashcardMetadata): string {
 		const lines = [
 			`uuid: ${metadata.uuid}`,
