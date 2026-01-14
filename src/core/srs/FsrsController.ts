@@ -7,6 +7,12 @@ import {
 	FsrsCalculationResult,
 } from './types';
 
+import { ERROR_MESSAGES } from '@/utils/constants';
+
+/**
+ * Wrapper for the ts-fsrs library.
+ * Handles calculation of spaced repetition parameters using the FSRS algorithm.
+ */
 export class FsrsController {
 	private fsrs: FSRS;
 
@@ -14,6 +20,12 @@ export class FsrsController {
 		this.fsrs = new FSRS(generatorParameters());
 	}
 
+	/**
+	 * Calculates updated FSRS parameters based on a user rating.
+	 * 
+	 * @param input FSRS calculation input (current params, rating, review time)
+	 * @returns Updated FSRS parameters and interval in days
+	 */
 	calculate(input: FsrsCalculationInput): FsrsCalculationResult {
 		try {
 			const { current_params, rating, review_time } = input;
@@ -34,7 +46,7 @@ export class FsrsController {
 				interval_days: intervalDays,
 			};
 		} catch (error) {
-			console.error('Error in FSRS calculation:', error);
+			console.error(`${ERROR_MESSAGES.CALCULATION_ERROR}:`, error);
 			return {
 				updated_params: this.getInitialState(),
 				interval_days: 1,
@@ -42,10 +54,16 @@ export class FsrsController {
 		}
 	}
 
+	/**
+	 * Returns default FSRS parameters for a new card.
+	 */
 	getInitialState(): FSRSStats {
 		return { ...DEFAULT_FSRS };
 	}
 
+	/**
+	 * Maps internal FSRSStats to ts-fsrs Card object.
+	 */
 	private mapToFsrsCard(params: FSRSStats): Card {
 		return {
 			due: new Date(params.next_review),
@@ -61,6 +79,9 @@ export class FsrsController {
 		};
 	}
 
+	/**
+	 * Maps ts-fsrs Card object back to internal FSRSStats.
+	 */
 	private mapFromFsrsCard(card: Card): FSRSStats {
 		return {
 			stability: card.stability,
@@ -76,6 +97,9 @@ export class FsrsController {
 		};
 	}
 
+	/**
+	 * Maps internal CardRating enum to ts-fsrs Rating enum.
+	 */
 	private mapToFsrsRating(rating: CardRating): Rating {
 		switch (rating) {
 			case CardRating.AGAIN:
@@ -91,6 +115,9 @@ export class FsrsController {
 		}
 	}
 
+	/**
+	 * Calculates the number of days between review and next review.
+	 */
 	private calculateIntervalDays(nextReviewStr: string, reviewDate: Date): number {
 		const nextReview = new Date(nextReviewStr);
 		const diffMs = nextReview.getTime() - reviewDate.getTime();
@@ -98,6 +125,9 @@ export class FsrsController {
 		return Math.max(1, diffDays);
 	}
 
+	/**
+	 * Updates the underlying FSRS algorithm parameters.
+	 */
 	updateParameters(params: Partial<FSRSParameters>): void {
 		this.fsrs.parameters = params;
 	}
