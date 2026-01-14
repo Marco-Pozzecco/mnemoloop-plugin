@@ -8,6 +8,8 @@ import { CardStatus, Flashcard } from '../parser/types';
  */
 export class DueQueueGenerator {
 	private index: Index;
+	private cachedQueue: DueQueue | null = null;
+	private lastFilter: string = '';
 
 	/**
 	 * @param index The flashcard index containing all card metadata
@@ -18,26 +20,34 @@ export class DueQueueGenerator {
 
 	/**
 	 * Generates a queue of cards due for review.
+	 * Results are cached until the index changes or a different filter is used.
 	 * 
 	 * @param filter Options for filtering the due queue
 	 * @returns A sorted DueQueue containing cards due for review
 	 */
 	generate(filter: DueQueueFilter = DEFAULT_FILTER): DueQueue {
+		const filterKey = JSON.stringify(filter);
+		if (this.cachedQueue && this.lastFilter === filterKey) {
+			return this.cachedQueue;
+		}
+
 		const now = new Date();
 		const cards: Flashcard[] = [];
+		const cardTimestamps = new Map<string, number>();
 
 		for (const uuid in this.index.cards) {
 			const card = this.index.cards[uuid] as Flashcard;
 
 			if (this.shouldInclude(card, filter, now)) {
 				cards.push(card);
+				cardTimestamps.set(card.uuid, new Date(card.srs.next_review).getTime());
 			}
 		}
 
 		// Sort cards: primary by next_review (ascending), secondary by difficulty (descending)
 		cards.sort((a, b) => {
-			const dateA = new Date(a.srs.next_review).getTime();
-			const dateB = new Date(b.srs.next_review).getTime();
+			const dateA = cardTimestamps.get(a.uuid)!;
+			const dateB = cardTimestamps.get(b.uuid)!;
 
 			if (dateA !== dateB) {
 				return dateA - dateB;
@@ -50,10 +60,24 @@ export class DueQueueGenerator {
 		// Apply max_cards limit if specified
 		const limitedCards = filter.max_cards ? cards.slice(0, filter.max_cards) : cards;
 
-		return {
+		const result = {
 			totalDue: limitedCards.length,
 			cards: limitedCards,
 		};
+
+		this.cachedQueue = result;
+		this.lastFilter = filterKey;
+
+		return result;
+	}
+
+	/**
+	 * Invalidates the generated queue cache.
+	 * Should be called when the index is modified.
+	 */
+	invalidateCache(): void {
+		this.cachedQueue = null;
+		this.lastFilter = '';
 	}
 
 	/**
