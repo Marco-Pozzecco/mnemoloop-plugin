@@ -35,6 +35,13 @@ __export(main_exports, {
 module.exports = __toCommonJS(main_exports);
 var import_obsidian2 = require("obsidian");
 
+// src/core/plugin/types.ts
+var DEFAULT_PLUGIN_SETTINGS = {
+  flashcardsDirectory: "Flashcards/",
+  reviewIntervals: [1, 3, 7, 14, 30],
+  baseEase: 2.5
+};
+
 // src/core/indexer/cache/MetadataCache.ts
 var MetadataCache = class {
   constructor() {
@@ -85,7 +92,7 @@ var MetadataCache = class {
   }
 };
 
-// src/core/types.ts
+// src/core/deprecated/types.ts
 var SRSState = /* @__PURE__ */ ((SRSState2) => {
   SRSState2[SRSState2["New"] = 0] = "New";
   SRSState2[SRSState2["Learning"] = 1] = "Learning";
@@ -14769,11 +14776,6 @@ var CommandRegistry = class {
 };
 
 // src/main.ts
-var DEFAULT_SETTINGS = {
-  flashcardsDirectory: "Flashcards/",
-  reviewIntervals: [1, 3, 7, 14, 30],
-  baseEase: 2.5
-};
 var KnowledgeAcceleratorPlugin = class extends import_obsidian2.Plugin {
   constructor() {
     super(...arguments);
@@ -14795,7 +14797,7 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian2.Plugin {
     this.vaultWatcher.shutdown();
   }
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this.settings = Object.assign({}, DEFAULT_PLUGIN_SETTINGS, await this.loadData());
   }
   async saveSettings() {
     await this.saveData(this.settings);
