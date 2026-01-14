@@ -1,7 +1,7 @@
 import { IVaultAdapter } from '@/obsidian/contracts/IVaultAdapter';
 import { ERROR_MESSAGES } from '@/utils/constants';
 import { clampFsrsParameter, isValidFsrsState, isValidTimestamp } from '@/utils/validation';
-import { DEFAULT_FSRS, FSRSParameters, FSRSState } from '../srs/types';
+import { DEFAULT_FSRS, FSRSStats, FSRSState } from '../srs/types';
 import { CardStatus, FlashcardMetadata, YamlParseResult } from './types';
 
 export class YamlExtractor {
@@ -87,11 +87,8 @@ export class YamlExtractor {
 		return null;
 	}
 
-	private extractAndValidateFSRS(
-		frontmatter: Record<string, any>,
-		warnings: string[],
-	): FSRSParameters {
-		const rawParams: Partial<FSRSParameters> = {};
+	private extractAndValidateFSRS(frontmatter: Record<string, any>, warnings: string[]): FSRSStats {
+		const rawParams: Partial<FSRSStats> = {};
 
 		if (typeof frontmatter.srs_stability === 'number') {
 			rawParams.stability = frontmatter.srs_stability;
@@ -115,8 +112,8 @@ export class YamlExtractor {
 		return this.validateFSRS(rawParams, warnings);
 	}
 
-	validateFSRS(rawParams: Partial<FSRSParameters>, warnings: string[]): FSRSParameters {
-		const params: FSRSParameters = { ...DEFAULT_FSRS };
+	validateFSRS(rawParams: Partial<FSRSStats>, warnings: string[]): FSRSStats {
+		const params: FSRSStats = { ...DEFAULT_FSRS };
 
 		if (rawParams.stability !== undefined) {
 			const clamped = clampFsrsParameter(rawParams.stability);
@@ -136,10 +133,10 @@ export class YamlExtractor {
 
 		if (rawParams.state !== undefined) {
 			if (isValidFsrsState(rawParams.state)) {
-				params.state = rawParams.state as FSRSState;
+				params.state = rawParams.state;
 			} else {
-				warnings.push(`invalid state ${rawParams.state}, using default ${FSRSState.NEW}`);
-				params.state = FSRSState.NEW;
+				warnings.push(`invalid state ${rawParams.state}, using default ${FSRSState.New}`);
+				params.state = FSRSState.New;
 			}
 		}
 
