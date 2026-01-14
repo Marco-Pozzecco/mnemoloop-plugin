@@ -6,3 +6,5 @@ export {
   IndexRecoveryResultSchema,
   IndexSchema,
 } from './schemas';
+export { YamlJsonSync } from './YamlJsonSync';
+export { IndexRecovery } from './IndexRecovery';
