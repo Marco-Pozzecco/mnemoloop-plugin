@@ -2,18 +2,22 @@ import { z } from 'zod';
 import { FSRSState, CardRating } from '../types';
 
 export const FSRSParametersSchema = z.object({
-	stability: z.number().min(0).max(10),
-	difficulty: z.number().min(0).max(10),
-	state: z.enum(FSRSState),
-	last_review: z.iso.datetime().nullable(),
-	next_review: z.iso.datetime(),
+	stability: z.number().nonnegative(),
+	difficulty: z.number().nonnegative(),
+	elapsed_days: z.number().nonnegative(),
+	scheduled_days: z.number().nonnegative(),
+	learning_steps: z.number().int().nonnegative(),
 	reps: z.number().int().nonnegative(),
+	lapses: z.number().int().nonnegative(),
+	state: z.nativeEnum(FSRSState),
+	last_review: z.string().datetime().nullable(),
+	next_review: z.string().datetime(),
 });
 
 export const FsrsCalculationInputSchema = z.object({
 	current_params: FSRSParametersSchema,
-	rating: z.enum(CardRating),
-	review_time: z.iso.datetime().optional(),
+	rating: z.nativeEnum(CardRating),
+	review_time: z.string().datetime().optional(),
 });
 
 export const FsrsCalculationResultSchema = z.object({
