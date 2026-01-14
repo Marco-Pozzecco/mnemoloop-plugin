@@ -6,6 +6,8 @@ import { SettingsManager } from './obsidian/SettingsManager';
 import { CommandRegistry } from './obsidian/CommandRegistry';
 import { IVaultWatcherConfig } from './obsidian/contracts';
 
+import { Logger } from './utils/Logger';
+
 export default class KnowledgeAcceleratorPlugin extends Plugin {
 	settings!: PluginSettings;
 	private indexManager!: IndexManager;
@@ -14,7 +16,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	private commandRegistry!: CommandRegistry;
 
 	async onload() {
-		console.log('Loading Obsidian Knowledge Accelerator');
+		Logger.info('Loading plugin');
 
 		await this.initializeCoreComponents();
 		await this.initializeSettings();
@@ -23,7 +25,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	}
 
 	onunload() {
-		console.log('Unloading Obsidian Knowledge Accelerator');
+		Logger.info('Unloading plugin');
 		this.vaultWatcher.shutdown();
 	}
 
@@ -64,7 +66,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 			id: 'ka-start-review',
 			name: 'Knowledge Accelerator: Start Review',
 			callback: async () => {
-				console.log('Starting review session');
+				Logger.debug('Starting review session');
 			},
 		});
 
@@ -72,7 +74,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 			id: 'ka-open-dashboard',
 			name: 'Knowledge Accelerator: Open Dashboard',
 			callback: async () => {
-				console.log('Opening dashboard');
+				Logger.debug('Opening dashboard');
 			},
 		});
 
