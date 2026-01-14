@@ -1,4 +1,4 @@
-import { SRSState } from '@/core/types';
+import { SRSState } from '@/core/deprecated/types';
 import { z } from 'zod';
 
 export const SRSObjectSchema = z.object({

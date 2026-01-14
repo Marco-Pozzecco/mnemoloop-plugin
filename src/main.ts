@@ -1,16 +1,12 @@
 import { Plugin } from 'obsidian';
-import { PluginSettings } from './core/types';
+import { PluginSettings, DEFAULT_PLUGIN_SETTINGS } from './core/plugin/types';
 import { IndexManager } from './core/indexer/managers/IndexManager';
 import { VaultWatcher } from './obsidian/VaultWatcher';
 import { SettingsManager } from './obsidian/SettingsManager';
 import { CommandRegistry } from './obsidian/CommandRegistry';
 import { IVaultWatcherConfig } from './obsidian/contracts';
 
-const DEFAULT_SETTINGS: PluginSettings = {
-	flashcardsDirectory: 'Flashcards/',
-	reviewIntervals: [1, 3, 7, 14, 30],
-	baseEase: 2.5,
-};
+import { Logger } from './utils/Logger';
 
 export default class KnowledgeAcceleratorPlugin extends Plugin {
 	settings!: PluginSettings;
@@ -20,7 +16,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	private commandRegistry!: CommandRegistry;
 
 	async onload() {
-		console.log('Loading Obsidian Knowledge Accelerator');
+		Logger.info('Loading plugin');
 
 		await this.initializeCoreComponents();
 		await this.initializeSettings();
@@ -29,12 +25,12 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	}
 
 	onunload() {
-		console.log('Unloading Obsidian Knowledge Accelerator');
+		Logger.info('Unloading plugin');
 		this.vaultWatcher.shutdown();
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.settings = Object.assign({}, DEFAULT_PLUGIN_SETTINGS, await this.loadData());
 	}
 
 	async saveSettings() {
@@ -70,7 +66,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 			id: 'ka-start-review',
 			name: 'Knowledge Accelerator: Start Review',
 			callback: async () => {
-				console.log('Starting review session');
+				Logger.debug('Starting review session');
 			},
 		});
 
@@ -78,7 +74,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 			id: 'ka-open-dashboard',
 			name: 'Knowledge Accelerator: Open Dashboard',
 			callback: async () => {
-				console.log('Opening dashboard');
+				Logger.debug('Opening dashboard');
 			},
 		});
 

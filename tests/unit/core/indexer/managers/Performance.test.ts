@@ -3,7 +3,7 @@ import { IndexManager } from '@/core/indexer/managers/IndexManager';
 import { StatsManager } from '@/core/indexer/managers/StatsManager';
 import { CardMetadata } from '@/core/indexer/schema/indexSchema';
 import { App } from 'obsidian';
-import { SRSState } from '@/core/types';
+import { SRSState } from '@/core/deprecated/types';
 
 // Mock Obsidian App
 const mockApp = {
