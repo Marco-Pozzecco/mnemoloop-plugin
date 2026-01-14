@@ -4,13 +4,26 @@ import { clampFsrsParameter, isValidFsrsState, isValidTimestamp } from '@/utils/
 import { DEFAULT_FSRS, FSRSStats, FSRSState } from '../srs/types';
 import { CardStatus, FlashcardMetadata, YamlParseResult } from './types';
 
+/**
+ * Utility for extracting and validating YAML frontmatter from flashcard files.
+ * Uses Obsidian's CachedMetadata API for efficient extraction.
+ */
 export class YamlExtractor {
 	private vaultAdapter: IVaultAdapter;
 
+	/**
+	 * @param vaultAdapter Adapter for Obsidian Vault operations
+	 */
 	constructor(vaultAdapter: IVaultAdapter) {
 		this.vaultAdapter = vaultAdapter;
 	}
 
+	/**
+	 * Extracts flashcard metadata from a file's YAML frontmatter.
+	 * 
+	 * @param filePath Path to the markdown file
+	 * @returns A YamlParseResult with metadata and any validation warnings
+	 */
 	async extract(filePath: string): Promise<YamlParseResult> {
 		try {
 			const metadata = await this.vaultAdapter.getCachedMetadata(filePath);
@@ -49,6 +62,9 @@ export class YamlExtractor {
 		}
 	}
 
+	/**
+	 * Extracts UUID from frontmatter or filename, or generates a new one.
+	 */
 	private extractUuid(filePath: string, frontmatter: Record<string, any>): string {
 		if (frontmatter.uuid && typeof frontmatter.uuid === 'string') {
 			return frontmatter.uuid;
@@ -60,6 +76,9 @@ export class YamlExtractor {
 		return crypto.randomUUID();
 	}
 
+	/**
+	 * Extracts source note wiki-link from frontmatter.
+	 */
 	private extractSource(frontmatter: Record<string, any>): string {
 		const source = frontmatter.source;
 		if (typeof source === 'string' && source.length > 0) {
@@ -68,6 +87,9 @@ export class YamlExtractor {
 		return '[[unknown]]';
 	}
 
+	/**
+	 * Extracts card status from frontmatter.
+	 */
 	private extractStatus(frontmatter: Record<string, any>): CardStatus {
 		const status = frontmatter.status;
 		if (typeof status === 'string' && Object.values(CardStatus).includes(status as CardStatus)) {
@@ -76,6 +98,9 @@ export class YamlExtractor {
 		return CardStatus.ACTIVE;
 	}
 
+	/**
+	 * Extracts and validates a timestamp from frontmatter.
+	 */
 	private extractTimestamp(frontmatter: Record<string, any>, field: string): string | null {
 		const value = frontmatter[field];
 		if (value === null || value === undefined) {
@@ -87,6 +112,9 @@ export class YamlExtractor {
 		return null;
 	}
 
+	/**
+	 * Orchestrates FSRS parameter extraction and validation.
+	 */
 	private extractAndValidateFSRS(frontmatter: Record<string, any>, warnings: string[]): FSRSStats {
 		const rawParams: Partial<FSRSStats> = {};
 
@@ -112,6 +140,13 @@ export class YamlExtractor {
 		return this.validateFSRS(rawParams, warnings);
 	}
 
+	/**
+	 * Validates and clamps FSRS parameters to allowed ranges.
+	 * 
+	 * @param rawParams Partially extracted FSRS parameters
+	 * @param warnings Array to collect validation warnings
+	 * @returns Validated FSRSStats object
+	 */
 	validateFSRS(rawParams: Partial<FSRSStats>, warnings: string[]): FSRSStats {
 		const params: FSRSStats = { ...DEFAULT_FSRS };
 
