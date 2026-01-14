@@ -33,4 +33,10 @@ export const ERROR_MESSAGES = {
 	OUT_OF_RANGE_PARAM: 'Parameter out of valid range',
 	LOCKED_FILE: 'File is locked or read-only',
 	CORRUPTED_INDEX: 'Index file is corrupted',
+	FILE_NOT_FOUND: 'Flashcard file not found',
+	INDEX_NOT_FOUND: 'Flashcard index not found',
+	SYNC_FAILED: 'Synchronization failed',
+	RECOVERY_FAILED: 'Index recovery failed',
+	PARSER_ERROR: 'Error parsing flashcard content',
+	CALCULATION_ERROR: 'Error in FSRS calculation',
 } as const;
