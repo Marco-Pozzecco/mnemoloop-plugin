@@ -2,16 +2,42 @@ import { App } from 'obsidian';
 import { MetadataCache } from '../cache/MetadataCache';
 import { IIndexManager } from '../contracts/IIndexManager';
 import { CardMetadata, CardMetadataSchema, Index, IndexSchema } from '../schema/indexSchema';
+import { CardStatus } from '@/core/parser';
+import { v4 as uuidV4 } from 'uuid';
 
 export class IndexManager implements IIndexManager {
+	static instance: IndexManager;
 	private app: App;
 	private cache: MetadataCache;
 	private version: number = 1;
+	private last_updated: Date = new Date();
 	private readonly INDEX_FILE = 'knowledge-accelerator/index.json';
 
 	constructor(app: App) {
 		this.app = app;
 		this.cache = new MetadataCache();
+	}
+
+	static getInstance(app: App): IndexManager {
+		if (!this.instance) {
+			this.instance = new IndexManager(app);
+		}
+		return this.instance;
+	}
+
+	get index() {
+		const index: Index = {
+			version: this.version,
+			cards: this.getAllCards().reduce(
+				(acc, card) => {
+					acc[card.uuid] = card;
+					return acc;
+				},
+				{} as Record<string, CardMetadata>,
+			),
+			last_updated: this.last_updated.toISOString(),
+		};
+		return index;
 	}
 
 	async load(): Promise<void> {
@@ -32,9 +58,11 @@ export class IndexManager implements IIndexManager {
 				}
 
 				this.cache.load(validatedIndex.cards);
+				this.version = validatedIndex.version;
+				this.last_updated = new Date(validatedIndex.last_updated);
 			} else {
 				// Create empty index
-				await this.save();
+				return await this.save();
 			}
 		} catch (error) {
 			console.error('Failed to load index:', error);
@@ -61,6 +89,7 @@ export class IndexManager implements IIndexManager {
 
 			const index: Index = {
 				version: this.version,
+				last_updated: new Date().toISOString(),
 				cards: Object.fromEntries(this.cache.getAll()) as Record<string, CardMetadata>,
 			};
 
@@ -68,6 +97,8 @@ export class IndexManager implements IIndexManager {
 			await adapter.write(this.INDEX_FILE, JSON.stringify(validatedIndex, null, 2));
 
 			this.cache.markClean();
+			this.version = validatedIndex.version;
+			this.last_updated = new Date(validatedIndex.last_updated);
 		} catch (error) {
 			console.error('Failed to save index:', error);
 			throw new Error(
@@ -89,6 +120,7 @@ export class IndexManager implements IIndexManager {
 		};
 		const validatedCard = CardMetadataSchema.parse(updatedCard);
 		this.cache.set(id, validatedCard);
+		this.last_updated = new Date();
 	}
 
 	deleteCard(id: string): void {
@@ -102,6 +134,7 @@ export class IndexManager implements IIndexManager {
 			};
 			const validatedCard = CardMetadataSchema.parse(deletedCard);
 			this.cache.set(id, validatedCard);
+			this.last_updated = new Date();
 		}
 	}
 
@@ -128,9 +161,10 @@ export class IndexManager implements IIndexManager {
 						if (metadata) {
 							const cardId = this.generateCardId(file);
 							const cardData: CardMetadata = {
+								uuid: uuidV4(),
 								file,
 								source: metadata.source || '',
-								status: 'ACTIVE',
+								status: CardStatus.ACTIVE,
 								created: metadata.created || new Date().toISOString(),
 								updated: new Date().toISOString(),
 								deleted_at: null,
