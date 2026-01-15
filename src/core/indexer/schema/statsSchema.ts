@@ -10,7 +10,8 @@ export const StatisticsSummarySchema = z.object({
 export const StatsSchema = z.object({
 	version: z.number().int().positive(),
 	summary: StatisticsSummarySchema,
-	last_updated: z.string().datetime(),
+	last_updated: z.iso.datetime(),
+	history: z.record(z.iso.datetime('YY-MM-DD'), z.any()),
 });
 
 export type StatisticsSummary = z.infer<typeof StatisticsSummarySchema>;

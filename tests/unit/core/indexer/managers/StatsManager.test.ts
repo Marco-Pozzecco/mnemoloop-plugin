@@ -94,7 +94,7 @@ describe('StatsManager', () => {
 
 		await statsManager.load();
 
-		const summary = statsManager.getSummary();
+		const summary = statsManager.statistics.summary;
 		expect(summary.retention_rate).toBe(0.5);
 		expect(summary.total_learned).toBe(2);
 	});
@@ -121,9 +121,9 @@ describe('StatsManager', () => {
 		mockAdapter.write.mockResolvedValue(undefined);
 
 		await statsManager.load();
-		statsManager.recordReview('card-1', 4, true);
+		statsManager.recordReview('card-1', 4);
 
-		const summary = statsManager.getSummary();
+		const summary = statsManager.statistics.summary;
 		expect(summary).toBeDefined();
 	});
 
@@ -142,7 +142,7 @@ describe('StatsManager', () => {
 
 		statsManager.recomputeAll(index);
 
-		const summary = statsManager.getSummary();
+		const summary = statsManager.statistics.summary;
 		expect(summary.retention_rate).toBe(0.5); // 1 mature card out of 2 reviewed
 		expect(summary.total_learned).toBe(2);
 		expect(summary.difficulty_dist).toEqual({ '3': 1, '7': 1 });
