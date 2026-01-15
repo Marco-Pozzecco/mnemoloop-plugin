@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { StatsManager } from '@/core/indexer/managers/StatsManager';
 import { CardMetadata } from '@/core/indexer/schema/indexSchema';
 import { App } from 'obsidian';
+import { CardStatus } from '@/core';
+import { v4 as uuidv4 } from 'uuid';
 
 // Mock Obsidian App
 const mockApp = {
@@ -25,9 +27,10 @@ describe('StatsManager', () => {
 
 		mockCards = [
 			{
+				uuid: uuidv4(),
 				file: 'test1.md',
 				source: 'Test Note 1',
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
 				created: '2024-01-01T00:00:00.000Z',
 				updated: '2024-01-01T00:00:00.000Z',
 				deleted_at: null,
@@ -41,9 +44,10 @@ describe('StatsManager', () => {
 				},
 			},
 			{
+				uuid: uuidv4(),
 				file: 'test2.md',
 				source: 'Test Note 2',
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
 				created: '2024-01-01T00:00:00.000Z',
 				updated: '2024-01-01T00:00:00.000Z',
 				deleted_at: null,

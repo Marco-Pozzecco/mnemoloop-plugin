@@ -9,6 +9,7 @@ import {
 } from './contracts/IVaultWatcher';
 import { EventQueue } from './EventQueue';
 import { Logger } from '@/utils/Logger';
+import { CardStatus } from '@/core';
 
 export class VaultWatcher implements IVaultWatcher {
 	private app: App;
@@ -193,19 +194,21 @@ export class VaultWatcher implements IVaultWatcher {
 		}
 		for (const card of affectedCards) {
 			const cardId = this.generateCardId(card.file);
-			this.indexManager.upsertCard(cardId, { status: 'STALE' });
+			this.indexManager.upsertCard(cardId, { status: CardStatus.STALE });
 		}
 	}
 
 	private async handleDelete(event: IVaultEvent): Promise<void> {
 		const affectedCards = this.indexManager.findCardsBySource(event.filePath);
 		if (affectedCards.length > 0) {
-			Logger.info(`Marking ${affectedCards.length} card(s) as ${this.config.enableSoftDelete ? 'soft deleted' : 'DELETED'} for source: ${event.filePath}`);
+			Logger.info(
+				`Marking ${affectedCards.length} card(s) as ${this.config.enableSoftDelete ? 'soft deleted' : 'DELETED'} for source: ${event.filePath}`,
+			);
 		}
 		for (const card of affectedCards) {
 			const cardId = this.generateCardId(card.file);
 			this.indexManager.upsertCard(cardId, {
-				status: 'DELETED',
+				status: CardStatus.DELETED,
 				deleted_at: this.config.enableSoftDelete ? new Date().toISOString() : undefined,
 			});
 		}
@@ -216,7 +219,9 @@ export class VaultWatcher implements IVaultWatcher {
 
 		const affectedCards = this.indexManager.findCardsBySource(event.oldPath);
 		if (affectedCards.length > 0) {
-			Logger.info(`Updating source path for ${affectedCards.length} card(s): ${event.oldPath} -> ${event.filePath}`);
+			Logger.info(
+				`Updating source path for ${affectedCards.length} card(s): ${event.oldPath} -> ${event.filePath}`,
+			);
 		}
 		for (const card of affectedCards) {
 			const cardId = this.generateCardId(card.file);
