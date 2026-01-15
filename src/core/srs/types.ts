@@ -1,12 +1,13 @@
 import { State } from 'ts-fsrs';
+import { Flashcard } from '../parser';
 
 export { State as FSRSState };
 
 export enum CardRating {
-	AGAIN = 'Again',
-	HARD = 'Hard',
-	GOOD = 'Good',
-	EASY = 'Easy',
+	AGAIN,
+	HARD,
+	GOOD,
+	EASY,
 }
 
 export interface FSRSStats {
@@ -48,7 +49,7 @@ export interface FsrsCalculationResult {
 
 export interface DueQueue {
 	totalDue: number;
-	cards: any[];
+	cards: Flashcard[];
 }
 
 export interface DueQueueFilter {
