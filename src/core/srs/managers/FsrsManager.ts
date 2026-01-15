@@ -1,24 +1,21 @@
-import { FsrsController } from './FsrsController';
-import { Flashcard } from '../parser/types';
-import { FsrsCalculationInput, CardRating } from './types';
+import { FsrsEngine } from '../engines/FsrsEngine';
+import { Flashcard } from '../../parser/types';
+import { FsrsCalculationInput, CardRating } from '../types';
 
 /**
  * Service for scheduling the next review of a flashcard.
  * Orchestrates the calculation of FSRS parameters and updates the flashcard object.
  */
 export class FsrsScheduler {
-	private fsrsController: FsrsController;
+	private engine: FsrsEngine;
 
-	/**
-	 * @param fsrsController Controller for FSRS algorithm calculations
-	 */
-	constructor(fsrsController?: FsrsController) {
-		this.fsrsController = fsrsController || new FsrsController();
+	constructor() {
+		this.engine = new FsrsEngine();
 	}
 
 	/**
 	 * Calculates and applies the next review schedule for a flashcard based on user rating.
-	 * 
+	 *
 	 * @param card Flashcard to update
 	 * @param rating User rating (Again, Hard, Good, Easy)
 	 * @param reviewTime Optional override for review timestamp
@@ -31,18 +28,11 @@ export class FsrsScheduler {
 			review_time: reviewTime,
 		};
 
-		const result = this.fsrsController.calculate(input);
+		const result = this.engine.calculate(input);
 
 		card.srs = result.updated_params;
 		card.updated = reviewTime || new Date().toISOString();
 
 		return card;
-	}
-
-	/**
-	 * Returns the underlying FSRS controller.
-	 */
-	getFsrsController(): FsrsController {
-		return this.fsrsController;
 	}
 }

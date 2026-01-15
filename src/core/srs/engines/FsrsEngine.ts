@@ -5,7 +5,7 @@ import {
 	FSRSStats,
 	FsrsCalculationInput,
 	FsrsCalculationResult,
-} from './types';
+} from '../types';
 
 import { ERROR_MESSAGES } from '@/utils/constants';
 
@@ -13,7 +13,7 @@ import { ERROR_MESSAGES } from '@/utils/constants';
  * Wrapper for the ts-fsrs library.
  * Handles calculation of spaced repetition parameters using the FSRS algorithm.
  */
-export class FsrsController {
+export class FsrsEngine {
 	private fsrs: FSRS;
 
 	constructor() {
@@ -22,7 +22,7 @@ export class FsrsController {
 
 	/**
 	 * Calculates updated FSRS parameters based on a user rating.
-	 * 
+	 *
 	 * @param input FSRS calculation input (current params, rating, review time)
 	 * @returns Updated FSRS parameters and interval in days
 	 */

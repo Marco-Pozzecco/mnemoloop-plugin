@@ -1,27 +1,36 @@
-import { DueQueue, DueQueueFilter, DEFAULT_FILTER } from './types';
-import { Index } from '../sync/types';
-import { CardStatus, Flashcard } from '../parser/types';
+import { IndexManager } from '@/core/indexer';
+import { App } from 'obsidian';
+import { CardStatus, Flashcard } from '../../parser/types';
+import { DEFAULT_FILTER, DueQueue, DueQueueFilter } from '../types';
 
 /**
  * Generator for daily flashcard review queues.
  * Filters and sorts cards from the index based on due dates and status.
  */
-export class DueQueueGenerator {
-	private index: Index;
+export class DueQueueManager {
+	static instance: DueQueueManager;
+	private indexManager: IndexManager;
 	private cachedQueue: DueQueue | null = null;
 	private lastFilter: string = '';
 
 	/**
 	 * @param index The flashcard index containing all card metadata
 	 */
-	constructor(index: Index) {
-		this.index = index;
+	constructor(app: App) {
+		this.indexManager = IndexManager.getInstance(app);
+	}
+
+	static getInstance(app: App): DueQueueManager {
+		if (!DueQueueManager.instance) {
+			DueQueueManager.instance = new DueQueueManager(app);
+		}
+		return DueQueueManager.instance;
 	}
 
 	/**
 	 * Generates a queue of cards due for review.
 	 * Results are cached until the index changes or a different filter is used.
-	 * 
+	 *
 	 * @param filter Options for filtering the due queue
 	 * @returns A sorted DueQueue containing cards due for review
 	 */
@@ -34,9 +43,10 @@ export class DueQueueGenerator {
 		const now = new Date();
 		const cards: Flashcard[] = [];
 		const cardTimestamps = new Map<string, number>();
+		const index = this.indexManager.index;
 
-		for (const uuid in this.index.cards) {
-			const card = this.index.cards[uuid] as Flashcard;
+		for (const uuid in index.cards) {
+			const card = index.cards[uuid] as Flashcard;
 
 			if (this.shouldInclude(card, filter, now)) {
 				cards.push(card);
@@ -96,8 +106,9 @@ export class DueQueueGenerator {
 
 	private filterByStatus(status: CardStatus): Flashcard[] {
 		const result: Flashcard[] = [];
-		for (const uuid in this.index.cards) {
-			const card = this.index.cards[uuid] as Flashcard;
+		const index = this.indexManager.index;
+		for (const uuid in index.cards) {
+			const card = index.cards[uuid] as Flashcard;
 			if (card.status === status) {
 				result.push(card);
 			}
@@ -120,11 +131,12 @@ export class DueQueueGenerator {
 		}
 
 		// ACTIVE cards (and others if included by filter) must be due
-		if (card.status === CardStatus.ACTIVE || 
+		if (
+			card.status === CardStatus.ACTIVE ||
 			(card.status === CardStatus.STALE && filter.include_stale) ||
 			(card.status === CardStatus.PAUSED && filter.include_paused) ||
-			(card.status === CardStatus.DELETED && filter.include_deleted)) {
-			
+			(card.status === CardStatus.DELETED && filter.include_deleted)
+		) {
 			const nextReview = new Date(card.srs.next_review);
 			return nextReview <= now;
 		}
