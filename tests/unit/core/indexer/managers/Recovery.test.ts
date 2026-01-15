@@ -154,7 +154,7 @@ srs: {"stability": 0, "difficulty": 5, "state": 0, "last_review": null, "next_re
 		const index = { 'card-1': mockCard };
 		statsManager.recomputeAll(index);
 
-		const summary = statsManager.getSummary();
+		const summary = statsManager.statistics.summary;
 		expect(summary.total_learned).toBe(0); // state 0 is not considered learned
 		expect(summary.difficulty_dist).toEqual({ 5: 1 });
 	});

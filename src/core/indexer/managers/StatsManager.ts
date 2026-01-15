@@ -1,7 +1,7 @@
 import { App } from 'obsidian';
 import { IStatsManager } from '../contracts/IStatsManager';
-import { StatsSchema, Stats, StatisticsSummary } from '../schema/statsSchema';
 import { CardMetadata } from '../schema/indexSchema';
+import { Stats, StatsSchema } from '../schema/statsSchema';
 import { StatisticsEngine } from '../statistics/StatisticsEngine';
 
 export class StatsManager implements IStatsManager {
@@ -16,6 +16,10 @@ export class StatsManager implements IStatsManager {
 		this.app = app;
 		this.engine = new StatisticsEngine();
 		this.stats = this.createEmptyStats();
+	}
+
+	get statistics(): Stats {
+		return this.stats;
 	}
 
 	static getInstance(app: App): StatsManager {
@@ -80,15 +84,11 @@ export class StatsManager implements IStatsManager {
 		}
 	}
 
-	recordReview(cardId: string, rating: number, success: boolean): void {
-		Object.values([{ cardId, rating, success }]); // to be deleted
-		// In a real implementation, this would update the review history
-		// For now, we just mark the stats as needing recomputation
-		this.stats.last_updated = new Date().toISOString();
-	}
-
-	getSummary(): StatisticsSummary {
-		return { ...this.stats.summary };
+	recordReview(cardId: string, rating: number): void {
+		this.stats.history[new Date().toISOString().slice(0, 10)] = {
+			cardUuid: cardId,
+			rating,
+		};
 	}
 
 	recomputeAll(index: Record<string, CardMetadata>): void {
@@ -108,6 +108,7 @@ export class StatsManager implements IStatsManager {
 				due_today: 0,
 			},
 			last_updated: new Date().toISOString(),
+			history: {},
 		};
 	}
 }

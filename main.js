@@ -33,13 +33,6376 @@ __export(main_exports, {
   default: () => KnowledgeAcceleratorPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian2 = require("obsidian");
+var import_obsidian11 = require("obsidian");
 
 // src/core/plugin/types.ts
 var DEFAULT_PLUGIN_SETTINGS = {
   flashcardsDirectory: "Flashcards/",
   reviewIntervals: [1, 3, 7, 14, 30],
   baseEase: 2.5
+};
+
+// src/obsidian/SettingsTab.ts
+var import_obsidian4 = require("obsidian");
+
+// node_modules/svelte/src/runtime/internal/utils.js
+function noop() {
+}
+function assign(tar, src) {
+  for (const k in src)
+    tar[k] = src[k];
+  return (
+    /** @type {T & S} */
+    tar
+  );
+}
+function run(fn) {
+  return fn();
+}
+function blank_object() {
+  return /* @__PURE__ */ Object.create(null);
+}
+function run_all(fns) {
+  fns.forEach(run);
+}
+function is_function(thing) {
+  return typeof thing === "function";
+}
+function safe_not_equal(a, b) {
+  return a != a ? b == b : a !== b || a && typeof a === "object" || typeof a === "function";
+}
+function is_empty(obj) {
+  return Object.keys(obj).length === 0;
+}
+function subscribe(store, ...callbacks) {
+  if (store == null) {
+    for (const callback of callbacks) {
+      callback(void 0);
+    }
+    return noop;
+  }
+  const unsub = store.subscribe(...callbacks);
+  return unsub.unsubscribe ? () => unsub.unsubscribe() : unsub;
+}
+function get_store_value(store) {
+  let value;
+  subscribe(store, (_) => value = _)();
+  return value;
+}
+function component_subscribe(component, store, callback) {
+  component.$$.on_destroy.push(subscribe(store, callback));
+}
+function create_slot(definition, ctx, $$scope, fn) {
+  if (definition) {
+    const slot_ctx = get_slot_context(definition, ctx, $$scope, fn);
+    return definition[0](slot_ctx);
+  }
+}
+function get_slot_context(definition, ctx, $$scope, fn) {
+  return definition[1] && fn ? assign($$scope.ctx.slice(), definition[1](fn(ctx))) : $$scope.ctx;
+}
+function get_slot_changes(definition, $$scope, dirty, fn) {
+  if (definition[2] && fn) {
+    const lets = definition[2](fn(dirty));
+    if ($$scope.dirty === void 0) {
+      return lets;
+    }
+    if (typeof lets === "object") {
+      const merged = [];
+      const len = Math.max($$scope.dirty.length, lets.length);
+      for (let i = 0; i < len; i += 1) {
+        merged[i] = $$scope.dirty[i] | lets[i];
+      }
+      return merged;
+    }
+    return $$scope.dirty | lets;
+  }
+  return $$scope.dirty;
+}
+function update_slot_base(slot, slot_definition, ctx, $$scope, slot_changes, get_slot_context_fn) {
+  if (slot_changes) {
+    const slot_context = get_slot_context(slot_definition, ctx, $$scope, get_slot_context_fn);
+    slot.p(slot_context, slot_changes);
+  }
+}
+function get_all_dirty_from_scope($$scope) {
+  if ($$scope.ctx.length > 32) {
+    const dirty = [];
+    const length = $$scope.ctx.length / 32;
+    for (let i = 0; i < length; i++) {
+      dirty[i] = -1;
+    }
+    return dirty;
+  }
+  return -1;
+}
+function action_destroyer(action_result) {
+  return action_result && is_function(action_result.destroy) ? action_result.destroy : noop;
+}
+
+// node_modules/svelte/src/runtime/internal/globals.js
+var globals = typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : (
+  // @ts-ignore Node typings have this
+  global
+);
+
+// node_modules/svelte/src/runtime/internal/ResizeObserverSingleton.js
+var ResizeObserverSingleton = class _ResizeObserverSingleton {
+  /** @param {ResizeObserverOptions} options */
+  constructor(options) {
+    /**
+     * @private
+     * @readonly
+     * @type {WeakMap<Element, import('./private.js').Listener>}
+     */
+    __publicField(this, "_listeners", "WeakMap" in globals ? /* @__PURE__ */ new WeakMap() : void 0);
+    /**
+     * @private
+     * @type {ResizeObserver}
+     */
+    __publicField(this, "_observer");
+    /** @type {ResizeObserverOptions} */
+    __publicField(this, "options");
+    this.options = options;
+  }
+  /**
+   * @param {Element} element
+   * @param {import('./private.js').Listener} listener
+   * @returns {() => void}
+   */
+  observe(element2, listener) {
+    this._listeners.set(element2, listener);
+    this._getObserver().observe(element2, this.options);
+    return () => {
+      this._listeners.delete(element2);
+      this._observer.unobserve(element2);
+    };
+  }
+  /**
+   * @private
+   */
+  _getObserver() {
+    var _a3;
+    return (_a3 = this._observer) != null ? _a3 : this._observer = new ResizeObserver((entries) => {
+      var _a4;
+      for (const entry of entries) {
+        _ResizeObserverSingleton.entries.set(entry.target, entry);
+        (_a4 = this._listeners.get(entry.target)) == null ? void 0 : _a4(entry);
+      }
+    });
+  }
+};
+ResizeObserverSingleton.entries = "WeakMap" in globals ? /* @__PURE__ */ new WeakMap() : void 0;
+
+// node_modules/svelte/src/runtime/internal/dom.js
+var is_hydrating = false;
+function start_hydrating() {
+  is_hydrating = true;
+}
+function end_hydrating() {
+  is_hydrating = false;
+}
+function append(target, node) {
+  target.appendChild(node);
+}
+function insert(target, node, anchor) {
+  target.insertBefore(node, anchor || null);
+}
+function detach(node) {
+  if (node.parentNode) {
+    node.parentNode.removeChild(node);
+  }
+}
+function destroy_each(iterations, detaching) {
+  for (let i = 0; i < iterations.length; i += 1) {
+    if (iterations[i])
+      iterations[i].d(detaching);
+  }
+}
+function element(name) {
+  return document.createElement(name);
+}
+function svg_element(name) {
+  return document.createElementNS("http://www.w3.org/2000/svg", name);
+}
+function text(data) {
+  return document.createTextNode(data);
+}
+function space() {
+  return text(" ");
+}
+function empty() {
+  return text("");
+}
+function listen(node, event, handler, options) {
+  node.addEventListener(event, handler, options);
+  return () => node.removeEventListener(event, handler, options);
+}
+function attr(node, attribute, value) {
+  if (value == null)
+    node.removeAttribute(attribute);
+  else if (node.getAttribute(attribute) !== value)
+    node.setAttribute(attribute, value);
+}
+function children(element2) {
+  return Array.from(element2.childNodes);
+}
+function set_data(text2, data) {
+  data = "" + data;
+  if (text2.data === data)
+    return;
+  text2.data = /** @type {string} */
+  data;
+}
+function set_input_value(input, value) {
+  input.value = value == null ? "" : value;
+}
+function set_style(node, key, value, important) {
+  if (value == null) {
+    node.style.removeProperty(key);
+  } else {
+    node.style.setProperty(key, value, important ? "important" : "");
+  }
+}
+function toggle_class(element2, name, toggle) {
+  element2.classList.toggle(name, !!toggle);
+}
+function custom_event(type, detail, { bubbles = false, cancelable = false } = {}) {
+  return new CustomEvent(type, { detail, bubbles, cancelable });
+}
+function get_custom_elements_slots(element2) {
+  const result = {};
+  element2.childNodes.forEach(
+    /** @param {Element} node */
+    (node) => {
+      result[node.slot || "default"] = true;
+    }
+  );
+  return result;
+}
+
+// node_modules/svelte/src/runtime/internal/lifecycle.js
+var current_component;
+function set_current_component(component) {
+  current_component = component;
+}
+function get_current_component() {
+  if (!current_component)
+    throw new Error("Function called outside component initialization");
+  return current_component;
+}
+function onMount(fn) {
+  get_current_component().$$.on_mount.push(fn);
+}
+function afterUpdate(fn) {
+  get_current_component().$$.after_update.push(fn);
+}
+function onDestroy(fn) {
+  get_current_component().$$.on_destroy.push(fn);
+}
+function createEventDispatcher() {
+  const component = get_current_component();
+  return (type, detail, { cancelable = false } = {}) => {
+    const callbacks = component.$$.callbacks[type];
+    if (callbacks) {
+      const event = custom_event(
+        /** @type {string} */
+        type,
+        detail,
+        { cancelable }
+      );
+      callbacks.slice().forEach((fn) => {
+        fn.call(component, event);
+      });
+      return !event.defaultPrevented;
+    }
+    return true;
+  };
+}
+
+// node_modules/svelte/src/runtime/internal/scheduler.js
+var dirty_components = [];
+var binding_callbacks = [];
+var render_callbacks = [];
+var flush_callbacks = [];
+var resolved_promise = /* @__PURE__ */ Promise.resolve();
+var update_scheduled = false;
+function schedule_update() {
+  if (!update_scheduled) {
+    update_scheduled = true;
+    resolved_promise.then(flush);
+  }
+}
+function add_render_callback(fn) {
+  render_callbacks.push(fn);
+}
+var seen_callbacks = /* @__PURE__ */ new Set();
+var flushidx = 0;
+function flush() {
+  if (flushidx !== 0) {
+    return;
+  }
+  const saved_component = current_component;
+  do {
+    try {
+      while (flushidx < dirty_components.length) {
+        const component = dirty_components[flushidx];
+        flushidx++;
+        set_current_component(component);
+        update(component.$$);
+      }
+    } catch (e) {
+      dirty_components.length = 0;
+      flushidx = 0;
+      throw e;
+    }
+    set_current_component(null);
+    dirty_components.length = 0;
+    flushidx = 0;
+    while (binding_callbacks.length)
+      binding_callbacks.pop()();
+    for (let i = 0; i < render_callbacks.length; i += 1) {
+      const callback = render_callbacks[i];
+      if (!seen_callbacks.has(callback)) {
+        seen_callbacks.add(callback);
+        callback();
+      }
+    }
+    render_callbacks.length = 0;
+  } while (dirty_components.length);
+  while (flush_callbacks.length) {
+    flush_callbacks.pop()();
+  }
+  update_scheduled = false;
+  seen_callbacks.clear();
+  set_current_component(saved_component);
+}
+function update($$) {
+  if ($$.fragment !== null) {
+    $$.update();
+    run_all($$.before_update);
+    const dirty = $$.dirty;
+    $$.dirty = [-1];
+    $$.fragment && $$.fragment.p($$.ctx, dirty);
+    $$.after_update.forEach(add_render_callback);
+  }
+}
+function flush_render_callbacks(fns) {
+  const filtered = [];
+  const targets = [];
+  render_callbacks.forEach((c) => fns.indexOf(c) === -1 ? filtered.push(c) : targets.push(c));
+  targets.forEach((c) => c());
+  render_callbacks = filtered;
+}
+
+// node_modules/svelte/src/runtime/internal/transitions.js
+var outroing = /* @__PURE__ */ new Set();
+var outros;
+function group_outros() {
+  outros = {
+    r: 0,
+    c: [],
+    p: outros
+    // parent group
+  };
+}
+function check_outros() {
+  if (!outros.r) {
+    run_all(outros.c);
+  }
+  outros = outros.p;
+}
+function transition_in(block, local) {
+  if (block && block.i) {
+    outroing.delete(block);
+    block.i(local);
+  }
+}
+function transition_out(block, local, detach2, callback) {
+  if (block && block.o) {
+    if (outroing.has(block))
+      return;
+    outroing.add(block);
+    outros.c.push(() => {
+      outroing.delete(block);
+      if (callback) {
+        if (detach2)
+          block.d(1);
+        callback();
+      }
+    });
+    block.o(local);
+  } else if (callback) {
+    callback();
+  }
+}
+
+// node_modules/svelte/src/runtime/internal/each.js
+function ensure_array_like(array_like_or_iterator) {
+  return (array_like_or_iterator == null ? void 0 : array_like_or_iterator.length) !== void 0 ? array_like_or_iterator : Array.from(array_like_or_iterator);
+}
+
+// node_modules/svelte/src/shared/boolean_attributes.js
+var _boolean_attributes = (
+  /** @type {const} */
+  [
+    "allowfullscreen",
+    "allowpaymentrequest",
+    "async",
+    "autofocus",
+    "autoplay",
+    "checked",
+    "controls",
+    "default",
+    "defer",
+    "disabled",
+    "formnovalidate",
+    "hidden",
+    "inert",
+    "ismap",
+    "loop",
+    "multiple",
+    "muted",
+    "nomodule",
+    "novalidate",
+    "open",
+    "playsinline",
+    "readonly",
+    "required",
+    "reversed",
+    "selected"
+  ]
+);
+var boolean_attributes = /* @__PURE__ */ new Set([..._boolean_attributes]);
+
+// node_modules/svelte/src/runtime/internal/Component.js
+function create_component(block) {
+  block && block.c();
+}
+function mount_component(component, target, anchor) {
+  const { fragment, after_update } = component.$$;
+  fragment && fragment.m(target, anchor);
+  add_render_callback(() => {
+    const new_on_destroy = component.$$.on_mount.map(run).filter(is_function);
+    if (component.$$.on_destroy) {
+      component.$$.on_destroy.push(...new_on_destroy);
+    } else {
+      run_all(new_on_destroy);
+    }
+    component.$$.on_mount = [];
+  });
+  after_update.forEach(add_render_callback);
+}
+function destroy_component(component, detaching) {
+  const $$ = component.$$;
+  if ($$.fragment !== null) {
+    flush_render_callbacks($$.after_update);
+    run_all($$.on_destroy);
+    $$.fragment && $$.fragment.d(detaching);
+    $$.on_destroy = $$.fragment = null;
+    $$.ctx = [];
+  }
+}
+function make_dirty(component, i) {
+  if (component.$$.dirty[0] === -1) {
+    dirty_components.push(component);
+    schedule_update();
+    component.$$.dirty.fill(0);
+  }
+  component.$$.dirty[i / 31 | 0] |= 1 << i % 31;
+}
+function init(component, options, instance17, create_fragment17, not_equal, props, append_styles = null, dirty = [-1]) {
+  const parent_component = current_component;
+  set_current_component(component);
+  const $$ = component.$$ = {
+    fragment: null,
+    ctx: [],
+    // state
+    props,
+    update: noop,
+    not_equal,
+    bound: blank_object(),
+    // lifecycle
+    on_mount: [],
+    on_destroy: [],
+    on_disconnect: [],
+    before_update: [],
+    after_update: [],
+    context: new Map(options.context || (parent_component ? parent_component.$$.context : [])),
+    // everything else
+    callbacks: blank_object(),
+    dirty,
+    skip_bound: false,
+    root: options.target || parent_component.$$.root
+  };
+  append_styles && append_styles($$.root);
+  let ready = false;
+  $$.ctx = instance17 ? instance17(component, options.props || {}, (i, ret, ...rest) => {
+    const value = rest.length ? rest[0] : ret;
+    if ($$.ctx && not_equal($$.ctx[i], $$.ctx[i] = value)) {
+      if (!$$.skip_bound && $$.bound[i])
+        $$.bound[i](value);
+      if (ready)
+        make_dirty(component, i);
+    }
+    return ret;
+  }) : [];
+  $$.update();
+  ready = true;
+  run_all($$.before_update);
+  $$.fragment = create_fragment17 ? create_fragment17($$.ctx) : false;
+  if (options.target) {
+    if (options.hydrate) {
+      start_hydrating();
+      const nodes = children(options.target);
+      $$.fragment && $$.fragment.l(nodes);
+      nodes.forEach(detach);
+    } else {
+      $$.fragment && $$.fragment.c();
+    }
+    if (options.intro)
+      transition_in(component.$$.fragment);
+    mount_component(component, options.target, options.anchor);
+    end_hydrating();
+    flush();
+  }
+  set_current_component(parent_component);
+}
+var SvelteElement;
+if (typeof HTMLElement === "function") {
+  SvelteElement = class extends HTMLElement {
+    constructor($$componentCtor, $$slots, use_shadow_dom) {
+      super();
+      /** The Svelte component constructor */
+      __publicField(this, "$$ctor");
+      /** Slots */
+      __publicField(this, "$$s");
+      /** The Svelte component instance */
+      __publicField(this, "$$c");
+      /** Whether or not the custom element is connected */
+      __publicField(this, "$$cn", false);
+      /** Component props data */
+      __publicField(this, "$$d", {});
+      /** `true` if currently in the process of reflecting component props back to attributes */
+      __publicField(this, "$$r", false);
+      /** @type {Record<string, CustomElementPropDefinition>} Props definition (name, reflected, type etc) */
+      __publicField(this, "$$p_d", {});
+      /** @type {Record<string, Function[]>} Event listeners */
+      __publicField(this, "$$l", {});
+      /** @type {Map<Function, Function>} Event listener unsubscribe functions */
+      __publicField(this, "$$l_u", /* @__PURE__ */ new Map());
+      this.$$ctor = $$componentCtor;
+      this.$$s = $$slots;
+      if (use_shadow_dom) {
+        this.attachShadow({ mode: "open" });
+      }
+    }
+    addEventListener(type, listener, options) {
+      this.$$l[type] = this.$$l[type] || [];
+      this.$$l[type].push(listener);
+      if (this.$$c) {
+        const unsub = this.$$c.$on(type, listener);
+        this.$$l_u.set(listener, unsub);
+      }
+      super.addEventListener(type, listener, options);
+    }
+    removeEventListener(type, listener, options) {
+      super.removeEventListener(type, listener, options);
+      if (this.$$c) {
+        const unsub = this.$$l_u.get(listener);
+        if (unsub) {
+          unsub();
+          this.$$l_u.delete(listener);
+        }
+      }
+      if (this.$$l[type]) {
+        const idx = this.$$l[type].indexOf(listener);
+        if (idx >= 0) {
+          this.$$l[type].splice(idx, 1);
+        }
+      }
+    }
+    async connectedCallback() {
+      this.$$cn = true;
+      if (!this.$$c) {
+        let create_slot2 = function(name) {
+          return () => {
+            let node;
+            const obj = {
+              c: function create() {
+                node = element("slot");
+                if (name !== "default") {
+                  attr(node, "name", name);
+                }
+              },
+              /**
+               * @param {HTMLElement} target
+               * @param {HTMLElement} [anchor]
+               */
+              m: function mount(target, anchor) {
+                insert(target, node, anchor);
+              },
+              d: function destroy(detaching) {
+                if (detaching) {
+                  detach(node);
+                }
+              }
+            };
+            return obj;
+          };
+        };
+        await Promise.resolve();
+        if (!this.$$cn || this.$$c) {
+          return;
+        }
+        const $$slots = {};
+        const existing_slots = get_custom_elements_slots(this);
+        for (const name of this.$$s) {
+          if (name in existing_slots) {
+            $$slots[name] = [create_slot2(name)];
+          }
+        }
+        for (const attribute of this.attributes) {
+          const name = this.$$g_p(attribute.name);
+          if (!(name in this.$$d)) {
+            this.$$d[name] = get_custom_element_value(name, attribute.value, this.$$p_d, "toProp");
+          }
+        }
+        for (const key in this.$$p_d) {
+          if (!(key in this.$$d) && this[key] !== void 0) {
+            this.$$d[key] = this[key];
+            delete this[key];
+          }
+        }
+        this.$$c = new this.$$ctor({
+          target: this.shadowRoot || this,
+          props: {
+            ...this.$$d,
+            $$slots,
+            $$scope: {
+              ctx: []
+            }
+          }
+        });
+        const reflect_attributes = () => {
+          this.$$r = true;
+          for (const key in this.$$p_d) {
+            this.$$d[key] = this.$$c.$$.ctx[this.$$c.$$.props[key]];
+            if (this.$$p_d[key].reflect) {
+              const attribute_value = get_custom_element_value(
+                key,
+                this.$$d[key],
+                this.$$p_d,
+                "toAttribute"
+              );
+              if (attribute_value == null) {
+                this.removeAttribute(this.$$p_d[key].attribute || key);
+              } else {
+                this.setAttribute(this.$$p_d[key].attribute || key, attribute_value);
+              }
+            }
+          }
+          this.$$r = false;
+        };
+        this.$$c.$$.after_update.push(reflect_attributes);
+        reflect_attributes();
+        for (const type in this.$$l) {
+          for (const listener of this.$$l[type]) {
+            const unsub = this.$$c.$on(type, listener);
+            this.$$l_u.set(listener, unsub);
+          }
+        }
+        this.$$l = {};
+      }
+    }
+    // We don't need this when working within Svelte code, but for compatibility of people using this outside of Svelte
+    // and setting attributes through setAttribute etc, this is helpful
+    attributeChangedCallback(attr2, _oldValue, newValue) {
+      var _a3;
+      if (this.$$r)
+        return;
+      attr2 = this.$$g_p(attr2);
+      this.$$d[attr2] = get_custom_element_value(attr2, newValue, this.$$p_d, "toProp");
+      (_a3 = this.$$c) == null ? void 0 : _a3.$set({ [attr2]: this.$$d[attr2] });
+    }
+    disconnectedCallback() {
+      this.$$cn = false;
+      Promise.resolve().then(() => {
+        if (!this.$$cn && this.$$c) {
+          this.$$c.$destroy();
+          this.$$c = void 0;
+        }
+      });
+    }
+    $$g_p(attribute_name) {
+      return Object.keys(this.$$p_d).find(
+        (key) => this.$$p_d[key].attribute === attribute_name || !this.$$p_d[key].attribute && key.toLowerCase() === attribute_name
+      ) || attribute_name;
+    }
+  };
+}
+function get_custom_element_value(prop, value, props_definition, transform2) {
+  var _a3;
+  const type = (_a3 = props_definition[prop]) == null ? void 0 : _a3.type;
+  value = type === "Boolean" && typeof value !== "boolean" ? value != null : value;
+  if (!transform2 || !props_definition[prop]) {
+    return value;
+  } else if (transform2 === "toAttribute") {
+    switch (type) {
+      case "Object":
+      case "Array":
+        return value == null ? null : JSON.stringify(value);
+      case "Boolean":
+        return value ? "" : null;
+      case "Number":
+        return value == null ? null : value;
+      default:
+        return value;
+    }
+  } else {
+    switch (type) {
+      case "Object":
+      case "Array":
+        return value && JSON.parse(value);
+      case "Boolean":
+        return value;
+      case "Number":
+        return value != null ? +value : value;
+      default:
+        return value;
+    }
+  }
+}
+var SvelteComponent = class {
+  constructor() {
+    /**
+     * ### PRIVATE API
+     *
+     * Do not use, may change at any time
+     *
+     * @type {any}
+     */
+    __publicField(this, "$$");
+    /**
+     * ### PRIVATE API
+     *
+     * Do not use, may change at any time
+     *
+     * @type {any}
+     */
+    __publicField(this, "$$set");
+  }
+  /** @returns {void} */
+  $destroy() {
+    destroy_component(this, 1);
+    this.$destroy = noop;
+  }
+  /**
+   * @template {Extract<keyof Events, string>} K
+   * @param {K} type
+   * @param {((e: Events[K]) => void) | null | undefined} callback
+   * @returns {() => void}
+   */
+  $on(type, callback) {
+    if (!is_function(callback)) {
+      return noop;
+    }
+    const callbacks = this.$$.callbacks[type] || (this.$$.callbacks[type] = []);
+    callbacks.push(callback);
+    return () => {
+      const index = callbacks.indexOf(callback);
+      if (index !== -1)
+        callbacks.splice(index, 1);
+    };
+  }
+  /**
+   * @param {Partial<Props>} props
+   * @returns {void}
+   */
+  $set(props) {
+    if (this.$$set && !is_empty(props)) {
+      this.$$.skip_bound = true;
+      this.$$set(props);
+      this.$$.skip_bound = false;
+    }
+  }
+};
+
+// node_modules/svelte/src/shared/version.js
+var PUBLIC_VERSION = "4";
+
+// node_modules/svelte/src/runtime/internal/disclose-version/index.js
+if (typeof window !== "undefined")
+  (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
+
+// node_modules/svelte/src/runtime/store/index.js
+var subscriber_queue = [];
+function readable(value, start) {
+  return {
+    subscribe: writable(value, start).subscribe
+  };
+}
+function writable(value, start = noop) {
+  let stop;
+  const subscribers = /* @__PURE__ */ new Set();
+  function set2(new_value) {
+    if (safe_not_equal(value, new_value)) {
+      value = new_value;
+      if (stop) {
+        const run_queue = !subscriber_queue.length;
+        for (const subscriber of subscribers) {
+          subscriber[1]();
+          subscriber_queue.push(subscriber, value);
+        }
+        if (run_queue) {
+          for (let i = 0; i < subscriber_queue.length; i += 2) {
+            subscriber_queue[i][0](subscriber_queue[i + 1]);
+          }
+          subscriber_queue.length = 0;
+        }
+      }
+    }
+  }
+  function update2(fn) {
+    set2(fn(value));
+  }
+  function subscribe2(run2, invalidate = noop) {
+    const subscriber = [run2, invalidate];
+    subscribers.add(subscriber);
+    if (subscribers.size === 1) {
+      stop = start(set2, update2) || noop;
+    }
+    run2(value);
+    return () => {
+      subscribers.delete(subscriber);
+      if (subscribers.size === 0 && stop) {
+        stop();
+        stop = null;
+      }
+    };
+  }
+  return { set: set2, update: update2, subscribe: subscribe2 };
+}
+function derived(stores, fn, initial_value) {
+  const single = !Array.isArray(stores);
+  const stores_array = single ? [stores] : stores;
+  if (!stores_array.every(Boolean)) {
+    throw new Error("derived() expects stores as input, got a falsy value");
+  }
+  const auto = fn.length < 2;
+  return readable(initial_value, (set2, update2) => {
+    let started = false;
+    const values = [];
+    let pending = 0;
+    let cleanup = noop;
+    const sync = () => {
+      if (pending) {
+        return;
+      }
+      cleanup();
+      const result = fn(single ? values[0] : values, set2, update2);
+      if (auto) {
+        set2(result);
+      } else {
+        cleanup = is_function(result) ? result : noop;
+      }
+    };
+    const unsubscribers = stores_array.map(
+      (store, i) => subscribe(
+        store,
+        (value) => {
+          values[i] = value;
+          pending &= ~(1 << i);
+          if (started) {
+            sync();
+          }
+        },
+        () => {
+          pending |= 1 << i;
+        }
+      )
+    );
+    started = true;
+    sync();
+    return function stop() {
+      run_all(unsubscribers);
+      cleanup();
+      started = false;
+    };
+  });
+}
+
+// src/ui/stores/SettingsStore.ts
+var DEFAULT_STATE = {
+  settings: {
+    flashcardsDirectory: "/flashcards/",
+    watchDirectories: ["/"],
+    watchTags: [],
+    ignoredDirectories: [".obsidian"],
+    debounceTimeoutMs: 1e3,
+    enableSoftDelete: true,
+    softDeleteHours: 24,
+    commandShortcuts: {}
+  },
+  isLoading: false,
+  hasChanges: false,
+  validationErrors: {}
+};
+var SettingsStore = class {
+  constructor(options) {
+    __publicField(this, "_state");
+    __publicField(this, "settingsManager");
+    __publicField(this, "initialSettings");
+    this.settingsManager = options.settingsManager;
+    this.initialSettings = { ...options.settingsManager.getSettings() };
+    this._state = writable({
+      ...DEFAULT_STATE,
+      settings: { ...this.initialSettings }
+    });
+  }
+  subscribe(run2) {
+    return this._state.subscribe(run2);
+  }
+  get settings() {
+    return derived(this._state, ($s) => $s.settings);
+  }
+  get isLoading() {
+    return derived(this._state, ($s) => $s.isLoading);
+  }
+  get hasChanges() {
+    return derived(this._state, ($s) => $s.hasChanges);
+  }
+  get validationErrors() {
+    return derived(this._state, ($s) => $s.validationErrors);
+  }
+  async updateSettings(updates) {
+    this._state.update((state) => ({
+      ...state,
+      isLoading: true
+    }));
+    try {
+      const currentSettings = get_store_value(this._state).settings;
+      const newSettings = {
+        ...currentSettings,
+        ...updates
+      };
+      const validatedSettings = this.settingsManager.validateSettings(newSettings);
+      await this.settingsManager.updateSettings(updates);
+      this._state.update((state) => ({
+        ...state,
+        settings: validatedSettings,
+        hasChanges: false,
+        validationErrors: {},
+        isLoading: false
+      }));
+      this.initialSettings = { ...validatedSettings };
+    } catch (error48) {
+      this._state.update((state) => ({
+        ...state,
+        isLoading: false
+      }));
+      throw error48;
+    }
+  }
+  setPendingChanges(updates) {
+    this._state.update((state) => {
+      const newSettings = {
+        ...state.settings,
+        ...updates
+      };
+      const hasChanges = JSON.stringify(newSettings) !== JSON.stringify(this.initialSettings);
+      return {
+        ...state,
+        settings: newSettings,
+        hasChanges
+      };
+    });
+  }
+  async resetToDefaults() {
+    this._state.update((state) => ({
+      ...state,
+      isLoading: true
+    }));
+    try {
+      await this.settingsManager.resetToDefaults();
+      const defaultSettings = this.settingsManager.getSettings();
+      this._state.update((state) => ({
+        ...state,
+        settings: { ...defaultSettings },
+        hasChanges: false,
+        validationErrors: {},
+        isLoading: false
+      }));
+      this.initialSettings = { ...defaultSettings };
+    } catch (error48) {
+      this._state.update((state) => ({
+        ...state,
+        isLoading: false
+      }));
+      throw error48;
+    }
+  }
+  discardChanges() {
+    this._state.update((state) => ({
+      ...state,
+      settings: { ...this.initialSettings },
+      hasChanges: false,
+      validationErrors: {}
+    }));
+  }
+  validateSetting(key, value) {
+    try {
+      const currentSettings = get_store_value(this._state).settings;
+      const testSettings = {
+        ...currentSettings,
+        [key]: value
+      };
+      this.settingsManager.validateSettings(testSettings);
+      this._state.update((state) => ({
+        ...state,
+        validationErrors: {
+          ...state.validationErrors,
+          [key]: ""
+        }
+      }));
+      return true;
+    } catch (error48) {
+      const errorMessage = error48 instanceof Error ? error48.message : "Invalid value";
+      this._state.update((state) => ({
+        ...state,
+        validationErrors: {
+          ...state.validationErrors,
+          [key]: errorMessage
+        }
+      }));
+      return false;
+    }
+  }
+  refresh() {
+    this.initialSettings = { ...this.settingsManager.getSettings() };
+    this._state.update((state) => ({
+      ...state,
+      settings: { ...this.initialSettings },
+      hasChanges: false,
+      validationErrors: {}
+    }));
+  }
+};
+
+// src/ui/components/common/Button.svelte
+function create_fragment(ctx) {
+  let button;
+  let button_class_value;
+  let button_aria_label_value;
+  let current;
+  let mounted;
+  let dispose;
+  const default_slot_template = (
+    /*#slots*/
+    ctx[9].default
+  );
+  const default_slot = create_slot(
+    default_slot_template,
+    ctx,
+    /*$$scope*/
+    ctx[8],
+    null
+  );
+  return {
+    c() {
+      button = element("button");
+      if (default_slot)
+        default_slot.c();
+      attr(
+        button,
+        "type",
+        /*type*/
+        ctx[4]
+      );
+      attr(button, "class", button_class_value = "ka-button ka-button--" + /*variant*/
+      ctx[0] + " ka-button--" + /*size*/
+      ctx[1] + " " + /*className*/
+      ctx[6] + " svelte-o30iue");
+      button.disabled = /*disabled*/
+      ctx[2];
+      attr(
+        button,
+        "title",
+        /*title*/
+        ctx[5]
+      );
+      attr(button, "aria-label", button_aria_label_value = /*ariaLabel*/
+      ctx[3] || /*title*/
+      ctx[5]);
+    },
+    m(target, anchor) {
+      insert(target, button, anchor);
+      if (default_slot) {
+        default_slot.m(button, null);
+      }
+      current = true;
+      if (!mounted) {
+        dispose = listen(
+          button,
+          "click",
+          /*handleClick*/
+          ctx[7]
+        );
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (default_slot) {
+        if (default_slot.p && (!current || dirty & /*$$scope*/
+        256)) {
+          update_slot_base(
+            default_slot,
+            default_slot_template,
+            ctx2,
+            /*$$scope*/
+            ctx2[8],
+            !current ? get_all_dirty_from_scope(
+              /*$$scope*/
+              ctx2[8]
+            ) : get_slot_changes(
+              default_slot_template,
+              /*$$scope*/
+              ctx2[8],
+              dirty,
+              null
+            ),
+            null
+          );
+        }
+      }
+      if (!current || dirty & /*type*/
+      16) {
+        attr(
+          button,
+          "type",
+          /*type*/
+          ctx2[4]
+        );
+      }
+      if (!current || dirty & /*variant, size, className*/
+      67 && button_class_value !== (button_class_value = "ka-button ka-button--" + /*variant*/
+      ctx2[0] + " ka-button--" + /*size*/
+      ctx2[1] + " " + /*className*/
+      ctx2[6] + " svelte-o30iue")) {
+        attr(button, "class", button_class_value);
+      }
+      if (!current || dirty & /*disabled*/
+      4) {
+        button.disabled = /*disabled*/
+        ctx2[2];
+      }
+      if (!current || dirty & /*title*/
+      32) {
+        attr(
+          button,
+          "title",
+          /*title*/
+          ctx2[5]
+        );
+      }
+      if (!current || dirty & /*ariaLabel, title*/
+      40 && button_aria_label_value !== (button_aria_label_value = /*ariaLabel*/
+      ctx2[3] || /*title*/
+      ctx2[5])) {
+        attr(button, "aria-label", button_aria_label_value);
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(default_slot, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(default_slot, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(button);
+      }
+      if (default_slot)
+        default_slot.d(detaching);
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function instance($$self, $$props, $$invalidate) {
+  let { $$slots: slots = {}, $$scope } = $$props;
+  let { variant = "secondary" } = $$props;
+  let { size = "medium" } = $$props;
+  let { disabled = false } = $$props;
+  let { ariaLabel = void 0 } = $$props;
+  let { type = "button" } = $$props;
+  let { title = void 0 } = $$props;
+  let { class: className = "" } = $$props;
+  const dispatch = createEventDispatcher();
+  function handleClick(event) {
+    if (!disabled) {
+      dispatch("click", event);
+    }
+  }
+  $$self.$$set = ($$props2) => {
+    if ("variant" in $$props2)
+      $$invalidate(0, variant = $$props2.variant);
+    if ("size" in $$props2)
+      $$invalidate(1, size = $$props2.size);
+    if ("disabled" in $$props2)
+      $$invalidate(2, disabled = $$props2.disabled);
+    if ("ariaLabel" in $$props2)
+      $$invalidate(3, ariaLabel = $$props2.ariaLabel);
+    if ("type" in $$props2)
+      $$invalidate(4, type = $$props2.type);
+    if ("title" in $$props2)
+      $$invalidate(5, title = $$props2.title);
+    if ("class" in $$props2)
+      $$invalidate(6, className = $$props2.class);
+    if ("$$scope" in $$props2)
+      $$invalidate(8, $$scope = $$props2.$$scope);
+  };
+  return [
+    variant,
+    size,
+    disabled,
+    ariaLabel,
+    type,
+    title,
+    className,
+    handleClick,
+    $$scope,
+    slots
+  ];
+}
+var Button = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance, create_fragment, safe_not_equal, {
+      variant: 0,
+      size: 1,
+      disabled: 2,
+      ariaLabel: 3,
+      type: 4,
+      title: 5,
+      class: 6
+    });
+  }
+};
+var Button_default = Button;
+
+// src/ui/components/common/ProgressBar.svelte
+function create_if_block(ctx) {
+  let span;
+  let t0_value = Math.round(
+    /*percentage*/
+    ctx[6]
+  ) + "";
+  let t0;
+  let t1;
+  return {
+    c() {
+      span = element("span");
+      t0 = text(t0_value);
+      t1 = text("%");
+      attr(span, "class", "ka-progress-label svelte-bj0cw6");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t0);
+      append(span, t1);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*percentage*/
+      64 && t0_value !== (t0_value = Math.round(
+        /*percentage*/
+        ctx2[6]
+      ) + ""))
+        set_data(t0, t0_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_fragment2(ctx) {
+  let div2;
+  let div1;
+  let div0;
+  let t;
+  let div2_class_value;
+  let div2_aria_valuenow_value;
+  let if_block = (
+    /*showPercentage*/
+    ctx[4] && !/*indeterminate*/
+    ctx[2] && create_if_block(ctx)
+  );
+  return {
+    c() {
+      div2 = element("div");
+      div1 = element("div");
+      div0 = element("div");
+      t = space();
+      if (if_block)
+        if_block.c();
+      attr(div0, "class", "ka-progress-fill svelte-bj0cw6");
+      toggle_class(
+        div0,
+        "ka-progress-fill--indeterminate",
+        /*indeterminate*/
+        ctx[2]
+      );
+      set_style(
+        div0,
+        "width",
+        /*indeterminate*/
+        ctx[2] ? "100%" : `${/*percentage*/
+        ctx[6]}%`
+      );
+      attr(div1, "class", "ka-progress-track svelte-bj0cw6");
+      attr(div2, "class", div2_class_value = "ka-progress-container " + /*className*/
+      ctx[5] + " svelte-bj0cw6");
+      attr(div2, "role", "progressbar");
+      attr(
+        div2,
+        "aria-label",
+        /*ariaLabel*/
+        ctx[3]
+      );
+      attr(div2, "aria-valuemin", "0");
+      attr(
+        div2,
+        "aria-valuemax",
+        /*max*/
+        ctx[1]
+      );
+      attr(div2, "aria-valuenow", div2_aria_valuenow_value = /*indeterminate*/
+      ctx[2] ? void 0 : (
+        /*value*/
+        ctx[0]
+      ));
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, div1);
+      append(div1, div0);
+      append(div2, t);
+      if (if_block)
+        if_block.m(div2, null);
+    },
+    p(ctx2, [dirty]) {
+      if (dirty & /*indeterminate*/
+      4) {
+        toggle_class(
+          div0,
+          "ka-progress-fill--indeterminate",
+          /*indeterminate*/
+          ctx2[2]
+        );
+      }
+      if (dirty & /*indeterminate, percentage*/
+      68) {
+        set_style(
+          div0,
+          "width",
+          /*indeterminate*/
+          ctx2[2] ? "100%" : `${/*percentage*/
+          ctx2[6]}%`
+        );
+      }
+      if (
+        /*showPercentage*/
+        ctx2[4] && !/*indeterminate*/
+        ctx2[2]
+      ) {
+        if (if_block) {
+          if_block.p(ctx2, dirty);
+        } else {
+          if_block = create_if_block(ctx2);
+          if_block.c();
+          if_block.m(div2, null);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+      if (dirty & /*className*/
+      32 && div2_class_value !== (div2_class_value = "ka-progress-container " + /*className*/
+      ctx2[5] + " svelte-bj0cw6")) {
+        attr(div2, "class", div2_class_value);
+      }
+      if (dirty & /*ariaLabel*/
+      8) {
+        attr(
+          div2,
+          "aria-label",
+          /*ariaLabel*/
+          ctx2[3]
+        );
+      }
+      if (dirty & /*max*/
+      2) {
+        attr(
+          div2,
+          "aria-valuemax",
+          /*max*/
+          ctx2[1]
+        );
+      }
+      if (dirty & /*indeterminate, value*/
+      5 && div2_aria_valuenow_value !== (div2_aria_valuenow_value = /*indeterminate*/
+      ctx2[2] ? void 0 : (
+        /*value*/
+        ctx2[0]
+      ))) {
+        attr(div2, "aria-valuenow", div2_aria_valuenow_value);
+      }
+    },
+    i: noop,
+    o: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      if (if_block)
+        if_block.d();
+    }
+  };
+}
+function instance2($$self, $$props, $$invalidate) {
+  let percentage;
+  let { value = 0 } = $$props;
+  let { max = 100 } = $$props;
+  let { indeterminate = false } = $$props;
+  let { ariaLabel = "Progress" } = $$props;
+  let { showPercentage = false } = $$props;
+  let { class: className = "" } = $$props;
+  $$self.$$set = ($$props2) => {
+    if ("value" in $$props2)
+      $$invalidate(0, value = $$props2.value);
+    if ("max" in $$props2)
+      $$invalidate(1, max = $$props2.max);
+    if ("indeterminate" in $$props2)
+      $$invalidate(2, indeterminate = $$props2.indeterminate);
+    if ("ariaLabel" in $$props2)
+      $$invalidate(3, ariaLabel = $$props2.ariaLabel);
+    if ("showPercentage" in $$props2)
+      $$invalidate(4, showPercentage = $$props2.showPercentage);
+    if ("class" in $$props2)
+      $$invalidate(5, className = $$props2.class);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*value, max*/
+    3) {
+      $:
+        $$invalidate(6, percentage = Math.min(Math.max(0, value / max * 100), 100));
+    }
+  };
+  return [value, max, indeterminate, ariaLabel, showPercentage, className, percentage];
+}
+var ProgressBar = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance2, create_fragment2, safe_not_equal, {
+      value: 0,
+      max: 1,
+      indeterminate: 2,
+      ariaLabel: 3,
+      showPercentage: 4,
+      class: 5
+    });
+  }
+};
+var ProgressBar_default = ProgressBar;
+
+// src/ui/components/common/Icon.svelte
+var import_obsidian = require("obsidian");
+function create_fragment3(ctx) {
+  let span;
+  let span_class_value;
+  let iconAction_action;
+  let mounted;
+  let dispose;
+  return {
+    c() {
+      span = element("span");
+      attr(span, "class", span_class_value = "ka-icon " + /*className*/
+      ctx[2] + " svelte-1028f6k");
+      set_style(
+        span,
+        "--icon-size",
+        /*size*/
+        ctx[1] + "px"
+      );
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      if (!mounted) {
+        dispose = action_destroyer(iconAction_action = /*iconAction*/
+        ctx[3].call(
+          null,
+          span,
+          /*name*/
+          ctx[0]
+        ));
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (dirty & /*className*/
+      4 && span_class_value !== (span_class_value = "ka-icon " + /*className*/
+      ctx2[2] + " svelte-1028f6k")) {
+        attr(span, "class", span_class_value);
+      }
+      if (dirty & /*size*/
+      2) {
+        set_style(
+          span,
+          "--icon-size",
+          /*size*/
+          ctx2[1] + "px"
+        );
+      }
+      if (iconAction_action && is_function(iconAction_action.update) && dirty & /*name*/
+      1)
+        iconAction_action.update.call(
+          null,
+          /*name*/
+          ctx2[0]
+        );
+    },
+    i: noop,
+    o: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function instance3($$self, $$props, $$invalidate) {
+  let { name } = $$props;
+  let { size = 16 } = $$props;
+  let { class: className = "" } = $$props;
+  function iconAction(node, iconName) {
+    (0, import_obsidian.setIcon)(node, iconName);
+    const svg = node.querySelector("svg");
+    if (svg) {
+      svg.setAttribute("width", size.toString());
+      svg.setAttribute("height", size.toString());
+    }
+    return {
+      update(newIconName) {
+        (0, import_obsidian.setIcon)(node, newIconName);
+        const newSvg = node.querySelector("svg");
+        if (newSvg) {
+          newSvg.setAttribute("width", size.toString());
+          newSvg.setAttribute("height", size.toString());
+        }
+      }
+    };
+  }
+  $$self.$$set = ($$props2) => {
+    if ("name" in $$props2)
+      $$invalidate(0, name = $$props2.name);
+    if ("size" in $$props2)
+      $$invalidate(1, size = $$props2.size);
+    if ("class" in $$props2)
+      $$invalidate(2, className = $$props2.class);
+  };
+  return [name, size, className, iconAction];
+}
+var Icon = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance3, create_fragment3, safe_not_equal, { name: 0, size: 1, class: 2 });
+  }
+};
+var Icon_default = Icon;
+
+// src/ui/settings/components/TextSetting.svelte
+function create_if_block_1(ctx) {
+  let p;
+  let t;
+  return {
+    c() {
+      p = element("p");
+      t = text(
+        /*description*/
+        ctx[1]
+      );
+      attr(p, "class", "ka-text-setting__description svelte-mlxxr2");
+    },
+    m(target, anchor) {
+      insert(target, p, anchor);
+      append(p, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*description*/
+      2)
+        set_data(
+          t,
+          /*description*/
+          ctx2[1]
+        );
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(p);
+      }
+    }
+  };
+}
+function create_if_block2(ctx) {
+  let div;
+  let icon;
+  let t0;
+  let span;
+  let t1;
+  let current;
+  icon = new Icon_default({
+    props: { name: "alert-circle", size: 14 }
+  });
+  return {
+    c() {
+      div = element("div");
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      t1 = text(
+        /*validationError*/
+        ctx[4]
+      );
+      attr(div, "class", "ka-text-setting__error svelte-mlxxr2");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(icon, div, null);
+      append(div, t0);
+      append(div, span);
+      append(span, t1);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      if (!current || dirty & /*validationError*/
+      16)
+        set_data(
+          t1,
+          /*validationError*/
+          ctx2[4]
+        );
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+    }
+  };
+}
+function create_fragment4(ctx) {
+  let div1;
+  let label_1;
+  let t0;
+  let t1;
+  let t2;
+  let div0;
+  let input;
+  let t3;
+  let current;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*description*/
+    ctx[1] && create_if_block_1(ctx)
+  );
+  let if_block1 = (
+    /*validationError*/
+    ctx[4] && create_if_block2(ctx)
+  );
+  return {
+    c() {
+      div1 = element("div");
+      label_1 = element("label");
+      t0 = text(
+        /*label*/
+        ctx[0]
+      );
+      t1 = space();
+      if (if_block0)
+        if_block0.c();
+      t2 = space();
+      div0 = element("div");
+      input = element("input");
+      t3 = space();
+      if (if_block1)
+        if_block1.c();
+      attr(
+        label_1,
+        "for",
+        /*label*/
+        ctx[0]
+      );
+      attr(label_1, "class", "ka-text-setting__label svelte-mlxxr2");
+      attr(
+        input,
+        "id",
+        /*label*/
+        ctx[0]
+      );
+      attr(input, "type", "text");
+      attr(input, "class", "ka-text-setting__input svelte-mlxxr2");
+      attr(
+        input,
+        "placeholder",
+        /*placeholder*/
+        ctx[3]
+      );
+      input.value = /*value*/
+      ctx[2];
+      toggle_class(
+        input,
+        "has-error",
+        /*validationError*/
+        ctx[4]
+      );
+      attr(div0, "class", "ka-text-setting__input-wrapper svelte-mlxxr2");
+      attr(div1, "class", "ka-text-setting svelte-mlxxr2");
+    },
+    m(target, anchor) {
+      insert(target, div1, anchor);
+      append(div1, label_1);
+      append(label_1, t0);
+      append(div1, t1);
+      if (if_block0)
+        if_block0.m(div1, null);
+      append(div1, t2);
+      append(div1, div0);
+      append(div0, input);
+      append(div1, t3);
+      if (if_block1)
+        if_block1.m(div1, null);
+      current = true;
+      if (!mounted) {
+        dispose = [
+          listen(
+            input,
+            "input",
+            /*handleInput*/
+            ctx[5]
+          ),
+          listen(
+            input,
+            "change",
+            /*handleChange*/
+            ctx[6]
+          ),
+          listen(input, "keydown", keydown_handler)
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (!current || dirty & /*label*/
+      1)
+        set_data(
+          t0,
+          /*label*/
+          ctx2[0]
+        );
+      if (!current || dirty & /*label*/
+      1) {
+        attr(
+          label_1,
+          "for",
+          /*label*/
+          ctx2[0]
+        );
+      }
+      if (
+        /*description*/
+        ctx2[1]
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_1(ctx2);
+          if_block0.c();
+          if_block0.m(div1, t2);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (!current || dirty & /*label*/
+      1) {
+        attr(
+          input,
+          "id",
+          /*label*/
+          ctx2[0]
+        );
+      }
+      if (!current || dirty & /*placeholder*/
+      8) {
+        attr(
+          input,
+          "placeholder",
+          /*placeholder*/
+          ctx2[3]
+        );
+      }
+      if (!current || dirty & /*value*/
+      4 && input.value !== /*value*/
+      ctx2[2]) {
+        input.value = /*value*/
+        ctx2[2];
+      }
+      if (!current || dirty & /*validationError*/
+      16) {
+        toggle_class(
+          input,
+          "has-error",
+          /*validationError*/
+          ctx2[4]
+        );
+      }
+      if (
+        /*validationError*/
+        ctx2[4]
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+          if (dirty & /*validationError*/
+          16) {
+            transition_in(if_block1, 1);
+          }
+        } else {
+          if_block1 = create_if_block2(ctx2);
+          if_block1.c();
+          transition_in(if_block1, 1);
+          if_block1.m(div1, null);
+        }
+      } else if (if_block1) {
+        group_outros();
+        transition_out(if_block1, 1, 1, () => {
+          if_block1 = null;
+        });
+        check_outros();
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(if_block1);
+      current = true;
+    },
+    o(local) {
+      transition_out(if_block1);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div1);
+      }
+      if (if_block0)
+        if_block0.d();
+      if (if_block1)
+        if_block1.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+var keydown_handler = (e) => {
+  if (e.key === "Enter") {
+    e.currentTarget.blur();
+  }
+};
+function instance4($$self, $$props, $$invalidate) {
+  let { label } = $$props;
+  let { description = "" } = $$props;
+  let { value = "" } = $$props;
+  let { placeholder = "" } = $$props;
+  let { validationError = void 0 } = $$props;
+  const dispatch = createEventDispatcher();
+  let inputValue = value;
+  function handleInput(event) {
+    const target = event.target;
+    inputValue = target.value;
+  }
+  function handleChange() {
+    dispatch("update", inputValue);
+  }
+  $$self.$$set = ($$props2) => {
+    if ("label" in $$props2)
+      $$invalidate(0, label = $$props2.label);
+    if ("description" in $$props2)
+      $$invalidate(1, description = $$props2.description);
+    if ("value" in $$props2)
+      $$invalidate(2, value = $$props2.value);
+    if ("placeholder" in $$props2)
+      $$invalidate(3, placeholder = $$props2.placeholder);
+    if ("validationError" in $$props2)
+      $$invalidate(4, validationError = $$props2.validationError);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*value*/
+    4) {
+      $:
+        inputValue = value;
+    }
+  };
+  return [
+    label,
+    description,
+    value,
+    placeholder,
+    validationError,
+    handleInput,
+    handleChange
+  ];
+}
+var TextSetting = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance4, create_fragment4, safe_not_equal, {
+      label: 0,
+      description: 1,
+      value: 2,
+      placeholder: 3,
+      validationError: 4
+    });
+  }
+};
+var TextSetting_default = TextSetting;
+
+// src/ui/settings/components/ArraySetting.svelte
+function get_each_context(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[14] = list[i];
+  child_ctx[16] = i;
+  return child_ctx;
+}
+function create_if_block_12(ctx) {
+  let p;
+  let t;
+  return {
+    c() {
+      p = element("p");
+      t = text(
+        /*description*/
+        ctx[1]
+      );
+      attr(p, "class", "ka-array-setting__description svelte-1vdydov");
+    },
+    m(target, anchor) {
+      insert(target, p, anchor);
+      append(p, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*description*/
+      2)
+        set_data(
+          t,
+          /*description*/
+          ctx2[1]
+        );
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(p);
+      }
+    }
+  };
+}
+function create_else_block(ctx) {
+  let div;
+  let icon;
+  let t0;
+  let span;
+  let t2;
+  let current;
+  icon = new Icon_default({ props: { name: "folder-open", size: 24 } });
+  return {
+    c() {
+      div = element("div");
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      span.textContent = "No items added";
+      t2 = space();
+      attr(div, "class", "ka-array-setting__empty svelte-1vdydov");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(icon, div, null);
+      append(div, t0);
+      append(div, span);
+      append(div, t2);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+    }
+  };
+}
+function create_each_block(ctx) {
+  let div;
+  let span;
+  let t0_value = (
+    /*value*/
+    ctx[14] + ""
+  );
+  let t0;
+  let t1;
+  let button;
+  let icon;
+  let button_aria_label_value;
+  let t2;
+  let current;
+  let mounted;
+  let dispose;
+  icon = new Icon_default({ props: { name: "x", size: 14 } });
+  function click_handler() {
+    return (
+      /*click_handler*/
+      ctx[10](
+        /*index*/
+        ctx[16]
+      )
+    );
+  }
+  return {
+    c() {
+      div = element("div");
+      span = element("span");
+      t0 = text(t0_value);
+      t1 = space();
+      button = element("button");
+      create_component(icon.$$.fragment);
+      t2 = space();
+      attr(span, "class", "ka-array-setting__item-text svelte-1vdydov");
+      attr(button, "class", "ka-array-setting__remove svelte-1vdydov");
+      attr(button, "aria-label", button_aria_label_value = "Remove " + /*value*/
+      ctx[14]);
+      attr(div, "class", "ka-array-setting__item svelte-1vdydov");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, span);
+      append(span, t0);
+      append(div, t1);
+      append(div, button);
+      mount_component(icon, button, null);
+      append(div, t2);
+      current = true;
+      if (!mounted) {
+        dispose = listen(button, "click", click_handler);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if ((!current || dirty & /*values*/
+      4) && t0_value !== (t0_value = /*value*/
+      ctx[14] + ""))
+        set_data(t0, t0_value);
+      if (!current || dirty & /*values*/
+      4 && button_aria_label_value !== (button_aria_label_value = "Remove " + /*value*/
+      ctx[14])) {
+        attr(button, "aria-label", button_aria_label_value);
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_default_slot(ctx) {
+  let icon;
+  let t;
+  let current;
+  icon = new Icon_default({ props: { name: "plus", size: 14 } });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+      t = text("\n      Add");
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      insert(target, t, anchor);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t);
+      }
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_if_block3(ctx) {
+  let div;
+  let icon;
+  let t0;
+  let span;
+  let t1;
+  let current;
+  icon = new Icon_default({
+    props: { name: "alert-circle", size: 14 }
+  });
+  return {
+    c() {
+      div = element("div");
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      t1 = text(
+        /*validationError*/
+        ctx[4]
+      );
+      attr(div, "class", "ka-array-setting__error svelte-1vdydov");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(icon, div, null);
+      append(div, t0);
+      append(div, span);
+      append(span, t1);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      if (!current || dirty & /*validationError*/
+      16)
+        set_data(
+          t1,
+          /*validationError*/
+          ctx2[4]
+        );
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+    }
+  };
+}
+function create_fragment5(ctx) {
+  let div2;
+  let label_1;
+  let t0;
+  let label_1_for_value;
+  let t1;
+  let t2;
+  let div0;
+  let t3;
+  let div1;
+  let input;
+  let input_id_value;
+  let t4;
+  let button;
+  let t5;
+  let current;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*description*/
+    ctx[1] && create_if_block_12(ctx)
+  );
+  let each_value = ensure_array_like(
+    /*values*/
+    ctx[2]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value.length; i += 1) {
+    each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+  }
+  const out = (i) => transition_out(each_blocks[i], 1, 1, () => {
+    each_blocks[i] = null;
+  });
+  let each_1_else = null;
+  if (!each_value.length) {
+    each_1_else = create_else_block(ctx);
+  }
+  button = new Button_default({
+    props: {
+      variant: "secondary",
+      size: "small",
+      disabled: !/*newInputValue*/
+      ctx[5].trim(),
+      $$slots: { default: [create_default_slot] },
+      $$scope: { ctx }
+    }
+  });
+  button.$on(
+    "click",
+    /*handleAdd*/
+    ctx[7]
+  );
+  let if_block1 = (
+    /*validationError*/
+    ctx[4] && create_if_block3(ctx)
+  );
+  return {
+    c() {
+      div2 = element("div");
+      label_1 = element("label");
+      t0 = text(
+        /*label*/
+        ctx[0]
+      );
+      t1 = space();
+      if (if_block0)
+        if_block0.c();
+      t2 = space();
+      div0 = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      if (each_1_else) {
+        each_1_else.c();
+      }
+      t3 = space();
+      div1 = element("div");
+      input = element("input");
+      t4 = space();
+      create_component(button.$$.fragment);
+      t5 = space();
+      if (if_block1)
+        if_block1.c();
+      attr(label_1, "for", label_1_for_value = `input-${/*label*/
+      ctx[0]}`);
+      attr(label_1, "class", "ka-array-setting__label svelte-1vdydov");
+      attr(div0, "class", "ka-array-setting__items svelte-1vdydov");
+      attr(input, "id", input_id_value = `input-${/*label*/
+      ctx[0]}`);
+      attr(input, "type", "text");
+      attr(input, "class", "ka-array-setting__input svelte-1vdydov");
+      attr(
+        input,
+        "placeholder",
+        /*placeholder*/
+        ctx[3]
+      );
+      attr(div1, "class", "ka-array-setting__input-wrapper svelte-1vdydov");
+      attr(div2, "class", "ka-array-setting svelte-1vdydov");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, label_1);
+      append(label_1, t0);
+      append(div2, t1);
+      if (if_block0)
+        if_block0.m(div2, null);
+      append(div2, t2);
+      append(div2, div0);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div0, null);
+        }
+      }
+      if (each_1_else) {
+        each_1_else.m(div0, null);
+      }
+      append(div2, t3);
+      append(div2, div1);
+      append(div1, input);
+      ctx[11](input);
+      set_input_value(
+        input,
+        /*newInputValue*/
+        ctx[5]
+      );
+      append(div1, t4);
+      mount_component(button, div1, null);
+      append(div2, t5);
+      if (if_block1)
+        if_block1.m(div2, null);
+      current = true;
+      if (!mounted) {
+        dispose = [
+          listen(
+            input,
+            "input",
+            /*input_input_handler*/
+            ctx[12]
+          ),
+          listen(
+            input,
+            "keydown",
+            /*handleKeyDown*/
+            ctx[9]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (!current || dirty & /*label*/
+      1)
+        set_data(
+          t0,
+          /*label*/
+          ctx2[0]
+        );
+      if (!current || dirty & /*label*/
+      1 && label_1_for_value !== (label_1_for_value = `input-${/*label*/
+      ctx2[0]}`)) {
+        attr(label_1, "for", label_1_for_value);
+      }
+      if (
+        /*description*/
+        ctx2[1]
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_12(ctx2);
+          if_block0.c();
+          if_block0.m(div2, t2);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (dirty & /*values, handleRemove*/
+      260) {
+        each_value = ensure_array_like(
+          /*values*/
+          ctx2[2]
+        );
+        let i;
+        for (i = 0; i < each_value.length; i += 1) {
+          const child_ctx = get_each_context(ctx2, each_value, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+            transition_in(each_blocks[i], 1);
+          } else {
+            each_blocks[i] = create_each_block(child_ctx);
+            each_blocks[i].c();
+            transition_in(each_blocks[i], 1);
+            each_blocks[i].m(div0, null);
+          }
+        }
+        group_outros();
+        for (i = each_value.length; i < each_blocks.length; i += 1) {
+          out(i);
+        }
+        check_outros();
+        if (!each_value.length && each_1_else) {
+          each_1_else.p(ctx2, dirty);
+        } else if (!each_value.length) {
+          each_1_else = create_else_block(ctx2);
+          each_1_else.c();
+          transition_in(each_1_else, 1);
+          each_1_else.m(div0, null);
+        } else if (each_1_else) {
+          group_outros();
+          transition_out(each_1_else, 1, 1, () => {
+            each_1_else = null;
+          });
+          check_outros();
+        }
+      }
+      if (!current || dirty & /*label*/
+      1 && input_id_value !== (input_id_value = `input-${/*label*/
+      ctx2[0]}`)) {
+        attr(input, "id", input_id_value);
+      }
+      if (!current || dirty & /*placeholder*/
+      8) {
+        attr(
+          input,
+          "placeholder",
+          /*placeholder*/
+          ctx2[3]
+        );
+      }
+      if (dirty & /*newInputValue*/
+      32 && input.value !== /*newInputValue*/
+      ctx2[5]) {
+        set_input_value(
+          input,
+          /*newInputValue*/
+          ctx2[5]
+        );
+      }
+      const button_changes = {};
+      if (dirty & /*newInputValue*/
+      32)
+        button_changes.disabled = !/*newInputValue*/
+        ctx2[5].trim();
+      if (dirty & /*$$scope*/
+      131072) {
+        button_changes.$$scope = { dirty, ctx: ctx2 };
+      }
+      button.$set(button_changes);
+      if (
+        /*validationError*/
+        ctx2[4]
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+          if (dirty & /*validationError*/
+          16) {
+            transition_in(if_block1, 1);
+          }
+        } else {
+          if_block1 = create_if_block3(ctx2);
+          if_block1.c();
+          transition_in(if_block1, 1);
+          if_block1.m(div2, null);
+        }
+      } else if (if_block1) {
+        group_outros();
+        transition_out(if_block1, 1, 1, () => {
+          if_block1 = null;
+        });
+        check_outros();
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      for (let i = 0; i < each_value.length; i += 1) {
+        transition_in(each_blocks[i]);
+      }
+      transition_in(button.$$.fragment, local);
+      transition_in(if_block1);
+      current = true;
+    },
+    o(local) {
+      each_blocks = each_blocks.filter(Boolean);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        transition_out(each_blocks[i]);
+      }
+      transition_out(button.$$.fragment, local);
+      transition_out(if_block1);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      if (if_block0)
+        if_block0.d();
+      destroy_each(each_blocks, detaching);
+      if (each_1_else)
+        each_1_else.d();
+      ctx[11](null);
+      destroy_component(button);
+      if (if_block1)
+        if_block1.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function instance5($$self, $$props, $$invalidate) {
+  let { label } = $$props;
+  let { description = "" } = $$props;
+  let { values = [] } = $$props;
+  let { placeholder = "Add item..." } = $$props;
+  let { validationError = void 0 } = $$props;
+  const dispatch = createEventDispatcher();
+  let newInputValue = "";
+  let inputElement;
+  function handleAdd() {
+    if (!newInputValue.trim())
+      return;
+    dispatch("add", newInputValue.trim());
+    $$invalidate(5, newInputValue = "");
+    if (inputElement) {
+      inputElement.focus();
+    }
+  }
+  function handleRemove(index) {
+    dispatch("remove", index);
+  }
+  function handleKeyDown(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleAdd();
+    }
+  }
+  const click_handler = (index) => handleRemove(index);
+  function input_binding($$value) {
+    binding_callbacks[$$value ? "unshift" : "push"](() => {
+      inputElement = $$value;
+      $$invalidate(6, inputElement);
+    });
+  }
+  function input_input_handler() {
+    newInputValue = this.value;
+    $$invalidate(5, newInputValue);
+  }
+  $$self.$$set = ($$props2) => {
+    if ("label" in $$props2)
+      $$invalidate(0, label = $$props2.label);
+    if ("description" in $$props2)
+      $$invalidate(1, description = $$props2.description);
+    if ("values" in $$props2)
+      $$invalidate(2, values = $$props2.values);
+    if ("placeholder" in $$props2)
+      $$invalidate(3, placeholder = $$props2.placeholder);
+    if ("validationError" in $$props2)
+      $$invalidate(4, validationError = $$props2.validationError);
+  };
+  return [
+    label,
+    description,
+    values,
+    placeholder,
+    validationError,
+    newInputValue,
+    inputElement,
+    handleAdd,
+    handleRemove,
+    handleKeyDown,
+    click_handler,
+    input_binding,
+    input_input_handler
+  ];
+}
+var ArraySetting = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance5, create_fragment5, safe_not_equal, {
+      label: 0,
+      description: 1,
+      values: 2,
+      placeholder: 3,
+      validationError: 4
+    });
+  }
+};
+var ArraySetting_default = ArraySetting;
+
+// src/ui/settings/components/TagSetting.svelte
+function get_each_context2(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[16] = list[i];
+  child_ctx[18] = i;
+  return child_ctx;
+}
+function create_if_block_2(ctx) {
+  let p;
+  let t;
+  return {
+    c() {
+      p = element("p");
+      t = text(
+        /*description*/
+        ctx[1]
+      );
+      attr(p, "class", "ka-tag-setting__description svelte-1jx3xkh");
+    },
+    m(target, anchor) {
+      insert(target, p, anchor);
+      append(p, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*description*/
+      2)
+        set_data(
+          t,
+          /*description*/
+          ctx2[1]
+        );
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(p);
+      }
+    }
+  };
+}
+function create_else_block2(ctx) {
+  let div;
+  let icon;
+  let t0;
+  let span;
+  let t2;
+  let current;
+  icon = new Icon_default({ props: { name: "tag", size: 24 } });
+  return {
+    c() {
+      div = element("div");
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      span.textContent = "No tags added";
+      t2 = space();
+      attr(div, "class", "ka-tag-setting__empty svelte-1jx3xkh");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(icon, div, null);
+      append(div, t0);
+      append(div, span);
+      append(div, t2);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+    }
+  };
+}
+function create_each_block2(ctx) {
+  let div;
+  let span;
+  let t0_value = (
+    /*tag*/
+    ctx[16] + ""
+  );
+  let t0;
+  let t1;
+  let button;
+  let icon;
+  let button_aria_label_value;
+  let t2;
+  let current;
+  let mounted;
+  let dispose;
+  icon = new Icon_default({ props: { name: "x", size: 14 } });
+  function click_handler() {
+    return (
+      /*click_handler*/
+      ctx[12](
+        /*index*/
+        ctx[18]
+      )
+    );
+  }
+  return {
+    c() {
+      div = element("div");
+      span = element("span");
+      t0 = text(t0_value);
+      t1 = space();
+      button = element("button");
+      create_component(icon.$$.fragment);
+      t2 = space();
+      attr(span, "class", "ka-tag-setting__tag-text svelte-1jx3xkh");
+      attr(button, "class", "ka-tag-setting__remove svelte-1jx3xkh");
+      attr(button, "aria-label", button_aria_label_value = "Remove " + /*tag*/
+      ctx[16]);
+      attr(div, "class", "ka-tag-setting__tag svelte-1jx3xkh");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, span);
+      append(span, t0);
+      append(div, t1);
+      append(div, button);
+      mount_component(icon, button, null);
+      append(div, t2);
+      current = true;
+      if (!mounted) {
+        dispose = listen(button, "click", click_handler);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if ((!current || dirty & /*tags*/
+      4) && t0_value !== (t0_value = /*tag*/
+      ctx[16] + ""))
+        set_data(t0, t0_value);
+      if (!current || dirty & /*tags*/
+      4 && button_aria_label_value !== (button_aria_label_value = "Remove " + /*tag*/
+      ctx[16])) {
+        attr(button, "aria-label", button_aria_label_value);
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_default_slot2(ctx) {
+  let icon;
+  let t;
+  let current;
+  icon = new Icon_default({ props: { name: "plus", size: 14 } });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+      t = text("\n      Add");
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      insert(target, t, anchor);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t);
+      }
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_if_block_13(ctx) {
+  let div;
+  let icon;
+  let t0;
+  let span;
+  let t1;
+  let current;
+  icon = new Icon_default({
+    props: { name: "alert-circle", size: 14 }
+  });
+  return {
+    c() {
+      div = element("div");
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      t1 = text(
+        /*tagError*/
+        ctx[7]
+      );
+      attr(div, "class", "ka-tag-setting__error svelte-1jx3xkh");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(icon, div, null);
+      append(div, t0);
+      append(div, span);
+      append(span, t1);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      if (!current || dirty & /*tagError*/
+      128)
+        set_data(
+          t1,
+          /*tagError*/
+          ctx2[7]
+        );
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+    }
+  };
+}
+function create_if_block4(ctx) {
+  let div;
+  let icon;
+  let t0;
+  let span;
+  let t1;
+  let current;
+  icon = new Icon_default({
+    props: { name: "alert-circle", size: 14 }
+  });
+  return {
+    c() {
+      div = element("div");
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      t1 = text(
+        /*validationError*/
+        ctx[4]
+      );
+      attr(div, "class", "ka-tag-setting__error svelte-1jx3xkh");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(icon, div, null);
+      append(div, t0);
+      append(div, span);
+      append(span, t1);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      if (!current || dirty & /*validationError*/
+      16)
+        set_data(
+          t1,
+          /*validationError*/
+          ctx2[4]
+        );
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+    }
+  };
+}
+function create_fragment6(ctx) {
+  let div2;
+  let label_1;
+  let t0;
+  let label_1_for_value;
+  let t1;
+  let t2;
+  let div0;
+  let t3;
+  let div1;
+  let input;
+  let input_id_value;
+  let t4;
+  let button;
+  let t5;
+  let t6;
+  let current;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*description*/
+    ctx[1] && create_if_block_2(ctx)
+  );
+  let each_value = ensure_array_like(
+    /*tags*/
+    ctx[2]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value.length; i += 1) {
+    each_blocks[i] = create_each_block2(get_each_context2(ctx, each_value, i));
+  }
+  const out = (i) => transition_out(each_blocks[i], 1, 1, () => {
+    each_blocks[i] = null;
+  });
+  let each_1_else = null;
+  if (!each_value.length) {
+    each_1_else = create_else_block2(ctx);
+  }
+  button = new Button_default({
+    props: {
+      variant: "secondary",
+      size: "small",
+      disabled: !/*newInputValue*/
+      ctx[5].trim(),
+      $$slots: { default: [create_default_slot2] },
+      $$scope: { ctx }
+    }
+  });
+  button.$on(
+    "click",
+    /*handleAdd*/
+    ctx[8]
+  );
+  let if_block1 = (
+    /*tagError*/
+    ctx[7] && create_if_block_13(ctx)
+  );
+  let if_block2 = (
+    /*validationError*/
+    ctx[4] && create_if_block4(ctx)
+  );
+  return {
+    c() {
+      div2 = element("div");
+      label_1 = element("label");
+      t0 = text(
+        /*label*/
+        ctx[0]
+      );
+      t1 = space();
+      if (if_block0)
+        if_block0.c();
+      t2 = space();
+      div0 = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      if (each_1_else) {
+        each_1_else.c();
+      }
+      t3 = space();
+      div1 = element("div");
+      input = element("input");
+      t4 = space();
+      create_component(button.$$.fragment);
+      t5 = space();
+      if (if_block1)
+        if_block1.c();
+      t6 = space();
+      if (if_block2)
+        if_block2.c();
+      attr(label_1, "for", label_1_for_value = `input-${/*label*/
+      ctx[0]}`);
+      attr(label_1, "class", "ka-tag-setting__label svelte-1jx3xkh");
+      attr(div0, "class", "ka-tag-setting__tags svelte-1jx3xkh");
+      attr(input, "id", input_id_value = `input-${/*label*/
+      ctx[0]}`);
+      attr(input, "type", "text");
+      attr(input, "class", "ka-tag-setting__input svelte-1jx3xkh");
+      attr(
+        input,
+        "placeholder",
+        /*placeholder*/
+        ctx[3]
+      );
+      toggle_class(
+        input,
+        "has-error",
+        /*tagError*/
+        ctx[7] || /*validationError*/
+        ctx[4]
+      );
+      attr(div1, "class", "ka-tag-setting__input-wrapper svelte-1jx3xkh");
+      attr(div2, "class", "ka-tag-setting svelte-1jx3xkh");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, label_1);
+      append(label_1, t0);
+      append(div2, t1);
+      if (if_block0)
+        if_block0.m(div2, null);
+      append(div2, t2);
+      append(div2, div0);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div0, null);
+        }
+      }
+      if (each_1_else) {
+        each_1_else.m(div0, null);
+      }
+      append(div2, t3);
+      append(div2, div1);
+      append(div1, input);
+      ctx[13](input);
+      set_input_value(
+        input,
+        /*newInputValue*/
+        ctx[5]
+      );
+      append(div1, t4);
+      mount_component(button, div1, null);
+      append(div2, t5);
+      if (if_block1)
+        if_block1.m(div2, null);
+      append(div2, t6);
+      if (if_block2)
+        if_block2.m(div2, null);
+      current = true;
+      if (!mounted) {
+        dispose = [
+          listen(
+            input,
+            "input",
+            /*input_input_handler*/
+            ctx[14]
+          ),
+          listen(
+            input,
+            "keydown",
+            /*handleKeyDown*/
+            ctx[10]
+          ),
+          listen(
+            input,
+            "input",
+            /*handleInput*/
+            ctx[11]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (!current || dirty & /*label*/
+      1)
+        set_data(
+          t0,
+          /*label*/
+          ctx2[0]
+        );
+      if (!current || dirty & /*label*/
+      1 && label_1_for_value !== (label_1_for_value = `input-${/*label*/
+      ctx2[0]}`)) {
+        attr(label_1, "for", label_1_for_value);
+      }
+      if (
+        /*description*/
+        ctx2[1]
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_2(ctx2);
+          if_block0.c();
+          if_block0.m(div2, t2);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (dirty & /*tags, handleRemove*/
+      516) {
+        each_value = ensure_array_like(
+          /*tags*/
+          ctx2[2]
+        );
+        let i;
+        for (i = 0; i < each_value.length; i += 1) {
+          const child_ctx = get_each_context2(ctx2, each_value, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+            transition_in(each_blocks[i], 1);
+          } else {
+            each_blocks[i] = create_each_block2(child_ctx);
+            each_blocks[i].c();
+            transition_in(each_blocks[i], 1);
+            each_blocks[i].m(div0, null);
+          }
+        }
+        group_outros();
+        for (i = each_value.length; i < each_blocks.length; i += 1) {
+          out(i);
+        }
+        check_outros();
+        if (!each_value.length && each_1_else) {
+          each_1_else.p(ctx2, dirty);
+        } else if (!each_value.length) {
+          each_1_else = create_else_block2(ctx2);
+          each_1_else.c();
+          transition_in(each_1_else, 1);
+          each_1_else.m(div0, null);
+        } else if (each_1_else) {
+          group_outros();
+          transition_out(each_1_else, 1, 1, () => {
+            each_1_else = null;
+          });
+          check_outros();
+        }
+      }
+      if (!current || dirty & /*label*/
+      1 && input_id_value !== (input_id_value = `input-${/*label*/
+      ctx2[0]}`)) {
+        attr(input, "id", input_id_value);
+      }
+      if (!current || dirty & /*placeholder*/
+      8) {
+        attr(
+          input,
+          "placeholder",
+          /*placeholder*/
+          ctx2[3]
+        );
+      }
+      if (dirty & /*newInputValue*/
+      32 && input.value !== /*newInputValue*/
+      ctx2[5]) {
+        set_input_value(
+          input,
+          /*newInputValue*/
+          ctx2[5]
+        );
+      }
+      if (!current || dirty & /*tagError, validationError*/
+      144) {
+        toggle_class(
+          input,
+          "has-error",
+          /*tagError*/
+          ctx2[7] || /*validationError*/
+          ctx2[4]
+        );
+      }
+      const button_changes = {};
+      if (dirty & /*newInputValue*/
+      32)
+        button_changes.disabled = !/*newInputValue*/
+        ctx2[5].trim();
+      if (dirty & /*$$scope*/
+      524288) {
+        button_changes.$$scope = { dirty, ctx: ctx2 };
+      }
+      button.$set(button_changes);
+      if (
+        /*tagError*/
+        ctx2[7]
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+          if (dirty & /*tagError*/
+          128) {
+            transition_in(if_block1, 1);
+          }
+        } else {
+          if_block1 = create_if_block_13(ctx2);
+          if_block1.c();
+          transition_in(if_block1, 1);
+          if_block1.m(div2, t6);
+        }
+      } else if (if_block1) {
+        group_outros();
+        transition_out(if_block1, 1, 1, () => {
+          if_block1 = null;
+        });
+        check_outros();
+      }
+      if (
+        /*validationError*/
+        ctx2[4]
+      ) {
+        if (if_block2) {
+          if_block2.p(ctx2, dirty);
+          if (dirty & /*validationError*/
+          16) {
+            transition_in(if_block2, 1);
+          }
+        } else {
+          if_block2 = create_if_block4(ctx2);
+          if_block2.c();
+          transition_in(if_block2, 1);
+          if_block2.m(div2, null);
+        }
+      } else if (if_block2) {
+        group_outros();
+        transition_out(if_block2, 1, 1, () => {
+          if_block2 = null;
+        });
+        check_outros();
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      for (let i = 0; i < each_value.length; i += 1) {
+        transition_in(each_blocks[i]);
+      }
+      transition_in(button.$$.fragment, local);
+      transition_in(if_block1);
+      transition_in(if_block2);
+      current = true;
+    },
+    o(local) {
+      each_blocks = each_blocks.filter(Boolean);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        transition_out(each_blocks[i]);
+      }
+      transition_out(button.$$.fragment, local);
+      transition_out(if_block1);
+      transition_out(if_block2);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      if (if_block0)
+        if_block0.d();
+      destroy_each(each_blocks, detaching);
+      if (each_1_else)
+        each_1_else.d();
+      ctx[13](null);
+      destroy_component(button);
+      if (if_block1)
+        if_block1.d();
+      if (if_block2)
+        if_block2.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function instance6($$self, $$props, $$invalidate) {
+  let { label } = $$props;
+  let { description = "" } = $$props;
+  let { tags = [] } = $$props;
+  let { placeholder = "Add tag..." } = $$props;
+  let { validationError = void 0 } = $$props;
+  const dispatch = createEventDispatcher();
+  let newInputValue = "";
+  let inputElement;
+  let tagError = "";
+  function handleAdd() {
+    const trimmed = newInputValue.trim();
+    if (!trimmed) {
+      $$invalidate(7, tagError = "Tag cannot be empty");
+      return;
+    }
+    if (!trimmed.startsWith("#")) {
+      $$invalidate(7, tagError = "Tags must start with #");
+      return;
+    }
+    if (tags.includes(trimmed)) {
+      $$invalidate(7, tagError = "Tag already exists");
+      return;
+    }
+    dispatch("add", trimmed);
+    $$invalidate(5, newInputValue = "");
+    $$invalidate(7, tagError = "");
+    if (inputElement) {
+      inputElement.focus();
+    }
+  }
+  function handleRemove(index) {
+    dispatch("remove", index);
+  }
+  function handleKeyDown(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleAdd();
+    }
+  }
+  function handleInput() {
+    $$invalidate(7, tagError = "");
+  }
+  const click_handler = (index) => handleRemove(index);
+  function input_binding($$value) {
+    binding_callbacks[$$value ? "unshift" : "push"](() => {
+      inputElement = $$value;
+      $$invalidate(6, inputElement);
+    });
+  }
+  function input_input_handler() {
+    newInputValue = this.value;
+    $$invalidate(5, newInputValue);
+  }
+  $$self.$$set = ($$props2) => {
+    if ("label" in $$props2)
+      $$invalidate(0, label = $$props2.label);
+    if ("description" in $$props2)
+      $$invalidate(1, description = $$props2.description);
+    if ("tags" in $$props2)
+      $$invalidate(2, tags = $$props2.tags);
+    if ("placeholder" in $$props2)
+      $$invalidate(3, placeholder = $$props2.placeholder);
+    if ("validationError" in $$props2)
+      $$invalidate(4, validationError = $$props2.validationError);
+  };
+  return [
+    label,
+    description,
+    tags,
+    placeholder,
+    validationError,
+    newInputValue,
+    inputElement,
+    tagError,
+    handleAdd,
+    handleRemove,
+    handleKeyDown,
+    handleInput,
+    click_handler,
+    input_binding,
+    input_input_handler
+  ];
+}
+var TagSetting = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance6, create_fragment6, safe_not_equal, {
+      label: 0,
+      description: 1,
+      tags: 2,
+      placeholder: 3,
+      validationError: 4
+    });
+  }
+};
+var TagSetting_default = TagSetting;
+
+// src/ui/settings/sections/WatchingSettings.svelte
+function create_fragment7(ctx) {
+  let div2;
+  let div0;
+  let t3;
+  let div1;
+  let textsetting;
+  let t4;
+  let arraysetting0;
+  let t5;
+  let tagsetting;
+  let t6;
+  let arraysetting1;
+  let current;
+  textsetting = new TextSetting_default({
+    props: {
+      label: "Flashcards Directory",
+      description: "The directory where flashcards are stored",
+      value: (
+        /*settings*/
+        ctx[2].flashcardsDirectory
+      ),
+      placeholder: "/flashcards/",
+      validationError: (
+        /*$store*/
+        ctx[1].validationErrors.flashcardsDirectory
+      )
+    }
+  });
+  textsetting.$on(
+    "update",
+    /*update_handler*/
+    ctx[6]
+  );
+  arraysetting0 = new ArraySetting_default({
+    props: {
+      label: "Watch Directories",
+      description: "Directories to monitor for flashcard changes",
+      values: (
+        /*settings*/
+        ctx[2].watchDirectories
+      ),
+      placeholder: "Add directory path...",
+      validationError: (
+        /*$store*/
+        ctx[1].validationErrors.watchDirectories
+      )
+    }
+  });
+  arraysetting0.$on(
+    "add",
+    /*add_handler*/
+    ctx[7]
+  );
+  arraysetting0.$on(
+    "remove",
+    /*remove_handler*/
+    ctx[8]
+  );
+  tagsetting = new TagSetting_default({
+    props: {
+      label: "Watch Tags",
+      description: "Only monitor files with these tags (leave empty to watch all)",
+      tags: (
+        /*settings*/
+        ctx[2].watchTags
+      ),
+      placeholder: "Add tag (e.g., #flashcard)...",
+      validationError: (
+        /*$store*/
+        ctx[1].validationErrors.watchTags
+      )
+    }
+  });
+  tagsetting.$on(
+    "add",
+    /*add_handler_1*/
+    ctx[9]
+  );
+  tagsetting.$on(
+    "remove",
+    /*remove_handler_1*/
+    ctx[10]
+  );
+  arraysetting1 = new ArraySetting_default({
+    props: {
+      label: "Ignored Directories",
+      description: "Directories to exclude from watching",
+      values: (
+        /*settings*/
+        ctx[2].ignoredDirectories
+      ),
+      placeholder: "Add directory to ignore...",
+      validationError: (
+        /*$store*/
+        ctx[1].validationErrors.ignoredDirectories
+      )
+    }
+  });
+  arraysetting1.$on(
+    "add",
+    /*add_handler_2*/
+    ctx[11]
+  );
+  arraysetting1.$on(
+    "remove",
+    /*remove_handler_2*/
+    ctx[12]
+  );
+  return {
+    c() {
+      div2 = element("div");
+      div0 = element("div");
+      div0.innerHTML = `<h2 class="ka-section__title svelte-imkoou">File Watching</h2> <p class="ka-section__description svelte-imkoou">Configure which directories and tags the plugin watches for flashcard changes</p>`;
+      t3 = space();
+      div1 = element("div");
+      create_component(textsetting.$$.fragment);
+      t4 = space();
+      create_component(arraysetting0.$$.fragment);
+      t5 = space();
+      create_component(tagsetting.$$.fragment);
+      t6 = space();
+      create_component(arraysetting1.$$.fragment);
+      attr(div0, "class", "ka-section__header svelte-imkoou");
+      attr(div1, "class", "ka-section__settings svelte-imkoou");
+      attr(div2, "class", "ka-section svelte-imkoou");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, div0);
+      append(div2, t3);
+      append(div2, div1);
+      mount_component(textsetting, div1, null);
+      append(div1, t4);
+      mount_component(arraysetting0, div1, null);
+      append(div1, t5);
+      mount_component(tagsetting, div1, null);
+      append(div1, t6);
+      mount_component(arraysetting1, div1, null);
+      current = true;
+    },
+    p(ctx2, [dirty]) {
+      const textsetting_changes = {};
+      if (dirty & /*settings*/
+      4)
+        textsetting_changes.value = /*settings*/
+        ctx2[2].flashcardsDirectory;
+      if (dirty & /*$store*/
+      2)
+        textsetting_changes.validationError = /*$store*/
+        ctx2[1].validationErrors.flashcardsDirectory;
+      textsetting.$set(textsetting_changes);
+      const arraysetting0_changes = {};
+      if (dirty & /*settings*/
+      4)
+        arraysetting0_changes.values = /*settings*/
+        ctx2[2].watchDirectories;
+      if (dirty & /*$store*/
+      2)
+        arraysetting0_changes.validationError = /*$store*/
+        ctx2[1].validationErrors.watchDirectories;
+      arraysetting0.$set(arraysetting0_changes);
+      const tagsetting_changes = {};
+      if (dirty & /*settings*/
+      4)
+        tagsetting_changes.tags = /*settings*/
+        ctx2[2].watchTags;
+      if (dirty & /*$store*/
+      2)
+        tagsetting_changes.validationError = /*$store*/
+        ctx2[1].validationErrors.watchTags;
+      tagsetting.$set(tagsetting_changes);
+      const arraysetting1_changes = {};
+      if (dirty & /*settings*/
+      4)
+        arraysetting1_changes.values = /*settings*/
+        ctx2[2].ignoredDirectories;
+      if (dirty & /*$store*/
+      2)
+        arraysetting1_changes.validationError = /*$store*/
+        ctx2[1].validationErrors.ignoredDirectories;
+      arraysetting1.$set(arraysetting1_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(textsetting.$$.fragment, local);
+      transition_in(arraysetting0.$$.fragment, local);
+      transition_in(tagsetting.$$.fragment, local);
+      transition_in(arraysetting1.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(textsetting.$$.fragment, local);
+      transition_out(arraysetting0.$$.fragment, local);
+      transition_out(tagsetting.$$.fragment, local);
+      transition_out(arraysetting1.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      destroy_component(textsetting);
+      destroy_component(arraysetting0);
+      destroy_component(tagsetting);
+      destroy_component(arraysetting1);
+    }
+  };
+}
+function instance7($$self, $$props, $$invalidate) {
+  let settings;
+  let $store, $$unsubscribe_store = noop, $$subscribe_store = () => ($$unsubscribe_store(), $$unsubscribe_store = subscribe(store, ($$value) => $$invalidate(1, $store = $$value)), store);
+  $$self.$$.on_destroy.push(() => $$unsubscribe_store());
+  let { store } = $$props;
+  $$subscribe_store();
+  function handleUpdate(key, value) {
+    if (!store)
+      return;
+    const isValid = store.validateSetting(key, value);
+    if (isValid) {
+      store.setPendingChanges({ [key]: value });
+    }
+  }
+  function handleArrayAdd(key, value) {
+    if (!store || !value)
+      return;
+    const currentArray = settings[key];
+    const newArray = [...currentArray, value];
+    handleUpdate(key, newArray);
+  }
+  function handleArrayRemove(key, index) {
+    if (!store)
+      return;
+    const currentArray = settings[key];
+    const newArray = currentArray.filter((_, i) => i !== index);
+    handleUpdate(key, newArray);
+  }
+  const update_handler = (value) => handleUpdate("flashcardsDirectory", value);
+  const add_handler = (value) => handleArrayAdd("watchDirectories", value);
+  const remove_handler = (index) => handleArrayRemove("watchDirectories", index);
+  const add_handler_1 = (tag) => handleArrayAdd("watchTags", tag);
+  const remove_handler_1 = (index) => handleArrayRemove("watchTags", index);
+  const add_handler_2 = (value) => handleArrayAdd("ignoredDirectories", value);
+  const remove_handler_2 = (index) => handleArrayRemove("ignoredDirectories", index);
+  $$self.$$set = ($$props2) => {
+    if ("store" in $$props2)
+      $$subscribe_store($$invalidate(0, store = $$props2.store));
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*$store*/
+    2) {
+      $:
+        $$invalidate(2, settings = $store == null ? void 0 : $store.settings);
+    }
+  };
+  return [
+    store,
+    $store,
+    settings,
+    handleUpdate,
+    handleArrayAdd,
+    handleArrayRemove,
+    update_handler,
+    add_handler,
+    remove_handler,
+    add_handler_1,
+    remove_handler_1,
+    add_handler_2,
+    remove_handler_2
+  ];
+}
+var WatchingSettings = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance7, create_fragment7, safe_not_equal, { store: 0 });
+  }
+};
+var WatchingSettings_default = WatchingSettings;
+
+// src/ui/settings/components/NumberSetting.svelte
+function create_if_block_14(ctx) {
+  let p;
+  let t;
+  return {
+    c() {
+      p = element("p");
+      t = text(
+        /*description*/
+        ctx[1]
+      );
+      attr(p, "class", "ka-number-setting__description svelte-cxwg2w");
+    },
+    m(target, anchor) {
+      insert(target, p, anchor);
+      append(p, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*description*/
+      2)
+        set_data(
+          t,
+          /*description*/
+          ctx2[1]
+        );
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(p);
+      }
+    }
+  };
+}
+function create_if_block5(ctx) {
+  let div;
+  let icon;
+  let t0;
+  let span;
+  let t1;
+  let current;
+  icon = new Icon_default({
+    props: { name: "alert-circle", size: 14 }
+  });
+  return {
+    c() {
+      div = element("div");
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      t1 = text(
+        /*validationError*/
+        ctx[7]
+      );
+      attr(div, "class", "ka-number-setting__error svelte-cxwg2w");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(icon, div, null);
+      append(div, t0);
+      append(div, span);
+      append(span, t1);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      if (!current || dirty & /*validationError*/
+      128)
+        set_data(
+          t1,
+          /*validationError*/
+          ctx2[7]
+        );
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+    }
+  };
+}
+function create_fragment8(ctx) {
+  let div1;
+  let label_1;
+  let t0;
+  let t1;
+  let t2;
+  let div0;
+  let button0;
+  let icon0;
+  let button0_disabled_value;
+  let t3;
+  let input;
+  let t4;
+  let button1;
+  let icon1;
+  let button1_disabled_value;
+  let t5;
+  let current;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*description*/
+    ctx[1] && create_if_block_14(ctx)
+  );
+  icon0 = new Icon_default({ props: { name: "minus", size: 14 } });
+  icon1 = new Icon_default({ props: { name: "plus", size: 14 } });
+  let if_block1 = (
+    /*validationError*/
+    ctx[7] && create_if_block5(ctx)
+  );
+  return {
+    c() {
+      div1 = element("div");
+      label_1 = element("label");
+      t0 = text(
+        /*label*/
+        ctx[0]
+      );
+      t1 = space();
+      if (if_block0)
+        if_block0.c();
+      t2 = space();
+      div0 = element("div");
+      button0 = element("button");
+      create_component(icon0.$$.fragment);
+      t3 = space();
+      input = element("input");
+      t4 = space();
+      button1 = element("button");
+      create_component(icon1.$$.fragment);
+      t5 = space();
+      if (if_block1)
+        if_block1.c();
+      attr(
+        label_1,
+        "for",
+        /*label*/
+        ctx[0]
+      );
+      attr(label_1, "class", "ka-number-setting__label svelte-cxwg2w");
+      attr(button0, "class", "ka-number-setting__button ka-number-setting__button--decrement svelte-cxwg2w");
+      button0.disabled = button0_disabled_value = /*min*/
+      ctx[3] !== void 0 && /*inputValue*/
+      ctx[8] <= /*min*/
+      ctx[3];
+      attr(button0, "aria-label", "Decrease value");
+      attr(
+        input,
+        "id",
+        /*label*/
+        ctx[0]
+      );
+      attr(input, "type", "number");
+      attr(input, "class", "ka-number-setting__input svelte-cxwg2w");
+      attr(
+        input,
+        "placeholder",
+        /*placeholder*/
+        ctx[6]
+      );
+      attr(
+        input,
+        "min",
+        /*min*/
+        ctx[3]
+      );
+      attr(
+        input,
+        "max",
+        /*max*/
+        ctx[4]
+      );
+      attr(
+        input,
+        "step",
+        /*step*/
+        ctx[5]
+      );
+      input.value = /*value*/
+      ctx[2];
+      toggle_class(
+        input,
+        "has-error",
+        /*validationError*/
+        ctx[7]
+      );
+      attr(button1, "class", "ka-number-setting__button ka-number-setting__button--increment svelte-cxwg2w");
+      button1.disabled = button1_disabled_value = /*max*/
+      ctx[4] !== void 0 && /*inputValue*/
+      ctx[8] >= /*max*/
+      ctx[4];
+      attr(button1, "aria-label", "Increase value");
+      attr(div0, "class", "ka-number-setting__input-wrapper svelte-cxwg2w");
+      attr(div1, "class", "ka-number-setting svelte-cxwg2w");
+    },
+    m(target, anchor) {
+      insert(target, div1, anchor);
+      append(div1, label_1);
+      append(label_1, t0);
+      append(div1, t1);
+      if (if_block0)
+        if_block0.m(div1, null);
+      append(div1, t2);
+      append(div1, div0);
+      append(div0, button0);
+      mount_component(icon0, button0, null);
+      append(div0, t3);
+      append(div0, input);
+      append(div0, t4);
+      append(div0, button1);
+      mount_component(icon1, button1, null);
+      append(div1, t5);
+      if (if_block1)
+        if_block1.m(div1, null);
+      current = true;
+      if (!mounted) {
+        dispose = [
+          listen(
+            button0,
+            "click",
+            /*decrement*/
+            ctx[12]
+          ),
+          listen(
+            input,
+            "input",
+            /*handleInput*/
+            ctx[9]
+          ),
+          listen(
+            input,
+            "change",
+            /*handleChange*/
+            ctx[10]
+          ),
+          listen(
+            button1,
+            "click",
+            /*increment*/
+            ctx[11]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (!current || dirty & /*label*/
+      1)
+        set_data(
+          t0,
+          /*label*/
+          ctx2[0]
+        );
+      if (!current || dirty & /*label*/
+      1) {
+        attr(
+          label_1,
+          "for",
+          /*label*/
+          ctx2[0]
+        );
+      }
+      if (
+        /*description*/
+        ctx2[1]
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_14(ctx2);
+          if_block0.c();
+          if_block0.m(div1, t2);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (!current || dirty & /*min, inputValue*/
+      264 && button0_disabled_value !== (button0_disabled_value = /*min*/
+      ctx2[3] !== void 0 && /*inputValue*/
+      ctx2[8] <= /*min*/
+      ctx2[3])) {
+        button0.disabled = button0_disabled_value;
+      }
+      if (!current || dirty & /*label*/
+      1) {
+        attr(
+          input,
+          "id",
+          /*label*/
+          ctx2[0]
+        );
+      }
+      if (!current || dirty & /*placeholder*/
+      64) {
+        attr(
+          input,
+          "placeholder",
+          /*placeholder*/
+          ctx2[6]
+        );
+      }
+      if (!current || dirty & /*min*/
+      8) {
+        attr(
+          input,
+          "min",
+          /*min*/
+          ctx2[3]
+        );
+      }
+      if (!current || dirty & /*max*/
+      16) {
+        attr(
+          input,
+          "max",
+          /*max*/
+          ctx2[4]
+        );
+      }
+      if (!current || dirty & /*step*/
+      32) {
+        attr(
+          input,
+          "step",
+          /*step*/
+          ctx2[5]
+        );
+      }
+      if (!current || dirty & /*value*/
+      4 && input.value !== /*value*/
+      ctx2[2]) {
+        input.value = /*value*/
+        ctx2[2];
+      }
+      if (!current || dirty & /*validationError*/
+      128) {
+        toggle_class(
+          input,
+          "has-error",
+          /*validationError*/
+          ctx2[7]
+        );
+      }
+      if (!current || dirty & /*max, inputValue*/
+      272 && button1_disabled_value !== (button1_disabled_value = /*max*/
+      ctx2[4] !== void 0 && /*inputValue*/
+      ctx2[8] >= /*max*/
+      ctx2[4])) {
+        button1.disabled = button1_disabled_value;
+      }
+      if (
+        /*validationError*/
+        ctx2[7]
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+          if (dirty & /*validationError*/
+          128) {
+            transition_in(if_block1, 1);
+          }
+        } else {
+          if_block1 = create_if_block5(ctx2);
+          if_block1.c();
+          transition_in(if_block1, 1);
+          if_block1.m(div1, null);
+        }
+      } else if (if_block1) {
+        group_outros();
+        transition_out(if_block1, 1, 1, () => {
+          if_block1 = null;
+        });
+        check_outros();
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon0.$$.fragment, local);
+      transition_in(icon1.$$.fragment, local);
+      transition_in(if_block1);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon0.$$.fragment, local);
+      transition_out(icon1.$$.fragment, local);
+      transition_out(if_block1);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div1);
+      }
+      if (if_block0)
+        if_block0.d();
+      destroy_component(icon0);
+      destroy_component(icon1);
+      if (if_block1)
+        if_block1.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function instance8($$self, $$props, $$invalidate) {
+  let { label } = $$props;
+  let { description = "" } = $$props;
+  let { value = 0 } = $$props;
+  let { min = void 0 } = $$props;
+  let { max = void 0 } = $$props;
+  let { step = 1 } = $$props;
+  let { placeholder = "" } = $$props;
+  let { validationError = void 0 } = $$props;
+  const dispatch = createEventDispatcher();
+  let inputValue = value;
+  function handleInput(event) {
+    const target = event.target;
+    const parsed = parseFloat(target.value);
+    $$invalidate(8, inputValue = isNaN(parsed) ? 0 : parsed);
+  }
+  function handleChange() {
+    dispatch("update", inputValue);
+  }
+  function increment() {
+    const newValue = Math.min(max != null ? max : Infinity, inputValue + step);
+    $$invalidate(8, inputValue = newValue);
+    dispatch("update", newValue);
+  }
+  function decrement() {
+    const newValue = Math.max(min != null ? min : -Infinity, inputValue - step);
+    $$invalidate(8, inputValue = newValue);
+    dispatch("update", newValue);
+  }
+  $$self.$$set = ($$props2) => {
+    if ("label" in $$props2)
+      $$invalidate(0, label = $$props2.label);
+    if ("description" in $$props2)
+      $$invalidate(1, description = $$props2.description);
+    if ("value" in $$props2)
+      $$invalidate(2, value = $$props2.value);
+    if ("min" in $$props2)
+      $$invalidate(3, min = $$props2.min);
+    if ("max" in $$props2)
+      $$invalidate(4, max = $$props2.max);
+    if ("step" in $$props2)
+      $$invalidate(5, step = $$props2.step);
+    if ("placeholder" in $$props2)
+      $$invalidate(6, placeholder = $$props2.placeholder);
+    if ("validationError" in $$props2)
+      $$invalidate(7, validationError = $$props2.validationError);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*value*/
+    4) {
+      $:
+        $$invalidate(8, inputValue = value);
+    }
+  };
+  return [
+    label,
+    description,
+    value,
+    min,
+    max,
+    step,
+    placeholder,
+    validationError,
+    inputValue,
+    handleInput,
+    handleChange,
+    increment,
+    decrement
+  ];
+}
+var NumberSetting = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance8, create_fragment8, safe_not_equal, {
+      label: 0,
+      description: 1,
+      value: 2,
+      min: 3,
+      max: 4,
+      step: 5,
+      placeholder: 6,
+      validationError: 7
+    });
+  }
+};
+var NumberSetting_default = NumberSetting;
+
+// src/ui/settings/components/ToggleSetting.svelte
+function create_if_block_15(ctx) {
+  let p;
+  let t;
+  return {
+    c() {
+      p = element("p");
+      t = text(
+        /*description*/
+        ctx[1]
+      );
+      attr(p, "class", "ka-toggle-setting__description svelte-giyhds");
+    },
+    m(target, anchor) {
+      insert(target, p, anchor);
+      append(p, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*description*/
+      2)
+        set_data(
+          t,
+          /*description*/
+          ctx2[1]
+        );
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(p);
+      }
+    }
+  };
+}
+function create_if_block6(ctx) {
+  let div;
+  let icon;
+  let t0;
+  let span;
+  let t1;
+  let current;
+  icon = new Icon_default({
+    props: { name: "alert-circle", size: 14 }
+  });
+  return {
+    c() {
+      div = element("div");
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      t1 = text(
+        /*validationError*/
+        ctx[3]
+      );
+      attr(div, "class", "ka-toggle-setting__error svelte-giyhds");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(icon, div, null);
+      append(div, t0);
+      append(div, span);
+      append(span, t1);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      if (!current || dirty & /*validationError*/
+      8)
+        set_data(
+          t1,
+          /*validationError*/
+          ctx2[3]
+        );
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+    }
+  };
+}
+function create_fragment9(ctx) {
+  let div3;
+  let div2;
+  let label_1;
+  let t0;
+  let t1;
+  let div1;
+  let input;
+  let t2;
+  let div0;
+  let t3;
+  let icon;
+  let t4;
+  let t5;
+  let current;
+  let mounted;
+  let dispose;
+  icon = new Icon_default({
+    props: {
+      name: "check",
+      size: 14,
+      class: "ka-toggle-setting__icon ka-toggle-setting__icon--check"
+    }
+  });
+  let if_block0 = (
+    /*description*/
+    ctx[1] && create_if_block_15(ctx)
+  );
+  let if_block1 = (
+    /*validationError*/
+    ctx[3] && create_if_block6(ctx)
+  );
+  return {
+    c() {
+      div3 = element("div");
+      div2 = element("div");
+      label_1 = element("label");
+      t0 = text(
+        /*label*/
+        ctx[0]
+      );
+      t1 = space();
+      div1 = element("div");
+      input = element("input");
+      t2 = space();
+      div0 = element("div");
+      t3 = space();
+      create_component(icon.$$.fragment);
+      t4 = space();
+      if (if_block0)
+        if_block0.c();
+      t5 = space();
+      if (if_block1)
+        if_block1.c();
+      attr(
+        label_1,
+        "for",
+        /*label*/
+        ctx[0]
+      );
+      attr(label_1, "class", "ka-toggle-setting__label svelte-giyhds");
+      attr(
+        input,
+        "id",
+        /*label*/
+        ctx[0]
+      );
+      attr(input, "type", "checkbox");
+      attr(input, "class", "ka-toggle-setting__input svelte-giyhds");
+      input.checked = /*checked*/
+      ctx[2];
+      attr(div0, "class", "ka-toggle-setting__slider svelte-giyhds");
+      attr(div1, "class", "ka-toggle-setting__switch svelte-giyhds");
+      attr(div2, "class", "ka-toggle-setting__header svelte-giyhds");
+      attr(div3, "class", "ka-toggle-setting svelte-giyhds");
+    },
+    m(target, anchor) {
+      insert(target, div3, anchor);
+      append(div3, div2);
+      append(div2, label_1);
+      append(label_1, t0);
+      append(div2, t1);
+      append(div2, div1);
+      append(div1, input);
+      append(div1, t2);
+      append(div1, div0);
+      append(div1, t3);
+      mount_component(icon, div1, null);
+      append(div3, t4);
+      if (if_block0)
+        if_block0.m(div3, null);
+      append(div3, t5);
+      if (if_block1)
+        if_block1.m(div3, null);
+      current = true;
+      if (!mounted) {
+        dispose = listen(
+          input,
+          "change",
+          /*handleChange*/
+          ctx[4]
+        );
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (!current || dirty & /*label*/
+      1)
+        set_data(
+          t0,
+          /*label*/
+          ctx2[0]
+        );
+      if (!current || dirty & /*label*/
+      1) {
+        attr(
+          label_1,
+          "for",
+          /*label*/
+          ctx2[0]
+        );
+      }
+      if (!current || dirty & /*label*/
+      1) {
+        attr(
+          input,
+          "id",
+          /*label*/
+          ctx2[0]
+        );
+      }
+      if (!current || dirty & /*checked*/
+      4) {
+        input.checked = /*checked*/
+        ctx2[2];
+      }
+      if (
+        /*description*/
+        ctx2[1]
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_15(ctx2);
+          if_block0.c();
+          if_block0.m(div3, t5);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (
+        /*validationError*/
+        ctx2[3]
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+          if (dirty & /*validationError*/
+          8) {
+            transition_in(if_block1, 1);
+          }
+        } else {
+          if_block1 = create_if_block6(ctx2);
+          if_block1.c();
+          transition_in(if_block1, 1);
+          if_block1.m(div3, null);
+        }
+      } else if (if_block1) {
+        group_outros();
+        transition_out(if_block1, 1, 1, () => {
+          if_block1 = null;
+        });
+        check_outros();
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      transition_in(if_block1);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      transition_out(if_block1);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div3);
+      }
+      destroy_component(icon);
+      if (if_block0)
+        if_block0.d();
+      if (if_block1)
+        if_block1.d();
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function instance9($$self, $$props, $$invalidate) {
+  let { label } = $$props;
+  let { description = "" } = $$props;
+  let { checked = false } = $$props;
+  let { validationError = void 0 } = $$props;
+  const dispatch = createEventDispatcher();
+  function handleChange(event) {
+    const target = event.target;
+    dispatch("update", target.checked);
+  }
+  $$self.$$set = ($$props2) => {
+    if ("label" in $$props2)
+      $$invalidate(0, label = $$props2.label);
+    if ("description" in $$props2)
+      $$invalidate(1, description = $$props2.description);
+    if ("checked" in $$props2)
+      $$invalidate(2, checked = $$props2.checked);
+    if ("validationError" in $$props2)
+      $$invalidate(3, validationError = $$props2.validationError);
+  };
+  return [label, description, checked, validationError, handleChange];
+}
+var ToggleSetting = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance9, create_fragment9, safe_not_equal, {
+      label: 0,
+      description: 1,
+      checked: 2,
+      validationError: 3
+    });
+  }
+};
+var ToggleSetting_default = ToggleSetting;
+
+// src/ui/settings/sections/ReviewSettings.svelte
+function create_if_block7(ctx) {
+  let numbersetting;
+  let current;
+  numbersetting = new NumberSetting_default({
+    props: {
+      label: "Soft Delete Duration",
+      description: "Hours before soft-deleted cards are permanently removed",
+      value: (
+        /*settings*/
+        ctx[2].softDeleteHours
+      ),
+      min: 1,
+      max: 168,
+      step: 1,
+      validationError: (
+        /*$store*/
+        ctx[1].validationErrors.softDeleteHours
+      )
+    }
+  });
+  numbersetting.$on(
+    "update",
+    /*update_handler_3*/
+    ctx[7]
+  );
+  return {
+    c() {
+      create_component(numbersetting.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(numbersetting, target, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const numbersetting_changes = {};
+      if (dirty & /*settings*/
+      4)
+        numbersetting_changes.value = /*settings*/
+        ctx2[2].softDeleteHours;
+      if (dirty & /*$store*/
+      2)
+        numbersetting_changes.validationError = /*$store*/
+        ctx2[1].validationErrors.softDeleteHours;
+      numbersetting.$set(numbersetting_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(numbersetting.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(numbersetting.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(numbersetting, detaching);
+    }
+  };
+}
+function create_fragment10(ctx) {
+  let div2;
+  let div0;
+  let t3;
+  let div1;
+  let textsetting;
+  let t4;
+  let numbersetting;
+  let t5;
+  let togglesetting;
+  let t6;
+  let current;
+  textsetting = new TextSetting_default({
+    props: {
+      label: "Flashcards Directory",
+      description: "The default directory for flashcard files",
+      value: (
+        /*settings*/
+        ctx[2].flashcardsDirectory
+      ),
+      placeholder: "/flashcards/",
+      validationError: (
+        /*$store*/
+        ctx[1].validationErrors.flashcardsDirectory
+      )
+    }
+  });
+  textsetting.$on(
+    "update",
+    /*update_handler*/
+    ctx[4]
+  );
+  numbersetting = new NumberSetting_default({
+    props: {
+      label: "Debounce Timeout",
+      description: "Milliseconds to wait before processing file changes",
+      value: (
+        /*settings*/
+        ctx[2].debounceTimeoutMs
+      ),
+      min: 100,
+      max: 5e3,
+      step: 100,
+      validationError: (
+        /*$store*/
+        ctx[1].validationErrors.debounceTimeoutMs
+      )
+    }
+  });
+  numbersetting.$on(
+    "update",
+    /*update_handler_1*/
+    ctx[5]
+  );
+  togglesetting = new ToggleSetting_default({
+    props: {
+      label: "Enable Soft Delete",
+      description: "Move deleted cards to trash instead of permanent deletion",
+      checked: (
+        /*settings*/
+        ctx[2].enableSoftDelete
+      ),
+      validationError: (
+        /*$store*/
+        ctx[1].validationErrors.enableSoftDelete
+      )
+    }
+  });
+  togglesetting.$on(
+    "update",
+    /*update_handler_2*/
+    ctx[6]
+  );
+  let if_block = (
+    /*settings*/
+    ctx[2].enableSoftDelete && create_if_block7(ctx)
+  );
+  return {
+    c() {
+      div2 = element("div");
+      div0 = element("div");
+      div0.innerHTML = `<h2 class="ka-section__title svelte-imkoou">Review Settings</h2> <p class="ka-section__description svelte-imkoou">Configure review behavior and card management</p>`;
+      t3 = space();
+      div1 = element("div");
+      create_component(textsetting.$$.fragment);
+      t4 = space();
+      create_component(numbersetting.$$.fragment);
+      t5 = space();
+      create_component(togglesetting.$$.fragment);
+      t6 = space();
+      if (if_block)
+        if_block.c();
+      attr(div0, "class", "ka-section__header svelte-imkoou");
+      attr(div1, "class", "ka-section__settings svelte-imkoou");
+      attr(div2, "class", "ka-section svelte-imkoou");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, div0);
+      append(div2, t3);
+      append(div2, div1);
+      mount_component(textsetting, div1, null);
+      append(div1, t4);
+      mount_component(numbersetting, div1, null);
+      append(div1, t5);
+      mount_component(togglesetting, div1, null);
+      append(div1, t6);
+      if (if_block)
+        if_block.m(div1, null);
+      current = true;
+    },
+    p(ctx2, [dirty]) {
+      const textsetting_changes = {};
+      if (dirty & /*settings*/
+      4)
+        textsetting_changes.value = /*settings*/
+        ctx2[2].flashcardsDirectory;
+      if (dirty & /*$store*/
+      2)
+        textsetting_changes.validationError = /*$store*/
+        ctx2[1].validationErrors.flashcardsDirectory;
+      textsetting.$set(textsetting_changes);
+      const numbersetting_changes = {};
+      if (dirty & /*settings*/
+      4)
+        numbersetting_changes.value = /*settings*/
+        ctx2[2].debounceTimeoutMs;
+      if (dirty & /*$store*/
+      2)
+        numbersetting_changes.validationError = /*$store*/
+        ctx2[1].validationErrors.debounceTimeoutMs;
+      numbersetting.$set(numbersetting_changes);
+      const togglesetting_changes = {};
+      if (dirty & /*settings*/
+      4)
+        togglesetting_changes.checked = /*settings*/
+        ctx2[2].enableSoftDelete;
+      if (dirty & /*$store*/
+      2)
+        togglesetting_changes.validationError = /*$store*/
+        ctx2[1].validationErrors.enableSoftDelete;
+      togglesetting.$set(togglesetting_changes);
+      if (
+        /*settings*/
+        ctx2[2].enableSoftDelete
+      ) {
+        if (if_block) {
+          if_block.p(ctx2, dirty);
+          if (dirty & /*settings*/
+          4) {
+            transition_in(if_block, 1);
+          }
+        } else {
+          if_block = create_if_block7(ctx2);
+          if_block.c();
+          transition_in(if_block, 1);
+          if_block.m(div1, null);
+        }
+      } else if (if_block) {
+        group_outros();
+        transition_out(if_block, 1, 1, () => {
+          if_block = null;
+        });
+        check_outros();
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(textsetting.$$.fragment, local);
+      transition_in(numbersetting.$$.fragment, local);
+      transition_in(togglesetting.$$.fragment, local);
+      transition_in(if_block);
+      current = true;
+    },
+    o(local) {
+      transition_out(textsetting.$$.fragment, local);
+      transition_out(numbersetting.$$.fragment, local);
+      transition_out(togglesetting.$$.fragment, local);
+      transition_out(if_block);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      destroy_component(textsetting);
+      destroy_component(numbersetting);
+      destroy_component(togglesetting);
+      if (if_block)
+        if_block.d();
+    }
+  };
+}
+function instance10($$self, $$props, $$invalidate) {
+  let settings;
+  let $store, $$unsubscribe_store = noop, $$subscribe_store = () => ($$unsubscribe_store(), $$unsubscribe_store = subscribe(store, ($$value) => $$invalidate(1, $store = $$value)), store);
+  $$self.$$.on_destroy.push(() => $$unsubscribe_store());
+  let { store } = $$props;
+  $$subscribe_store();
+  function handleUpdate(key, value) {
+    if (!store)
+      return;
+    const isValid = store.validateSetting(key, value);
+    if (isValid) {
+      store.setPendingChanges({ [key]: value });
+    }
+  }
+  const update_handler = (value) => handleUpdate("flashcardsDirectory", value);
+  const update_handler_1 = (value) => handleUpdate("debounceTimeoutMs", value);
+  const update_handler_2 = (value) => handleUpdate("enableSoftDelete", value);
+  const update_handler_3 = (value) => handleUpdate("softDeleteHours", value);
+  $$self.$$set = ($$props2) => {
+    if ("store" in $$props2)
+      $$subscribe_store($$invalidate(0, store = $$props2.store));
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*$store*/
+    2) {
+      $:
+        $$invalidate(2, settings = $store == null ? void 0 : $store.settings);
+    }
+  };
+  return [
+    store,
+    $store,
+    settings,
+    handleUpdate,
+    update_handler,
+    update_handler_1,
+    update_handler_2,
+    update_handler_3
+  ];
+}
+var ReviewSettings = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance10, create_fragment10, safe_not_equal, { store: 0 });
+  }
+};
+var ReviewSettings_default = ReviewSettings;
+
+// src/ui/settings/sections/AdvancedSettings.svelte
+var import_obsidian2 = require("obsidian");
+function get_each_context3(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[10] = list[i];
+  return child_ctx;
+}
+function create_each_block3(ctx) {
+  let div2;
+  let div0;
+  let span0;
+  let t1;
+  let span1;
+  let t3;
+  let div1;
+  let input;
+  let input_value_value;
+  let t4;
+  let mounted;
+  let dispose;
+  function change_handler(...args) {
+    return (
+      /*change_handler*/
+      ctx[8](
+        /*command*/
+        ctx[10],
+        ...args
+      )
+    );
+  }
+  return {
+    c() {
+      div2 = element("div");
+      div0 = element("div");
+      span0 = element("span");
+      span0.textContent = `${/*command*/
+      ctx[10].label}`;
+      t1 = space();
+      span1 = element("span");
+      span1.textContent = `${/*command*/
+      ctx[10].id}`;
+      t3 = space();
+      div1 = element("div");
+      input = element("input");
+      t4 = space();
+      attr(span0, "class", "ka-shortcut-setting__label svelte-1bksc6c");
+      attr(span1, "class", "ka-shortcut-setting__id svelte-1bksc6c");
+      attr(div0, "class", "ka-shortcut-setting__info svelte-1bksc6c");
+      attr(input, "type", "text");
+      input.value = input_value_value = /*settings*/
+      ctx[1].commandShortcuts[
+        /*command*/
+        ctx[10].id
+      ] || "";
+      attr(input, "placeholder", "None");
+      attr(input, "class", "svelte-1bksc6c");
+      attr(div1, "class", "ka-shortcut-setting__input svelte-1bksc6c");
+      attr(div2, "class", "ka-shortcut-setting svelte-1bksc6c");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, div0);
+      append(div0, span0);
+      append(div0, t1);
+      append(div0, span1);
+      append(div2, t3);
+      append(div2, div1);
+      append(div1, input);
+      append(div2, t4);
+      if (!mounted) {
+        dispose = [
+          listen(input, "change", change_handler),
+          listen(input, "keydown", keydown_handler2)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty & /*settings*/
+      2 && input_value_value !== (input_value_value = /*settings*/
+      ctx[1].commandShortcuts[
+        /*command*/
+        ctx[10].id
+      ] || "") && input.value !== input_value_value) {
+        input.value = input_value_value;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_default_slot_1(ctx) {
+  let icon;
+  let t;
+  let current;
+  icon = new Icon_default({ props: { name: "download", size: 16 } });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+      t = text("\n          Export Settings");
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      insert(target, t, anchor);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t);
+      }
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_default_slot3(ctx) {
+  let icon;
+  let t;
+  let current;
+  icon = new Icon_default({ props: { name: "upload", size: 16 } });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+      t = text("\n          Import Settings");
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      insert(target, t, anchor);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t);
+      }
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_fragment11(ctx) {
+  let div6;
+  let div0;
+  let t3;
+  let div5;
+  let div1;
+  let h30;
+  let t5;
+  let p1;
+  let t7;
+  let t8;
+  let div3;
+  let h31;
+  let t10;
+  let p2;
+  let t12;
+  let div2;
+  let button0;
+  let t13;
+  let button1;
+  let t14;
+  let div4;
+  let h32;
+  let t16;
+  let p3;
+  let t18;
+  let pre;
+  let t19_value = JSON.stringify(
+    /*settings*/
+    ctx[1],
+    null,
+    2
+  ) + "";
+  let t19;
+  let current;
+  let each_value = ensure_array_like(
+    /*commonCommands*/
+    ctx[6]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value.length; i += 1) {
+    each_blocks[i] = create_each_block3(get_each_context3(ctx, each_value, i));
+  }
+  button0 = new Button_default({
+    props: {
+      variant: "secondary",
+      $$slots: { default: [create_default_slot_1] },
+      $$scope: { ctx }
+    }
+  });
+  button0.$on(
+    "click",
+    /*handleExportSettings*/
+    ctx[4]
+  );
+  button1 = new Button_default({
+    props: {
+      variant: "secondary",
+      $$slots: { default: [create_default_slot3] },
+      $$scope: { ctx }
+    }
+  });
+  button1.$on(
+    "click",
+    /*handleImportSettings*/
+    ctx[5]
+  );
+  return {
+    c() {
+      div6 = element("div");
+      div0 = element("div");
+      div0.innerHTML = `<h2 class="ka-section__title svelte-1bksc6c">Advanced</h2> <p class="ka-section__description svelte-1bksc6c">Advanced configuration and data management</p>`;
+      t3 = space();
+      div5 = element("div");
+      div1 = element("div");
+      h30 = element("h3");
+      h30.textContent = "Command Shortcuts";
+      t5 = space();
+      p1 = element("p");
+      p1.textContent = "Customize keyboard shortcuts for plugin commands";
+      t7 = space();
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      t8 = space();
+      div3 = element("div");
+      h31 = element("h3");
+      h31.textContent = "Data Management";
+      t10 = space();
+      p2 = element("p");
+      p2.textContent = "Export and import your plugin settings";
+      t12 = space();
+      div2 = element("div");
+      create_component(button0.$$.fragment);
+      t13 = space();
+      create_component(button1.$$.fragment);
+      t14 = space();
+      div4 = element("div");
+      h32 = element("h3");
+      h32.textContent = "Debug Information";
+      t16 = space();
+      p3 = element("p");
+      p3.textContent = "Current settings configuration (read-only)";
+      t18 = space();
+      pre = element("pre");
+      t19 = text(t19_value);
+      attr(div0, "class", "ka-section__header svelte-1bksc6c");
+      attr(h30, "class", "ka-setting-group__title svelte-1bksc6c");
+      attr(p1, "class", "ka-setting-group__description svelte-1bksc6c");
+      attr(div1, "class", "ka-setting-group svelte-1bksc6c");
+      attr(h31, "class", "ka-setting-group__title svelte-1bksc6c");
+      attr(p2, "class", "ka-setting-group__description svelte-1bksc6c");
+      attr(div2, "class", "ka-data-actions svelte-1bksc6c");
+      attr(div3, "class", "ka-setting-group svelte-1bksc6c");
+      attr(h32, "class", "ka-setting-group__title svelte-1bksc6c");
+      attr(p3, "class", "ka-setting-group__description svelte-1bksc6c");
+      attr(pre, "class", "ka-settings-debug svelte-1bksc6c");
+      attr(div4, "class", "ka-setting-group svelte-1bksc6c");
+      attr(div5, "class", "ka-section__settings svelte-1bksc6c");
+      attr(div6, "class", "ka-section svelte-1bksc6c");
+    },
+    m(target, anchor) {
+      insert(target, div6, anchor);
+      append(div6, div0);
+      append(div6, t3);
+      append(div6, div5);
+      append(div5, div1);
+      append(div1, h30);
+      append(div1, t5);
+      append(div1, p1);
+      append(div1, t7);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div1, null);
+        }
+      }
+      append(div5, t8);
+      append(div5, div3);
+      append(div3, h31);
+      append(div3, t10);
+      append(div3, p2);
+      append(div3, t12);
+      append(div3, div2);
+      mount_component(button0, div2, null);
+      append(div2, t13);
+      mount_component(button1, div2, null);
+      append(div5, t14);
+      append(div5, div4);
+      append(div4, h32);
+      append(div4, t16);
+      append(div4, p3);
+      append(div4, t18);
+      append(div4, pre);
+      append(pre, t19);
+      current = true;
+    },
+    p(ctx2, [dirty]) {
+      if (dirty & /*settings, commonCommands, handleShortcutAdd, handleShortcutRemove*/
+      78) {
+        each_value = ensure_array_like(
+          /*commonCommands*/
+          ctx2[6]
+        );
+        let i;
+        for (i = 0; i < each_value.length; i += 1) {
+          const child_ctx = get_each_context3(ctx2, each_value, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block3(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(div1, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value.length;
+      }
+      const button0_changes = {};
+      if (dirty & /*$$scope*/
+      8192) {
+        button0_changes.$$scope = { dirty, ctx: ctx2 };
+      }
+      button0.$set(button0_changes);
+      const button1_changes = {};
+      if (dirty & /*$$scope*/
+      8192) {
+        button1_changes.$$scope = { dirty, ctx: ctx2 };
+      }
+      button1.$set(button1_changes);
+      if ((!current || dirty & /*settings*/
+      2) && t19_value !== (t19_value = JSON.stringify(
+        /*settings*/
+        ctx2[1],
+        null,
+        2
+      ) + ""))
+        set_data(t19, t19_value);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(button0.$$.fragment, local);
+      transition_in(button1.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(button0.$$.fragment, local);
+      transition_out(button1.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div6);
+      }
+      destroy_each(each_blocks, detaching);
+      destroy_component(button0);
+      destroy_component(button1);
+    }
+  };
+}
+var keydown_handler2 = (e) => {
+  if (e.key === "Enter") {
+    e.target.blur();
+  }
+};
+function instance11($$self, $$props, $$invalidate) {
+  let settings;
+  let $store, $$unsubscribe_store = noop, $$subscribe_store = () => ($$unsubscribe_store(), $$unsubscribe_store = subscribe(store, ($$value) => $$invalidate(7, $store = $$value)), store);
+  $$self.$$.on_destroy.push(() => $$unsubscribe_store());
+  let { store } = $$props;
+  $$subscribe_store();
+  function handleUpdate(key, value) {
+    if (!store)
+      return;
+    const isValid = store.validateSetting(key, value);
+    if (isValid) {
+      store.setPendingChanges({ [key]: value });
+    }
+  }
+  function handleShortcutAdd(commandId, shortcut) {
+    if (!store || !shortcut)
+      return;
+    const newShortcuts = {
+      ...settings.commandShortcuts,
+      [commandId]: shortcut
+    };
+    handleUpdate("commandShortcuts", newShortcuts);
+  }
+  function handleShortcutRemove(commandId) {
+    if (!store)
+      return;
+    const newShortcuts = { ...settings.commandShortcuts };
+    delete newShortcuts[commandId];
+    handleUpdate("commandShortcuts", newShortcuts);
+  }
+  function handleExportSettings() {
+    const settingsJson = JSON.stringify(settings, null, 2);
+    const blob = new Blob([settingsJson], { type: "application/json" });
+    const url2 = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url2;
+    a.download = "knowledge-accelerator-settings.json";
+    a.click();
+    URL.revokeObjectURL(url2);
+    new import_obsidian2.Notice("Settings exported successfully");
+  }
+  function handleImportSettings() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json";
+    input.onchange = async (event) => {
+      var _a3;
+      const file2 = (_a3 = event.target.files) == null ? void 0 : _a3[0];
+      if (!file2)
+        return;
+      try {
+        const text2 = await file2.text();
+        const importedSettings = JSON.parse(text2);
+        if (store) {
+          await store.updateSettings(importedSettings);
+          new import_obsidian2.Notice("Settings imported successfully");
+        }
+      } catch (error48) {
+        new import_obsidian2.Notice("Failed to import settings: Invalid file format", 5e3);
+      }
+    };
+    input.click();
+  }
+  const commonCommands = [
+    {
+      id: "ka-start-review",
+      label: "Start Review"
+    },
+    {
+      id: "ka-open-dashboard",
+      label: "Open Dashboard"
+    },
+    {
+      id: "open-settings",
+      label: "Open Settings"
+    }
+  ];
+  const change_handler = (command, e) => e.target.value ? handleShortcutAdd(command.id, e.target.value) : handleShortcutRemove(command.id);
+  $$self.$$set = ($$props2) => {
+    if ("store" in $$props2)
+      $$subscribe_store($$invalidate(0, store = $$props2.store));
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*$store*/
+    128) {
+      $:
+        $$invalidate(1, settings = $store == null ? void 0 : $store.settings);
+    }
+  };
+  return [
+    store,
+    settings,
+    handleShortcutAdd,
+    handleShortcutRemove,
+    handleExportSettings,
+    handleImportSettings,
+    commonCommands,
+    $store,
+    change_handler
+  ];
+}
+var AdvancedSettings = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance11, create_fragment11, safe_not_equal, { store: 0 });
+  }
+};
+var AdvancedSettings_default = AdvancedSettings;
+
+// src/ui/settings/Settings.svelte
+var import_obsidian3 = require("obsidian");
+function create_if_block_6(ctx) {
+  let div;
+  let icon;
+  let t0;
+  let span;
+  let t1;
+  let current;
+  icon = new Icon_default({
+    props: { name: "alert-circle", size: 20 }
+  });
+  return {
+    c() {
+      div = element("div");
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      t1 = text(
+        /*errorMessage*/
+        ctx[3]
+      );
+      attr(div, "class", "ka-settings__error svelte-182jcfn");
+      attr(div, "role", "alert");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(icon, div, null);
+      append(div, t0);
+      append(div, span);
+      append(span, t1);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      if (!current || dirty & /*errorMessage*/
+      8)
+        set_data(
+          t1,
+          /*errorMessage*/
+          ctx2[3]
+        );
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+    }
+  };
+}
+function create_if_block_22(ctx) {
+  let div;
+  let current_block_type_index;
+  let if_block;
+  let current;
+  const if_block_creators = [create_if_block_3, create_if_block_4, create_if_block_5];
+  const if_blocks = [];
+  function select_block_type(ctx2, dirty) {
+    if (
+      /*activeSection*/
+      ctx2[1] === "FILE_WATCHING"
+    )
+      return 0;
+    if (
+      /*activeSection*/
+      ctx2[1] === "REVIEW"
+    )
+      return 1;
+    if (
+      /*activeSection*/
+      ctx2[1] === "ADVANCED"
+    )
+      return 2;
+    return -1;
+  }
+  if (~(current_block_type_index = select_block_type(ctx, -1))) {
+    if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+  }
+  return {
+    c() {
+      div = element("div");
+      if (if_block)
+        if_block.c();
+      attr(div, "class", "ka-settings__section svelte-182jcfn");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      if (~current_block_type_index) {
+        if_blocks[current_block_type_index].m(div, null);
+      }
+      current = true;
+    },
+    p(ctx2, dirty) {
+      let previous_block_index = current_block_type_index;
+      current_block_type_index = select_block_type(ctx2, dirty);
+      if (current_block_type_index === previous_block_index) {
+        if (~current_block_type_index) {
+          if_blocks[current_block_type_index].p(ctx2, dirty);
+        }
+      } else {
+        if (if_block) {
+          group_outros();
+          transition_out(if_blocks[previous_block_index], 1, 1, () => {
+            if_blocks[previous_block_index] = null;
+          });
+          check_outros();
+        }
+        if (~current_block_type_index) {
+          if_block = if_blocks[current_block_type_index];
+          if (!if_block) {
+            if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx2);
+            if_block.c();
+          } else {
+            if_block.p(ctx2, dirty);
+          }
+          transition_in(if_block, 1);
+          if_block.m(div, null);
+        } else {
+          if_block = null;
+        }
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(if_block);
+      current = true;
+    },
+    o(local) {
+      transition_out(if_block);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      if (~current_block_type_index) {
+        if_blocks[current_block_type_index].d();
+      }
+    }
+  };
+}
+function create_if_block_5(ctx) {
+  let advancedsettings;
+  let current;
+  advancedsettings = new AdvancedSettings_default({ props: { store: (
+    /*store*/
+    ctx[0]
+  ) } });
+  return {
+    c() {
+      create_component(advancedsettings.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(advancedsettings, target, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const advancedsettings_changes = {};
+      if (dirty & /*store*/
+      1)
+        advancedsettings_changes.store = /*store*/
+        ctx2[0];
+      advancedsettings.$set(advancedsettings_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(advancedsettings.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(advancedsettings.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(advancedsettings, detaching);
+    }
+  };
+}
+function create_if_block_4(ctx) {
+  let reviewsettings;
+  let current;
+  reviewsettings = new ReviewSettings_default({ props: { store: (
+    /*store*/
+    ctx[0]
+  ) } });
+  return {
+    c() {
+      create_component(reviewsettings.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(reviewsettings, target, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const reviewsettings_changes = {};
+      if (dirty & /*store*/
+      1)
+        reviewsettings_changes.store = /*store*/
+        ctx2[0];
+      reviewsettings.$set(reviewsettings_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(reviewsettings.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(reviewsettings.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(reviewsettings, detaching);
+    }
+  };
+}
+function create_if_block_3(ctx) {
+  let watchingsettings;
+  let current;
+  watchingsettings = new WatchingSettings_default({ props: { store: (
+    /*store*/
+    ctx[0]
+  ) } });
+  return {
+    c() {
+      create_component(watchingsettings.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(watchingsettings, target, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const watchingsettings_changes = {};
+      if (dirty & /*store*/
+      1)
+        watchingsettings_changes.store = /*store*/
+        ctx2[0];
+      watchingsettings.$set(watchingsettings_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(watchingsettings.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(watchingsettings.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(watchingsettings, detaching);
+    }
+  };
+}
+function create_else_block_1(ctx) {
+  let span;
+  return {
+    c() {
+      span = element("span");
+      span.textContent = "All changes saved";
+      attr(span, "class", "ka-settings__status-indicator ka-settings__status-indicator--saved svelte-182jcfn");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_if_block_16(ctx) {
+  let span;
+  return {
+    c() {
+      span = element("span");
+      span.textContent = "Unsaved changes";
+      attr(span, "class", "ka-settings__status-indicator svelte-182jcfn");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_default_slot_2(ctx) {
+  let t;
+  return {
+    c() {
+      t = text("Discard");
+    },
+    m(target, anchor) {
+      insert(target, t, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t);
+      }
+    }
+  };
+}
+function create_default_slot_12(ctx) {
+  let t;
+  return {
+    c() {
+      t = text("Reset to Defaults");
+    },
+    m(target, anchor) {
+      insert(target, t, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t);
+      }
+    }
+  };
+}
+function create_else_block3(ctx) {
+  let icon;
+  let t;
+  let current;
+  icon = new Icon_default({ props: { name: "save", size: 16 } });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+      t = text("\n          Save Changes");
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      insert(target, t, anchor);
+      current = true;
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t);
+      }
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_if_block8(ctx) {
+  let icon;
+  let t;
+  let current;
+  icon = new Icon_default({
+    props: {
+      name: "loader-2",
+      class: "ka-spin",
+      size: 16
+    }
+  });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+      t = text("\n          Saving...");
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      insert(target, t, anchor);
+      current = true;
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t);
+      }
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_default_slot4(ctx) {
+  let current_block_type_index;
+  let if_block;
+  let if_block_anchor;
+  let current;
+  const if_block_creators = [create_if_block8, create_else_block3];
+  const if_blocks = [];
+  function select_block_type_2(ctx2, dirty) {
+    if (
+      /*isSaving*/
+      ctx2[2]
+    )
+      return 0;
+    return 1;
+  }
+  current_block_type_index = select_block_type_2(ctx, -1);
+  if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+  return {
+    c() {
+      if_block.c();
+      if_block_anchor = empty();
+    },
+    m(target, anchor) {
+      if_blocks[current_block_type_index].m(target, anchor);
+      insert(target, if_block_anchor, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      let previous_block_index = current_block_type_index;
+      current_block_type_index = select_block_type_2(ctx2, dirty);
+      if (current_block_type_index !== previous_block_index) {
+        group_outros();
+        transition_out(if_blocks[previous_block_index], 1, 1, () => {
+          if_blocks[previous_block_index] = null;
+        });
+        check_outros();
+        if_block = if_blocks[current_block_type_index];
+        if (!if_block) {
+          if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx2);
+          if_block.c();
+        } else {
+        }
+        transition_in(if_block, 1);
+        if_block.m(if_block_anchor.parentNode, if_block_anchor);
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(if_block);
+      current = true;
+    },
+    o(local) {
+      transition_out(if_block);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(if_block_anchor);
+      }
+      if_blocks[current_block_type_index].d(detaching);
+    }
+  };
+}
+function create_fragment12(ctx) {
+  let div4;
+  let header;
+  let t3;
+  let t4;
+  let div1;
+  let nav;
+  let button0;
+  let icon0;
+  let t5;
+  let span0;
+  let button0_aria_pressed_value;
+  let t7;
+  let button1;
+  let icon1;
+  let t8;
+  let span1;
+  let button1_aria_pressed_value;
+  let t10;
+  let button2;
+  let icon2;
+  let t11;
+  let span2;
+  let button2_aria_pressed_value;
+  let t13;
+  let main;
+  let t14;
+  let footer;
+  let div2;
+  let t15;
+  let div3;
+  let button3;
+  let t16;
+  let button4;
+  let t17;
+  let button5;
+  let current;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*errorMessage*/
+    ctx[3] && create_if_block_6(ctx)
+  );
+  icon0 = new Icon_default({ props: { name: "folder", size: 16 } });
+  icon1 = new Icon_default({ props: { name: "layers", size: 16 } });
+  icon2 = new Icon_default({ props: { name: "settings-2", size: 16 } });
+  let if_block1 = (
+    /*store*/
+    ctx[0] && create_if_block_22(ctx)
+  );
+  function select_block_type_1(ctx2, dirty) {
+    if (
+      /*hasChanges*/
+      ctx2[5]
+    )
+      return create_if_block_16;
+    return create_else_block_1;
+  }
+  let current_block_type = select_block_type_1(ctx, -1);
+  let if_block2 = current_block_type(ctx);
+  button3 = new Button_default({
+    props: {
+      variant: "secondary",
+      disabled: !/*hasChanges*/
+      ctx[5] || /*isSaving*/
+      ctx[2] || /*isLoading*/
+      ctx[4],
+      $$slots: { default: [create_default_slot_2] },
+      $$scope: { ctx }
+    }
+  });
+  button3.$on(
+    "click",
+    /*handleDiscard*/
+    ctx[8]
+  );
+  button4 = new Button_default({
+    props: {
+      variant: "secondary",
+      disabled: (
+        /*isSaving*/
+        ctx[2] || /*isLoading*/
+        ctx[4]
+      ),
+      $$slots: { default: [create_default_slot_12] },
+      $$scope: { ctx }
+    }
+  });
+  button4.$on(
+    "click",
+    /*handleReset*/
+    ctx[7]
+  );
+  button5 = new Button_default({
+    props: {
+      variant: "primary",
+      disabled: !/*hasChanges*/
+      ctx[5] || /*isSaving*/
+      ctx[2] || /*isLoading*/
+      ctx[4],
+      $$slots: { default: [create_default_slot4] },
+      $$scope: { ctx }
+    }
+  });
+  button5.$on(
+    "click",
+    /*handleSave*/
+    ctx[6]
+  );
+  return {
+    c() {
+      div4 = element("div");
+      header = element("header");
+      header.innerHTML = `<div class="ka-settings__header-content svelte-182jcfn"><h1 class="ka-settings__title svelte-182jcfn">Knowledge Accelerator Settings</h1> <p class="ka-settings__subtitle svelte-182jcfn">Configure your spaced repetition experience</p></div>`;
+      t3 = space();
+      if (if_block0)
+        if_block0.c();
+      t4 = space();
+      div1 = element("div");
+      nav = element("nav");
+      button0 = element("button");
+      create_component(icon0.$$.fragment);
+      t5 = space();
+      span0 = element("span");
+      span0.textContent = "File Watching";
+      t7 = space();
+      button1 = element("button");
+      create_component(icon1.$$.fragment);
+      t8 = space();
+      span1 = element("span");
+      span1.textContent = "Review";
+      t10 = space();
+      button2 = element("button");
+      create_component(icon2.$$.fragment);
+      t11 = space();
+      span2 = element("span");
+      span2.textContent = "Advanced";
+      t13 = space();
+      main = element("main");
+      if (if_block1)
+        if_block1.c();
+      t14 = space();
+      footer = element("footer");
+      div2 = element("div");
+      if_block2.c();
+      t15 = space();
+      div3 = element("div");
+      create_component(button3.$$.fragment);
+      t16 = space();
+      create_component(button4.$$.fragment);
+      t17 = space();
+      create_component(button5.$$.fragment);
+      attr(header, "class", "ka-settings__header svelte-182jcfn");
+      attr(button0, "class", "ka-settings__nav-item svelte-182jcfn");
+      attr(button0, "aria-pressed", button0_aria_pressed_value = /*activeSection*/
+      ctx[1] === "FILE_WATCHING");
+      toggle_class(
+        button0,
+        "active",
+        /*activeSection*/
+        ctx[1] === "FILE_WATCHING"
+      );
+      attr(button1, "class", "ka-settings__nav-item svelte-182jcfn");
+      attr(button1, "aria-pressed", button1_aria_pressed_value = /*activeSection*/
+      ctx[1] === "REVIEW");
+      toggle_class(
+        button1,
+        "active",
+        /*activeSection*/
+        ctx[1] === "REVIEW"
+      );
+      attr(button2, "class", "ka-settings__nav-item svelte-182jcfn");
+      attr(button2, "aria-pressed", button2_aria_pressed_value = /*activeSection*/
+      ctx[1] === "ADVANCED");
+      toggle_class(
+        button2,
+        "active",
+        /*activeSection*/
+        ctx[1] === "ADVANCED"
+      );
+      attr(nav, "class", "ka-settings__nav svelte-182jcfn");
+      attr(main, "class", "ka-settings__content svelte-182jcfn");
+      attr(div1, "class", "ka-settings__layout svelte-182jcfn");
+      attr(div2, "class", "ka-settings__status svelte-182jcfn");
+      attr(div3, "class", "ka-settings__actions svelte-182jcfn");
+      attr(footer, "class", "ka-settings__footer svelte-182jcfn");
+      attr(div4, "class", "ka-settings svelte-182jcfn");
+    },
+    m(target, anchor) {
+      insert(target, div4, anchor);
+      append(div4, header);
+      append(div4, t3);
+      if (if_block0)
+        if_block0.m(div4, null);
+      append(div4, t4);
+      append(div4, div1);
+      append(div1, nav);
+      append(nav, button0);
+      mount_component(icon0, button0, null);
+      append(button0, t5);
+      append(button0, span0);
+      append(nav, t7);
+      append(nav, button1);
+      mount_component(icon1, button1, null);
+      append(button1, t8);
+      append(button1, span1);
+      append(nav, t10);
+      append(nav, button2);
+      mount_component(icon2, button2, null);
+      append(button2, t11);
+      append(button2, span2);
+      append(div1, t13);
+      append(div1, main);
+      if (if_block1)
+        if_block1.m(main, null);
+      append(div4, t14);
+      append(div4, footer);
+      append(footer, div2);
+      if_block2.m(div2, null);
+      append(footer, t15);
+      append(footer, div3);
+      mount_component(button3, div3, null);
+      append(div3, t16);
+      mount_component(button4, div3, null);
+      append(div3, t17);
+      mount_component(button5, div3, null);
+      current = true;
+      if (!mounted) {
+        dispose = [
+          listen(
+            button0,
+            "click",
+            /*click_handler*/
+            ctx[15]
+          ),
+          listen(
+            button1,
+            "click",
+            /*click_handler_1*/
+            ctx[16]
+          ),
+          listen(
+            button2,
+            "click",
+            /*click_handler_2*/
+            ctx[17]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (
+        /*errorMessage*/
+        ctx2[3]
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+          if (dirty & /*errorMessage*/
+          8) {
+            transition_in(if_block0, 1);
+          }
+        } else {
+          if_block0 = create_if_block_6(ctx2);
+          if_block0.c();
+          transition_in(if_block0, 1);
+          if_block0.m(div4, t4);
+        }
+      } else if (if_block0) {
+        group_outros();
+        transition_out(if_block0, 1, 1, () => {
+          if_block0 = null;
+        });
+        check_outros();
+      }
+      if (!current || dirty & /*activeSection*/
+      2 && button0_aria_pressed_value !== (button0_aria_pressed_value = /*activeSection*/
+      ctx2[1] === "FILE_WATCHING")) {
+        attr(button0, "aria-pressed", button0_aria_pressed_value);
+      }
+      if (!current || dirty & /*activeSection*/
+      2) {
+        toggle_class(
+          button0,
+          "active",
+          /*activeSection*/
+          ctx2[1] === "FILE_WATCHING"
+        );
+      }
+      if (!current || dirty & /*activeSection*/
+      2 && button1_aria_pressed_value !== (button1_aria_pressed_value = /*activeSection*/
+      ctx2[1] === "REVIEW")) {
+        attr(button1, "aria-pressed", button1_aria_pressed_value);
+      }
+      if (!current || dirty & /*activeSection*/
+      2) {
+        toggle_class(
+          button1,
+          "active",
+          /*activeSection*/
+          ctx2[1] === "REVIEW"
+        );
+      }
+      if (!current || dirty & /*activeSection*/
+      2 && button2_aria_pressed_value !== (button2_aria_pressed_value = /*activeSection*/
+      ctx2[1] === "ADVANCED")) {
+        attr(button2, "aria-pressed", button2_aria_pressed_value);
+      }
+      if (!current || dirty & /*activeSection*/
+      2) {
+        toggle_class(
+          button2,
+          "active",
+          /*activeSection*/
+          ctx2[1] === "ADVANCED"
+        );
+      }
+      if (
+        /*store*/
+        ctx2[0]
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+          if (dirty & /*store*/
+          1) {
+            transition_in(if_block1, 1);
+          }
+        } else {
+          if_block1 = create_if_block_22(ctx2);
+          if_block1.c();
+          transition_in(if_block1, 1);
+          if_block1.m(main, null);
+        }
+      } else if (if_block1) {
+        group_outros();
+        transition_out(if_block1, 1, 1, () => {
+          if_block1 = null;
+        });
+        check_outros();
+      }
+      if (current_block_type !== (current_block_type = select_block_type_1(ctx2, dirty))) {
+        if_block2.d(1);
+        if_block2 = current_block_type(ctx2);
+        if (if_block2) {
+          if_block2.c();
+          if_block2.m(div2, null);
+        }
+      }
+      const button3_changes = {};
+      if (dirty & /*hasChanges, isSaving, isLoading*/
+      52)
+        button3_changes.disabled = !/*hasChanges*/
+        ctx2[5] || /*isSaving*/
+        ctx2[2] || /*isLoading*/
+        ctx2[4];
+      if (dirty & /*$$scope*/
+      1048576) {
+        button3_changes.$$scope = { dirty, ctx: ctx2 };
+      }
+      button3.$set(button3_changes);
+      const button4_changes = {};
+      if (dirty & /*isSaving, isLoading*/
+      20)
+        button4_changes.disabled = /*isSaving*/
+        ctx2[2] || /*isLoading*/
+        ctx2[4];
+      if (dirty & /*$$scope*/
+      1048576) {
+        button4_changes.$$scope = { dirty, ctx: ctx2 };
+      }
+      button4.$set(button4_changes);
+      const button5_changes = {};
+      if (dirty & /*hasChanges, isSaving, isLoading*/
+      52)
+        button5_changes.disabled = !/*hasChanges*/
+        ctx2[5] || /*isSaving*/
+        ctx2[2] || /*isLoading*/
+        ctx2[4];
+      if (dirty & /*$$scope, isSaving*/
+      1048580) {
+        button5_changes.$$scope = { dirty, ctx: ctx2 };
+      }
+      button5.$set(button5_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(if_block0);
+      transition_in(icon0.$$.fragment, local);
+      transition_in(icon1.$$.fragment, local);
+      transition_in(icon2.$$.fragment, local);
+      transition_in(if_block1);
+      transition_in(button3.$$.fragment, local);
+      transition_in(button4.$$.fragment, local);
+      transition_in(button5.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(if_block0);
+      transition_out(icon0.$$.fragment, local);
+      transition_out(icon1.$$.fragment, local);
+      transition_out(icon2.$$.fragment, local);
+      transition_out(if_block1);
+      transition_out(button3.$$.fragment, local);
+      transition_out(button4.$$.fragment, local);
+      transition_out(button5.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div4);
+      }
+      if (if_block0)
+        if_block0.d();
+      destroy_component(icon0);
+      destroy_component(icon1);
+      destroy_component(icon2);
+      if (if_block1)
+        if_block1.d();
+      if_block2.d();
+      destroy_component(button3);
+      destroy_component(button4);
+      destroy_component(button5);
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function instance12($$self, $$props, $$invalidate) {
+  let currentSettings;
+  let hasChanges;
+  let isLoading2;
+  let validationErrors;
+  let $store, $$unsubscribe_store = noop, $$subscribe_store = () => ($$unsubscribe_store(), $$unsubscribe_store = subscribe(store, ($$value) => $$invalidate(14, $store = $$value)), store);
+  $$self.$$.on_destroy.push(() => $$unsubscribe_store());
+  let { app } = $$props;
+  let { plugin } = $$props;
+  let { settingsManager } = $$props;
+  let { initialSettings } = $$props;
+  let store;
+  let activeSection = "FILE_WATCHING";
+  let isSaving = false;
+  let errorMessage = "";
+  onMount(() => {
+    $$subscribe_store($$invalidate(0, store = new SettingsStore({ settingsManager })));
+  });
+  async function handleSave() {
+    if (!store || isSaving)
+      return;
+    $$invalidate(2, isSaving = true);
+    $$invalidate(3, errorMessage = "");
+    try {
+      await store.updateSettings(currentSettings);
+      new import_obsidian3.Notice("Settings saved successfully!");
+    } catch (error48) {
+      $$invalidate(3, errorMessage = error48 instanceof Error ? error48.message : "Failed to save settings");
+      new import_obsidian3.Notice(errorMessage, 5e3);
+    } finally {
+      $$invalidate(2, isSaving = false);
+    }
+  }
+  async function handleReset() {
+    if (!store)
+      return;
+    if (!confirm("Are you sure you want to reset all settings to defaults? This cannot be undone.")) {
+      return;
+    }
+    try {
+      await store.resetToDefaults();
+      new import_obsidian3.Notice("Settings reset to defaults");
+    } catch (error48) {
+      $$invalidate(3, errorMessage = error48 instanceof Error ? error48.message : "Failed to reset settings");
+      new import_obsidian3.Notice(errorMessage, 5e3);
+    }
+  }
+  function handleDiscard() {
+    if (!store)
+      return;
+    store.discardChanges();
+    new import_obsidian3.Notice("Changes discarded");
+  }
+  function handleSectionChange(section) {
+    $$invalidate(1, activeSection = section);
+  }
+  const click_handler = () => handleSectionChange("FILE_WATCHING");
+  const click_handler_1 = () => handleSectionChange("REVIEW");
+  const click_handler_2 = () => handleSectionChange("ADVANCED");
+  $$self.$$set = ($$props2) => {
+    if ("app" in $$props2)
+      $$invalidate(10, app = $$props2.app);
+    if ("plugin" in $$props2)
+      $$invalidate(11, plugin = $$props2.plugin);
+    if ("settingsManager" in $$props2)
+      $$invalidate(12, settingsManager = $$props2.settingsManager);
+    if ("initialSettings" in $$props2)
+      $$invalidate(13, initialSettings = $$props2.initialSettings);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*$store, initialSettings*/
+    24576) {
+      $:
+        currentSettings = ($store == null ? void 0 : $store.settings) || initialSettings;
+    }
+    if ($$self.$$.dirty & /*$store*/
+    16384) {
+      $:
+        $$invalidate(5, hasChanges = ($store == null ? void 0 : $store.hasChanges) || false);
+    }
+    if ($$self.$$.dirty & /*$store*/
+    16384) {
+      $:
+        $$invalidate(4, isLoading2 = ($store == null ? void 0 : $store.isLoading) || false);
+    }
+    if ($$self.$$.dirty & /*$store*/
+    16384) {
+      $:
+        validationErrors = ($store == null ? void 0 : $store.validationErrors) || {};
+    }
+  };
+  return [
+    store,
+    activeSection,
+    isSaving,
+    errorMessage,
+    isLoading2,
+    hasChanges,
+    handleSave,
+    handleReset,
+    handleDiscard,
+    handleSectionChange,
+    app,
+    plugin,
+    settingsManager,
+    initialSettings,
+    $store,
+    click_handler,
+    click_handler_1,
+    click_handler_2
+  ];
+}
+var Settings = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance12, create_fragment12, safe_not_equal, {
+      app: 10,
+      plugin: 11,
+      settingsManager: 12,
+      initialSettings: 13
+    });
+  }
+};
+var Settings_default = Settings;
+
+// src/obsidian/SettingsTab.ts
+var KnowledgeAcceleratorSettingsTab = class extends import_obsidian4.PluginSettingTab {
+  constructor(app, plugin, settingsManager) {
+    super(app, plugin);
+    __publicField(this, "plugin");
+    __publicField(this, "settingsManager");
+    __publicField(this, "component");
+    this.plugin = plugin;
+    this.settingsManager = settingsManager;
+  }
+  display() {
+    const { containerEl } = this;
+    containerEl.empty();
+    containerEl.addClass("ka-settings-tab");
+    const initialSettings = {
+      ...this.settingsManager.getSettings()
+    };
+    this.component = new Settings_default({
+      target: containerEl,
+      props: {
+        app: this.app,
+        plugin: this.plugin,
+        settingsManager: this.settingsManager,
+        initialSettings
+      }
+    });
+  }
+  hide() {
+    var _a3;
+    (_a3 = this.component) == null ? void 0 : _a3.$destroy();
+    this.component = void 0;
+  }
 };
 
 // src/core/indexer/cache/MetadataCache.ts
@@ -92,14 +6455,14 @@ var MetadataCache = class {
   }
 };
 
-// src/core/deprecated/types.ts
-var SRSState = /* @__PURE__ */ ((SRSState2) => {
-  SRSState2[SRSState2["New"] = 0] = "New";
-  SRSState2[SRSState2["Learning"] = 1] = "Learning";
-  SRSState2[SRSState2["Review"] = 2] = "Review";
-  SRSState2[SRSState2["Relearning"] = 3] = "Relearning";
-  return SRSState2;
-})(SRSState || {});
+// src/core/parser/types.ts
+var CardStatus = /* @__PURE__ */ ((CardStatus2) => {
+  CardStatus2["ACTIVE"] = "ACTIVE";
+  CardStatus2["DELETED"] = "DELETED";
+  CardStatus2["PAUSED"] = "PAUSED";
+  CardStatus2["STALE"] = "STALE";
+  return CardStatus2;
+})(CardStatus || {});
 
 // node_modules/zod/v4/classic/external.js
 var external_exports = {};
@@ -627,7 +6990,7 @@ var NEVER = Object.freeze({
 // @__NO_SIDE_EFFECTS__
 function $constructor(name, initializer3, params) {
   var _a3;
-  function init(inst, def) {
+  function init2(inst, def) {
     if (!inst._zod) {
       Object.defineProperty(inst, "_zod", {
         value: {
@@ -660,14 +7023,14 @@ function $constructor(name, initializer3, params) {
     var _a5;
     var _a4;
     const inst = (params == null ? void 0 : params.Parent) ? new Definition() : this;
-    init(inst, def);
+    init2(inst, def);
     (_a5 = (_a4 = inst._zod).deferred) != null ? _a5 : _a4.deferred = [];
     for (const fn of inst._zod.deferred) {
       fn();
     }
     return inst;
   }
-  Object.defineProperty(_, "init", { value: init });
+  Object.defineProperty(_, "init", { value: init2 });
   Object.defineProperty(_, Symbol.hasInstance, {
     value: (inst) => {
       var _a4, _b;
@@ -1683,10 +8046,10 @@ var nanoid = /^[a-zA-Z0-9_-]{21}$/;
 var duration = /^P(?:(\d+W)|(?!.*W)(?=\d|T\d)(\d+Y)?(\d+M)?(\d+D)?(T(?=\d)(\d+H)?(\d+M)?(\d+([.,]\d+)?S)?)?)$/;
 var extendedDuration = /^[-+]?P(?!$)(?:(?:[-+]?\d+Y)|(?:[-+]?\d+[.,]\d+Y$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:(?:[-+]?\d+W)|(?:[-+]?\d+[.,]\d+W$))?(?:(?:[-+]?\d+D)|(?:[-+]?\d+[.,]\d+D$))?(?:T(?=[\d+-])(?:(?:[-+]?\d+H)|(?:[-+]?\d+[.,]\d+H$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:[-+]?\d+(?:[.,]\d+)?S)?)??$/;
 var guid = /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/;
-var uuid = (version2) => {
-  if (!version2)
+var uuid = (version3) => {
+  if (!version3)
     return /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/;
-  return new RegExp(`^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-${version2}[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$`);
+  return new RegExp(`^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-${version3}[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$`);
 };
 var uuid4 = /* @__PURE__ */ uuid(4);
 var uuid6 = /* @__PURE__ */ uuid(6);
@@ -7476,8 +13839,8 @@ function ko_default() {
 }
 
 // node_modules/zod/v4/locales/lt.js
-var capitalizeFirstCharacter = (text) => {
-  return text.charAt(0).toUpperCase() + text.slice(1);
+var capitalizeFirstCharacter = (text2) => {
+  return text2.charAt(0).toUpperCase() + text2.slice(1);
 };
 function getUnitTypeFromNumber(number4) {
   const abs = Math.abs(number4);
@@ -10821,10 +17184,10 @@ function _slugify() {
   return /* @__PURE__ */ _overwrite((input) => slugify(input));
 }
 // @__NO_SIDE_EFFECTS__
-function _array(Class2, element, params) {
+function _array(Class2, element2, params) {
   return new Class2({
     type: "array",
-    element,
+    element: element2,
     // get element() {
     //   return element;
     // },
@@ -12965,8 +19328,8 @@ var ZodArray = /* @__PURE__ */ $constructor("ZodArray", (inst, def) => {
   inst.length = (len, params) => inst.check(_length(len, params));
   inst.unwrap = () => inst.element;
 });
-function array(element, params) {
-  return _array(ZodArray, element, params);
+function array(element2, params) {
+  return _array(ZodArray, element2, params);
 }
 function keyof(schema) {
   const shape = schema._zod.def.shape;
@@ -13954,8 +20317,8 @@ function convertBaseSchema(schema, ctx) {
           zodSchema = zodSchema.check(z.maxLength(schema.maxItems));
         }
       } else if (items !== void 0) {
-        const element = convertSchema(items, ctx);
-        let arraySchema = z.array(element);
+        const element2 = convertSchema(items, ctx);
+        let arraySchema = z.array(element2);
         if (typeof schema.minItems === "number") {
           arraySchema = arraySchema.min(schema.minItems);
         }
@@ -14041,10 +20404,10 @@ function fromJSONSchema(schema, params) {
   if (typeof schema === "boolean") {
     return schema ? z.any() : z.never();
   }
-  const version2 = detectVersion(schema, params == null ? void 0 : params.defaultTarget);
+  const version3 = detectVersion(schema, params == null ? void 0 : params.defaultTarget);
   const defs = schema.$defs || schema.definitions || {};
   const ctx = {
-    version: version2,
+    version: version3,
     defs,
     refs: /* @__PURE__ */ new Map(),
     processing: /* @__PURE__ */ new Set(),
@@ -14082,38 +20445,2132 @@ function date4(params) {
 // node_modules/zod/v4/classic/external.js
 config(en_default());
 
+// node_modules/zod/index.js
+var zod_default = external_exports;
+
+// src/core/parser/schema/FlashcardSchema.ts
+var FlashcardSchema = zod_default.object({
+  uuid: zod_default.uuid(),
+  file: zod_default.string().min(1),
+  source: zod_default.string().min(1).regex(/^\[\[.*\]\]$/, "Must be valid Obsidian link format"),
+  status: zod_default.enum(CardStatus),
+  created: zod_default.iso.datetime(),
+  updated: zod_default.iso.datetime(),
+  deleted_at: zod_default.iso.datetime().nullable(),
+  front: zod_default.string().min(0),
+  back: zod_default.string().min(0),
+  srs: zod_default.any()
+}).refine(
+  (data) => {
+    const created = new Date(data.created).getTime();
+    const updated = new Date(data.updated).getTime();
+    return updated >= created;
+  },
+  {
+    message: "updated timestamp must be >= created timestamp"
+  }
+);
+var FlashcardMetadataSchema = zod_default.object({
+  uuid: zod_default.uuid(),
+  file: zod_default.string().min(1),
+  source: zod_default.string().min(1),
+  status: zod_default.enum(CardStatus),
+  created: zod_default.iso.datetime(),
+  updated: zod_default.iso.datetime(),
+  deleted_at: zod_default.iso.datetime().nullable(),
+  srs: zod_default.any()
+});
+
+// src/core/parser/schema/ParserSchema.ts
+var ParseResultSchema = external_exports.object({
+  success: external_exports.boolean(),
+  flashcard: external_exports.any().optional(),
+  error: external_exports.string().optional()
+});
+var YamlParseResultSchema = external_exports.object({
+  success: external_exports.boolean(),
+  metadata: external_exports.any().optional(),
+  error: external_exports.string().optional(),
+  warnings: external_exports.array(external_exports.string()).optional()
+});
+var ContentSplitResultSchema = external_exports.object({
+  success: external_exports.boolean(),
+  front: external_exports.string().optional(),
+  back: external_exports.string().optional(),
+  error: external_exports.string().optional()
+});
+var ParserSettingsSchema = external_exports.object({
+  flashcard_directory: external_exports.string().min(1).default("/flashcards/"),
+  marker: external_exports.string().min(1).max(10).default("?")
+});
+
+// src/utils/constants.ts
+var DEFAULT_FSRS = {
+  stability: 0,
+  difficulty: 0,
+  elapsed_days: 0,
+  scheduled_days: 0,
+  learning_steps: 0,
+  reps: 0,
+  lapses: 0,
+  state: 0,
+  last_review: null,
+  next_review: (/* @__PURE__ */ new Date()).toISOString()
+};
+var ERROR_MESSAGES = {
+  INVALID_YAML: "Invalid YAML frontmatter",
+  MISSING_MARKER: "Marker not found in content",
+  INVALID_TIMESTAMP: "Invalid timestamp format",
+  INVALID_STATE: "Invalid FSRS state value",
+  OUT_OF_RANGE_PARAM: "Parameter out of valid range",
+  LOCKED_FILE: "File is locked or read-only",
+  CORRUPTED_INDEX: "Index file is corrupted",
+  FILE_NOT_FOUND: "Flashcard file not found",
+  INDEX_NOT_FOUND: "Flashcard index not found",
+  SYNC_FAILED: "Synchronization failed",
+  RECOVERY_FAILED: "Index recovery failed",
+  PARSER_ERROR: "Error parsing flashcard content",
+  CALCULATION_ERROR: "Error in FSRS calculation"
+};
+
+// node_modules/ts-fsrs/dist/index.mjs
+var State = /* @__PURE__ */ ((State2) => {
+  State2[State2["New"] = 0] = "New";
+  State2[State2["Learning"] = 1] = "Learning";
+  State2[State2["Review"] = 2] = "Review";
+  State2[State2["Relearning"] = 3] = "Relearning";
+  return State2;
+})(State || {});
+var Rating = /* @__PURE__ */ ((Rating2) => {
+  Rating2[Rating2["Manual"] = 0] = "Manual";
+  Rating2[Rating2["Again"] = 1] = "Again";
+  Rating2[Rating2["Hard"] = 2] = "Hard";
+  Rating2[Rating2["Good"] = 3] = "Good";
+  Rating2[Rating2["Easy"] = 4] = "Easy";
+  return Rating2;
+})(Rating || {});
+var TypeConvert = class _TypeConvert {
+  static card(card) {
+    return {
+      ...card,
+      state: _TypeConvert.state(card.state),
+      due: _TypeConvert.time(card.due),
+      last_review: card.last_review ? _TypeConvert.time(card.last_review) : void 0
+    };
+  }
+  static rating(value) {
+    if (typeof value === "string") {
+      const firstLetter = value.charAt(0).toUpperCase();
+      const restOfString = value.slice(1).toLowerCase();
+      const ret = Rating[`${firstLetter}${restOfString}`];
+      if (ret === void 0) {
+        throw new Error(`Invalid rating:[${value}]`);
+      }
+      return ret;
+    } else if (typeof value === "number") {
+      return value;
+    }
+    throw new Error(`Invalid rating:[${value}]`);
+  }
+  static state(value) {
+    if (typeof value === "string") {
+      const firstLetter = value.charAt(0).toUpperCase();
+      const restOfString = value.slice(1).toLowerCase();
+      const ret = State[`${firstLetter}${restOfString}`];
+      if (ret === void 0) {
+        throw new Error(`Invalid state:[${value}]`);
+      }
+      return ret;
+    } else if (typeof value === "number") {
+      return value;
+    }
+    throw new Error(`Invalid state:[${value}]`);
+  }
+  static time(value) {
+    const date5 = new Date(value);
+    if (typeof value === "object" && value !== null && !Number.isNaN(Date.parse(value) || +date5)) {
+      return date5;
+    } else if (typeof value === "string") {
+      const timestamp = Date.parse(value);
+      if (!Number.isNaN(timestamp)) {
+        return new Date(timestamp);
+      } else {
+        throw new Error(`Invalid date:[${value}]`);
+      }
+    } else if (typeof value === "number") {
+      return new Date(value);
+    }
+    throw new Error(`Invalid date:[${value}]`);
+  }
+  static review_log(log) {
+    return {
+      ...log,
+      due: _TypeConvert.time(log.due),
+      rating: _TypeConvert.rating(log.rating),
+      state: _TypeConvert.state(log.state),
+      review: _TypeConvert.time(log.review)
+    };
+  }
+};
+Date.prototype.scheduler = function(t, isDay) {
+  return date_scheduler(this, t, isDay);
+};
+Date.prototype.diff = function(pre, unit) {
+  return date_diff(this, pre, unit);
+};
+Date.prototype.format = function() {
+  return formatDate(this);
+};
+Date.prototype.dueFormat = function(last_review, unit, timeUnit) {
+  return show_diff_message(this, last_review, unit, timeUnit);
+};
+function date_scheduler(now2, t, isDay) {
+  return new Date(
+    isDay ? TypeConvert.time(now2).getTime() + t * 24 * 60 * 60 * 1e3 : TypeConvert.time(now2).getTime() + t * 60 * 1e3
+  );
+}
+function date_diff(now2, pre, unit) {
+  if (!now2 || !pre) {
+    throw new Error("Invalid date");
+  }
+  const diff = TypeConvert.time(now2).getTime() - TypeConvert.time(pre).getTime();
+  let r = 0;
+  switch (unit) {
+    case "days":
+      r = Math.floor(diff / (24 * 60 * 60 * 1e3));
+      break;
+    case "minutes":
+      r = Math.floor(diff / (60 * 1e3));
+      break;
+  }
+  return r;
+}
+function formatDate(dateInput) {
+  const date5 = TypeConvert.time(dateInput);
+  const year = date5.getFullYear();
+  const month = date5.getMonth() + 1;
+  const day = date5.getDate();
+  const hours = date5.getHours();
+  const minutes = date5.getMinutes();
+  const seconds = date5.getSeconds();
+  return `${year}-${padZero(month)}-${padZero(day)} ${padZero(hours)}:${padZero(
+    minutes
+  )}:${padZero(seconds)}`;
+}
+function padZero(num) {
+  return num < 10 ? `0${num}` : `${num}`;
+}
+var TIMEUNIT = [60, 60, 24, 31, 12];
+var TIMEUNITFORMAT = ["second", "min", "hour", "day", "month", "year"];
+function show_diff_message(due, last_review, unit, timeUnit = TIMEUNITFORMAT) {
+  due = TypeConvert.time(due);
+  last_review = TypeConvert.time(last_review);
+  if (timeUnit.length !== TIMEUNITFORMAT.length) {
+    timeUnit = TIMEUNITFORMAT;
+  }
+  let diff = due.getTime() - last_review.getTime();
+  let i = 0;
+  diff /= 1e3;
+  for (i = 0; i < TIMEUNIT.length; i++) {
+    if (diff < TIMEUNIT[i]) {
+      break;
+    } else {
+      diff /= TIMEUNIT[i];
+    }
+  }
+  return `${Math.floor(diff)}${unit ? timeUnit[i] : ""}`;
+}
+var Grades = Object.freeze([
+  Rating.Again,
+  Rating.Hard,
+  Rating.Good,
+  Rating.Easy
+]);
+var FUZZ_RANGES = [
+  {
+    start: 2.5,
+    end: 7,
+    factor: 0.15
+  },
+  {
+    start: 7,
+    end: 20,
+    factor: 0.1
+  },
+  {
+    start: 20,
+    end: Infinity,
+    factor: 0.05
+  }
+];
+function get_fuzz_range(interval, elapsed_days, maximum_interval) {
+  let delta = 1;
+  for (const range of FUZZ_RANGES) {
+    delta += range.factor * Math.max(Math.min(interval, range.end) - range.start, 0);
+  }
+  interval = Math.min(interval, maximum_interval);
+  let min_ivl = Math.max(2, Math.round(interval - delta));
+  const max_ivl = Math.min(Math.round(interval + delta), maximum_interval);
+  if (interval > elapsed_days) {
+    min_ivl = Math.max(min_ivl, elapsed_days + 1);
+  }
+  min_ivl = Math.min(min_ivl, max_ivl);
+  return { min_ivl, max_ivl };
+}
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+function dateDiffInDays(last, cur) {
+  const utc1 = Date.UTC(
+    last.getUTCFullYear(),
+    last.getUTCMonth(),
+    last.getUTCDate()
+  );
+  const utc2 = Date.UTC(
+    cur.getUTCFullYear(),
+    cur.getUTCMonth(),
+    cur.getUTCDate()
+  );
+  return Math.floor(
+    (utc2 - utc1) / 864e5
+    /** 1000 * 60 * 60 * 24*/
+  );
+}
+var ConvertStepUnitToMinutes = (step) => {
+  const unit = step.slice(-1);
+  const value = parseInt(step.slice(0, -1), 10);
+  if (Number.isNaN(value) || !Number.isFinite(value) || value < 0) {
+    throw new Error(`Invalid step value: ${step}`);
+  }
+  switch (unit) {
+    case "m":
+      return value;
+    case "h":
+      return value * 60;
+    case "d":
+      return value * 1440;
+    default:
+      throw new Error(`Invalid step unit: ${step}, expected m/h/d`);
+  }
+};
+var BasicLearningStepsStrategy = (params, state, cur_step) => {
+  const learning_steps = state === State.Relearning || state === State.Review ? params.relearning_steps : params.learning_steps;
+  const steps_length = learning_steps.length;
+  if (steps_length === 0 || cur_step >= steps_length)
+    return {};
+  const firstStep = learning_steps[0];
+  const toMinutes = ConvertStepUnitToMinutes;
+  const getAgainInterval = () => {
+    return toMinutes(firstStep);
+  };
+  const getHardInterval = () => {
+    if (steps_length === 1)
+      return Math.round(toMinutes(firstStep) * 1.5);
+    const nextStep = learning_steps[1];
+    return Math.round((toMinutes(firstStep) + toMinutes(nextStep)) / 2);
+  };
+  const getStepInfo = (index) => {
+    if (index < 0 || index >= steps_length) {
+      return null;
+    } else {
+      return learning_steps[index];
+    }
+  };
+  const getGoodMinutes = (step) => {
+    return toMinutes(step);
+  };
+  const result = {};
+  const step_info = getStepInfo(Math.max(0, cur_step));
+  if (state === State.Review) {
+    result[Rating.Again] = {
+      scheduled_minutes: toMinutes(step_info),
+      next_step: 0
+    };
+    return result;
+  } else {
+    result[Rating.Again] = {
+      scheduled_minutes: getAgainInterval(),
+      next_step: 0
+    };
+    result[Rating.Hard] = {
+      scheduled_minutes: getHardInterval(),
+      next_step: cur_step
+    };
+    const next_info = getStepInfo(cur_step + 1);
+    if (next_info) {
+      const nextMin = getGoodMinutes(next_info);
+      if (nextMin) {
+        result[Rating.Good] = {
+          scheduled_minutes: Math.round(nextMin),
+          next_step: cur_step + 1
+        };
+      }
+    }
+  }
+  return result;
+};
+function DefaultInitSeedStrategy() {
+  const time3 = this.review_time.getTime();
+  const reps = this.current.reps;
+  const mul = this.current.difficulty * this.current.stability;
+  return `${time3}_${reps}_${mul}`;
+}
+var StrategyMode = /* @__PURE__ */ ((StrategyMode2) => {
+  StrategyMode2["SCHEDULER"] = "Scheduler";
+  StrategyMode2["LEARNING_STEPS"] = "LearningSteps";
+  StrategyMode2["SEED"] = "Seed";
+  return StrategyMode2;
+})(StrategyMode || {});
+var AbstractScheduler = class {
+  // init
+  constructor(card, now2, algorithm, strategies) {
+    __publicField(this, "last");
+    __publicField(this, "current");
+    __publicField(this, "review_time");
+    __publicField(this, "next", /* @__PURE__ */ new Map());
+    __publicField(this, "algorithm");
+    __publicField(this, "strategies");
+    __publicField(this, "elapsed_days", 0);
+    this.algorithm = algorithm;
+    this.last = TypeConvert.card(card);
+    this.current = TypeConvert.card(card);
+    this.review_time = TypeConvert.time(now2);
+    this.strategies = strategies;
+    this.init();
+  }
+  checkGrade(grade) {
+    if (!Number.isFinite(grade) || grade < 0 || grade > 4) {
+      throw new Error(`Invalid grade "${grade}",expected 1-4`);
+    }
+  }
+  init() {
+    const { state, last_review } = this.current;
+    let interval = 0;
+    if (state !== State.New && last_review) {
+      interval = dateDiffInDays(last_review, this.review_time);
+    }
+    this.current.last_review = this.review_time;
+    this.elapsed_days = interval;
+    this.current.elapsed_days = interval;
+    this.current.reps += 1;
+    let seed_strategy = DefaultInitSeedStrategy;
+    if (this.strategies) {
+      const custom_strategy = this.strategies.get(StrategyMode.SEED);
+      if (custom_strategy) {
+        seed_strategy = custom_strategy;
+      }
+    }
+    this.algorithm.seed = seed_strategy.call(this);
+  }
+  preview() {
+    return {
+      [Rating.Again]: this.review(Rating.Again),
+      [Rating.Hard]: this.review(Rating.Hard),
+      [Rating.Good]: this.review(Rating.Good),
+      [Rating.Easy]: this.review(Rating.Easy),
+      [Symbol.iterator]: this.previewIterator.bind(this)
+    };
+  }
+  *previewIterator() {
+    for (const grade of Grades) {
+      yield this.review(grade);
+    }
+  }
+  review(grade) {
+    const { state } = this.last;
+    let item;
+    this.checkGrade(grade);
+    switch (state) {
+      case State.New:
+        item = this.newState(grade);
+        break;
+      case State.Learning:
+      case State.Relearning:
+        item = this.learningState(grade);
+        break;
+      case State.Review:
+        item = this.reviewState(grade);
+        break;
+    }
+    return item;
+  }
+  buildLog(rating) {
+    const { last_review, due, elapsed_days } = this.last;
+    return {
+      rating,
+      state: this.current.state,
+      due: last_review || due,
+      stability: this.current.stability,
+      difficulty: this.current.difficulty,
+      elapsed_days: this.elapsed_days,
+      last_elapsed_days: elapsed_days,
+      scheduled_days: this.current.scheduled_days,
+      learning_steps: this.current.learning_steps,
+      review: this.review_time
+    };
+  }
+};
+var Alea = class {
+  constructor(seed) {
+    __publicField(this, "c");
+    __publicField(this, "s0");
+    __publicField(this, "s1");
+    __publicField(this, "s2");
+    const mash = Mash();
+    this.c = 1;
+    this.s0 = mash(" ");
+    this.s1 = mash(" ");
+    this.s2 = mash(" ");
+    if (seed == null)
+      seed = Date.now();
+    this.s0 -= mash(seed);
+    if (this.s0 < 0)
+      this.s0 += 1;
+    this.s1 -= mash(seed);
+    if (this.s1 < 0)
+      this.s1 += 1;
+    this.s2 -= mash(seed);
+    if (this.s2 < 0)
+      this.s2 += 1;
+  }
+  next() {
+    const t = 2091639 * this.s0 + this.c * 23283064365386963e-26;
+    this.s0 = this.s1;
+    this.s1 = this.s2;
+    this.c = t | 0;
+    this.s2 = t - this.c;
+    return this.s2;
+  }
+  set state(state) {
+    this.c = state.c;
+    this.s0 = state.s0;
+    this.s1 = state.s1;
+    this.s2 = state.s2;
+  }
+  get state() {
+    return {
+      c: this.c,
+      s0: this.s0,
+      s1: this.s1,
+      s2: this.s2
+    };
+  }
+};
+function Mash() {
+  let n = 4022871197;
+  return function mash(data) {
+    data = String(data);
+    for (let i = 0; i < data.length; i++) {
+      n += data.charCodeAt(i);
+      let h = 0.02519603282416938 * n;
+      n = h >>> 0;
+      h -= n;
+      h *= n;
+      n = h >>> 0;
+      h -= n;
+      n += h * 4294967296;
+    }
+    return (n >>> 0) * 23283064365386963e-26;
+  };
+}
+function alea(seed) {
+  const xg = new Alea(seed);
+  const prng = () => xg.next();
+  prng.int32 = () => xg.next() * 4294967296 | 0;
+  prng.double = () => prng() + (prng() * 2097152 | 0) * 11102230246251565e-32;
+  prng.state = () => xg.state;
+  prng.importState = (state) => {
+    xg.state = state;
+    return prng;
+  };
+  return prng;
+}
+var version2 = "5.2.3";
+var default_request_retention = 0.9;
+var default_maximum_interval = 36500;
+var default_enable_fuzz = false;
+var default_enable_short_term = true;
+var default_learning_steps = Object.freeze([
+  "1m",
+  "10m"
+]);
+var default_relearning_steps = Object.freeze([
+  "10m"
+]);
+var FSRSVersion = `v${version2} using FSRS-6.0`;
+var S_MIN = 1e-3;
+var INIT_S_MAX = 100;
+var FSRS5_DEFAULT_DECAY = 0.5;
+var FSRS6_DEFAULT_DECAY = 0.1542;
+var default_w = Object.freeze([
+  0.212,
+  1.2931,
+  2.3065,
+  8.2956,
+  6.4133,
+  0.8334,
+  3.0194,
+  1e-3,
+  1.8722,
+  0.1666,
+  0.796,
+  1.4835,
+  0.0614,
+  0.2629,
+  1.6483,
+  0.6014,
+  1.8729,
+  0.5425,
+  0.0912,
+  0.0658,
+  FSRS6_DEFAULT_DECAY
+]);
+var W17_W18_Ceiling = 2;
+var CLAMP_PARAMETERS = (w17_w18_ceiling, enable_short_term = default_enable_short_term) => [
+  [S_MIN, INIT_S_MAX],
+  [S_MIN, INIT_S_MAX],
+  [S_MIN, INIT_S_MAX],
+  [S_MIN, INIT_S_MAX],
+  [1, 10],
+  [1e-3, 4],
+  [1e-3, 4],
+  [1e-3, 0.75],
+  [0, 4.5],
+  [0, 0.8],
+  [1e-3, 3.5],
+  [1e-3, 5],
+  [1e-3, 0.25],
+  [1e-3, 0.9],
+  [0, 4],
+  [0, 1],
+  [1, 6],
+  [0, w17_w18_ceiling],
+  [0, w17_w18_ceiling],
+  [
+    enable_short_term ? 0.01 : 0,
+    0.8
+  ],
+  [0.1, 0.8]
+];
+var clipParameters = (parameters, numRelearningSteps, enableShortTerm = default_enable_short_term) => {
+  let w17_w18_ceiling = W17_W18_Ceiling;
+  if (Math.max(0, numRelearningSteps) > 1) {
+    const value = -(Math.log(parameters[11]) + Math.log(Math.pow(2, parameters[13]) - 1) + parameters[14] * 0.3) / numRelearningSteps;
+    w17_w18_ceiling = clamp(+value.toFixed(8), 0.01, 2);
+  }
+  const clip = CLAMP_PARAMETERS(w17_w18_ceiling, enableShortTerm).slice(
+    0,
+    parameters.length
+  );
+  return clip.map(
+    ([min, max], index) => clamp(parameters[index] || 0, min, max)
+  );
+};
+var migrateParameters = (parameters, numRelearningSteps = 0, enableShortTerm = default_enable_short_term) => {
+  if (parameters === void 0) {
+    return [...default_w];
+  }
+  switch (parameters.length) {
+    case 21:
+      return clipParameters(
+        Array.from(parameters),
+        numRelearningSteps,
+        enableShortTerm
+      );
+    case 19:
+      console.debug("[FSRS-6]auto fill w from 19 to 21 length");
+      return clipParameters(
+        Array.from(parameters),
+        numRelearningSteps,
+        enableShortTerm
+      ).concat([0, FSRS5_DEFAULT_DECAY]);
+    case 17: {
+      const w = clipParameters(
+        Array.from(parameters),
+        numRelearningSteps,
+        enableShortTerm
+      );
+      w[4] = +(w[5] * 2 + w[4]).toFixed(8);
+      w[5] = +(Math.log(w[5] * 3 + 1) / 3).toFixed(8);
+      w[6] = +(w[6] + 0.5).toFixed(8);
+      console.debug("[FSRS-6]auto fill w from 17 to 21 length");
+      return w.concat([0, 0, 0, FSRS5_DEFAULT_DECAY]);
+    }
+    default:
+      console.warn("[FSRS]Invalid parameters length, using default parameters");
+      return [...default_w];
+  }
+};
+var generatorParameters = (props) => {
+  var _a3, _b;
+  const learning_steps = Array.isArray(props == null ? void 0 : props.learning_steps) ? props.learning_steps : default_learning_steps;
+  const relearning_steps = Array.isArray(props == null ? void 0 : props.relearning_steps) ? props.relearning_steps : default_relearning_steps;
+  const enable_short_term = (_a3 = props == null ? void 0 : props.enable_short_term) != null ? _a3 : default_enable_short_term;
+  const w = migrateParameters(
+    props == null ? void 0 : props.w,
+    relearning_steps.length,
+    enable_short_term
+  );
+  return {
+    request_retention: (props == null ? void 0 : props.request_retention) || default_request_retention,
+    maximum_interval: (props == null ? void 0 : props.maximum_interval) || default_maximum_interval,
+    w,
+    enable_fuzz: (_b = props == null ? void 0 : props.enable_fuzz) != null ? _b : default_enable_fuzz,
+    enable_short_term,
+    learning_steps,
+    relearning_steps
+  };
+};
+function createEmptyCard(now2, afterHandler) {
+  const emptyCard = {
+    due: now2 ? TypeConvert.time(now2) : /* @__PURE__ */ new Date(),
+    stability: 0,
+    difficulty: 0,
+    elapsed_days: 0,
+    scheduled_days: 0,
+    reps: 0,
+    lapses: 0,
+    learning_steps: 0,
+    state: State.New,
+    last_review: void 0
+  };
+  if (afterHandler && typeof afterHandler === "function") {
+    return afterHandler(emptyCard);
+  } else {
+    return emptyCard;
+  }
+}
+var computeDecayFactor = (decayOrParams) => {
+  const decay = typeof decayOrParams === "number" ? -decayOrParams : -decayOrParams[20];
+  const factor = Math.exp(Math.pow(decay, -1) * Math.log(0.9)) - 1;
+  return { decay, factor: +factor.toFixed(8) };
+};
+function forgetting_curve(decayOrParams, elapsed_days, stability) {
+  const { decay, factor } = computeDecayFactor(decayOrParams);
+  return +Math.pow(1 + factor * elapsed_days / stability, decay).toFixed(8);
+}
+var FSRSAlgorithm = class {
+  constructor(params) {
+    __publicField(this, "param");
+    __publicField(this, "intervalModifier");
+    __publicField(this, "_seed");
+    /**
+     * The formula used is :
+     * $$R(t,S) = (1 + \text{FACTOR} \times \frac{t}{9 \cdot S})^{\text{DECAY}}$$
+     * @param {number} elapsed_days t days since the last review
+     * @param {number} stability Stability (interval when R=90%)
+     * @return {number} r Retrievability (probability of recall)
+     */
+    __publicField(this, "forgetting_curve");
+    this.param = new Proxy(
+      generatorParameters(params),
+      this.params_handler_proxy()
+    );
+    this.intervalModifier = this.calculate_interval_modifier(
+      this.param.request_retention
+    );
+    this.forgetting_curve = forgetting_curve.bind(this, this.param.w);
+  }
+  get interval_modifier() {
+    return this.intervalModifier;
+  }
+  set seed(seed) {
+    this._seed = seed;
+  }
+  /**
+   * @see https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-5
+   *
+   * The formula used is: $$I(r,s) = (r^{\frac{1}{DECAY}} - 1) / FACTOR \times s$$
+   * @param request_retention 0<request_retention<=1,Requested retention rate
+   * @throws {Error} Requested retention rate should be in the range (0,1]
+   */
+  calculate_interval_modifier(request_retention) {
+    if (request_retention <= 0 || request_retention > 1) {
+      throw new Error("Requested retention rate should be in the range (0,1]");
+    }
+    const { decay, factor } = computeDecayFactor(this.param.w);
+    return +((Math.pow(request_retention, 1 / decay) - 1) / factor).toFixed(8);
+  }
+  /**
+   * Get the parameters of the algorithm.
+   */
+  get parameters() {
+    return this.param;
+  }
+  /**
+   * Set the parameters of the algorithm.
+   * @param params Partial<FSRSParameters>
+   */
+  set parameters(params) {
+    this.update_parameters(params);
+  }
+  params_handler_proxy() {
+    const _this = this;
+    return {
+      set: function(target, prop, value) {
+        if (prop === "request_retention" && Number.isFinite(value)) {
+          _this.intervalModifier = _this.calculate_interval_modifier(
+            Number(value)
+          );
+        } else if (prop === "w") {
+          value = migrateParameters(
+            value,
+            target.relearning_steps.length,
+            target.enable_short_term
+          );
+          _this.forgetting_curve = forgetting_curve.bind(this, value);
+          _this.intervalModifier = _this.calculate_interval_modifier(
+            Number(target.request_retention)
+          );
+        }
+        Reflect.set(target, prop, value);
+        return true;
+      }
+    };
+  }
+  update_parameters(params) {
+    const _params = generatorParameters(params);
+    for (const key in _params) {
+      const paramKey = key;
+      this.param[paramKey] = _params[paramKey];
+    }
+  }
+  /**
+     * The formula used is :
+     * $$ S_0(G) = w_{G-1}$$
+     * $$S_0 = \max \lbrace S_0,0.1\rbrace $$
+  
+     * @param g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
+     * @return Stability (interval when R=90%)
+     */
+  init_stability(g) {
+    return Math.max(this.param.w[g - 1], 0.1);
+  }
+  /**
+   * The formula used is :
+   * $$D_0(G) = w_4 - e^{(G-1) \cdot w_5} + 1 $$
+   * $$D_0 = \min \lbrace \max \lbrace D_0(G),1 \rbrace,10 \rbrace$$
+   * where the $$D_0(1)=w_4$$ when the first rating is good.
+   *
+   * @param {Grade} g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
+   * @return {number} Difficulty $$D \in [1,10]$$
+   */
+  init_difficulty(g) {
+    const d = this.param.w[4] - Math.exp((g - 1) * this.param.w[5]) + 1;
+    return +d.toFixed(8);
+  }
+  /**
+   * If fuzzing is disabled or ivl is less than 2.5, it returns the original interval.
+   * @param {number} ivl - The interval to be fuzzed.
+   * @param {number} elapsed_days t days since the last review
+   * @return {number} - The fuzzed interval.
+   **/
+  apply_fuzz(ivl, elapsed_days) {
+    if (!this.param.enable_fuzz || ivl < 2.5)
+      return Math.round(ivl);
+    const generator = alea(this._seed);
+    const fuzz_factor = generator();
+    const { min_ivl, max_ivl } = get_fuzz_range(
+      ivl,
+      elapsed_days,
+      this.param.maximum_interval
+    );
+    return Math.floor(fuzz_factor * (max_ivl - min_ivl + 1) + min_ivl);
+  }
+  /**
+   *   @see The formula used is : {@link FSRSAlgorithm.calculate_interval_modifier}
+   *   @param {number} s - Stability (interval when R=90%)
+   *   @param {number} elapsed_days t days since the last review
+   */
+  next_interval(s, elapsed_days) {
+    const newInterval = Math.min(
+      Math.max(1, Math.round(s * this.intervalModifier)),
+      this.param.maximum_interval
+    );
+    return this.apply_fuzz(newInterval, elapsed_days);
+  }
+  /**
+   * @see https://github.com/open-spaced-repetition/fsrs4anki/issues/697
+   */
+  linear_damping(delta_d, old_d) {
+    return +(delta_d * (10 - old_d) / 9).toFixed(8);
+  }
+  /**
+   * The formula used is :
+   * $$\text{delta}_d = -w_6 \cdot (g - 3)$$
+   * $$\text{next}_d = D + \text{linear damping}(\text{delta}_d , D)$$
+   * $$D^\prime(D,R) = w_7 \cdot D_0(4) +(1 - w_7) \cdot \text{next}_d$$
+   * @param {number} d Difficulty $$D \in [1,10]$$
+   * @param {Grade} g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
+   * @return {number} $$\text{next}_D$$
+   */
+  next_difficulty(d, g) {
+    const delta_d = -this.param.w[6] * (g - 3);
+    const next_d = d + this.linear_damping(delta_d, d);
+    return clamp(
+      this.mean_reversion(this.init_difficulty(Rating.Easy), next_d),
+      1,
+      10
+    );
+  }
+  /**
+   * The formula used is :
+   * $$w_7 \cdot \text{init} +(1 - w_7) \cdot \text{current}$$
+   * @param {number} init $$w_2 : D_0(3) = w_2 + (R-2) \cdot w_3= w_2$$
+   * @param {number} current $$D - w_6 \cdot (R - 2)$$
+   * @return {number} difficulty
+   */
+  mean_reversion(init2, current) {
+    return +(this.param.w[7] * init2 + (1 - this.param.w[7]) * current).toFixed(
+      8
+    );
+  }
+  /**
+   * The formula used is :
+   * $$S^\prime_r(D,S,R,G) = S\cdot(e^{w_8}\cdot (11-D)\cdot S^{-w_9}\cdot(e^{w_{10}\cdot(1-R)}-1)\cdot w_{15}(\text{if} G=2) \cdot w_{16}(\text{if} G=4)+1)$$
+   * @param {number} d Difficulty D \in [1,10]
+   * @param {number} s Stability (interval when R=90%)
+   * @param {number} r Retrievability (probability of recall)
+   * @param {Grade} g Grade (Rating[0.again,1.hard,2.good,3.easy])
+   * @return {number} S^\prime_r new stability after recall
+   */
+  next_recall_stability(d, s, r, g) {
+    const hard_penalty = Rating.Hard === g ? this.param.w[15] : 1;
+    const easy_bound = Rating.Easy === g ? this.param.w[16] : 1;
+    return +clamp(
+      s * (1 + Math.exp(this.param.w[8]) * (11 - d) * Math.pow(s, -this.param.w[9]) * (Math.exp((1 - r) * this.param.w[10]) - 1) * hard_penalty * easy_bound),
+      S_MIN,
+      36500
+    ).toFixed(8);
+  }
+  /**
+   * The formula used is :
+   * $$S^\prime_f(D,S,R) = w_{11}\cdot D^{-w_{12}}\cdot ((S+1)^{w_{13}}-1) \cdot e^{w_{14}\cdot(1-R)}$$
+   * enable_short_term = true : $$S^\prime_f \in \min \lbrace \max \lbrace S^\prime_f,0.01\rbrace, \frac{S}{e^{w_{17} \cdot w_{18}}} \rbrace$$
+   * enable_short_term = false : $$S^\prime_f \in \min \lbrace \max \lbrace S^\prime_f,0.01\rbrace, S \rbrace$$
+   * @param {number} d Difficulty D \in [1,10]
+   * @param {number} s Stability (interval when R=90%)
+   * @param {number} r Retrievability (probability of recall)
+   * @return {number} S^\prime_f new stability after forgetting
+   */
+  next_forget_stability(d, s, r) {
+    return +clamp(
+      this.param.w[11] * Math.pow(d, -this.param.w[12]) * (Math.pow(s + 1, this.param.w[13]) - 1) * Math.exp((1 - r) * this.param.w[14]),
+      S_MIN,
+      36500
+    ).toFixed(8);
+  }
+  /**
+   * The formula used is :
+   * $$S^\prime_s(S,G) = S \cdot e^{w_{17} \cdot (G-3+w_{18})}$$
+   * @param {number} s Stability (interval when R=90%)
+   * @param {Grade} g Grade (Rating[0.again,1.hard,2.good,3.easy])
+   */
+  next_short_term_stability(s, g) {
+    const sinc = Math.pow(s, -this.param.w[19]) * Math.exp(this.param.w[17] * (g - 3 + this.param.w[18]));
+    const maskedSinc = g >= 3 ? Math.max(sinc, 1) : sinc;
+    return +clamp(s * maskedSinc, S_MIN, 36500).toFixed(8);
+  }
+  /**
+   * Calculates the next state of memory based on the current state, time elapsed, and grade.
+   *
+   * @param memory_state - The current state of memory, which can be null.
+   * @param t - The time elapsed since the last review.
+   * @param {Rating} g Grade (Rating[0.Manual,1.Again,2.Hard,3.Good,4.Easy])
+   * @returns The next state of memory with updated difficulty and stability.
+   */
+  next_state(memory_state, t, g) {
+    const { difficulty: d, stability: s } = memory_state != null ? memory_state : {
+      difficulty: 0,
+      stability: 0
+    };
+    if (t < 0) {
+      throw new Error(`Invalid delta_t "${t}"`);
+    }
+    if (g < 0 || g > 4) {
+      throw new Error(`Invalid grade "${g}"`);
+    }
+    if (d === 0 && s === 0) {
+      return {
+        difficulty: clamp(this.init_difficulty(g), 1, 10),
+        stability: this.init_stability(g)
+      };
+    }
+    if (g === 0) {
+      return {
+        difficulty: d,
+        stability: s
+      };
+    }
+    if (d < 1 || s < S_MIN) {
+      throw new Error(
+        `Invalid memory state { difficulty: ${d}, stability: ${s} }`
+      );
+    }
+    const r = this.forgetting_curve(t, s);
+    const s_after_success = this.next_recall_stability(d, s, r, g);
+    const s_after_fail = this.next_forget_stability(d, s, r);
+    const s_after_short_term = this.next_short_term_stability(s, g);
+    let new_s = s_after_success;
+    if (g === 1) {
+      let [w_17, w_18] = [0, 0];
+      if (this.param.enable_short_term) {
+        w_17 = this.param.w[17];
+        w_18 = this.param.w[18];
+      }
+      const next_s_min = s / Math.exp(w_17 * w_18);
+      new_s = clamp(+next_s_min.toFixed(8), S_MIN, s_after_fail);
+    }
+    if (t === 0 && this.param.enable_short_term) {
+      new_s = s_after_short_term;
+    }
+    const new_d = this.next_difficulty(d, g);
+    return { difficulty: new_d, stability: new_s };
+  }
+};
+var BasicScheduler = class extends AbstractScheduler {
+  constructor(card, now2, algorithm, strategies) {
+    super(card, now2, algorithm, strategies);
+    __publicField(this, "learningStepsStrategy");
+    let learningStepStrategy = BasicLearningStepsStrategy;
+    if (this.strategies) {
+      const custom_strategy = this.strategies.get(StrategyMode.LEARNING_STEPS);
+      if (custom_strategy) {
+        learningStepStrategy = custom_strategy;
+      }
+    }
+    this.learningStepsStrategy = learningStepStrategy;
+  }
+  getLearningInfo(card, grade) {
+    var _a3, _b, _c, _d;
+    const parameters = this.algorithm.parameters;
+    card.learning_steps = card.learning_steps || 0;
+    const steps_strategy = this.learningStepsStrategy(
+      parameters,
+      card.state,
+      // In the original learning steps setup (Again = 5m, Hard = 10m, Good = FSRS),
+      // not adding 1 can cause slight variations in the memory state’s ds.
+      this.current.state === State.Learning && grade !== Rating.Again && grade !== Rating.Hard ? card.learning_steps + 1 : card.learning_steps
+    );
+    const scheduled_minutes = Math.max(
+      0,
+      (_b = (_a3 = steps_strategy[grade]) == null ? void 0 : _a3.scheduled_minutes) != null ? _b : 0
+    );
+    const next_steps = Math.max(0, (_d = (_c = steps_strategy[grade]) == null ? void 0 : _c.next_step) != null ? _d : 0);
+    return {
+      scheduled_minutes,
+      next_steps
+    };
+  }
+  /**
+   * @description This function applies the learning steps based on the current card's state and grade.
+   */
+  applyLearningSteps(nextCard, grade, to_state) {
+    const { scheduled_minutes, next_steps } = this.getLearningInfo(
+      this.current,
+      grade
+    );
+    if (scheduled_minutes > 0 && scheduled_minutes < 1440) {
+      nextCard.learning_steps = next_steps;
+      nextCard.scheduled_days = 0;
+      nextCard.state = to_state;
+      nextCard.due = date_scheduler(
+        this.review_time,
+        Math.round(scheduled_minutes),
+        false
+        /** true:days false: minute */
+      );
+    } else {
+      nextCard.state = State.Review;
+      if (scheduled_minutes >= 1440) {
+        nextCard.learning_steps = next_steps;
+        nextCard.due = date_scheduler(
+          this.review_time,
+          Math.round(scheduled_minutes),
+          false
+          /** true:days false: minute */
+        );
+        nextCard.scheduled_days = Math.floor(scheduled_minutes / 1440);
+      } else {
+        nextCard.learning_steps = 0;
+        const interval = this.algorithm.next_interval(
+          nextCard.stability,
+          this.elapsed_days
+        );
+        nextCard.scheduled_days = interval;
+        nextCard.due = date_scheduler(this.review_time, interval, true);
+      }
+    }
+  }
+  newState(grade) {
+    const exist = this.next.get(grade);
+    if (exist) {
+      return exist;
+    }
+    const next = TypeConvert.card(this.current);
+    next.difficulty = clamp(this.algorithm.init_difficulty(grade), 1, 10);
+    next.stability = this.algorithm.init_stability(grade);
+    this.applyLearningSteps(next, grade, State.Learning);
+    const item = {
+      card: next,
+      log: this.buildLog(grade)
+    };
+    this.next.set(grade, item);
+    return item;
+  }
+  learningState(grade) {
+    const exist = this.next.get(grade);
+    if (exist) {
+      return exist;
+    }
+    const { state, difficulty, stability } = this.last;
+    const next = TypeConvert.card(this.current);
+    next.difficulty = this.algorithm.next_difficulty(difficulty, grade);
+    next.stability = this.algorithm.next_short_term_stability(stability, grade);
+    this.applyLearningSteps(
+      next,
+      grade,
+      state
+      /** Learning or Relearning */
+    );
+    const item = {
+      card: next,
+      log: this.buildLog(grade)
+    };
+    this.next.set(grade, item);
+    return item;
+  }
+  reviewState(grade) {
+    const exist = this.next.get(grade);
+    if (exist) {
+      return exist;
+    }
+    const interval = this.elapsed_days;
+    const { difficulty, stability } = this.last;
+    const retrievability = this.algorithm.forgetting_curve(interval, stability);
+    const next_again = TypeConvert.card(this.current);
+    const next_hard = TypeConvert.card(this.current);
+    const next_good = TypeConvert.card(this.current);
+    const next_easy = TypeConvert.card(this.current);
+    this.next_ds(
+      next_again,
+      next_hard,
+      next_good,
+      next_easy,
+      difficulty,
+      stability,
+      retrievability
+    );
+    this.next_interval(next_hard, next_good, next_easy, interval);
+    this.next_state(next_hard, next_good, next_easy);
+    this.applyLearningSteps(next_again, Rating.Again, State.Relearning);
+    next_again.lapses += 1;
+    const item_again = {
+      card: next_again,
+      log: this.buildLog(Rating.Again)
+    };
+    const item_hard = {
+      card: next_hard,
+      log: super.buildLog(Rating.Hard)
+    };
+    const item_good = {
+      card: next_good,
+      log: super.buildLog(Rating.Good)
+    };
+    const item_easy = {
+      card: next_easy,
+      log: super.buildLog(Rating.Easy)
+    };
+    this.next.set(Rating.Again, item_again);
+    this.next.set(Rating.Hard, item_hard);
+    this.next.set(Rating.Good, item_good);
+    this.next.set(Rating.Easy, item_easy);
+    return this.next.get(grade);
+  }
+  /**
+   * Review next_ds
+   */
+  next_ds(next_again, next_hard, next_good, next_easy, difficulty, stability, retrievability) {
+    next_again.difficulty = this.algorithm.next_difficulty(
+      difficulty,
+      Rating.Again
+    );
+    const nextSMin = stability / Math.exp(
+      this.algorithm.parameters.w[17] * this.algorithm.parameters.w[18]
+    );
+    const s_after_fail = this.algorithm.next_forget_stability(
+      difficulty,
+      stability,
+      retrievability
+    );
+    next_again.stability = clamp(+nextSMin.toFixed(8), S_MIN, s_after_fail);
+    next_hard.difficulty = this.algorithm.next_difficulty(
+      difficulty,
+      Rating.Hard
+    );
+    next_hard.stability = this.algorithm.next_recall_stability(
+      difficulty,
+      stability,
+      retrievability,
+      Rating.Hard
+    );
+    next_good.difficulty = this.algorithm.next_difficulty(
+      difficulty,
+      Rating.Good
+    );
+    next_good.stability = this.algorithm.next_recall_stability(
+      difficulty,
+      stability,
+      retrievability,
+      Rating.Good
+    );
+    next_easy.difficulty = this.algorithm.next_difficulty(
+      difficulty,
+      Rating.Easy
+    );
+    next_easy.stability = this.algorithm.next_recall_stability(
+      difficulty,
+      stability,
+      retrievability,
+      Rating.Easy
+    );
+  }
+  /**
+   * Review next_interval
+   */
+  next_interval(next_hard, next_good, next_easy, interval) {
+    let hard_interval, good_interval;
+    hard_interval = this.algorithm.next_interval(next_hard.stability, interval);
+    good_interval = this.algorithm.next_interval(next_good.stability, interval);
+    hard_interval = Math.min(hard_interval, good_interval);
+    good_interval = Math.max(good_interval, hard_interval + 1);
+    const easy_interval = Math.max(
+      this.algorithm.next_interval(next_easy.stability, interval),
+      good_interval + 1
+    );
+    next_hard.scheduled_days = hard_interval;
+    next_hard.due = date_scheduler(this.review_time, hard_interval, true);
+    next_good.scheduled_days = good_interval;
+    next_good.due = date_scheduler(this.review_time, good_interval, true);
+    next_easy.scheduled_days = easy_interval;
+    next_easy.due = date_scheduler(this.review_time, easy_interval, true);
+  }
+  /**
+   * Review next_state
+   */
+  next_state(next_hard, next_good, next_easy) {
+    next_hard.state = State.Review;
+    next_hard.learning_steps = 0;
+    next_good.state = State.Review;
+    next_good.learning_steps = 0;
+    next_easy.state = State.Review;
+    next_easy.learning_steps = 0;
+  }
+};
+var LongTermScheduler = class extends AbstractScheduler {
+  newState(grade) {
+    const exist = this.next.get(grade);
+    if (exist) {
+      return exist;
+    }
+    this.current.scheduled_days = 0;
+    this.current.elapsed_days = 0;
+    const next_again = TypeConvert.card(this.current);
+    const next_hard = TypeConvert.card(this.current);
+    const next_good = TypeConvert.card(this.current);
+    const next_easy = TypeConvert.card(this.current);
+    this.init_ds(next_again, next_hard, next_good, next_easy);
+    const first_interval = 0;
+    this.next_interval(
+      next_again,
+      next_hard,
+      next_good,
+      next_easy,
+      first_interval
+    );
+    this.next_state(next_again, next_hard, next_good, next_easy);
+    this.update_next(next_again, next_hard, next_good, next_easy);
+    return this.next.get(grade);
+  }
+  init_ds(next_again, next_hard, next_good, next_easy) {
+    next_again.difficulty = clamp(
+      this.algorithm.init_difficulty(Rating.Again),
+      1,
+      10
+    );
+    next_again.stability = this.algorithm.init_stability(Rating.Again);
+    next_hard.difficulty = clamp(
+      this.algorithm.init_difficulty(Rating.Hard),
+      1,
+      10
+    );
+    next_hard.stability = this.algorithm.init_stability(Rating.Hard);
+    next_good.difficulty = clamp(
+      this.algorithm.init_difficulty(Rating.Good),
+      1,
+      10
+    );
+    next_good.stability = this.algorithm.init_stability(Rating.Good);
+    next_easy.difficulty = clamp(
+      this.algorithm.init_difficulty(Rating.Easy),
+      1,
+      10
+    );
+    next_easy.stability = this.algorithm.init_stability(Rating.Easy);
+  }
+  /**
+   * @see https://github.com/open-spaced-repetition/ts-fsrs/issues/98#issuecomment-2241923194
+   */
+  learningState(grade) {
+    return this.reviewState(grade);
+  }
+  reviewState(grade) {
+    const exist = this.next.get(grade);
+    if (exist) {
+      return exist;
+    }
+    const interval = this.elapsed_days;
+    const { difficulty, stability } = this.last;
+    const retrievability = this.algorithm.forgetting_curve(interval, stability);
+    const next_again = TypeConvert.card(this.current);
+    const next_hard = TypeConvert.card(this.current);
+    const next_good = TypeConvert.card(this.current);
+    const next_easy = TypeConvert.card(this.current);
+    this.next_ds(
+      next_again,
+      next_hard,
+      next_good,
+      next_easy,
+      difficulty,
+      stability,
+      retrievability
+    );
+    this.next_interval(next_again, next_hard, next_good, next_easy, interval);
+    this.next_state(next_again, next_hard, next_good, next_easy);
+    next_again.lapses += 1;
+    this.update_next(next_again, next_hard, next_good, next_easy);
+    return this.next.get(grade);
+  }
+  /**
+   * Review next_ds
+   */
+  next_ds(next_again, next_hard, next_good, next_easy, difficulty, stability, retrievability) {
+    next_again.difficulty = this.algorithm.next_difficulty(
+      difficulty,
+      Rating.Again
+    );
+    const s_after_fail = this.algorithm.next_forget_stability(
+      difficulty,
+      stability,
+      retrievability
+    );
+    next_again.stability = clamp(stability, S_MIN, s_after_fail);
+    next_hard.difficulty = this.algorithm.next_difficulty(
+      difficulty,
+      Rating.Hard
+    );
+    next_hard.stability = this.algorithm.next_recall_stability(
+      difficulty,
+      stability,
+      retrievability,
+      Rating.Hard
+    );
+    next_good.difficulty = this.algorithm.next_difficulty(
+      difficulty,
+      Rating.Good
+    );
+    next_good.stability = this.algorithm.next_recall_stability(
+      difficulty,
+      stability,
+      retrievability,
+      Rating.Good
+    );
+    next_easy.difficulty = this.algorithm.next_difficulty(
+      difficulty,
+      Rating.Easy
+    );
+    next_easy.stability = this.algorithm.next_recall_stability(
+      difficulty,
+      stability,
+      retrievability,
+      Rating.Easy
+    );
+  }
+  /**
+   * Review/New next_interval
+   */
+  next_interval(next_again, next_hard, next_good, next_easy, interval) {
+    let again_interval, hard_interval, good_interval, easy_interval;
+    again_interval = this.algorithm.next_interval(
+      next_again.stability,
+      interval
+    );
+    hard_interval = this.algorithm.next_interval(next_hard.stability, interval);
+    good_interval = this.algorithm.next_interval(next_good.stability, interval);
+    easy_interval = this.algorithm.next_interval(next_easy.stability, interval);
+    again_interval = Math.min(again_interval, hard_interval);
+    hard_interval = Math.max(hard_interval, again_interval + 1);
+    good_interval = Math.max(good_interval, hard_interval + 1);
+    easy_interval = Math.max(easy_interval, good_interval + 1);
+    next_again.scheduled_days = again_interval;
+    next_again.due = date_scheduler(this.review_time, again_interval, true);
+    next_hard.scheduled_days = hard_interval;
+    next_hard.due = date_scheduler(this.review_time, hard_interval, true);
+    next_good.scheduled_days = good_interval;
+    next_good.due = date_scheduler(this.review_time, good_interval, true);
+    next_easy.scheduled_days = easy_interval;
+    next_easy.due = date_scheduler(this.review_time, easy_interval, true);
+  }
+  /**
+   * Review/New next_state
+   */
+  next_state(next_again, next_hard, next_good, next_easy) {
+    next_again.state = State.Review;
+    next_again.learning_steps = 0;
+    next_hard.state = State.Review;
+    next_hard.learning_steps = 0;
+    next_good.state = State.Review;
+    next_good.learning_steps = 0;
+    next_easy.state = State.Review;
+    next_easy.learning_steps = 0;
+  }
+  update_next(next_again, next_hard, next_good, next_easy) {
+    const item_again = {
+      card: next_again,
+      log: this.buildLog(Rating.Again)
+    };
+    const item_hard = {
+      card: next_hard,
+      log: super.buildLog(Rating.Hard)
+    };
+    const item_good = {
+      card: next_good,
+      log: super.buildLog(Rating.Good)
+    };
+    const item_easy = {
+      card: next_easy,
+      log: super.buildLog(Rating.Easy)
+    };
+    this.next.set(Rating.Again, item_again);
+    this.next.set(Rating.Hard, item_hard);
+    this.next.set(Rating.Good, item_good);
+    this.next.set(Rating.Easy, item_easy);
+  }
+};
+var Reschedule = class {
+  /**
+   * Creates an instance of the `Reschedule` class.
+   * @param fsrs - An instance of the FSRS class used for scheduling.
+   */
+  constructor(fsrs) {
+    __publicField(this, "fsrs");
+    this.fsrs = fsrs;
+  }
+  /**
+   * Replays a review for a card and determines the next review date based on the given rating.
+   * @param card - The card being reviewed.
+   * @param reviewed - The date the card was reviewed.
+   * @param rating - The grade given to the card during the review.
+   * @returns A `RecordLogItem` containing the updated card and review log.
+   */
+  replay(card, reviewed, rating) {
+    return this.fsrs.next(card, reviewed, rating);
+  }
+  /**
+   * Processes a manual review for a card, allowing for custom state, stability, difficulty, and due date.
+   * @param card - The card being reviewed.
+   * @param state - The state of the card after the review.
+   * @param reviewed - The date the card was reviewed.
+   * @param elapsed_days - The number of days since the last review.
+   * @param stability - (Optional) The stability of the card.
+   * @param difficulty - (Optional) The difficulty of the card.
+   * @param due - (Optional) The due date for the next review.
+   * @returns A `RecordLogItem` containing the updated card and review log.
+   * @throws Will throw an error if the state or due date is not provided when required.
+   */
+  handleManualRating(card, state, reviewed, elapsed_days, stability, difficulty, due) {
+    if (typeof state === "undefined") {
+      throw new Error("reschedule: state is required for manual rating");
+    }
+    let log;
+    let next_card;
+    if (state === State.New) {
+      log = {
+        rating: Rating.Manual,
+        state,
+        due: due != null ? due : reviewed,
+        stability: card.stability,
+        difficulty: card.difficulty,
+        elapsed_days,
+        last_elapsed_days: card.elapsed_days,
+        scheduled_days: card.scheduled_days,
+        learning_steps: card.learning_steps,
+        review: reviewed
+      };
+      next_card = createEmptyCard(reviewed);
+      next_card.last_review = reviewed;
+    } else {
+      if (typeof due === "undefined") {
+        throw new Error("reschedule: due is required for manual rating");
+      }
+      const scheduled_days = date_diff(due, reviewed, "days");
+      log = {
+        rating: Rating.Manual,
+        state: card.state,
+        due: card.last_review || card.due,
+        stability: card.stability,
+        difficulty: card.difficulty,
+        elapsed_days,
+        last_elapsed_days: card.elapsed_days,
+        scheduled_days: card.scheduled_days,
+        learning_steps: card.learning_steps,
+        review: reviewed
+      };
+      next_card = {
+        ...card,
+        state,
+        due,
+        last_review: reviewed,
+        stability: stability || card.stability,
+        difficulty: difficulty || card.difficulty,
+        elapsed_days,
+        scheduled_days,
+        reps: card.reps + 1
+      };
+    }
+    return { card: next_card, log };
+  }
+  /**
+   * Reschedules a card based on its review history.
+   *
+   * @param current_card - The card to be rescheduled.
+   * @param reviews - An array of review history objects.
+   * @returns An array of record log items representing the rescheduling process.
+   */
+  reschedule(current_card, reviews) {
+    const collections = [];
+    let cur_card = createEmptyCard(current_card.due);
+    for (const review of reviews) {
+      let item;
+      review.review = TypeConvert.time(review.review);
+      if (review.rating === Rating.Manual) {
+        let interval = 0;
+        if (cur_card.state !== State.New && cur_card.last_review) {
+          interval = date_diff(review.review, cur_card.last_review, "days");
+        }
+        item = this.handleManualRating(
+          cur_card,
+          review.state,
+          review.review,
+          interval,
+          review.stability,
+          review.difficulty,
+          review.due ? TypeConvert.time(review.due) : void 0
+        );
+      } else {
+        item = this.replay(cur_card, review.review, review.rating);
+      }
+      collections.push(item);
+      cur_card = item.card;
+    }
+    return collections;
+  }
+  calculateManualRecord(current_card, now2, record_log_item, update_memory) {
+    if (!record_log_item) {
+      return null;
+    }
+    const { card: reschedule_card, log } = record_log_item;
+    const cur_card = TypeConvert.card(current_card);
+    if (cur_card.due.getTime() === reschedule_card.due.getTime()) {
+      return null;
+    }
+    cur_card.scheduled_days = date_diff(
+      reschedule_card.due,
+      cur_card.due,
+      "days"
+    );
+    return this.handleManualRating(
+      cur_card,
+      reschedule_card.state,
+      TypeConvert.time(now2),
+      log.elapsed_days,
+      update_memory ? reschedule_card.stability : void 0,
+      update_memory ? reschedule_card.difficulty : void 0,
+      reschedule_card.due
+    );
+  }
+};
+var FSRS = class extends FSRSAlgorithm {
+  constructor(param) {
+    super(param);
+    __publicField(this, "strategyHandler", /* @__PURE__ */ new Map());
+    __publicField(this, "Scheduler");
+    const { enable_short_term } = this.parameters;
+    this.Scheduler = enable_short_term ? BasicScheduler : LongTermScheduler;
+  }
+  params_handler_proxy() {
+    const _this = this;
+    return {
+      set: function(target, prop, value) {
+        if (prop === "request_retention" && Number.isFinite(value)) {
+          _this.intervalModifier = _this.calculate_interval_modifier(
+            Number(value)
+          );
+        } else if (prop === "enable_short_term") {
+          _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler;
+        } else if (prop === "w") {
+          value = migrateParameters(
+            value,
+            target.relearning_steps.length,
+            target.enable_short_term
+          );
+          _this.forgetting_curve = forgetting_curve.bind(this, value);
+          _this.intervalModifier = _this.calculate_interval_modifier(
+            Number(target.request_retention)
+          );
+        }
+        Reflect.set(target, prop, value);
+        return true;
+      }
+    };
+  }
+  useStrategy(mode, handler) {
+    this.strategyHandler.set(mode, handler);
+    return this;
+  }
+  clearStrategy(mode) {
+    if (mode) {
+      this.strategyHandler.delete(mode);
+    } else {
+      this.strategyHandler.clear();
+    }
+    return this;
+  }
+  getScheduler(card, now2) {
+    const schedulerStrategy = this.strategyHandler.get(
+      StrategyMode.SCHEDULER
+    );
+    const Scheduler = schedulerStrategy || this.Scheduler;
+    const instance17 = new Scheduler(card, now2, this, this.strategyHandler);
+    return instance17;
+  }
+  /**
+   * Display the collection of cards and logs for the four scenarios after scheduling the card at the current time.
+   * @param card Card to be processed
+   * @param now Current time or scheduled time
+   * @param afterHandler Convert the result to another type. (Optional)
+   * @example
+   * ```typescript
+   * const card: Card = createEmptyCard(new Date());
+   * const f = fsrs();
+   * const recordLog = f.repeat(card, new Date());
+   * ```
+   * @example
+   * ```typescript
+   * interface RevLogUnchecked
+   *   extends Omit<ReviewLog, "due" | "review" | "state" | "rating"> {
+   *   cid: string;
+   *   due: Date | number;
+   *   state: StateType;
+   *   review: Date | number;
+   *   rating: RatingType;
+   * }
+   *
+   * interface RepeatRecordLog {
+   *   card: CardUnChecked; //see method: createEmptyCard
+   *   log: RevLogUnchecked;
+   * }
+   *
+   * function repeatAfterHandler(recordLog: RecordLog) {
+   *     const record: { [key in Grade]: RepeatRecordLog } = {} as {
+   *       [key in Grade]: RepeatRecordLog;
+   *     };
+   *     for (const grade of Grades) {
+   *       record[grade] = {
+   *         card: {
+   *           ...(recordLog[grade].card as Card & { cid: string }),
+   *           due: recordLog[grade].card.due.getTime(),
+   *           state: State[recordLog[grade].card.state] as StateType,
+   *           last_review: recordLog[grade].card.last_review
+   *             ? recordLog[grade].card.last_review!.getTime()
+   *             : null,
+   *         },
+   *         log: {
+   *           ...recordLog[grade].log,
+   *           cid: (recordLog[grade].card as Card & { cid: string }).cid,
+   *           due: recordLog[grade].log.due.getTime(),
+   *           review: recordLog[grade].log.review.getTime(),
+   *           state: State[recordLog[grade].log.state] as StateType,
+   *           rating: Rating[recordLog[grade].log.rating] as RatingType,
+   *         },
+   *       };
+   *     }
+   *     return record;
+   * }
+   * const card: Card = createEmptyCard(new Date(), cardAfterHandler); //see method:  createEmptyCard
+   * const f = fsrs();
+   * const recordLog = f.repeat(card, new Date(), repeatAfterHandler);
+   * ```
+   */
+  repeat(card, now2, afterHandler) {
+    const instance17 = this.getScheduler(card, now2);
+    const recordLog = instance17.preview();
+    if (afterHandler && typeof afterHandler === "function") {
+      return afterHandler(recordLog);
+    } else {
+      return recordLog;
+    }
+  }
+  /**
+   * Display the collection of cards and logs for the card scheduled at the current time, after applying a specific grade rating.
+   * @param card Card to be processed
+   * @param now Current time or scheduled time
+   * @param grade Rating of the review (Again, Hard, Good, Easy)
+   * @param afterHandler Convert the result to another type. (Optional)
+   * @example
+   * ```typescript
+   * const card: Card = createEmptyCard(new Date());
+   * const f = fsrs();
+   * const recordLogItem = f.next(card, new Date(), Rating.Again);
+   * ```
+   * @example
+   * ```typescript
+   * interface RevLogUnchecked
+   *   extends Omit<ReviewLog, "due" | "review" | "state" | "rating"> {
+   *   cid: string;
+   *   due: Date | number;
+   *   state: StateType;
+   *   review: Date | number;
+   *   rating: RatingType;
+   * }
+   *
+   * interface NextRecordLog {
+   *   card: CardUnChecked; //see method: createEmptyCard
+   *   log: RevLogUnchecked;
+   * }
+   *
+  function nextAfterHandler(recordLogItem: RecordLogItem) {
+    const recordItem = {
+      card: {
+        ...(recordLogItem.card as Card & { cid: string }),
+        due: recordLogItem.card.due.getTime(),
+        state: State[recordLogItem.card.state] as StateType,
+        last_review: recordLogItem.card.last_review
+          ? recordLogItem.card.last_review!.getTime()
+          : null,
+      },
+      log: {
+        ...recordLogItem.log,
+        cid: (recordLogItem.card as Card & { cid: string }).cid,
+        due: recordLogItem.log.due.getTime(),
+        review: recordLogItem.log.review.getTime(),
+        state: State[recordLogItem.log.state] as StateType,
+        rating: Rating[recordLogItem.log.rating] as RatingType,
+      },
+    };
+    return recordItem
+  }
+   * const card: Card = createEmptyCard(new Date(), cardAfterHandler); //see method:  createEmptyCard
+   * const f = fsrs();
+   * const recordLogItem = f.repeat(card, new Date(), Rating.Again, nextAfterHandler);
+   * ```
+   */
+  next(card, now2, grade, afterHandler) {
+    const instance17 = this.getScheduler(card, now2);
+    const g = TypeConvert.rating(grade);
+    if (g === Rating.Manual) {
+      throw new Error("Cannot review a manual rating");
+    }
+    const recordLogItem = instance17.review(g);
+    if (afterHandler && typeof afterHandler === "function") {
+      return afterHandler(recordLogItem);
+    } else {
+      return recordLogItem;
+    }
+  }
+  /**
+   * Get the retrievability of the card
+   * @param card  Card to be processed
+   * @param now  Current time or scheduled time
+   * @param format  default:true , Convert the result to another type. (Optional)
+   * @returns  The retrievability of the card,if format is true, the result is a string, otherwise it is a number
+   */
+  get_retrievability(card, now2, format = true) {
+    const processedCard = TypeConvert.card(card);
+    now2 = now2 ? TypeConvert.time(now2) : /* @__PURE__ */ new Date();
+    const t = processedCard.state !== State.New ? Math.max(date_diff(now2, processedCard.last_review, "days"), 0) : 0;
+    const r = processedCard.state !== State.New ? this.forgetting_curve(t, +processedCard.stability.toFixed(8)) : 0;
+    return format ? `${(r * 100).toFixed(2)}%` : r;
+  }
+  /**
+   *
+   * @param card Card to be processed
+   * @param log last review log
+   * @param afterHandler Convert the result to another type. (Optional)
+   * @example
+   * ```typescript
+   * const now = new Date();
+   * const f = fsrs();
+   * const emptyCardFormAfterHandler = createEmptyCard(now);
+   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now);
+   * const { card, log } = repeatFormAfterHandler[Rating.Hard];
+   * const rollbackFromAfterHandler = f.rollback(card, log);
+   * ```
+   *
+   * @example
+   * ```typescript
+   * const now = new Date();
+   * const f = fsrs();
+   * const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler);  //see method: createEmptyCard
+   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now, repeatAfterHandler); //see method: fsrs.repeat()
+   * const { card, log } = repeatFormAfterHandler[Rating.Hard];
+   * const rollbackFromAfterHandler = f.rollback(card, log, cardAfterHandler);
+   * ```
+   */
+  rollback(card, log, afterHandler) {
+    const processedCard = TypeConvert.card(card);
+    const processedLog = TypeConvert.review_log(log);
+    if (processedLog.rating === Rating.Manual) {
+      throw new Error("Cannot rollback a manual rating");
+    }
+    let last_due;
+    let last_review;
+    let last_lapses;
+    switch (processedLog.state) {
+      case State.New:
+        last_due = processedLog.due;
+        last_review = void 0;
+        last_lapses = 0;
+        break;
+      case State.Learning:
+      case State.Relearning:
+      case State.Review:
+        last_due = processedLog.review;
+        last_review = processedLog.due;
+        last_lapses = processedCard.lapses - (processedLog.rating === Rating.Again && processedLog.state === State.Review ? 1 : 0);
+        break;
+    }
+    const prevCard = {
+      ...processedCard,
+      due: last_due,
+      stability: processedLog.stability,
+      difficulty: processedLog.difficulty,
+      elapsed_days: processedLog.last_elapsed_days,
+      scheduled_days: processedLog.scheduled_days,
+      reps: Math.max(0, processedCard.reps - 1),
+      lapses: Math.max(0, last_lapses),
+      learning_steps: processedLog.learning_steps,
+      state: processedLog.state,
+      last_review
+    };
+    if (afterHandler && typeof afterHandler === "function") {
+      return afterHandler(prevCard);
+    } else {
+      return prevCard;
+    }
+  }
+  /**
+   *
+   * @param card Card to be processed
+   * @param now Current time or scheduled time
+   * @param reset_count Should the review count information(reps,lapses) be reset. (Optional)
+   * @param afterHandler Convert the result to another type. (Optional)
+   * @example
+   * ```typescript
+   * const now = new Date();
+   * const f = fsrs();
+   * const emptyCard = createEmptyCard(now);
+   * const scheduling_cards = f.repeat(emptyCard, now);
+   * const { card, log } = scheduling_cards[Rating.Hard];
+   * const forgetCard = f.forget(card, new Date(), true);
+   * ```
+   *
+   * @example
+   * ```typescript
+   * interface RepeatRecordLog {
+   *   card: CardUnChecked; //see method: createEmptyCard
+   *   log: RevLogUnchecked; //see method: fsrs.repeat()
+   * }
+   *
+   * function forgetAfterHandler(recordLogItem: RecordLogItem): RepeatRecordLog {
+   *     return {
+   *       card: {
+   *         ...(recordLogItem.card as Card & { cid: string }),
+   *         due: recordLogItem.card.due.getTime(),
+   *         state: State[recordLogItem.card.state] as StateType,
+   *         last_review: recordLogItem.card.last_review
+   *           ? recordLogItem.card.last_review!.getTime()
+   *           : null,
+   *       },
+   *       log: {
+   *         ...recordLogItem.log,
+   *         cid: (recordLogItem.card as Card & { cid: string }).cid,
+   *         due: recordLogItem.log.due.getTime(),
+   *         review: recordLogItem.log.review.getTime(),
+   *         state: State[recordLogItem.log.state] as StateType,
+   *         rating: Rating[recordLogItem.log.rating] as RatingType,
+   *       },
+   *     };
+   * }
+   * const now = new Date();
+   * const f = fsrs();
+   * const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler); //see method:  createEmptyCard
+   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now, repeatAfterHandler); //see method: fsrs.repeat()
+   * const { card } = repeatFormAfterHandler[Rating.Hard];
+   * const forgetFromAfterHandler = f.forget(card, date_scheduler(now, 1, true), false, forgetAfterHandler);
+   * ```
+   */
+  forget(card, now2, reset_count = false, afterHandler) {
+    const processedCard = TypeConvert.card(card);
+    now2 = TypeConvert.time(now2);
+    const scheduled_days = processedCard.state === State.New ? 0 : date_diff(now2, processedCard.due, "days");
+    const forget_log = {
+      rating: Rating.Manual,
+      state: processedCard.state,
+      due: processedCard.due,
+      stability: processedCard.stability,
+      difficulty: processedCard.difficulty,
+      elapsed_days: 0,
+      last_elapsed_days: processedCard.elapsed_days,
+      scheduled_days,
+      learning_steps: processedCard.learning_steps,
+      review: now2
+    };
+    const forget_card = {
+      ...processedCard,
+      due: now2,
+      stability: 0,
+      difficulty: 0,
+      elapsed_days: 0,
+      scheduled_days: 0,
+      reps: reset_count ? 0 : processedCard.reps,
+      lapses: reset_count ? 0 : processedCard.lapses,
+      learning_steps: 0,
+      state: State.New,
+      last_review: processedCard.last_review
+    };
+    const recordLogItem = { card: forget_card, log: forget_log };
+    if (afterHandler && typeof afterHandler === "function") {
+      return afterHandler(recordLogItem);
+    } else {
+      return recordLogItem;
+    }
+  }
+  /**
+   * Reschedules the current card and returns the rescheduled collections and reschedule item.
+   *
+   * @template T - The type of the record log item.
+   * @param {CardInput | Card} current_card - The current card to be rescheduled.
+   * @param {Array<FSRSHistory>} reviews - The array of FSRSHistory objects representing the reviews.
+   * @param {Partial<RescheduleOptions<T>>} options - The optional reschedule options.
+   * @returns {IReschedule<T>} - The rescheduled collections and reschedule item.
+   *
+   * @example
+   * ```typescript
+   * const f = fsrs()
+   * const grades: Grade[] = [Rating.Good, Rating.Good, Rating.Good, Rating.Good]
+   * const reviews_at = [
+   *   new Date(2024, 8, 13),
+   *   new Date(2024, 8, 13),
+   *   new Date(2024, 8, 17),
+   *   new Date(2024, 8, 28),
+   * ]
+   *
+   * const reviews: FSRSHistory[] = []
+   * for (let i = 0; i < grades.length; i++) {
+   *   reviews.push({
+   *     rating: grades[i],
+   *     review: reviews_at[i],
+   *   })
+   * }
+   *
+   * const results_short = scheduler.reschedule(
+   *   createEmptyCard(),
+   *   reviews,
+   *   {
+   *     skipManual: false,
+   *   }
+   * )
+   * console.log(results_short)
+   * ```
+   */
+  reschedule(current_card, reviews = [], options = {}) {
+    const {
+      recordLogHandler,
+      reviewsOrderBy,
+      skipManual = true,
+      now: now2 = /* @__PURE__ */ new Date(),
+      update_memory_state: updateMemoryState = false
+    } = options;
+    if (reviewsOrderBy && typeof reviewsOrderBy === "function") {
+      reviews.sort(reviewsOrderBy);
+    }
+    if (skipManual) {
+      reviews = reviews.filter((review) => review.rating !== Rating.Manual);
+    }
+    const rescheduleSvc = new Reschedule(this);
+    const collections = rescheduleSvc.reschedule(
+      options.first_card || createEmptyCard(),
+      reviews
+    );
+    const len = collections.length;
+    const cur_card = TypeConvert.card(current_card);
+    const manual_item = rescheduleSvc.calculateManualRecord(
+      cur_card,
+      now2,
+      len ? collections[len - 1] : void 0,
+      updateMemoryState
+    );
+    if (recordLogHandler && typeof recordLogHandler === "function") {
+      return {
+        collections: collections.map(recordLogHandler),
+        reschedule_item: manual_item ? recordLogHandler(manual_item) : null
+      };
+    }
+    return {
+      collections,
+      reschedule_item: manual_item
+    };
+  }
+};
+
+// src/core/srs/types.ts
+var CardRating = /* @__PURE__ */ ((CardRating2) => {
+  CardRating2[CardRating2["AGAIN"] = 0] = "AGAIN";
+  CardRating2[CardRating2["HARD"] = 1] = "HARD";
+  CardRating2[CardRating2["GOOD"] = 2] = "GOOD";
+  CardRating2[CardRating2["EASY"] = 3] = "EASY";
+  return CardRating2;
+})(CardRating || {});
+var DEFAULT_FSRS2 = {
+  stability: 0,
+  difficulty: 0,
+  elapsed_days: 0,
+  scheduled_days: 0,
+  learning_steps: 0,
+  reps: 0,
+  lapses: 0,
+  state: State.New,
+  last_review: null,
+  next_review: (/* @__PURE__ */ new Date()).toISOString()
+};
+var DEFAULT_FILTER = {
+  include_stale: false,
+  include_paused: false,
+  include_deleted: false
+};
+
 // src/core/indexer/schema/indexSchema.ts
 var SRSObjectSchema = external_exports.object({
   stability: external_exports.number().min(0),
   difficulty: external_exports.number().min(0).max(10),
-  state: external_exports.enum(SRSState),
-  last_review: external_exports.string().datetime().nullable(),
-  next_review: external_exports.string().datetime(),
+  state: external_exports.enum(State),
+  last_review: external_exports.iso.datetime().nullable(),
+  next_review: external_exports.iso.datetime(),
   reps: external_exports.number().int().min(0)
 });
 var CardMetadataSchema = external_exports.object({
+  uuid: external_exports.uuid(),
   file: external_exports.string().min(1),
   source: external_exports.string().min(1),
-  status: external_exports.enum(["ACTIVE", "DELETED", "PAUSED", "STALE"]),
-  created: external_exports.string().datetime(),
-  updated: external_exports.string().datetime(),
-  deleted_at: external_exports.string().datetime().nullable(),
+  status: external_exports.enum(CardStatus),
+  created: external_exports.iso.datetime(),
+  updated: external_exports.iso.datetime(),
+  deleted_at: external_exports.iso.datetime().nullable(),
   srs: SRSObjectSchema
 });
 var IndexSchema = external_exports.object({
   version: external_exports.number().int().positive(),
+  last_updated: external_exports.iso.datetime(),
   cards: external_exports.record(external_exports.string(), CardMetadataSchema)
 });
 
+// node_modules/uuid/dist/stringify.js
+var byteToHex = [];
+for (let i = 0; i < 256; ++i) {
+  byteToHex.push((i + 256).toString(16).slice(1));
+}
+function unsafeStringify(arr, offset = 0) {
+  return (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + "-" + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + "-" + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + "-" + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + "-" + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase();
+}
+
+// node_modules/uuid/dist/rng.js
+var getRandomValues;
+var rnds8 = new Uint8Array(16);
+function rng() {
+  if (!getRandomValues) {
+    if (typeof crypto === "undefined" || !crypto.getRandomValues) {
+      throw new Error("crypto.getRandomValues() not supported. See https://github.com/uuidjs/uuid#getrandomvalues-not-supported");
+    }
+    getRandomValues = crypto.getRandomValues.bind(crypto);
+  }
+  return getRandomValues(rnds8);
+}
+
+// node_modules/uuid/dist/native.js
+var randomUUID = typeof crypto !== "undefined" && crypto.randomUUID && crypto.randomUUID.bind(crypto);
+var native_default = { randomUUID };
+
+// node_modules/uuid/dist/v4.js
+function _v4(options, buf, offset) {
+  var _a3, _b, _c;
+  options = options || {};
+  const rnds = (_c = (_b = options.random) != null ? _b : (_a3 = options.rng) == null ? void 0 : _a3.call(options)) != null ? _c : rng();
+  if (rnds.length < 16) {
+    throw new Error("Random bytes length must be >= 16");
+  }
+  rnds[6] = rnds[6] & 15 | 64;
+  rnds[8] = rnds[8] & 63 | 128;
+  if (buf) {
+    offset = offset || 0;
+    if (offset < 0 || offset + 16 > buf.length) {
+      throw new RangeError(`UUID byte range ${offset}:${offset + 15} is out of buffer bounds`);
+    }
+    for (let i = 0; i < 16; ++i) {
+      buf[offset + i] = rnds[i];
+    }
+    return buf;
+  }
+  return unsafeStringify(rnds);
+}
+function v4(options, buf, offset) {
+  if (native_default.randomUUID && !buf && !options) {
+    return native_default.randomUUID();
+  }
+  return _v4(options, buf, offset);
+}
+var v4_default = v4;
+
 // src/core/indexer/managers/IndexManager.ts
-var IndexManager = class {
+var _IndexManager = class _IndexManager {
   constructor(app) {
     __publicField(this, "app");
     __publicField(this, "cache");
     __publicField(this, "version", 1);
+    __publicField(this, "last_updated", /* @__PURE__ */ new Date());
     __publicField(this, "INDEX_FILE", "knowledge-accelerator/index.json");
     this.app = app;
     this.cache = new MetadataCache();
+  }
+  static getInstance(app) {
+    if (!this.instance) {
+      this.instance = new _IndexManager(app);
+    }
+    return this.instance;
+  }
+  get index() {
+    const index = {
+      version: this.version,
+      cards: this.getAllCards().reduce(
+        (acc, card) => {
+          acc[card.uuid] = card;
+          return acc;
+        },
+        {}
+      ),
+      last_updated: this.last_updated.toISOString()
+    };
+    return index;
   }
   async load() {
     try {
@@ -14128,8 +22585,10 @@ var IndexManager = class {
           );
         }
         this.cache.load(validatedIndex.cards);
+        this.version = validatedIndex.version;
+        this.last_updated = new Date(validatedIndex.last_updated);
       } else {
-        await this.save();
+        return await this.save();
       }
     } catch (error48) {
       console.error("Failed to load index:", error48);
@@ -14151,11 +22610,14 @@ var IndexManager = class {
       }
       const index = {
         version: this.version,
+        last_updated: (/* @__PURE__ */ new Date()).toISOString(),
         cards: Object.fromEntries(this.cache.getAll())
       };
       const validatedIndex = IndexSchema.parse(index);
       await adapter.write(this.INDEX_FILE, JSON.stringify(validatedIndex, null, 2));
       this.cache.markClean();
+      this.version = validatedIndex.version;
+      this.last_updated = new Date(validatedIndex.last_updated);
     } catch (error48) {
       console.error("Failed to save index:", error48);
       throw new Error(
@@ -14175,6 +22637,7 @@ var IndexManager = class {
     };
     const validatedCard = CardMetadataSchema.parse(updatedCard);
     this.cache.set(id, validatedCard);
+    this.last_updated = /* @__PURE__ */ new Date();
   }
   deleteCard(id) {
     const existingCard = this.cache.get(id);
@@ -14187,6 +22650,7 @@ var IndexManager = class {
       };
       const validatedCard = CardMetadataSchema.parse(deletedCard);
       this.cache.set(id, validatedCard);
+      this.last_updated = /* @__PURE__ */ new Date();
     }
   }
   async rebuildFromVault() {
@@ -14207,9 +22671,10 @@ var IndexManager = class {
             if (metadata) {
               const cardId = this.generateCardId(file2);
               const cardData = {
+                uuid: v4_default(),
                 file: file2,
                 source: metadata.source || "",
-                status: "ACTIVE",
+                status: "ACTIVE" /* ACTIVE */,
                 created: metadata.created || (/* @__PURE__ */ new Date()).toISOString(),
                 updated: (/* @__PURE__ */ new Date()).toISOString(),
                 deleted_at: null,
@@ -14276,6 +22741,8 @@ var IndexManager = class {
     return filePath.replace(/^\/+/, "").replace(/[^a-zA-Z0-9]/g, "-");
   }
 };
+__publicField(_IndexManager, "instance");
+var IndexManager = _IndexManager;
 
 // src/obsidian/EventQueue.ts
 var EventQueue = class {
@@ -14367,6 +22834,465 @@ var EventQueue = class {
   }
 };
 
+// src/utils/Logger.ts
+var Logger = class {
+  static info(message, ...args) {
+    console.info(`${this.prefix} INFO: ${message}`, ...args);
+  }
+  static warn(message, ...args) {
+    console.warn(`${this.prefix} WARN: ${message}`, ...args);
+  }
+  static error(message, ...args) {
+    console.error(`${this.prefix} ERROR: ${message}`, ...args);
+  }
+  static debug(message, ...args) {
+    console.debug(`${this.prefix} DEBUG: ${message}`, ...args);
+  }
+};
+__publicField(Logger, "prefix", "[Knowledge Accelerator]");
+
+// src/core/srs/schema/FSRSSchema.ts
+var FSRSParametersSchema = external_exports.object({
+  stability: external_exports.number().nonnegative(),
+  difficulty: external_exports.number().nonnegative(),
+  elapsed_days: external_exports.number().nonnegative(),
+  scheduled_days: external_exports.number().nonnegative(),
+  learning_steps: external_exports.number().int().nonnegative(),
+  reps: external_exports.number().int().nonnegative(),
+  lapses: external_exports.number().int().nonnegative(),
+  state: external_exports.nativeEnum(State),
+  last_review: external_exports.string().datetime().nullable(),
+  next_review: external_exports.string().datetime()
+});
+var FsrsCalculationInputSchema = external_exports.object({
+  current_params: FSRSParametersSchema,
+  rating: external_exports.nativeEnum(CardRating),
+  review_time: external_exports.string().datetime().optional()
+});
+var FsrsCalculationResultSchema = external_exports.object({
+  updated_params: FSRSParametersSchema,
+  interval_days: external_exports.number()
+});
+var DueQueueSchema = external_exports.object({
+  totalDue: external_exports.number().int().nonnegative(),
+  cards: external_exports.array(external_exports.any())
+});
+var DueQueueFilterSchema = external_exports.object({
+  include_stale: external_exports.boolean().optional().default(false),
+  include_paused: external_exports.boolean().optional().default(false),
+  include_deleted: external_exports.boolean().optional().default(false),
+  max_cards: external_exports.number().int().positive().optional()
+});
+
+// src/core/srs/engines/FsrsEngine.ts
+var FsrsEngine = class {
+  constructor() {
+    __publicField(this, "fsrs");
+    this.fsrs = new FSRS(generatorParameters());
+  }
+  /**
+   * Calculates updated FSRS parameters based on a user rating.
+   *
+   * @param input FSRS calculation input (current params, rating, review time)
+   * @returns Updated FSRS parameters and interval in days
+   */
+  calculate(input) {
+    try {
+      const { current_params, rating, review_time } = input;
+      const reviewDate = review_time ? new Date(review_time) : /* @__PURE__ */ new Date();
+      const fsrsCard = this.mapToFsrsCard(current_params);
+      const fsrsRating = this.mapToFsrsRating(rating);
+      const recordLog = this.fsrs.repeat(fsrsCard, reviewDate);
+      const updatedCard = recordLog[fsrsRating].card;
+      const updatedParams = this.mapFromFsrsCard(updatedCard);
+      const intervalDays = this.calculateIntervalDays(updatedParams.next_review, reviewDate);
+      return {
+        updated_params: updatedParams,
+        interval_days: intervalDays
+      };
+    } catch (error48) {
+      console.error(`${ERROR_MESSAGES.CALCULATION_ERROR}:`, error48);
+      return {
+        updated_params: this.getInitialState(),
+        interval_days: 1
+      };
+    }
+  }
+  /**
+   * Returns default FSRS parameters for a new card.
+   */
+  getInitialState() {
+    return { ...DEFAULT_FSRS2 };
+  }
+  /**
+   * Maps internal FSRSStats to ts-fsrs Card object.
+   */
+  mapToFsrsCard(params) {
+    return {
+      due: new Date(params.next_review),
+      stability: params.stability,
+      difficulty: params.difficulty,
+      elapsed_days: params.elapsed_days,
+      scheduled_days: params.scheduled_days,
+      learning_steps: params.learning_steps,
+      reps: params.reps,
+      lapses: params.lapses,
+      state: params.state,
+      last_review: params.last_review ? new Date(params.last_review) : void 0
+    };
+  }
+  /**
+   * Maps ts-fsrs Card object back to internal FSRSStats.
+   */
+  mapFromFsrsCard(card) {
+    return {
+      stability: card.stability,
+      difficulty: card.difficulty,
+      elapsed_days: card.elapsed_days,
+      scheduled_days: card.scheduled_days,
+      learning_steps: card.learning_steps,
+      reps: card.reps,
+      lapses: card.lapses,
+      state: card.state,
+      last_review: card.last_review ? card.last_review.toISOString() : null,
+      next_review: card.due.toISOString()
+    };
+  }
+  /**
+   * Maps internal CardRating enum to ts-fsrs Rating enum.
+   */
+  mapToFsrsRating(rating) {
+    switch (rating) {
+      case 0 /* AGAIN */:
+        return Rating.Again;
+      case 1 /* HARD */:
+        return Rating.Hard;
+      case 2 /* GOOD */:
+        return Rating.Good;
+      case 3 /* EASY */:
+        return Rating.Easy;
+      default:
+        return Rating.Good;
+    }
+  }
+  /**
+   * Calculates the number of days between review and next review.
+   */
+  calculateIntervalDays(nextReviewStr, reviewDate) {
+    const nextReview = new Date(nextReviewStr);
+    const diffMs = nextReview.getTime() - reviewDate.getTime();
+    const diffDays = Math.ceil(diffMs / (1e3 * 60 * 60 * 24));
+    return Math.max(1, diffDays);
+  }
+  /**
+   * Updates the underlying FSRS algorithm parameters.
+   */
+  updateParameters(params) {
+    this.fsrs.parameters = params;
+  }
+};
+
+// src/core/indexer/schema/statsSchema.ts
+var StatisticsSummarySchema = external_exports.object({
+  retention_rate: external_exports.number().min(0).max(1),
+  difficulty_dist: external_exports.record(external_exports.string(), external_exports.number()),
+  total_learned: external_exports.number().int().min(0),
+  due_today: external_exports.number().int().min(0)
+});
+var StatsSchema = external_exports.object({
+  version: external_exports.number().int().positive(),
+  summary: StatisticsSummarySchema,
+  last_updated: external_exports.iso.datetime(),
+  history: external_exports.record(external_exports.iso.datetime("YY-MM-DD"), external_exports.any())
+});
+
+// src/core/indexer/statistics/StatisticsEngine.ts
+var StatisticsEngine = class {
+  calculateRetention(cards) {
+    const reviewedCards = cards.filter(
+      (card) => card.srs.reps > 0 && card.srs.last_review !== null
+    );
+    if (reviewedCards.length === 0) {
+      return 0;
+    }
+    const matureCards = reviewedCards.filter((card) => card.srs.state >= 2);
+    return matureCards.length / reviewedCards.length;
+  }
+  calculateDifficultyDistribution(cards) {
+    const distribution = /* @__PURE__ */ new Map();
+    for (const card of cards) {
+      const difficulty = Math.round(card.srs.difficulty);
+      distribution.set(difficulty, (distribution.get(difficulty) || 0) + 1);
+    }
+    return distribution;
+  }
+  calculateTotalLearned(cards) {
+    return cards.filter((card) => card.srs.state > 0).length;
+  }
+  calculateDueToday(cards) {
+    const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+    return cards.filter((card) => card.status === "ACTIVE" && card.srs.next_review <= today).length;
+  }
+  generateSummary(cards) {
+    return {
+      retention_rate: this.calculateRetention(cards),
+      difficulty_dist: Object.fromEntries(this.calculateDifficultyDistribution(cards)),
+      total_learned: this.calculateTotalLearned(cards),
+      due_today: this.calculateDueToday(cards)
+    };
+  }
+};
+
+// src/core/indexer/managers/StatsManager.ts
+var _StatsManager = class _StatsManager {
+  constructor(app) {
+    __publicField(this, "app");
+    __publicField(this, "stats");
+    __publicField(this, "version", 1);
+    __publicField(this, "STATS_FILE", "knowledge-accelerator/stats.json");
+    __publicField(this, "engine");
+    this.app = app;
+    this.engine = new StatisticsEngine();
+    this.stats = this.createEmptyStats();
+  }
+  get statistics() {
+    return this.stats;
+  }
+  static getInstance(app) {
+    if (!_StatsManager.instance) {
+      _StatsManager.instance = new _StatsManager(app);
+    }
+    return _StatsManager.instance;
+  }
+  async load() {
+    try {
+      const adapter = this.app.vault.adapter;
+      if (await adapter.exists(this.STATS_FILE)) {
+        const data = await adapter.read(this.STATS_FILE);
+        const parsedStats = JSON.parse(data);
+        const validatedStats = StatsSchema.parse(parsedStats);
+        if (validatedStats.version !== this.version) {
+          console.warn(
+            `Stats version mismatch: expected ${this.version}, got ${validatedStats.version}`
+          );
+        }
+        this.stats = validatedStats;
+      } else {
+        await this.save();
+      }
+    } catch (error48) {
+      console.error("Failed to load stats:", error48);
+      if (error48 instanceof Error && error48.message.includes("JSON.parse")) {
+        console.warn("Stats file corrupted, will create new one");
+        this.stats = this.createEmptyStats();
+        await this.save();
+        return;
+      }
+      throw new Error(
+        `Stats loading failed: ${error48 instanceof Error ? error48.message : "Unknown error"}`
+      );
+    }
+  }
+  async save() {
+    try {
+      const adapter = this.app.vault.adapter;
+      const dir = this.STATS_FILE.split("/").slice(0, -1).join("/");
+      if (!await adapter.exists(dir)) {
+        await adapter.mkdir(dir);
+      }
+      const validatedStats = StatsSchema.parse(this.stats);
+      await adapter.write(this.STATS_FILE, JSON.stringify(validatedStats, null, 2));
+    } catch (error48) {
+      console.error("Failed to save stats:", error48);
+      throw new Error(
+        `Stats saving failed: ${error48 instanceof Error ? error48.message : "Unknown error"}`
+      );
+    }
+  }
+  recordReview(cardId, rating) {
+    this.stats.history[(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)] = {
+      cardUuid: cardId,
+      rating
+    };
+  }
+  recomputeAll(index) {
+    const cards = Object.values(index).filter((card) => card.status === "ACTIVE");
+    this.stats.summary = this.engine.generateSummary(cards);
+    this.stats.last_updated = (/* @__PURE__ */ new Date()).toISOString();
+  }
+  createEmptyStats() {
+    return {
+      version: this.version,
+      summary: {
+        retention_rate: 0,
+        difficulty_dist: {},
+        total_learned: 0,
+        due_today: 0
+      },
+      last_updated: (/* @__PURE__ */ new Date()).toISOString(),
+      history: {}
+    };
+  }
+};
+__publicField(_StatsManager, "instance");
+var StatsManager = _StatsManager;
+
+// src/core/srs/managers/DueQueueManager.ts
+var _DueQueueManager = class _DueQueueManager {
+  /**
+   * @param index The flashcard index containing all card metadata
+   */
+  constructor(app) {
+    __publicField(this, "indexManager");
+    __publicField(this, "cachedQueue", null);
+    __publicField(this, "lastFilter", "");
+    this.indexManager = IndexManager.getInstance(app);
+  }
+  static getInstance(app) {
+    if (!_DueQueueManager.instance) {
+      _DueQueueManager.instance = new _DueQueueManager(app);
+    }
+    return _DueQueueManager.instance;
+  }
+  /**
+   * Generates a queue of cards due for review.
+   * Results are cached until the index changes or a different filter is used.
+   *
+   * @param filter Options for filtering the due queue
+   * @returns A sorted DueQueue containing cards due for review
+   */
+  generate(filter = DEFAULT_FILTER) {
+    const filterKey = JSON.stringify(filter);
+    if (this.cachedQueue && this.lastFilter === filterKey) {
+      return this.cachedQueue;
+    }
+    const now2 = /* @__PURE__ */ new Date();
+    const cards = [];
+    const cardTimestamps = /* @__PURE__ */ new Map();
+    const index = this.indexManager.index;
+    for (const uuid3 in index.cards) {
+      const card = index.cards[uuid3];
+      if (this.shouldInclude(card, filter, now2)) {
+        cards.push(card);
+        cardTimestamps.set(card.uuid, new Date(card.srs.next_review).getTime());
+      }
+    }
+    cards.sort((a, b) => {
+      const dateA = cardTimestamps.get(a.uuid);
+      const dateB = cardTimestamps.get(b.uuid);
+      if (dateA !== dateB) {
+        return dateA - dateB;
+      }
+      return b.srs.difficulty - a.srs.difficulty;
+    });
+    const limitedCards = filter.max_cards ? cards.slice(0, filter.max_cards) : cards;
+    const result = {
+      totalDue: limitedCards.length,
+      cards: limitedCards
+    };
+    this.cachedQueue = result;
+    this.lastFilter = filterKey;
+    return result;
+  }
+  /**
+   * Invalidates the generated queue cache.
+   * Should be called when the index is modified.
+   */
+  invalidateCache() {
+    this.cachedQueue = null;
+    this.lastFilter = "";
+  }
+  /**
+   * Gets all cards with STALE status.
+   */
+  getStaleCards() {
+    return this.filterByStatus("STALE" /* STALE */);
+  }
+  /**
+   * Gets all cards with PAUSED status.
+   */
+  getPausedCards() {
+    return this.filterByStatus("PAUSED" /* PAUSED */);
+  }
+  filterByStatus(status) {
+    const result = [];
+    const index = this.indexManager.index;
+    for (const uuid3 in index.cards) {
+      const card = index.cards[uuid3];
+      if (card.status === status) {
+        result.push(card);
+      }
+    }
+    return result;
+  }
+  shouldInclude(card, filter, now2) {
+    if (card.status === "DELETED" /* DELETED */ && !filter.include_deleted) {
+      return false;
+    }
+    if (card.status === "PAUSED" /* PAUSED */ && !filter.include_paused) {
+      return false;
+    }
+    if (card.status === "STALE" /* STALE */ && !filter.include_stale) {
+      return false;
+    }
+    if (card.status === "ACTIVE" /* ACTIVE */ || card.status === "STALE" /* STALE */ && filter.include_stale || card.status === "PAUSED" /* PAUSED */ && filter.include_paused || card.status === "DELETED" /* DELETED */ && filter.include_deleted) {
+      const nextReview = new Date(card.srs.next_review);
+      return nextReview <= now2;
+    }
+    return false;
+  }
+};
+__publicField(_DueQueueManager, "instance");
+var DueQueueManager = _DueQueueManager;
+
+// src/core/sync/types.ts
+var SyncSource = /* @__PURE__ */ ((SyncSource2) => {
+  SyncSource2["JSON"] = "json";
+  SyncSource2["YAML"] = "yaml";
+  return SyncSource2;
+})(SyncSource || {});
+var DEFAULT_INDEX = {
+  version: 0,
+  last_updated: (/* @__PURE__ */ new Date()).toISOString(),
+  cards: {}
+};
+
+// src/core/sync/schemas.ts
+var SyncStateSchema = external_exports.object({
+  uuid: external_exports.string().uuid(),
+  source: external_exports.nativeEnum(SyncSource),
+  timestamp: external_exports.string().datetime(),
+  changes: external_exports.record(external_exports.string(), external_exports.any()),
+  conflict: external_exports.boolean()
+});
+var SyncResultSchema = external_exports.object({
+  success: external_exports.boolean(),
+  conflicts_resolved: external_exports.number().int().nonnegative(),
+  errors: external_exports.array(external_exports.string())
+});
+var SyncConflictSchema = external_exports.object({
+  field: external_exports.string(),
+  json_value: external_exports.any(),
+  yaml_value: external_exports.any(),
+  last_write: external_exports.enum(["json", "yaml"]),
+  resolved_value: external_exports.any()
+});
+var IndexRecoveryResultSchema = external_exports.object({
+  success: external_exports.boolean(),
+  cards_recovered: external_exports.number().int().nonnegative(),
+  cards_failed: external_exports.number().int().nonnegative(),
+  errors: external_exports.array(external_exports.object({
+    file: external_exports.string(),
+    error: external_exports.string()
+  })),
+  duration_ms: external_exports.number().nonnegative()
+});
+var IndexSchema2 = external_exports.object({
+  version: external_exports.string(),
+  last_updated: external_exports.string().datetime(),
+  cards: external_exports.record(external_exports.string(), external_exports.any())
+});
+
 // src/obsidian/VaultWatcher.ts
 var VaultWatcher = class {
   constructor(app, indexManager, config2) {
@@ -14389,7 +23315,7 @@ var VaultWatcher = class {
           this.enqueueEvent("modify" /* MODIFY */, file2);
         }
       } catch (error48) {
-        console.error("Failed to process modify event:", error48);
+        Logger.error("Failed to process modify event:", error48);
       }
     });
     this.app.vault.on("delete", async (file2) => {
@@ -14398,7 +23324,7 @@ var VaultWatcher = class {
           this.enqueueEvent("delete" /* DELETE */, file2);
         }
       } catch (error48) {
-        console.error("Failed to process delete event:", error48);
+        Logger.error("Failed to process delete event:", error48);
       }
     });
     this.app.vault.on("rename", async (file2, oldPath) => {
@@ -14407,22 +23333,22 @@ var VaultWatcher = class {
           this.enqueueEvent("rename" /* RENAME */, file2, oldPath);
         }
       } catch (error48) {
-        console.error("Failed to process rename event:", error48);
+        Logger.error("Failed to process rename event:", error48);
       }
     });
-    console.log("VaultWatcher initialized");
+    Logger.info("VaultWatcher initialized");
   }
   async shouldWatch(file2) {
     if (file2.extension !== "md") {
-      console.debug(`Skipping non-markdown file: ${file2.path}`);
+      Logger.debug(`Skipping non-markdown file: ${file2.path}`);
       return false;
     }
     if (!this.shouldWatchPath(file2.path)) {
-      console.debug(`Skipping file in ignored directory: ${file2.path}`);
+      Logger.debug(`Skipping file in ignored directory: ${file2.path}`);
       return false;
     }
     if (!await this.shouldWatchTags(file2)) {
-      console.debug(`Skipping file without matching tags: ${file2.path}`);
+      Logger.debug(`Skipping file without matching tags: ${file2.path}`);
       return false;
     }
     return true;
@@ -14494,12 +23420,12 @@ var VaultWatcher = class {
       isMarkdown: file2.name.endsWith(".md")
     };
     this.eventQueue.enqueue(event);
-    console.debug(`Enqueued ${type} event for ${file2.path}`);
+    Logger.debug(`Enqueued ${type} event for ${file2.path}`);
   }
   shutdown() {
-    console.log("VaultWatcher shutting down");
+    Logger.info("VaultWatcher shutting down");
     this.eventQueue.flush().catch((err) => {
-      console.error("Failed to flush event queue on shutdown:", err);
+      Logger.error("Failed to flush event queue on shutdown:", err);
     });
   }
   async processEvent(event) {
@@ -14516,28 +23442,30 @@ var VaultWatcher = class {
           break;
       }
     } catch (error48) {
-      console.error(`Failed to process ${event.type} event for ${event.filePath}:`, error48);
+      Logger.error(`Failed to process ${event.type} event for ${event.filePath}:`, error48);
     }
   }
   async handleModify(event) {
     const affectedCards = this.indexManager.findCardsBySource(event.filePath);
     if (affectedCards.length > 0) {
-      console.log(`Marking ${affectedCards.length} card(s) as STALE for source: ${event.filePath}`);
+      Logger.info(`Marking ${affectedCards.length} card(s) as STALE for source: ${event.filePath}`);
     }
     for (const card of affectedCards) {
       const cardId = this.generateCardId(card.file);
-      this.indexManager.upsertCard(cardId, { status: "STALE" });
+      this.indexManager.upsertCard(cardId, { status: "STALE" /* STALE */ });
     }
   }
   async handleDelete(event) {
     const affectedCards = this.indexManager.findCardsBySource(event.filePath);
     if (affectedCards.length > 0) {
-      console.log(`Marking ${affectedCards.length} card(s) as ${this.config.enableSoftDelete ? "soft deleted" : "DELETED"} for source: ${event.filePath}`);
+      Logger.info(
+        `Marking ${affectedCards.length} card(s) as ${this.config.enableSoftDelete ? "soft deleted" : "DELETED"} for source: ${event.filePath}`
+      );
     }
     for (const card of affectedCards) {
       const cardId = this.generateCardId(card.file);
       this.indexManager.upsertCard(cardId, {
-        status: "DELETED",
+        status: "DELETED" /* DELETED */,
         deleted_at: this.config.enableSoftDelete ? (/* @__PURE__ */ new Date()).toISOString() : void 0
       });
     }
@@ -14547,7 +23475,9 @@ var VaultWatcher = class {
       return;
     const affectedCards = this.indexManager.findCardsBySource(event.oldPath);
     if (affectedCards.length > 0) {
-      console.log(`Updating source path for ${affectedCards.length} card(s): ${event.oldPath} -> ${event.filePath}`);
+      Logger.info(
+        `Updating source path for ${affectedCards.length} card(s): ${event.oldPath} -> ${event.filePath}`
+      );
     }
     for (const card of affectedCards) {
       const cardId = this.generateCardId(card.file);
@@ -14561,12 +23491,12 @@ var VaultWatcher = class {
     return filePath.replace(/^\/+/, "").replace(/[^a-zA-Z0-9]/g, "-");
   }
   async processEvents(events) {
-    console.log(`Processing ${events.length} queued event(s)`);
+    Logger.info(`Processing ${events.length} queued event(s)`);
     for (const event of events) {
       await this.processEvent(event);
     }
     await this.indexManager.save();
-    console.log("Event processing complete, index saved");
+    Logger.info("Event processing complete, index saved");
   }
   updateConfiguration(config2) {
     this.config = config2;
@@ -14620,19 +23550,19 @@ var SettingsManager = class {
     try {
       const adapter = this.app.vault.adapter;
       if (await adapter.exists(this.CONFIG_FILE)) {
-        console.log(`Loading settings from ${this.CONFIG_FILE}`);
+        Logger.info(`Loading settings from ${this.CONFIG_FILE}`);
         const data = await adapter.read(this.CONFIG_FILE);
         const parsedSettings = JSON.parse(data);
         const validatedSettings = this.validateSettings(parsedSettings);
         this.settings = { ...this.DEFAULT_SETTINGS, ...validatedSettings };
-        console.log("Settings loaded successfully");
+        Logger.info("Settings loaded successfully");
       } else {
-        console.log("Settings file not found, creating with defaults");
+        Logger.info("Settings file not found, creating with defaults");
         await this.save();
       }
     } catch (error48) {
-      console.error("Failed to load settings:", error48);
-      console.log("Using default settings");
+      Logger.error("Failed to load settings:", error48);
+      Logger.info("Using default settings");
       this.settings = { ...this.DEFAULT_SETTINGS };
     }
   }
@@ -14646,28 +23576,28 @@ var SettingsManager = class {
     };
     const validatedSettings = this.validateSettings(updatedSettings);
     this.settings = validatedSettings;
-    console.log("Settings updated:", Object.keys(partialSettings));
+    Logger.info("Settings updated:", Object.keys(partialSettings));
     await this.save();
     this.notifyListeners();
   }
   async resetToDefaults() {
-    console.log("Resetting settings to defaults");
+    Logger.info("Resetting settings to defaults");
     this.settings = { ...this.DEFAULT_SETTINGS };
     await this.save();
     this.notifyListeners();
-    console.log("Settings reset to defaults");
+    Logger.info("Settings reset to defaults");
   }
   validateSettings(settings) {
     return this.getSchema().parse(settings);
   }
   onSettingsChanged(callback) {
     this.changeListeners.push(callback);
-    console.log(`Settings change listener registered (${this.changeListeners.length} total)`);
+    Logger.info(`Settings change listener registered (${this.changeListeners.length} total)`);
     return () => {
       const index = this.changeListeners.indexOf(callback);
       if (index !== -1) {
         this.changeListeners.splice(index, 1);
-        console.log(`Settings change listener removed (${this.changeListeners.length} remaining)`);
+        Logger.info(`Settings change listener removed (${this.changeListeners.length} remaining)`);
       }
     };
   }
@@ -14679,13 +23609,13 @@ var SettingsManager = class {
       const adapter = this.app.vault.adapter;
       const dir = this.CONFIG_FILE.split("/").slice(0, -1).join("/");
       if (!await adapter.exists(dir)) {
-        console.log(`Creating settings directory: ${dir}`);
+        Logger.info(`Creating settings directory: ${dir}`);
         await adapter.mkdir(dir);
       }
       await adapter.write(this.CONFIG_FILE, JSON.stringify(this.settings, null, 2));
-      console.log(`Settings saved to ${this.CONFIG_FILE}`);
+      Logger.info(`Settings saved to ${this.CONFIG_FILE}`);
     } catch (error48) {
-      console.error("Failed to save settings:", error48);
+      Logger.error("Failed to save settings:", error48);
       throw new Error(
         `Settings save failed: ${error48 instanceof Error ? error48.message : "Unknown error"}`
       );
@@ -14699,7 +23629,7 @@ var SettingsManager = class {
 };
 
 // src/obsidian/CommandRegistry.ts
-var import_obsidian = require("obsidian");
+var import_obsidian5 = require("obsidian");
 var CommandRegistry = class {
   constructor() {
     __publicField(this, "plugin", null);
@@ -14722,9 +23652,9 @@ var CommandRegistry = class {
         callback: async () => {
           const result = await this.executeCommand(command.id);
           if (result.success && result.message) {
-            new import_obsidian.Notice(result.message, 5e3);
+            new import_obsidian5.Notice(result.message, 5e3);
           } else if (!result.success) {
-            new import_obsidian.Notice(result.error, 5e3);
+            new import_obsidian5.Notice(result.error, 5e3);
           }
         }
       });
@@ -14775,26 +23705,4586 @@ var CommandRegistry = class {
   }
 };
 
-// src/main.ts
-var KnowledgeAcceleratorPlugin = class extends import_obsidian2.Plugin {
+// src/obsidian/NotificationManager.ts
+var import_obsidian6 = require("obsidian");
+var NotificationManager = class {
+  constructor(statusBar) {
+    __publicField(this, "statusBar", null);
+    __publicField(this, "activeNotice", null);
+    if (statusBar) {
+      this.statusBar = statusBar;
+    }
+  }
+  /**
+   * Sets the status bar instance
+   * @param statusBar - The Obsidian status bar element
+   */
+  setStatusBar(statusBar) {
+    this.statusBar = statusBar;
+  }
+  /**
+   * Shows a notification to the user
+   * @param message - The message to display
+   * @param type - The type of notification (info, success, warning, error)
+   * @param options - Additional options
+   */
+  show(message, type = "info", options = {}) {
+    const { duration: duration3 = 3e3, icon } = options;
+    const iconMap = {
+      info: icon || "\u2139\uFE0F",
+      success: icon || "\u2705",
+      warning: icon || "\u26A0\uFE0F",
+      error: icon || "\u274C"
+    };
+    const displayIcon = iconMap[type];
+    const fullMessage = `${displayIcon} ${message}`;
+    if (this.activeNotice) {
+      this.activeNotice.hide();
+    }
+    this.activeNotice = new import_obsidian6.Notice(fullMessage, duration3);
+    if (duration3 > 0) {
+      setTimeout(() => {
+        if (this.activeNotice) {
+          this.activeNotice = null;
+        }
+      }, duration3 + 100);
+    }
+  }
+  /**
+   * Shows an info notification
+   */
+  info(message, options) {
+    this.show(message, "info", options);
+  }
+  /**
+   * Shows a success notification
+   */
+  success(message, options) {
+    this.show(message, "success", options);
+  }
+  /**
+   * Shows a warning notification
+   */
+  warning(message, options) {
+    this.show(message, "warning", options);
+  }
+  /**
+   * Shows an error notification
+   */
+  error(message, options) {
+    this.show(message, "error", options);
+  }
+  /**
+   * Updates the status bar with progress information
+   * @param options - Progress options with current, total, and optional message
+   */
+  updateProgress(options) {
+    if (!this.statusBar) {
+      console.warn("Status bar not available for progress updates");
+      return;
+    }
+    const { current, total, message } = options;
+    const percentage = Math.round(current / total * 100);
+    const progressBar = this.createProgressBar(percentage, 20);
+    const displayMessage = message ? `${progressBar} ${message} (${current}/${total})` : `${progressBar} ${percentage}%`;
+    this.statusBar.textContent = displayMessage;
+  }
+  /**
+   * Clears the status bar text
+   */
+  clearStatusBar() {
+    if (this.statusBar) {
+      this.statusBar.textContent = "";
+    }
+  }
+  /**
+   * Sets custom text on the status bar
+   * @param text - The text to display
+   */
+  setStatusBarText(text2) {
+    if (this.statusBar) {
+      this.statusBar.textContent = text2;
+    }
+  }
+  /**
+   * Creates a visual progress bar string
+   * @param percentage - Progress percentage (0-100)
+   * @param width - Width of the progress bar in characters
+   * @returns ASCII progress bar string
+   */
+  createProgressBar(percentage, width) {
+    const filled = Math.round(percentage / 100 * width);
+    const empty2 = width - filled;
+    const filledBar = "\u2588".repeat(filled);
+    const emptyBar = "\u2591".repeat(empty2);
+    return `${filledBar}${emptyBar}`;
+  }
+  /**
+   * Clears any active notification
+   */
+  clearNotification() {
+    if (this.activeNotice) {
+      this.activeNotice.hide();
+      this.activeNotice = null;
+    }
+  }
+  /**
+   * Cleans up resources
+   */
+  destroy() {
+    this.clearNotification();
+    this.clearStatusBar();
+    this.statusBar = null;
+  }
+};
+
+// src/obsidian/PluginView.ts
+var import_obsidian7 = require("obsidian");
+
+// src/ui/stores/UIStore.ts
+var DEFAULT_STATE2 = {
+  currentView: "dashboard",
+  loading: { isLoading: false },
+  error: { hasError: false, message: "" },
+  notifications: []
+};
+var UIStore = class {
+  constructor() {
+    __publicField(this, "_state");
+    this._state = writable(DEFAULT_STATE2);
+  }
+  /**
+   * Subscribe to state changes.
+   * Allows the store to be used directly in Svelte components with the $ prefix.
+   */
+  subscribe(run2) {
+    return this._state.subscribe(run2);
+  }
+  /**
+   * Navigates to a different view and clears any existing errors.
+   * 
+   * @param view - The target view state to navigate to
+   */
+  navigate(view) {
+    this._state.update((state) => ({
+      ...state,
+      currentView: view,
+      // Clear error when navigating to a new context
+      error: { hasError: false, message: "" }
+    }));
+  }
+  /**
+   * Updates the global loading state.
+   * 
+   * @param isLoading - Whether the UI is in a loading state
+   * @param message - Optional message to display during loading
+   * @param progress - Optional progress percentage (0-100)
+   */
+  setLoading(isLoading2, message, progress) {
+    this._state.update((state) => ({
+      ...state,
+      loading: { isLoading: isLoading2, message, progress }
+    }));
+  }
+  /**
+   * Sets the global error state and stops any active loading.
+   * 
+   * @param message - Error message to display
+   * @param code - Optional error code for troubleshooting
+   * @param retry - Optional callback function to retry the failed operation
+   */
+  setError(message, code, retry) {
+    this._state.update((state) => ({
+      ...state,
+      error: { hasError: true, message, code, retry },
+      loading: { isLoading: false }
+    }));
+  }
+  /**
+   * Clears the current error state.
+   */
+  clearError() {
+    this._state.update((state) => ({
+      ...state,
+      error: { hasError: false, message: "" }
+    }));
+  }
+  /**
+   * Adds a new notification to the UI.
+   * 
+   * @param notification - Notification details (excluding ID)
+   * @returns The generated unique ID for the notification
+   */
+  notify(notification) {
+    const id = Math.random().toString(36).substring(2, 9);
+    const newNotification = { ...notification, id };
+    this._state.update((state) => ({
+      ...state,
+      notifications: [...state.notifications, newNotification]
+    }));
+    if (notification.duration !== 0) {
+      setTimeout(() => {
+        this.removeNotification(id);
+      }, notification.duration || 5e3);
+    }
+    return id;
+  }
+  /**
+   * Removes a notification by its unique ID.
+   * 
+   * @param id - The ID of the notification to remove
+   */
+  removeNotification(id) {
+    this._state.update((state) => ({
+      ...state,
+      notifications: state.notifications.filter((n) => n.id !== id)
+    }));
+  }
+  /**
+   * Resets the entire store to its default initial state.
+   */
+  reset() {
+    this._state.set(DEFAULT_STATE2);
+  }
+};
+var uiStore = new UIStore();
+var currentView = derived(uiStore, ($s) => $s.currentView);
+var isLoading = derived(uiStore, ($s) => $s.loading.isLoading);
+var loadingMessage = derived(uiStore, ($s) => $s.loading.message);
+var errorState = derived(uiStore, ($s) => $s.error);
+var notifications = derived(uiStore, ($s) => $s.notifications);
+
+// src/obsidian/PluginView.ts
+var PluginView = class extends import_obsidian7.ItemView {
+  /**
+   * @param leaf - The workspace leaf this view will reside in
+   */
+  constructor(leaf, indexManager, statsManager, sessionStore, dueQueue) {
+    super(leaf);
+    /** Reference to the mounted Svelte component instance */
+    __publicField(this, "component");
+    __publicField(this, "statsManager");
+    __publicField(this, "indexManager");
+    __publicField(this, "sessionStore");
+    __publicField(this, "dueQueue");
+    this.indexManager = indexManager;
+    this.statsManager = statsManager;
+    this.sessionStore = sessionStore;
+    this.dueQueue = dueQueue;
+  }
+  /**
+   * Returns the unique identifier for this view type.
+   * @override
+   */
+  getViewType() {
+    return this.viewType;
+  }
+  /**
+   * Returns the text to display in the view tab.
+   * @override
+   */
+  getDisplayText() {
+    return this.displayText;
+  }
+  /**
+   * Returns the icon to display in the view tab.
+   * @override
+   */
+  getIcon() {
+    return this.icon;
+  }
+  /**
+   * Called when the view is opened.
+   * Initializes the container and mounts the Svelte component.
+   * @override
+   */
+  async onOpen() {
+    const container = this.containerEl.children[1];
+    container.empty();
+    try {
+      this.component = this.createSvelteComponent(container);
+      this.registerEvent(
+        this.app.workspace.on("css-change", () => {
+          this.handleThemeChange();
+        })
+      );
+    } catch (error48) {
+      console.error(`Failed to initialize view ${this.viewType}:`, error48);
+      this.displayError("Failed to load view. Please try reloading the plugin.");
+    }
+  }
+  /**
+   * Called when the view is closed.
+   * Ensures proper cleanup of the Svelte component to prevent memory leaks.
+   * @override
+   */
+  async onClose() {
+    if (this.component) {
+      this.component.$destroy();
+      this.component = void 0;
+    }
+  }
+  /**
+   * Hook for handling theme changes (light/dark mode).
+   * Subclasses can override this if they need specific logic when switching themes.
+   */
+  handleThemeChange() {
+  }
+  /**
+   * Updates the view state. Used by Obsidian for navigation and history.
+   * Synchronizes the internal UIStore with Obsidian's view state.
+   *
+   * @param state - The new state to apply
+   * @param result - Result object for the state change
+   * @override
+   */
+  async setState(state, result) {
+    if (state.view) {
+      uiStore.navigate(state.view);
+    }
+    await super.setState(state, result);
+  }
+  /**
+   * Returns the current view state for persistence.
+   *
+   * @returns The current state object
+   * @override
+   */
+  getState() {
+    const state = super.getState();
+    return {
+      ...state,
+      view: get_store_value(uiStore).currentView
+    };
+  }
+  /**
+   * Helper method to show an error in the view via the global UI store.
+   *
+   * @param message - Error message to display
+   * @param retry - Optional retry callback
+   */
+  displayError(message, retry) {
+    uiStore.setError(message, void 0, retry);
+  }
+  /**
+   * Helper method to set the loading state of the view.
+   *
+   * @param isLoading - Whether the view is loading
+   * @param message - Optional loading message
+   */
+  setLoading(isLoading2, message) {
+    uiStore.setLoading(isLoading2, message);
+  }
+};
+
+// src/ui/views/Dashboard/Dashboard.svelte
+function get_each_context4(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[19] = list[i];
+  child_ctx[24] = i;
+  const constants_0 = (
+    /*i*/
+    child_ctx[24] * /*barWidth*/
+    (child_ctx[6] + barPadding)
+  );
+  child_ctx[20] = constants_0;
+  const constants_1 = (
+    /*getBarHeight*/
+    child_ctx[9](
+      /*entry*/
+      child_ctx[19].completed
+    )
+  );
+  child_ctx[21] = constants_1;
+  const constants_2 = chartHeight - /*h*/
+  child_ctx[21];
+  child_ctx[22] = constants_2;
+  return child_ctx;
+}
+function get_if_ctx(ctx) {
+  const child_ctx = ctx.slice();
+  const constants_0 = chartHeight - /*stats*/
+  child_ctx[0].dailyGoal / /*maxCompleted*/
+  child_ctx[5] * chartHeight;
+  child_ctx[18] = constants_0;
+  return child_ctx;
+}
+function create_default_slot_3(ctx) {
+  let icon;
+  let current;
+  icon = new Icon_default({ props: { name: "refresh-cw", size: 16 } });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_default_slot_22(ctx) {
+  let icon;
+  let current;
+  icon = new Icon_default({ props: { name: "settings", size: 16 } });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_else_block4(ctx) {
+  let div3;
+  let div0;
+  let span0;
+  let t1;
+  let span1;
+  let t2_value = (
+    /*stats*/
+    ctx[0].dueCount + ""
+  );
+  let t2;
+  let t3;
+  let span2;
+  let t5;
+  let t6;
+  let div1;
+  let span3;
+  let t8;
+  let span4;
+  let t9_value = (
+    /*stats*/
+    ctx[0].streakDays + ""
+  );
+  let t9;
+  let t10;
+  let span5;
+  let t12;
+  let div2;
+  let span6;
+  let t14;
+  let span7;
+  let t15_value = (
+    /*stats*/
+    ctx[0].totalCards + ""
+  );
+  let t15;
+  let t16;
+  let span8;
+  let t18;
+  let section;
+  let div4;
+  let h2;
+  let t20;
+  let span9;
+  let t21_value = (
+    /*stats*/
+    ctx[0].cardsLearnedToday + ""
+  );
+  let t21;
+  let t22;
+  let t23_value = (
+    /*stats*/
+    ctx[0].dailyGoal + ""
+  );
+  let t23;
+  let t24;
+  let t25;
+  let progressbar;
+  let t26;
+  let t27;
+  let t28;
+  let div5;
+  let button;
+  let current;
+  let if_block0 = (
+    /*config*/
+    ctx[1].showRetentionRate && create_if_block_62(ctx)
+  );
+  progressbar = new ProgressBar_default({
+    props: {
+      value: (
+        /*stats*/
+        ctx[0].cardsLearnedToday
+      ),
+      max: (
+        /*stats*/
+        ctx[0].dailyGoal
+      ),
+      showPercentage: true,
+      ariaLabel: "Daily review progress"
+    }
+  });
+  let if_block1 = (
+    /*hasDueCards*/
+    ctx[7] && create_if_block_52(ctx)
+  );
+  let if_block2 = (
+    /*config*/
+    ctx[1].showProgressChart && /*stats*/
+    ctx[0].progressData.length > 0 && create_if_block_42(get_if_ctx(ctx))
+  );
+  button = new Button_default({
+    props: {
+      variant: "primary",
+      size: "large",
+      class: "ka-start-button",
+      disabled: (
+        /*isReviewDisabled*/
+        ctx[4]
+      ),
+      $$slots: { default: [create_default_slot_13] },
+      $$scope: { ctx }
+    }
+  });
+  button.$on(
+    "click",
+    /*handleStartReview*/
+    ctx[10]
+  );
+  return {
+    c() {
+      div3 = element("div");
+      div0 = element("div");
+      span0 = element("span");
+      span0.textContent = "Due Today";
+      t1 = space();
+      span1 = element("span");
+      t2 = text(t2_value);
+      t3 = space();
+      span2 = element("span");
+      span2.textContent = "cards to review";
+      t5 = space();
+      if (if_block0)
+        if_block0.c();
+      t6 = space();
+      div1 = element("div");
+      span3 = element("span");
+      span3.textContent = "Streak";
+      t8 = space();
+      span4 = element("span");
+      t9 = text(t9_value);
+      t10 = space();
+      span5 = element("span");
+      span5.textContent = "days in a row";
+      t12 = space();
+      div2 = element("div");
+      span6 = element("span");
+      span6.textContent = "Total Cards";
+      t14 = space();
+      span7 = element("span");
+      t15 = text(t15_value);
+      t16 = space();
+      span8 = element("span");
+      span8.textContent = "in your vault";
+      t18 = space();
+      section = element("section");
+      div4 = element("div");
+      h2 = element("h2");
+      h2.textContent = "Daily Goal";
+      t20 = space();
+      span9 = element("span");
+      t21 = text(t21_value);
+      t22 = text(" / ");
+      t23 = text(t23_value);
+      t24 = text(" cards");
+      t25 = space();
+      create_component(progressbar.$$.fragment);
+      t26 = space();
+      if (if_block1)
+        if_block1.c();
+      t27 = space();
+      if (if_block2)
+        if_block2.c();
+      t28 = space();
+      div5 = element("div");
+      create_component(button.$$.fragment);
+      attr(span0, "class", "ka-stat-card__label svelte-1pkx7yu");
+      attr(span1, "class", "ka-stat-card__value svelte-1pkx7yu");
+      attr(span2, "class", "ka-stat-card__description svelte-1pkx7yu");
+      attr(div0, "class", "ka-stat-card svelte-1pkx7yu");
+      attr(span3, "class", "ka-stat-card__label svelte-1pkx7yu");
+      attr(span4, "class", "ka-stat-card__value svelte-1pkx7yu");
+      attr(span5, "class", "ka-stat-card__description svelte-1pkx7yu");
+      attr(div1, "class", "ka-stat-card svelte-1pkx7yu");
+      attr(span6, "class", "ka-stat-card__label svelte-1pkx7yu");
+      attr(span7, "class", "ka-stat-card__value svelte-1pkx7yu");
+      attr(span8, "class", "ka-stat-card__description svelte-1pkx7yu");
+      attr(div2, "class", "ka-stat-card svelte-1pkx7yu");
+      attr(div3, "class", "ka-dashboard__stats-grid svelte-1pkx7yu");
+      attr(h2, "id", "daily-goal-title");
+      attr(h2, "class", "ka-section-title svelte-1pkx7yu");
+      attr(span9, "class", "ka-section-value svelte-1pkx7yu");
+      attr(span9, "aria-live", "polite");
+      attr(div4, "class", "ka-section-header svelte-1pkx7yu");
+      attr(section, "class", "ka-dashboard__progress svelte-1pkx7yu");
+      attr(section, "aria-labelledby", "daily-goal-title");
+      attr(div5, "class", "ka-dashboard__footer-actions svelte-1pkx7yu");
+    },
+    m(target, anchor) {
+      insert(target, div3, anchor);
+      append(div3, div0);
+      append(div0, span0);
+      append(div0, t1);
+      append(div0, span1);
+      append(span1, t2);
+      append(div0, t3);
+      append(div0, span2);
+      append(div3, t5);
+      if (if_block0)
+        if_block0.m(div3, null);
+      append(div3, t6);
+      append(div3, div1);
+      append(div1, span3);
+      append(div1, t8);
+      append(div1, span4);
+      append(span4, t9);
+      append(div1, t10);
+      append(div1, span5);
+      append(div3, t12);
+      append(div3, div2);
+      append(div2, span6);
+      append(div2, t14);
+      append(div2, span7);
+      append(span7, t15);
+      append(div2, t16);
+      append(div2, span8);
+      insert(target, t18, anchor);
+      insert(target, section, anchor);
+      append(section, div4);
+      append(div4, h2);
+      append(div4, t20);
+      append(div4, span9);
+      append(span9, t21);
+      append(span9, t22);
+      append(span9, t23);
+      append(span9, t24);
+      append(section, t25);
+      mount_component(progressbar, section, null);
+      append(section, t26);
+      if (if_block1)
+        if_block1.m(section, null);
+      insert(target, t27, anchor);
+      if (if_block2)
+        if_block2.m(target, anchor);
+      insert(target, t28, anchor);
+      insert(target, div5, anchor);
+      mount_component(button, div5, null);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      if ((!current || dirty & /*stats*/
+      1) && t2_value !== (t2_value = /*stats*/
+      ctx2[0].dueCount + ""))
+        set_data(t2, t2_value);
+      if (
+        /*config*/
+        ctx2[1].showRetentionRate
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_62(ctx2);
+          if_block0.c();
+          if_block0.m(div3, t6);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if ((!current || dirty & /*stats*/
+      1) && t9_value !== (t9_value = /*stats*/
+      ctx2[0].streakDays + ""))
+        set_data(t9, t9_value);
+      if ((!current || dirty & /*stats*/
+      1) && t15_value !== (t15_value = /*stats*/
+      ctx2[0].totalCards + ""))
+        set_data(t15, t15_value);
+      if ((!current || dirty & /*stats*/
+      1) && t21_value !== (t21_value = /*stats*/
+      ctx2[0].cardsLearnedToday + ""))
+        set_data(t21, t21_value);
+      if ((!current || dirty & /*stats*/
+      1) && t23_value !== (t23_value = /*stats*/
+      ctx2[0].dailyGoal + ""))
+        set_data(t23, t23_value);
+      const progressbar_changes = {};
+      if (dirty & /*stats*/
+      1)
+        progressbar_changes.value = /*stats*/
+        ctx2[0].cardsLearnedToday;
+      if (dirty & /*stats*/
+      1)
+        progressbar_changes.max = /*stats*/
+        ctx2[0].dailyGoal;
+      progressbar.$set(progressbar_changes);
+      if (
+        /*hasDueCards*/
+        ctx2[7]
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+        } else {
+          if_block1 = create_if_block_52(ctx2);
+          if_block1.c();
+          if_block1.m(section, null);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+      if (
+        /*config*/
+        ctx2[1].showProgressChart && /*stats*/
+        ctx2[0].progressData.length > 0
+      ) {
+        if (if_block2) {
+          if_block2.p(get_if_ctx(ctx2), dirty);
+        } else {
+          if_block2 = create_if_block_42(get_if_ctx(ctx2));
+          if_block2.c();
+          if_block2.m(t28.parentNode, t28);
+        }
+      } else if (if_block2) {
+        if_block2.d(1);
+        if_block2 = null;
+      }
+      const button_changes = {};
+      if (dirty & /*isReviewDisabled*/
+      16)
+        button_changes.disabled = /*isReviewDisabled*/
+        ctx2[4];
+      if (dirty & /*$$scope, $isLoading, hasDueCards*/
+      33554568) {
+        button_changes.$$scope = { dirty, ctx: ctx2 };
+      }
+      button.$set(button_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(progressbar.$$.fragment, local);
+      transition_in(button.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(progressbar.$$.fragment, local);
+      transition_out(button.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div3);
+        detach(t18);
+        detach(section);
+        detach(t27);
+        detach(t28);
+        detach(div5);
+      }
+      if (if_block0)
+        if_block0.d();
+      destroy_component(progressbar);
+      if (if_block1)
+        if_block1.d();
+      if (if_block2)
+        if_block2.d(detaching);
+      destroy_component(button);
+    }
+  };
+}
+function create_if_block9(ctx) {
+  let div;
+  let icon;
+  let t0;
+  let p;
+  let t1_value = (
+    /*$errorState*/
+    ctx[8].message + ""
+  );
+  let t1;
+  let t2;
+  let current;
+  icon = new Icon_default({
+    props: { name: "alert-circle", size: 24 }
+  });
+  let if_block = (
+    /*$errorState*/
+    ctx[8].retry && create_if_block_17(ctx)
+  );
+  return {
+    c() {
+      div = element("div");
+      create_component(icon.$$.fragment);
+      t0 = space();
+      p = element("p");
+      t1 = text(t1_value);
+      t2 = space();
+      if (if_block)
+        if_block.c();
+      attr(p, "class", "svelte-1pkx7yu");
+      attr(div, "class", "ka-dashboard__error svelte-1pkx7yu");
+      attr(div, "role", "alert");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(icon, div, null);
+      append(div, t0);
+      append(div, p);
+      append(p, t1);
+      append(div, t2);
+      if (if_block)
+        if_block.m(div, null);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      if ((!current || dirty & /*$errorState*/
+      256) && t1_value !== (t1_value = /*$errorState*/
+      ctx2[8].message + ""))
+        set_data(t1, t1_value);
+      if (
+        /*$errorState*/
+        ctx2[8].retry
+      ) {
+        if (if_block) {
+          if_block.p(ctx2, dirty);
+          if (dirty & /*$errorState*/
+          256) {
+            transition_in(if_block, 1);
+          }
+        } else {
+          if_block = create_if_block_17(ctx2);
+          if_block.c();
+          transition_in(if_block, 1);
+          if_block.m(div, null);
+        }
+      } else if (if_block) {
+        group_outros();
+        transition_out(if_block, 1, 1, () => {
+          if_block = null;
+        });
+        check_outros();
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      transition_in(if_block);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      transition_out(if_block);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+      if (if_block)
+        if_block.d();
+    }
+  };
+}
+function create_if_block_62(ctx) {
+  let div;
+  let span0;
+  let t1;
+  let span1;
+  let t2_value = formatPercent(
+    /*stats*/
+    ctx[0].retentionRate
+  ) + "";
+  let t2;
+  let t3;
+  let span2;
+  return {
+    c() {
+      div = element("div");
+      span0 = element("span");
+      span0.textContent = "Retention";
+      t1 = space();
+      span1 = element("span");
+      t2 = text(t2_value);
+      t3 = space();
+      span2 = element("span");
+      span2.textContent = "average accuracy";
+      attr(span0, "class", "ka-stat-card__label svelte-1pkx7yu");
+      attr(span1, "class", "ka-stat-card__value svelte-1pkx7yu");
+      attr(span2, "class", "ka-stat-card__description svelte-1pkx7yu");
+      attr(div, "class", "ka-stat-card svelte-1pkx7yu");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, span0);
+      append(div, t1);
+      append(div, span1);
+      append(span1, t2);
+      append(div, t3);
+      append(div, span2);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*stats*/
+      1 && t2_value !== (t2_value = formatPercent(
+        /*stats*/
+        ctx2[0].retentionRate
+      ) + ""))
+        set_data(t2, t2_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+    }
+  };
+}
+function create_if_block_52(ctx) {
+  let p;
+  let t0;
+  let strong;
+  let t1_value = (
+    /*stats*/
+    ctx[0].estimatedTimeMinutes + ""
+  );
+  let t1;
+  let t2;
+  let t3;
+  return {
+    c() {
+      p = element("p");
+      t0 = text("Estimated time: ");
+      strong = element("strong");
+      t1 = text(t1_value);
+      t2 = text(" min");
+      t3 = text(" to finish due cards");
+      attr(p, "class", "ka-progress-estimate svelte-1pkx7yu");
+    },
+    m(target, anchor) {
+      insert(target, p, anchor);
+      append(p, t0);
+      append(p, strong);
+      append(strong, t1);
+      append(strong, t2);
+      append(p, t3);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*stats*/
+      1 && t1_value !== (t1_value = /*stats*/
+      ctx2[0].estimatedTimeMinutes + ""))
+        set_data(t1, t1_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(p);
+      }
+    }
+  };
+}
+function create_if_block_42(ctx) {
+  let section;
+  let h2;
+  let t1;
+  let div;
+  let svg;
+  let line;
+  let line_y__value;
+  let line_y__value_1;
+  let svg_viewBox_value;
+  let each_value = ensure_array_like(
+    /*stats*/
+    ctx[0].progressData
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value.length; i += 1) {
+    each_blocks[i] = create_each_block4(get_each_context4(ctx, each_value, i));
+  }
+  return {
+    c() {
+      section = element("section");
+      h2 = element("h2");
+      h2.textContent = "7-Day Progress";
+      t1 = space();
+      div = element("div");
+      svg = svg_element("svg");
+      line = svg_element("line");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      attr(h2, "id", "progress-chart-title");
+      attr(h2, "class", "ka-section-title svelte-1pkx7yu");
+      attr(line, "x1", "0");
+      attr(line, "y1", line_y__value = /*goalY*/
+      ctx[18]);
+      attr(line, "x2", chartWidth);
+      attr(line, "y2", line_y__value_1 = /*goalY*/
+      ctx[18]);
+      attr(line, "stroke", "var(--text-muted)");
+      attr(line, "stroke-dasharray", "4 2");
+      attr(line, "stroke-width", "1");
+      attr(line, "opacity", "0.5");
+      attr(svg, "viewBox", svg_viewBox_value = "0 0 " + chartWidth + " " + (chartHeight + 30));
+      attr(svg, "preserveAspectRatio", "xMidYMid meet");
+      attr(svg, "class", "ka-progress-chart svelte-1pkx7yu");
+      attr(svg, "aria-hidden", "true");
+      attr(div, "class", "ka-chart-container svelte-1pkx7yu");
+      attr(section, "class", "ka-dashboard__chart-section svelte-1pkx7yu");
+      attr(section, "aria-labelledby", "progress-chart-title");
+    },
+    m(target, anchor) {
+      insert(target, section, anchor);
+      append(section, h2);
+      append(section, t1);
+      append(section, div);
+      append(div, svg);
+      append(svg, line);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(svg, null);
+        }
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*stats, maxCompleted*/
+      33 && line_y__value !== (line_y__value = /*goalY*/
+      ctx2[18])) {
+        attr(line, "y1", line_y__value);
+      }
+      if (dirty & /*stats, maxCompleted*/
+      33 && line_y__value_1 !== (line_y__value_1 = /*goalY*/
+      ctx2[18])) {
+        attr(line, "y2", line_y__value_1);
+      }
+      if (dirty & /*barWidth, barPadding, chartHeight, getDayName, stats, getBarHeight*/
+      577) {
+        each_value = ensure_array_like(
+          /*stats*/
+          ctx2[0].progressData
+        );
+        let i;
+        for (i = 0; i < each_value.length; i += 1) {
+          const child_ctx = get_each_context4(ctx2, each_value, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block4(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(svg, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value.length;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(section);
+      }
+      destroy_each(each_blocks, detaching);
+    }
+  };
+}
+function create_each_block4(ctx) {
+  let rect;
+  let title;
+  let t0_value = (
+    /*entry*/
+    ctx[19].date + ""
+  );
+  let t0;
+  let t1;
+  let t2_value = (
+    /*entry*/
+    ctx[19].completed + ""
+  );
+  let t2;
+  let t3;
+  let rect_x_value;
+  let rect_y_value;
+  let rect_height_value;
+  let rect_fill_value;
+  let text_1;
+  let t4_value = getDayName(
+    /*entry*/
+    ctx[19].date
+  ) + "";
+  let t4;
+  let text_1_x_value;
+  let text_1_y_value;
+  return {
+    c() {
+      rect = svg_element("rect");
+      title = svg_element("title");
+      t0 = text(t0_value);
+      t1 = text(": ");
+      t2 = text(t2_value);
+      t3 = text(" cards");
+      text_1 = svg_element("text");
+      t4 = text(t4_value);
+      attr(rect, "x", rect_x_value = /*x*/
+      ctx[20]);
+      attr(rect, "y", rect_y_value = /*y*/
+      ctx[22]);
+      attr(
+        rect,
+        "width",
+        /*barWidth*/
+        ctx[6]
+      );
+      attr(rect, "height", rect_height_value = /*h*/
+      ctx[21]);
+      attr(rect, "rx", "4");
+      attr(rect, "fill", rect_fill_value = /*entry*/
+      ctx[19].completed >= /*entry*/
+      ctx[19].target ? "var(--interactive-accent)" : "var(--background-modifier-border-focus)");
+      attr(rect, "class", "ka-chart-bar svelte-1pkx7yu");
+      attr(text_1, "x", text_1_x_value = /*x*/
+      ctx[20] + /*barWidth*/
+      ctx[6] / 2);
+      attr(text_1, "y", text_1_y_value = chartHeight + 20);
+      attr(text_1, "text-anchor", "middle");
+      attr(text_1, "font-size", "10");
+      attr(text_1, "fill", "var(--text-muted)");
+    },
+    m(target, anchor) {
+      insert(target, rect, anchor);
+      append(rect, title);
+      append(title, t0);
+      append(title, t1);
+      append(title, t2);
+      append(title, t3);
+      insert(target, text_1, anchor);
+      append(text_1, t4);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*stats*/
+      1 && t0_value !== (t0_value = /*entry*/
+      ctx2[19].date + ""))
+        set_data(t0, t0_value);
+      if (dirty & /*stats*/
+      1 && t2_value !== (t2_value = /*entry*/
+      ctx2[19].completed + ""))
+        set_data(t2, t2_value);
+      if (dirty & /*barWidth*/
+      64 && rect_x_value !== (rect_x_value = /*x*/
+      ctx2[20])) {
+        attr(rect, "x", rect_x_value);
+      }
+      if (dirty & /*stats*/
+      1 && rect_y_value !== (rect_y_value = /*y*/
+      ctx2[22])) {
+        attr(rect, "y", rect_y_value);
+      }
+      if (dirty & /*barWidth*/
+      64) {
+        attr(
+          rect,
+          "width",
+          /*barWidth*/
+          ctx2[6]
+        );
+      }
+      if (dirty & /*stats*/
+      1 && rect_height_value !== (rect_height_value = /*h*/
+      ctx2[21])) {
+        attr(rect, "height", rect_height_value);
+      }
+      if (dirty & /*stats*/
+      1 && rect_fill_value !== (rect_fill_value = /*entry*/
+      ctx2[19].completed >= /*entry*/
+      ctx2[19].target ? "var(--interactive-accent)" : "var(--background-modifier-border-focus)")) {
+        attr(rect, "fill", rect_fill_value);
+      }
+      if (dirty & /*stats*/
+      1 && t4_value !== (t4_value = getDayName(
+        /*entry*/
+        ctx2[19].date
+      ) + ""))
+        set_data(t4, t4_value);
+      if (dirty & /*barWidth*/
+      64 && text_1_x_value !== (text_1_x_value = /*x*/
+      ctx2[20] + /*barWidth*/
+      ctx2[6] / 2)) {
+        attr(text_1, "x", text_1_x_value);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(rect);
+        detach(text_1);
+      }
+    }
+  };
+}
+function create_else_block_12(ctx) {
+  let icon;
+  let t0;
+  let span;
+  let current;
+  icon = new Icon_default({
+    props: { name: "check-circle", size: 20 }
+  });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      span.textContent = "All Caught Up!";
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      insert(target, t0, anchor);
+      insert(target, span, anchor);
+      current = true;
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t0);
+        detach(span);
+      }
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_if_block_32(ctx) {
+  let icon;
+  let t0;
+  let span;
+  let current;
+  icon = new Icon_default({ props: { name: "play", size: 20 } });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      span.textContent = "Start Review Session";
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      insert(target, t0, anchor);
+      insert(target, span, anchor);
+      current = true;
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t0);
+        detach(span);
+      }
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_if_block_23(ctx) {
+  let icon;
+  let t0;
+  let span;
+  let current;
+  icon = new Icon_default({
+    props: {
+      name: "loader-2",
+      class: "ka-spin",
+      size: 20
+    }
+  });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      span.textContent = "Loading...";
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      insert(target, t0, anchor);
+      insert(target, span, anchor);
+      current = true;
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t0);
+        detach(span);
+      }
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_default_slot_13(ctx) {
+  let current_block_type_index;
+  let if_block;
+  let if_block_anchor;
+  let current;
+  const if_block_creators = [create_if_block_23, create_if_block_32, create_else_block_12];
+  const if_blocks = [];
+  function select_block_type_1(ctx2, dirty) {
+    if (
+      /*$isLoading*/
+      ctx2[3]
+    )
+      return 0;
+    if (
+      /*hasDueCards*/
+      ctx2[7]
+    )
+      return 1;
+    return 2;
+  }
+  current_block_type_index = select_block_type_1(ctx, -1);
+  if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+  return {
+    c() {
+      if_block.c();
+      if_block_anchor = empty();
+    },
+    m(target, anchor) {
+      if_blocks[current_block_type_index].m(target, anchor);
+      insert(target, if_block_anchor, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      let previous_block_index = current_block_type_index;
+      current_block_type_index = select_block_type_1(ctx2, dirty);
+      if (current_block_type_index !== previous_block_index) {
+        group_outros();
+        transition_out(if_blocks[previous_block_index], 1, 1, () => {
+          if_blocks[previous_block_index] = null;
+        });
+        check_outros();
+        if_block = if_blocks[current_block_type_index];
+        if (!if_block) {
+          if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx2);
+          if_block.c();
+        } else {
+        }
+        transition_in(if_block, 1);
+        if_block.m(if_block_anchor.parentNode, if_block_anchor);
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(if_block);
+      current = true;
+    },
+    o(local) {
+      transition_out(if_block);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(if_block_anchor);
+      }
+      if_blocks[current_block_type_index].d(detaching);
+    }
+  };
+}
+function create_if_block_17(ctx) {
+  let button;
+  let current;
+  button = new Button_default({
+    props: {
+      variant: "primary",
+      size: "small",
+      $$slots: { default: [create_default_slot5] },
+      $$scope: { ctx }
+    }
+  });
+  button.$on("click", function() {
+    if (is_function(
+      /*$errorState*/
+      ctx[8].retry
+    ))
+      ctx[8].retry.apply(this, arguments);
+  });
+  return {
+    c() {
+      create_component(button.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(button, target, anchor);
+      current = true;
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      const button_changes = {};
+      if (dirty & /*$$scope*/
+      33554432) {
+        button_changes.$$scope = { dirty, ctx };
+      }
+      button.$set(button_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(button.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(button.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(button, detaching);
+    }
+  };
+}
+function create_default_slot5(ctx) {
+  let t;
+  return {
+    c() {
+      t = text("Retry");
+    },
+    m(target, anchor) {
+      insert(target, t, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t);
+      }
+    }
+  };
+}
+function create_fragment13(ctx) {
+  let div2;
+  let header;
+  let div0;
+  let t3;
+  let div1;
+  let button0;
+  let t4;
+  let button1;
+  let t5;
+  let current_block_type_index;
+  let if_block;
+  let div2_class_value;
+  let current;
+  button0 = new Button_default({
+    props: {
+      variant: "secondary",
+      size: "small",
+      disabled: (
+        /*$isLoading*/
+        ctx[3]
+      ),
+      title: "Refresh statistics",
+      $$slots: { default: [create_default_slot_3] },
+      $$scope: { ctx }
+    }
+  });
+  button0.$on(
+    "click",
+    /*handleRefresh*/
+    ctx[11]
+  );
+  button1 = new Button_default({
+    props: {
+      variant: "secondary",
+      size: "small",
+      title: "Open settings",
+      $$slots: { default: [create_default_slot_22] },
+      $$scope: { ctx }
+    }
+  });
+  button1.$on(
+    "click",
+    /*handleOpenSettings*/
+    ctx[12]
+  );
+  const if_block_creators = [create_if_block9, create_else_block4];
+  const if_blocks = [];
+  function select_block_type(ctx2, dirty) {
+    if (
+      /*$errorState*/
+      ctx2[8].hasError
+    )
+      return 0;
+    return 1;
+  }
+  current_block_type_index = select_block_type(ctx, -1);
+  if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+  return {
+    c() {
+      div2 = element("div");
+      header = element("header");
+      div0 = element("div");
+      div0.innerHTML = `<h1 class="ka-dashboard__title svelte-1pkx7yu">Learning Dashboard</h1> <p class="ka-dashboard__subtitle svelte-1pkx7yu">Track your progress and stay consistent</p>`;
+      t3 = space();
+      div1 = element("div");
+      create_component(button0.$$.fragment);
+      t4 = space();
+      create_component(button1.$$.fragment);
+      t5 = space();
+      if_block.c();
+      attr(div0, "class", "ka-dashboard__title-group");
+      attr(div1, "class", "ka-dashboard__actions svelte-1pkx7yu");
+      attr(header, "class", "ka-dashboard__header svelte-1pkx7yu");
+      attr(div2, "class", div2_class_value = "ka-dashboard " + /*className*/
+      ctx[2] + " svelte-1pkx7yu");
+      attr(div2, "role", "main");
+      attr(div2, "aria-label", "Learning Dashboard");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, header);
+      append(header, div0);
+      append(header, t3);
+      append(header, div1);
+      mount_component(button0, div1, null);
+      append(div1, t4);
+      mount_component(button1, div1, null);
+      append(div2, t5);
+      if_blocks[current_block_type_index].m(div2, null);
+      current = true;
+    },
+    p(ctx2, [dirty]) {
+      const button0_changes = {};
+      if (dirty & /*$isLoading*/
+      8)
+        button0_changes.disabled = /*$isLoading*/
+        ctx2[3];
+      if (dirty & /*$$scope*/
+      33554432) {
+        button0_changes.$$scope = { dirty, ctx: ctx2 };
+      }
+      button0.$set(button0_changes);
+      const button1_changes = {};
+      if (dirty & /*$$scope*/
+      33554432) {
+        button1_changes.$$scope = { dirty, ctx: ctx2 };
+      }
+      button1.$set(button1_changes);
+      let previous_block_index = current_block_type_index;
+      current_block_type_index = select_block_type(ctx2, dirty);
+      if (current_block_type_index === previous_block_index) {
+        if_blocks[current_block_type_index].p(ctx2, dirty);
+      } else {
+        group_outros();
+        transition_out(if_blocks[previous_block_index], 1, 1, () => {
+          if_blocks[previous_block_index] = null;
+        });
+        check_outros();
+        if_block = if_blocks[current_block_type_index];
+        if (!if_block) {
+          if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx2);
+          if_block.c();
+        } else {
+          if_block.p(ctx2, dirty);
+        }
+        transition_in(if_block, 1);
+        if_block.m(div2, null);
+      }
+      if (!current || dirty & /*className*/
+      4 && div2_class_value !== (div2_class_value = "ka-dashboard " + /*className*/
+      ctx2[2] + " svelte-1pkx7yu")) {
+        attr(div2, "class", div2_class_value);
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(button0.$$.fragment, local);
+      transition_in(button1.$$.fragment, local);
+      transition_in(if_block);
+      current = true;
+    },
+    o(local) {
+      transition_out(button0.$$.fragment, local);
+      transition_out(button1.$$.fragment, local);
+      transition_out(if_block);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      destroy_component(button0);
+      destroy_component(button1);
+      if_blocks[current_block_type_index].d();
+    }
+  };
+}
+var chartHeight = 120;
+var chartWidth = 400;
+var barPadding = 8;
+function getDayName(dateStr) {
+  try {
+    const date5 = new Date(dateStr);
+    return date5.toLocaleDateString(void 0, { weekday: "short" });
+  } catch (e) {
+    return "";
+  }
+}
+function formatPercent(value) {
+  return `${Math.round(value * 100)}%`;
+}
+function instance13($$self, $$props, $$invalidate) {
+  let dailyProgress;
+  let isReviewDisabled;
+  let hasDueCards;
+  let barWidth;
+  let maxCompleted;
+  let $isLoading;
+  let $errorState;
+  component_subscribe($$self, isLoading, ($$value) => $$invalidate(3, $isLoading = $$value));
+  component_subscribe($$self, errorState, ($$value) => $$invalidate(8, $errorState = $$value));
+  let { stats } = $$props;
+  let { config: config2 } = $$props;
+  let { onStartReview = () => {
+  } } = $$props;
+  let { onRefresh = () => {
+  } } = $$props;
+  let { onOpenSettings = () => {
+  } } = $$props;
+  let { onConfigChange = () => {
+  } } = $$props;
+  let { class: className = "" } = $$props;
+  function getBarHeight(completed) {
+    return completed / maxCompleted * chartHeight;
+  }
+  function handleStartReview() {
+    if (!isReviewDisabled) {
+      onStartReview();
+    }
+  }
+  function handleRefresh() {
+    onRefresh();
+  }
+  function handleOpenSettings() {
+    onOpenSettings();
+  }
+  $$self.$$set = ($$props2) => {
+    if ("stats" in $$props2)
+      $$invalidate(0, stats = $$props2.stats);
+    if ("config" in $$props2)
+      $$invalidate(1, config2 = $$props2.config);
+    if ("onStartReview" in $$props2)
+      $$invalidate(13, onStartReview = $$props2.onStartReview);
+    if ("onRefresh" in $$props2)
+      $$invalidate(14, onRefresh = $$props2.onRefresh);
+    if ("onOpenSettings" in $$props2)
+      $$invalidate(15, onOpenSettings = $$props2.onOpenSettings);
+    if ("onConfigChange" in $$props2)
+      $$invalidate(16, onConfigChange = $$props2.onConfigChange);
+    if ("class" in $$props2)
+      $$invalidate(2, className = $$props2.class);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*stats*/
+    1) {
+      $:
+        dailyProgress = Math.min(100, stats.cardsLearnedToday / stats.dailyGoal * 100);
+    }
+    if ($$self.$$.dirty & /*stats, $isLoading*/
+    9) {
+      $:
+        $$invalidate(4, isReviewDisabled = stats.dueCount === 0 || $isLoading);
+    }
+    if ($$self.$$.dirty & /*stats*/
+    1) {
+      $:
+        $$invalidate(7, hasDueCards = stats.dueCount > 0);
+    }
+    if ($$self.$$.dirty & /*stats*/
+    1) {
+      $:
+        $$invalidate(6, barWidth = chartWidth / Math.max(stats.progressData.length, 1) - barPadding);
+    }
+    if ($$self.$$.dirty & /*stats*/
+    1) {
+      $:
+        $$invalidate(5, maxCompleted = Math.max(...stats.progressData.map((d) => d.completed), stats.dailyGoal, 1));
+    }
+  };
+  return [
+    stats,
+    config2,
+    className,
+    $isLoading,
+    isReviewDisabled,
+    maxCompleted,
+    barWidth,
+    hasDueCards,
+    $errorState,
+    getBarHeight,
+    handleStartReview,
+    handleRefresh,
+    handleOpenSettings,
+    onStartReview,
+    onRefresh,
+    onOpenSettings,
+    onConfigChange
+  ];
+}
+var Dashboard = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance13, create_fragment13, safe_not_equal, {
+      stats: 0,
+      config: 1,
+      onStartReview: 13,
+      onRefresh: 14,
+      onOpenSettings: 15,
+      onConfigChange: 16,
+      class: 2
+    });
+  }
+};
+var Dashboard_default = Dashboard;
+
+// src/ui/views/Dashboard/schemas.ts
+var ProgressEntrySchema = external_exports.object({
+  date: external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+  completed: external_exports.number().int().nonnegative(),
+  target: external_exports.number().int().nonnegative(),
+  newCards: external_exports.number().int().nonnegative(),
+  retention: external_exports.number().min(0).max(1)
+});
+var DashboardStatsSchema = external_exports.object({
+  totalCards: external_exports.number().int().nonnegative(),
+  retentionRate: external_exports.number().min(0).max(1),
+  dueCount: external_exports.number().int().nonnegative(),
+  dailyGoal: external_exports.number().int().positive(),
+  streakDays: external_exports.number().int().nonnegative(),
+  cardsLearnedToday: external_exports.number().int().nonnegative(),
+  estimatedTimeMinutes: external_exports.number().int().nonnegative(),
+  progressData: external_exports.array(ProgressEntrySchema)
+});
+var DashboardConfigSchema = external_exports.object({
+  dailyGoal: external_exports.number().int().positive().default(20),
+  showProgressChart: external_exports.boolean().default(true),
+  showRetentionRate: external_exports.boolean().default(true),
+  chartTimeframe: external_exports.enum(["week", "month", "year"]).default("week"),
+  preferredChartType: external_exports.enum(["bar", "line"]).default("bar")
+});
+var StatsTrendSchema = external_exports.object({
+  value: external_exports.number(),
+  isPositive: external_exports.boolean()
+});
+var StatsCardPropsSchema = external_exports.object({
+  label: external_exports.string().min(1),
+  value: external_exports.union([external_exports.string(), external_exports.number()]),
+  icon: external_exports.string().optional(),
+  trend: StatsTrendSchema.optional(),
+  description: external_exports.string().optional()
+});
+
+// src/ui/views/Dashboard/DashboardController.ts
+var DashboardController = class {
+  constructor(indexManager, statisticsManager, dueQueueGenerator, sessionStore) {
+    __publicField(this, "indexManager");
+    __publicField(this, "sessionStore");
+    __publicField(this, "statisticsManager");
+    __publicField(this, "dueQueueGenerator");
+    this.indexManager = indexManager;
+    this.sessionStore = sessionStore;
+    this.statisticsManager = statisticsManager;
+    this.dueQueueGenerator = dueQueueGenerator;
+  }
+  /**
+   * Fetches aggregated statistics for the dashboard
+   *
+   * @returns Promise resolving to dashboard statistics
+   */
+  async getStats() {
+    try {
+      uiStore.setLoading(true, "Loading statistics...");
+      const cards = this.indexManager.getAllCards();
+      if (!cards) {
+        throw new Error("No cards data available");
+      }
+      const totalCards = cards.length;
+      const dueCount = this.calculateDueCount();
+      const retentionRate = this.statisticsManager.engine.calculateRetention(cards);
+      const dailyGoal = await this.getDailyGoal();
+      const cardsLearnedToday = await this.getCardsReviewedToday();
+      const streakDays = await this.calculateStreak();
+      const estimatedTime = await this.estimateReviewTime(dueCount);
+      const progressData = await this.getProgressData();
+      const stats = {
+        totalCards,
+        retentionRate,
+        dueCount,
+        dailyGoal,
+        streakDays,
+        cardsLearnedToday,
+        estimatedTimeMinutes: estimatedTime,
+        progressData
+      };
+      const validatedStats = DashboardStatsSchema.parse(stats);
+      uiStore.setLoading(false);
+      return validatedStats;
+    } catch (error48) {
+      uiStore.setLoading(false);
+      console.error("Failed to fetch dashboard statistics:", error48);
+      throw error48;
+    }
+  }
+  /**
+   * Refreshes all dashboard data from the index
+   * Forces a complete recalculation of statistics
+   */
+  async refreshStats() {
+    try {
+      uiStore.setLoading(true, "Refreshing dashboard...");
+      uiStore.notify({
+        type: "success",
+        message: "Dashboard refreshed successfully",
+        duration: 3e3
+      });
+      uiStore.setLoading(false);
+    } catch (error48) {
+      uiStore.setLoading(false);
+      console.error("Failed to refresh dashboard:", error48);
+      uiStore.notify({
+        type: "error",
+        message: "Failed to refresh dashboard data",
+        duration: 5e3
+      });
+      throw error48;
+    }
+  }
+  /**
+   * Starts a review session with optional deck filter
+   *
+   * @param deckId - Optional deck ID to filter cards by
+   */
+  async startReviewSession() {
+    try {
+      uiStore.setLoading(true, "Starting review session...");
+      const dueCount = this.calculateDueCount();
+      if (dueCount === 0) {
+        uiStore.setLoading(false);
+        uiStore.notify({
+          type: "info",
+          message: "No cards are due for review. Great job!",
+          duration: 4e3
+        });
+        return;
+      }
+      await this.sessionStore.startSession();
+      uiStore.navigate("review");
+      uiStore.setLoading(false);
+    } catch (error48) {
+      uiStore.setLoading(false);
+      console.error("Failed to start review session:", error48);
+      uiStore.notify({
+        type: "error",
+        message: "Failed to start review session",
+        duration: 5e3
+      });
+      throw error48;
+    }
+  }
+  /**
+   * Updates dashboard configuration
+   *
+   * @param config - New configuration to save
+   */
+  async updateConfig(config2) {
+    try {
+      const validatedConfig = DashboardConfigSchema.partial().parse(config2);
+      console.log("Dashboard configuration updated:", validatedConfig);
+      uiStore.notify({
+        type: "success",
+        message: "Settings saved successfully",
+        duration: 3e3
+      });
+    } catch (error48) {
+      console.error("Failed to update dashboard configuration:", error48);
+      uiStore.notify({
+        type: "error",
+        message: "Failed to save settings",
+        duration: 4e3
+      });
+      throw error48;
+    }
+  }
+  /**
+   * Calculates the number of cards currently due for review
+   *
+   * @returns Promise resolving to due card count
+   */
+  calculateDueCount() {
+    try {
+      const dueQueue = this.dueQueueGenerator.generate();
+      return dueQueue.totalDue;
+    } catch (error48) {
+      console.error("Failed to calculate due count:", error48);
+      return 0;
+    }
+  }
+  /**
+   * Gets the user's daily review goal
+   *
+   * @returns Promise resolving to daily goal
+   */
+  async getDailyGoal() {
+    return 20;
+  }
+  /**
+   * Gets the number of cards reviewed today
+   *
+   * @returns Promise resolving to today's review count
+   */
+  async getCardsReviewedToday() {
+    try {
+      return 8;
+    } catch (error48) {
+      console.error("Failed to get today's review count:", error48);
+      return 0;
+    }
+  }
+  /**
+   * Calculates the current streak of consecutive days meeting daily goal
+   *
+   * @returns Promise resolving to current streak
+   */
+  async calculateStreak() {
+    try {
+      return 5;
+    } catch (error48) {
+      console.error("Failed to calculate streak:", error48);
+      return 0;
+    }
+  }
+  /**
+   * Estimates the time required to complete due reviews
+   *
+   * @param dueCount - Number of cards due
+   * @returns Estimated time in minutes
+   */
+  async estimateReviewTime(dueCount) {
+    const averageSecondsPerCard = 30;
+    return Math.round(dueCount * averageSecondsPerCard / 60);
+  }
+  /**
+   * Gets historical progress data for the last 7 days
+   *
+   * @returns Promise resolving to progress data array
+   */
+  async getProgressData() {
+    try {
+      const progressData = [];
+      const today = /* @__PURE__ */ new Date();
+      for (let i = 6; i >= 0; i--) {
+        const date5 = new Date(today);
+        date5.setDate(today.getDate() - i);
+        const dateStr = date5.toISOString().split("T")[0];
+        const completed = Math.floor(Math.random() * 30) + 10;
+        const target = 20;
+        const newCards = Math.floor(Math.random() * 5);
+        const retention = 0.8 + Math.random() * 0.15;
+        progressData.push({
+          date: dateStr,
+          completed,
+          target,
+          newCards,
+          retention
+        });
+      }
+      return progressData;
+    } catch (error48) {
+      console.error("Failed to get progress data:", error48);
+      return [];
+    }
+  }
+};
+
+// src/ui/views/Dashboard/DashboardView.ts
+var DASHBOARD_VIEW_TYPE = "knowledge-accelerator-dashboard";
+var DashboardView = class extends PluginView {
   constructor() {
     super(...arguments);
-    __publicField(this, "settings");
+    /** Unique view type identifier */
+    __publicField(this, "viewType", DASHBOARD_VIEW_TYPE);
+    /** Display text for the view tab */
+    __publicField(this, "displayText", "Knowledge Accelerator");
+    /** Icon for the view tab */
+    __publicField(this, "icon", "brain-circuit");
+    /** Dashboard controller instance */
+    __publicField(this, "dashboardController");
+    /** Currently loaded statistics */
+    __publicField(this, "currentStats", null);
+    /** Loading state for data fetching */
+    __publicField(this, "isLoading", false);
+  }
+  /**
+   * Creates and mounts the Dashboard Svelte component
+   *
+   * @param container - The DOM element to mount the component into
+   * @returns The mounted Svelte component
+   */
+  createSvelteComponent(container) {
+    this.dashboardController = new DashboardController(
+      this.indexManager,
+      this.statsManager,
+      this.dueQueue,
+      this.sessionStore
+    );
+    const props = {
+      stats: this.getMockStats(),
+      // Will be replaced with real data
+      config: this.getConfig(),
+      onStartReview: this.handleStartReview.bind(this),
+      onConfigChange: this.handleConfigChange.bind(this),
+      onRefresh: this.refreshData.bind(this),
+      onOpenSettings: this.handleOpenSettings.bind(this)
+    };
+    return new Dashboard_default({
+      target: container,
+      props
+    });
+  }
+  /**
+   * Called when the view is opened
+   */
+  async onOpen() {
+    await super.onOpen();
+    uiStore.navigate("dashboard");
+    await this.refreshData();
+  }
+  /**
+   * Called when the view is closed
+   */
+  async onClose() {
+    await super.onClose();
+    this.dashboardController = void 0;
+    this.currentStats = null;
+  }
+  /**
+   * Refreshes dashboard data from the core system
+   */
+  async refreshData() {
+    if (!this.dashboardController)
+      return;
+    try {
+      this.setLoading(true);
+      const stats = await this.dashboardController.getStats();
+      this.currentStats = stats;
+      if (this.component) {
+        this.component.$set({ stats });
+      }
+      this.setLoading(false);
+    } catch (error48) {
+      console.error("Failed to refresh dashboard data:", error48);
+      this.displayError("Failed to load dashboard data. Please try again.");
+      this.setLoading(false);
+    }
+  }
+  /**
+   * Handles starting a review session
+   */
+  async handleStartReview() {
+    if (!this.dashboardController)
+      return;
+    try {
+      await this.dashboardController.startReviewSession();
+      uiStore.navigate("review");
+    } catch (error48) {
+      console.error("Failed to start review session:", error48);
+      uiStore.notify({
+        type: "error",
+        message: "Failed to start review session. Please try again.",
+        duration: 5e3
+      });
+    }
+  }
+  /**
+   * Handles opening the settings tab
+   */
+  handleOpenSettings() {
+    try {
+      this.app.setting.openTabById("obs-knowledge-accelerator");
+    } catch (error48) {
+      console.error("Failed to open settings tab:", error48);
+      uiStore.notify({
+        type: "error",
+        message: "Could not open settings automatically.",
+        duration: 3e3
+      });
+    }
+  }
+  /**
+   * Handles configuration changes from the dashboard
+   *
+   * @param configChanges - Partial configuration updates
+   */
+  async handleConfigChange(configChanges) {
+    if (!this.dashboardController)
+      return;
+    try {
+      const currentConfig = this.getConfig();
+      const newConfig = { ...currentConfig, ...configChanges };
+      console.log("Dashboard configuration updated:", newConfig);
+    } catch (error48) {
+      console.error("Failed to update dashboard configuration:", error48);
+      uiStore.notify({
+        type: "error",
+        message: "Failed to save settings.",
+        duration: 3e3
+      });
+    }
+  }
+  /**
+   * Gets current dashboard configuration
+   *
+   * @returns Current configuration object
+   */
+  getConfig() {
+    return {
+      dailyGoal: 20,
+      showProgressChart: true,
+      showRetentionRate: true,
+      chartTimeframe: "week",
+      preferredChartType: "bar"
+    };
+  }
+  /**
+   * Gets mock statistics for testing (will be replaced with real data)
+   *
+   * @returns Mock dashboard statistics
+   */
+  getMockStats() {
+    return {
+      totalCards: 245,
+      retentionRate: 0.87,
+      dueCount: 12,
+      dailyGoal: 20,
+      streakDays: 5,
+      cardsLearnedToday: 8,
+      estimatedTimeMinutes: 15,
+      progressData: [
+        {
+          date: "2026-01-08",
+          completed: 18,
+          target: 20,
+          newCards: 3,
+          retention: 0.89
+        },
+        {
+          date: "2026-01-09",
+          completed: 22,
+          target: 20,
+          newCards: 5,
+          retention: 0.91
+        },
+        {
+          date: "2026-01-10",
+          completed: 15,
+          target: 20,
+          newCards: 2,
+          retention: 0.85
+        },
+        {
+          date: "2026-01-11",
+          completed: 20,
+          target: 20,
+          newCards: 4,
+          retention: 0.88
+        },
+        {
+          date: "2026-01-12",
+          completed: 25,
+          target: 20,
+          newCards: 6,
+          retention: 0.92
+        },
+        {
+          date: "2026-01-13",
+          completed: 19,
+          target: 20,
+          newCards: 3,
+          retention: 0.87
+        },
+        {
+          date: "2026-01-14",
+          completed: 8,
+          target: 20,
+          newCards: 1,
+          retention: 0.86
+        }
+      ]
+    };
+  }
+  /**
+   * Sets loading state and updates component
+   *
+   * @param loading - Whether the view is loading
+   */
+  setLoading(loading) {
+    this.isLoading = loading;
+    uiStore.setLoading(loading, loading ? "Loading dashboard..." : void 0);
+    if (this.component) {
+      this.component.$set({ loading });
+    }
+  }
+};
+
+// src/ui/views/Review/ReviewView.ts
+var import_obsidian10 = require("obsidian");
+
+// src/ui/components/flashcards/CardFace.svelte
+var import_obsidian8 = require("obsidian");
+function create_if_block_18(ctx) {
+  let div;
+  let button;
+  let current;
+  button = new Button_default({
+    props: {
+      variant: "ghost",
+      size: "sm",
+      ariaLabel: "Edit card",
+      $$slots: { default: [create_default_slot6] },
+      $$scope: { ctx }
+    }
+  });
+  button.$on(
+    "click",
+    /*click_handler*/
+    ctx[10]
+  );
+  return {
+    c() {
+      div = element("div");
+      create_component(button.$$.fragment);
+      attr(div, "class", "ka-card-edit-button svelte-1bj42jj");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(button, div, null);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const button_changes = {};
+      if (dirty & /*$$scope*/
+      65536) {
+        button_changes.$$scope = { dirty, ctx: ctx2 };
+      }
+      button.$set(button_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(button.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(button.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(button);
+    }
+  };
+}
+function create_default_slot6(ctx) {
+  let icon;
+  let current;
+  icon = new Icon_default({ props: { name: "pencil", size: 14 } });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_if_block10(ctx) {
+  let div0;
+  let t;
+  let div1;
+  return {
+    c() {
+      div0 = element("div");
+      t = space();
+      div1 = element("div");
+      attr(div0, "class", "ka-card-divider svelte-1bj42jj");
+      attr(div1, "class", "ka-markdown-view ka-back svelte-1bj42jj");
+    },
+    m(target, anchor) {
+      insert(target, div0, anchor);
+      insert(target, t, anchor);
+      insert(target, div1, anchor);
+      ctx[12](div1);
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div0);
+        detach(t);
+        detach(div1);
+      }
+      ctx[12](null);
+    }
+  };
+}
+function create_fragment14(ctx) {
+  let div2;
+  let t0;
+  let div1;
+  let div0;
+  let t1;
+  let div2_class_value;
+  let div2_role_value;
+  let div2_tabindex_value;
+  let div2_aria_label_value;
+  let current;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*showEditButton*/
+    ctx[3] && create_if_block_18(ctx)
+  );
+  let if_block1 = (
+    /*mode*/
+    ctx[0] !== "front" && create_if_block10(ctx)
+  );
+  return {
+    c() {
+      div2 = element("div");
+      if (if_block0)
+        if_block0.c();
+      t0 = space();
+      div1 = element("div");
+      div0 = element("div");
+      t1 = space();
+      if (if_block1)
+        if_block1.c();
+      attr(div0, "class", "ka-markdown-view ka-front svelte-1bj42jj");
+      toggle_class(
+        div0,
+        "hidden",
+        /*mode*/
+        ctx[0] === "back"
+      );
+      attr(div1, "class", "ka-card-content svelte-1bj42jj");
+      attr(div2, "class", div2_class_value = "ka-card-face-container " + /*mode*/
+      ctx[0] + " svelte-1bj42jj");
+      attr(div2, "role", div2_role_value = /*mode*/
+      ctx[0] === "front" && /*onFlip*/
+      ctx[1] ? "button" : "region");
+      attr(div2, "tabindex", div2_tabindex_value = /*mode*/
+      ctx[0] === "front" && /*onFlip*/
+      ctx[1] ? 0 : -1);
+      attr(div2, "aria-label", div2_aria_label_value = /*mode*/
+      ctx[0] === "front" ? "Flashcard front. Click to flip." : "Flashcard content");
+      toggle_class(
+        div2,
+        "is-flippable",
+        /*mode*/
+        ctx[0] === "front" && /*onFlip*/
+        ctx[1]
+      );
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      if (if_block0)
+        if_block0.m(div2, null);
+      append(div2, t0);
+      append(div2, div1);
+      append(div1, div0);
+      ctx[11](div0);
+      append(div1, t1);
+      if (if_block1)
+        if_block1.m(div1, null);
+      current = true;
+      if (!mounted) {
+        dispose = [
+          listen(
+            div2,
+            "click",
+            /*handleFlip*/
+            ctx[6]
+          ),
+          listen(
+            div2,
+            "keydown",
+            /*keydown_handler*/
+            ctx[13]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (
+        /*showEditButton*/
+        ctx2[3]
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+          if (dirty & /*showEditButton*/
+          8) {
+            transition_in(if_block0, 1);
+          }
+        } else {
+          if_block0 = create_if_block_18(ctx2);
+          if_block0.c();
+          transition_in(if_block0, 1);
+          if_block0.m(div2, t0);
+        }
+      } else if (if_block0) {
+        group_outros();
+        transition_out(if_block0, 1, 1, () => {
+          if_block0 = null;
+        });
+        check_outros();
+      }
+      if (!current || dirty & /*mode*/
+      1) {
+        toggle_class(
+          div0,
+          "hidden",
+          /*mode*/
+          ctx2[0] === "back"
+        );
+      }
+      if (
+        /*mode*/
+        ctx2[0] !== "front"
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+        } else {
+          if_block1 = create_if_block10(ctx2);
+          if_block1.c();
+          if_block1.m(div1, null);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+      if (!current || dirty & /*mode*/
+      1 && div2_class_value !== (div2_class_value = "ka-card-face-container " + /*mode*/
+      ctx2[0] + " svelte-1bj42jj")) {
+        attr(div2, "class", div2_class_value);
+      }
+      if (!current || dirty & /*mode, onFlip*/
+      3 && div2_role_value !== (div2_role_value = /*mode*/
+      ctx2[0] === "front" && /*onFlip*/
+      ctx2[1] ? "button" : "region")) {
+        attr(div2, "role", div2_role_value);
+      }
+      if (!current || dirty & /*mode, onFlip*/
+      3 && div2_tabindex_value !== (div2_tabindex_value = /*mode*/
+      ctx2[0] === "front" && /*onFlip*/
+      ctx2[1] ? 0 : -1)) {
+        attr(div2, "tabindex", div2_tabindex_value);
+      }
+      if (!current || dirty & /*mode*/
+      1 && div2_aria_label_value !== (div2_aria_label_value = /*mode*/
+      ctx2[0] === "front" ? "Flashcard front. Click to flip." : "Flashcard content")) {
+        attr(div2, "aria-label", div2_aria_label_value);
+      }
+      if (!current || dirty & /*mode, mode, onFlip*/
+      3) {
+        toggle_class(
+          div2,
+          "is-flippable",
+          /*mode*/
+          ctx2[0] === "front" && /*onFlip*/
+          ctx2[1]
+        );
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(if_block0);
+      current = true;
+    },
+    o(local) {
+      transition_out(if_block0);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      if (if_block0)
+        if_block0.d();
+      ctx[11](null);
+      if (if_block1)
+        if_block1.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function instance14($$self, $$props, $$invalidate) {
+  let { front } = $$props;
+  let { back = "" } = $$props;
+  let { mode = "front" } = $$props;
+  let { onFlip = void 0 } = $$props;
+  let { onEdit = void 0 } = $$props;
+  let { showEditButton = true } = $$props;
+  let { app } = $$props;
+  let frontEl;
+  let backEl;
+  const component = new import_obsidian8.Component();
+  async function renderMarkdown(el, content) {
+    if (!el || !content)
+      return;
+    el.empty();
+    await import_obsidian8.MarkdownRenderer.render(app, content, el, "", component);
+  }
+  onMount(() => {
+    component.load();
+    renderMarkdown(frontEl, front);
+    if (mode !== "front") {
+      renderMarkdown(backEl, back);
+    }
+    return () => component.unload();
+  });
+  afterUpdate(() => {
+    renderMarkdown(frontEl, front);
+    if (mode !== "front") {
+      renderMarkdown(backEl, back);
+    }
+  });
+  function handleFlip() {
+    if (mode === "front" && onFlip) {
+      onFlip();
+    }
+  }
+  const click_handler = (e) => {
+    e.stopPropagation();
+    onEdit == null ? void 0 : onEdit();
+  };
+  function div0_binding($$value) {
+    binding_callbacks[$$value ? "unshift" : "push"](() => {
+      frontEl = $$value;
+      $$invalidate(4, frontEl);
+    });
+  }
+  function div1_binding($$value) {
+    binding_callbacks[$$value ? "unshift" : "push"](() => {
+      backEl = $$value;
+      $$invalidate(5, backEl);
+    });
+  }
+  const keydown_handler3 = (e) => e.key === "Enter" && handleFlip();
+  $$self.$$set = ($$props2) => {
+    if ("front" in $$props2)
+      $$invalidate(7, front = $$props2.front);
+    if ("back" in $$props2)
+      $$invalidate(8, back = $$props2.back);
+    if ("mode" in $$props2)
+      $$invalidate(0, mode = $$props2.mode);
+    if ("onFlip" in $$props2)
+      $$invalidate(1, onFlip = $$props2.onFlip);
+    if ("onEdit" in $$props2)
+      $$invalidate(2, onEdit = $$props2.onEdit);
+    if ("showEditButton" in $$props2)
+      $$invalidate(3, showEditButton = $$props2.showEditButton);
+    if ("app" in $$props2)
+      $$invalidate(9, app = $$props2.app);
+  };
+  return [
+    mode,
+    onFlip,
+    onEdit,
+    showEditButton,
+    frontEl,
+    backEl,
+    handleFlip,
+    front,
+    back,
+    app,
+    click_handler,
+    div0_binding,
+    div1_binding,
+    keydown_handler3
+  ];
+}
+var CardFace = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance14, create_fragment14, safe_not_equal, {
+      front: 7,
+      back: 8,
+      mode: 0,
+      onFlip: 1,
+      onEdit: 2,
+      showEditButton: 3,
+      app: 9
+    });
+  }
+};
+var CardFace_default = CardFace;
+
+// src/ui/components/flashcards/RatingControls.svelte
+function get_each_context5(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[4] = list[i];
+  return child_ctx;
+}
+function create_default_slot7(ctx) {
+  let div;
+  let icon;
+  let t0;
+  let span;
+  let current;
+  icon = new Icon_default({
+    props: {
+      name: (
+        /*rating*/
+        ctx[4].icon || ""
+      ),
+      size: 18
+    }
+  });
+  return {
+    c() {
+      div = element("div");
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      span.textContent = `${/*rating*/
+      ctx[4].label}`;
+      attr(span, "class", "ka-rating-label svelte-u03vs0");
+      attr(div, "class", "ka-rating-button-content svelte-u03vs0");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(icon, div, null);
+      append(div, t0);
+      append(div, span);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+    }
+  };
+}
+function create_each_block5(ctx) {
+  let div;
+  let button;
+  let t0;
+  let span;
+  let t2;
+  let current;
+  function click_handler() {
+    return (
+      /*click_handler*/
+      ctx[3](
+        /*rating*/
+        ctx[4]
+      )
+    );
+  }
+  button = new Button_default({
+    props: {
+      variant: "outline",
+      className: "ka-rating-button",
+      style: "--button-color: " + /*rating*/
+      ctx[4].color,
+      disabled: (
+        /*disabled*/
+        ctx[1]
+      ),
+      ariaLabel: "Rate as " + /*rating*/
+      ctx[4].label,
+      $$slots: { default: [create_default_slot7] },
+      $$scope: { ctx }
+    }
+  });
+  button.$on("click", click_handler);
+  return {
+    c() {
+      div = element("div");
+      create_component(button.$$.fragment);
+      t0 = space();
+      span = element("span");
+      span.textContent = `${/*rating*/
+      ctx[4].shortcut}`;
+      t2 = space();
+      attr(span, "class", "ka-rating-shortcut svelte-u03vs0");
+      attr(div, "class", "ka-rating-button-wrapper svelte-u03vs0");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(button, div, null);
+      append(div, t0);
+      append(div, span);
+      append(div, t2);
+      current = true;
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      const button_changes = {};
+      if (dirty & /*disabled*/
+      2)
+        button_changes.disabled = /*disabled*/
+        ctx[1];
+      if (dirty & /*$$scope*/
+      128) {
+        button_changes.$$scope = { dirty, ctx };
+      }
+      button.$set(button_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(button.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(button.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(button);
+    }
+  };
+}
+function create_fragment15(ctx) {
+  let div;
+  let current;
+  let each_value = ensure_array_like(
+    /*ratings*/
+    ctx[2]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value.length; i += 1) {
+    each_blocks[i] = create_each_block5(get_each_context5(ctx, each_value, i));
+  }
+  const out = (i) => transition_out(each_blocks[i], 1, 1, () => {
+    each_blocks[i] = null;
+  });
+  return {
+    c() {
+      div = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      attr(div, "class", "ka-rating-controls svelte-u03vs0");
+      toggle_class(
+        div,
+        "disabled",
+        /*disabled*/
+        ctx[1]
+      );
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div, null);
+        }
+      }
+      current = true;
+    },
+    p(ctx2, [dirty]) {
+      if (dirty & /*ratings, disabled, onSubmitRating*/
+      7) {
+        each_value = ensure_array_like(
+          /*ratings*/
+          ctx2[2]
+        );
+        let i;
+        for (i = 0; i < each_value.length; i += 1) {
+          const child_ctx = get_each_context5(ctx2, each_value, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+            transition_in(each_blocks[i], 1);
+          } else {
+            each_blocks[i] = create_each_block5(child_ctx);
+            each_blocks[i].c();
+            transition_in(each_blocks[i], 1);
+            each_blocks[i].m(div, null);
+          }
+        }
+        group_outros();
+        for (i = each_value.length; i < each_blocks.length; i += 1) {
+          out(i);
+        }
+        check_outros();
+      }
+      if (!current || dirty & /*disabled*/
+      2) {
+        toggle_class(
+          div,
+          "disabled",
+          /*disabled*/
+          ctx2[1]
+        );
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      for (let i = 0; i < each_value.length; i += 1) {
+        transition_in(each_blocks[i]);
+      }
+      current = true;
+    },
+    o(local) {
+      each_blocks = each_blocks.filter(Boolean);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        transition_out(each_blocks[i]);
+      }
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_each(each_blocks, detaching);
+    }
+  };
+}
+function instance15($$self, $$props, $$invalidate) {
+  let { onSubmitRating } = $$props;
+  let { disabled = false } = $$props;
+  const ratings = [
+    {
+      value: 1,
+      label: "Again",
+      color: "var(--text-error)",
+      icon: "refresh-ccw",
+      shortcut: "1"
+    },
+    {
+      value: 2,
+      label: "Hard",
+      color: "var(--text-warning)",
+      icon: "trending-up",
+      shortcut: "2"
+    },
+    {
+      value: 3,
+      label: "Good",
+      color: "var(--text-accent)",
+      icon: "check",
+      shortcut: "3"
+    },
+    {
+      value: 4,
+      label: "Easy",
+      color: "var(--text-success)",
+      icon: "zap",
+      shortcut: "4"
+    }
+  ];
+  const click_handler = (rating) => !disabled && onSubmitRating(rating.value);
+  $$self.$$set = ($$props2) => {
+    if ("onSubmitRating" in $$props2)
+      $$invalidate(0, onSubmitRating = $$props2.onSubmitRating);
+    if ("disabled" in $$props2)
+      $$invalidate(1, disabled = $$props2.disabled);
+  };
+  return [onSubmitRating, disabled, ratings, click_handler];
+}
+var RatingControls = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance15, create_fragment15, safe_not_equal, { onSubmitRating: 0, disabled: 1 });
+  }
+};
+var RatingControls_default = RatingControls;
+
+// src/ui/actions/gestures.ts
+var DEFAULT_OPTIONS = {
+  swipeThreshold: 50,
+  longPressDuration: 500,
+  tapMaxDuration: 200,
+  tapMaxDistance: 10
+};
+function gesture(node, options = {}) {
+  const config2 = { ...DEFAULT_OPTIONS, ...options };
+  let startX = 0;
+  let startY = 0;
+  let startTime = 0;
+  let hasMoved = false;
+  let longPressTimer = null;
+  let isLongPressTriggered = false;
+  function destroy() {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+  }
+  function handleTouchStart(event) {
+    const touch = event.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    startTime = Date.now();
+    hasMoved = false;
+    isLongPressTriggered = false;
+    if (config2.onLongPress) {
+      longPressTimer = setTimeout(() => {
+        isLongPressTriggered = true;
+        config2.onLongPress(event);
+      }, config2.longPressDuration);
+    }
+  }
+  function handleTouchMove(event) {
+    const touch = event.touches[0];
+    const deltaX = Math.abs(touch.clientX - startX);
+    const deltaY = Math.abs(touch.clientY - startY);
+    if (!hasMoved && (deltaX > config2.tapMaxDistance || deltaY > config2.tapMaxDistance)) {
+      hasMoved = true;
+    }
+    if (deltaX > config2.tapMaxDistance || deltaY > config2.tapMaxDistance) {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    }
+  }
+  function handleTouchEnd(event) {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+    if (isLongPressTriggered) {
+      return;
+    }
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+    const deltaTime = Date.now() - startTime;
+    if (!hasMoved && deltaTime <= config2.tapMaxDuration && config2.onTap) {
+      config2.onTap(event);
+      return;
+    }
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
+    if (absDeltaX > absDeltaY && absDeltaX > config2.swipeThreshold) {
+      if (deltaX > 0 && config2.onSwipeRight) {
+        config2.onSwipeRight(event);
+      } else if (deltaX < 0 && config2.onSwipeLeft) {
+        config2.onSwipeLeft(event);
+      }
+    } else if (absDeltaY > config2.swipeThreshold) {
+      if (deltaY > 0 && config2.onSwipeDown) {
+        config2.onSwipeDown(event);
+      } else if (deltaY < 0 && config2.onSwipeUp) {
+        config2.onSwipeUp(event);
+      }
+    }
+  }
+  node.addEventListener("touchstart", handleTouchStart, { passive: true });
+  node.addEventListener("touchmove", handleTouchMove, { passive: true });
+  node.addEventListener("touchend", handleTouchEnd, { passive: true });
+  node.addEventListener("touchcancel", destroy, { passive: true });
+  return {
+    destroy() {
+      node.removeEventListener("touchstart", handleTouchStart);
+      node.removeEventListener("touchmove", handleTouchMove);
+      node.removeEventListener("touchend", handleTouchEnd);
+      node.removeEventListener("touchcancel", destroy);
+      destroy();
+    }
+  };
+}
+
+// src/ui/schemas.ts
+var ReviewRatingSchema = external_exports.union([external_exports.literal(1), external_exports.literal(2), external_exports.literal(3), external_exports.literal(4)]);
+var DashboardConfigSchema2 = external_exports.object({
+  dailyGoal: external_exports.number().int().positive().default(20),
+  showProgressChart: external_exports.boolean().default(true),
+  showRetentionRate: external_exports.boolean().default(true),
+  chartTimeframe: external_exports.enum(["week", "month", "year"]).default("week")
+});
+var GestureSchema = external_exports.object({
+  type: external_exports.enum(["swipe", "tap", "hold"]),
+  direction: external_exports.enum(["left", "right", "up", "down"]).optional(),
+  distance: external_exports.number().nonnegative().optional(),
+  velocity: external_exports.number().nonnegative().optional()
+});
+var DashboardStateSchema = external_exports.object({
+  totalCards: external_exports.number().int().nonnegative(),
+  retentionRate: external_exports.number().min(0).max(1),
+  dueCount: external_exports.number().int().nonnegative(),
+  dailyGoal: external_exports.number().int().positive(),
+  progressData: external_exports.array(
+    external_exports.object({
+      date: external_exports.string(),
+      completed: external_exports.number().int().nonnegative(),
+      target: external_exports.number().int().nonnegative()
+    })
+  )
+});
+var NotificationSchema = external_exports.object({
+  id: external_exports.string().uuid(),
+  type: external_exports.enum(["info", "success", "warning", "error"]),
+  message: external_exports.string().min(1),
+  duration: external_exports.number().positive().optional()
+});
+var ReviewSessionSchema = external_exports.object({
+  sessionId: external_exports.string().uuid(),
+  queue: external_exports.array(external_exports.any()),
+  currentIndex: external_exports.number().int().nonnegative(),
+  startTime: external_exports.string().datetime(),
+  isComplete: external_exports.boolean(),
+  stats: external_exports.object({
+    correct: external_exports.number().int().nonnegative(),
+    incorrect: external_exports.number().int().nonnegative(),
+    total: external_exports.number().int().nonnegative()
+  })
+});
+
+// src/ui/stores/SessionStore.ts
+var DEFAULT_STATE3 = {
+  activeSession: null,
+  currentCard: null,
+  isAnswerShowing: false,
+  sessionStats: {
+    totalReviewed: 0,
+    correctAnswers: 0,
+    incorrectAnswers: 0,
+    sessionDuration: 0
+  }
+};
+var SessionStore = class {
+  constructor(indexManager, statsManager, dueQueue) {
+    __publicField(this, "_state");
+    __publicField(this, "fsrsController");
     __publicField(this, "indexManager");
-    __publicField(this, "vaultWatcher");
+    __publicField(this, "statsManager");
+    __publicField(this, "sessionTimer");
+    __publicField(this, "dueQueueGenerator");
+    this._state = writable(DEFAULT_STATE3);
+    this.fsrsController = new FsrsEngine();
+    this.indexManager = indexManager;
+    this.statsManager = statsManager;
+    this.dueQueueGenerator = dueQueue;
+  }
+  /**
+   * Subscribe to session state changes
+   */
+  subscribe(run2) {
+    return this._state.subscribe(run2);
+  }
+  /**
+   * Starts a new review session
+   *
+   * @param deckId - Optional deck ID to filter cards by
+   * @param limit - Optional limit on number of cards to review
+   * @returns Promise that resolves when session is initialized
+   */
+  async startSession() {
+    try {
+      await this.endSession();
+      const queue = this.dueQueueGenerator.generate();
+      const sessionId = v4_default();
+      const newSession = {
+        sessionId,
+        queue: queue.cards,
+        currentIndex: 0,
+        startTime: (/* @__PURE__ */ new Date()).toISOString(),
+        isComplete: false,
+        stats: {
+          correct: 0,
+          incorrect: 0,
+          total: queue.totalDue
+        }
+      };
+      this._state.update((state) => ({
+        ...state,
+        activeSession: newSession,
+        currentCard: queue.cards[0],
+        isAnswerShowing: false,
+        sessionStats: {
+          totalReviewed: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          sessionDuration: 0
+        }
+      }));
+      this.startSessionTimer();
+    } catch (error48) {
+      console.error("Failed to start review session:", error48);
+      throw error48;
+    }
+  }
+  /**
+   * Shows the answer for the current card
+   */
+  showAnswer() {
+    this._state.update((state) => ({
+      ...state,
+      isAnswerShowing: true
+    }));
+  }
+  /**
+   * Hides the answer for the current card
+   */
+  hideAnswer() {
+    this._state.update((state) => ({
+      ...state,
+      isAnswerShowing: false
+    }));
+  }
+  /**
+   * Submits a rating for the current card and advances to the next card
+   *
+   * @param rating - The FSRS rating (1-4: Again, Hard, Good, Easy)
+   * @returns Promise that resolves when rating is processed
+   */
+  async submitRating(rating) {
+    try {
+      const validatedRating = ReviewRatingSchema.parse(rating);
+      const { activeSession, currentCard } = get_store_value(this._state);
+      if (!activeSession || !currentCard) {
+        throw new Error("No active session or current card");
+      }
+      this.fsrsController.calculate({
+        current_params: currentCard.srs,
+        rating: validatedRating,
+        review_time: (/* @__PURE__ */ new Date()).toISOString()
+      });
+      const isCorrect = validatedRating >= 3;
+      this._state.update((state) => ({
+        ...state,
+        sessionStats: {
+          ...state.sessionStats,
+          totalReviewed: state.sessionStats.totalReviewed + 1,
+          correctAnswers: isCorrect ? state.sessionStats.correctAnswers + 1 : state.sessionStats.correctAnswers,
+          incorrectAnswers: !isCorrect ? state.sessionStats.incorrectAnswers + 1 : state.sessionStats.incorrectAnswers
+        }
+      }));
+      await this.nextCard();
+    } catch (error48) {
+      console.error("Failed to submit rating:", error48);
+      throw error48;
+    }
+  }
+  /**
+   * Navigates to the next card in the queue
+   * Ends session if no more cards are available
+   */
+  async nextCard() {
+    const { activeSession } = get_store_value(this._state);
+    if (!activeSession)
+      return;
+    const nextIndex = activeSession.currentIndex + 1;
+    if (nextIndex >= activeSession.queue.length) {
+      await this.endSession();
+    } else {
+      this._state.update((state) => {
+        var _a3;
+        return {
+          ...state,
+          activeSession: state.activeSession ? {
+            ...state.activeSession,
+            currentIndex: nextIndex
+          } : null,
+          currentCard: ((_a3 = state.activeSession) == null ? void 0 : _a3.queue[nextIndex]) || null,
+          isAnswerShowing: false
+        };
+      });
+    }
+  }
+  /**
+   * Navigates to the previous card in the queue
+   */
+  previousCard() {
+    const { activeSession } = get_store_value(this._state);
+    if (!activeSession || activeSession.currentIndex <= 0)
+      return;
+    const prevIndex = activeSession.currentIndex - 1;
+    this._state.update((state) => {
+      var _a3;
+      return {
+        ...state,
+        activeSession: state.activeSession ? {
+          ...state.activeSession,
+          currentIndex: prevIndex
+        } : null,
+        currentCard: ((_a3 = state.activeSession) == null ? void 0 : _a3.queue[prevIndex]) || null,
+        isAnswerShowing: false
+      };
+    });
+  }
+  /**
+   * Ends the current review session and performs cleanup
+   */
+  async endSession() {
+    this.stopSessionTimer();
+    const { activeSession } = get_store_value(this._state);
+    if (activeSession) {
+      try {
+        this._state.update((state) => ({
+          ...state,
+          activeSession: state.activeSession ? {
+            ...state.activeSession,
+            isComplete: true
+          } : null
+        }));
+        await this.saveSessionStats(activeSession);
+      } catch (error48) {
+        console.error("Failed to save session statistics:", error48);
+      }
+    }
+    this._state.update((state) => ({
+      ...state,
+      activeSession: null,
+      currentCard: null,
+      isAnswerShowing: false
+    }));
+  }
+  /**
+   * Pauses the current session (stops timer but preserves state)
+   */
+  pauseSession() {
+    this.stopSessionTimer();
+  }
+  /**
+   * Resumes a paused session
+   */
+  resumeSession() {
+    if (get_store_value(this._state).activeSession) {
+      this.startSessionTimer();
+    }
+  }
+  /**
+   * Gets the current progress percentage
+   * @returns Progress as a number between 0-100
+   */
+  getProgress() {
+    const { activeSession } = get_store_value(this._state);
+    if (!activeSession)
+      return 0;
+    return Math.round((activeSession.currentIndex + 1) / activeSession.queue.length * 100);
+  }
+  /**
+   * Gets the remaining card count
+   * @returns Number of cards remaining in the session
+   */
+  getRemainingCount() {
+    const { activeSession } = get_store_value(this._state);
+    if (!activeSession)
+      return 0;
+    return activeSession.queue.length - activeSession.currentIndex - 1;
+  }
+  /**
+   * Resets the entire store to its default state
+   */
+  reset() {
+    this.stopSessionTimer();
+    this._state.set(DEFAULT_STATE3);
+  }
+  get activeSession() {
+    return get_store_value(this._state).activeSession;
+  }
+  get currentCard() {
+    return get_store_value(this._state).currentCard;
+  }
+  get isAnswerShowing() {
+    return get_store_value(this._state).isAnswerShowing;
+  }
+  get sessionStats() {
+    return get_store_value(this._state).sessionStats;
+  }
+  get sessionProgress() {
+    const session = this.activeSession;
+    if (!session)
+      return 0;
+    return Math.round((session.currentIndex + 1) / session.queue.length * 100);
+  }
+  get remainingCards() {
+    const session = this.activeSession;
+    if (!session)
+      return 0;
+    return session.queue.length - session.currentIndex - 1;
+  }
+  /**
+   * Starts the session timer
+   */
+  startSessionTimer() {
+    this.stopSessionTimer();
+    this.sessionTimer = setInterval(() => {
+      this._state.update((state) => ({
+        ...state,
+        sessionStats: {
+          ...state.sessionStats,
+          sessionDuration: state.sessionStats.sessionDuration + 1
+        }
+      }));
+    }, 1e3);
+  }
+  /**
+   * Stops the session timer
+   */
+  stopSessionTimer() {
+    if (this.sessionTimer) {
+      clearInterval(this.sessionTimer);
+      this.sessionTimer = void 0;
+    }
+  }
+  /**
+   * Saves session statistics to the index for persistence
+   * @param session - The completed session to save
+   */
+  async saveSessionStats(session) {
+    console.log("Session completed:", {
+      sessionId: session.sessionId,
+      cardsReviewed: session.stats.total,
+      duration: get_store_value(this._state).sessionStats.sessionDuration,
+      completedAt: (/* @__PURE__ */ new Date()).toISOString()
+    });
+  }
+};
+
+// src/ui/views/Review/Review.svelte
+function create_default_slot_4(ctx) {
+  let icon;
+  let current;
+  icon = new Icon_default({ props: { name: "x", size: 18 } });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_else_block_13(ctx) {
+  let div;
+  let icon;
+  let t0;
+  let h2;
+  let t2;
+  let p;
+  let t4;
+  let button;
+  let current;
+  icon = new Icon_default({
+    props: { name: "check-circle", size: 48 }
+  });
+  button = new Button_default({
+    props: {
+      variant: "accent",
+      $$slots: { default: [create_default_slot_32] },
+      $$scope: { ctx }
+    }
+  });
+  button.$on("click", function() {
+    if (is_function(
+      /*onEndSession*/
+      ctx[5]
+    ))
+      ctx[5].apply(this, arguments);
+  });
+  return {
+    c() {
+      div = element("div");
+      create_component(icon.$$.fragment);
+      t0 = space();
+      h2 = element("h2");
+      h2.textContent = "Session Complete!";
+      t2 = space();
+      p = element("p");
+      p.textContent = "You've reviewed all cards in this session.";
+      t4 = space();
+      create_component(button.$$.fragment);
+      attr(h2, "class", "svelte-1vmaeuc");
+      attr(p, "class", "svelte-1vmaeuc");
+      attr(div, "class", "ka-empty-state svelte-1vmaeuc");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(icon, div, null);
+      append(div, t0);
+      append(div, h2);
+      append(div, t2);
+      append(div, p);
+      append(div, t4);
+      mount_component(button, div, null);
+      current = true;
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      const button_changes = {};
+      if (dirty & /*$$scope*/
+      2097152) {
+        button_changes.$$scope = { dirty, ctx };
+      }
+      button.$set(button_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      transition_in(button.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      transition_out(button.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+      destroy_component(button);
+    }
+  };
+}
+function create_if_block11(ctx) {
+  let div0;
+  let cardface;
+  let gesture_action;
+  let t;
+  let div1;
+  let current_block_type_index;
+  let if_block;
+  let current;
+  let mounted;
+  let dispose;
+  cardface = new CardFace_default({
+    props: {
+      app: (
+        /*app*/
+        ctx[0]
+      ),
+      front: (
+        /*card*/
+        ctx[13].front
+      ),
+      back: (
+        /*card*/
+        ctx[13].back
+      ),
+      mode: (
+        /*showingAnswer*/
+        ctx[8] ? "both" : "front"
+      ),
+      onFlip: (
+        /*onShowAnswer*/
+        ctx[1]
+      ),
+      onEdit: (
+        /*onEditCard*/
+        ctx[6]
+      )
+    }
+  });
+  const if_block_creators = [create_if_block_19, create_else_block5];
+  const if_blocks = [];
+  function select_block_type_1(ctx2, dirty) {
+    if (!/*showingAnswer*/
+    ctx2[8])
+      return 0;
+    return 1;
+  }
+  current_block_type_index = select_block_type_1(ctx, -1);
+  if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+  return {
+    c() {
+      div0 = element("div");
+      create_component(cardface.$$.fragment);
+      t = space();
+      div1 = element("div");
+      if_block.c();
+      attr(div0, "class", "ka-card-wrapper svelte-1vmaeuc");
+      attr(div1, "class", "ka-controls-wrapper svelte-1vmaeuc");
+    },
+    m(target, anchor) {
+      insert(target, div0, anchor);
+      mount_component(cardface, div0, null);
+      ctx[19](div0);
+      insert(target, t, anchor);
+      insert(target, div1, anchor);
+      if_blocks[current_block_type_index].m(div1, null);
+      current = true;
+      if (!mounted) {
+        dispose = action_destroyer(gesture_action = gesture.call(null, div0, {
+          onSwipeLeft: (
+            /*handleSwipeLeft*/
+            ctx[14]
+          ),
+          onSwipeRight: (
+            /*handleSwipeRight*/
+            ctx[15]
+          ),
+          onTap: (
+            /*handleTap*/
+            ctx[16]
+          ),
+          swipeThreshold: 50,
+          tapMaxDuration: 200,
+          tapMaxDistance: 10
+        }));
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      const cardface_changes = {};
+      if (dirty & /*app*/
+      1)
+        cardface_changes.app = /*app*/
+        ctx2[0];
+      if (dirty & /*card*/
+      8192)
+        cardface_changes.front = /*card*/
+        ctx2[13].front;
+      if (dirty & /*card*/
+      8192)
+        cardface_changes.back = /*card*/
+        ctx2[13].back;
+      if (dirty & /*showingAnswer*/
+      256)
+        cardface_changes.mode = /*showingAnswer*/
+        ctx2[8] ? "both" : "front";
+      if (dirty & /*onShowAnswer*/
+      2)
+        cardface_changes.onFlip = /*onShowAnswer*/
+        ctx2[1];
+      if (dirty & /*onEditCard*/
+      64)
+        cardface_changes.onEdit = /*onEditCard*/
+        ctx2[6];
+      cardface.$set(cardface_changes);
+      let previous_block_index = current_block_type_index;
+      current_block_type_index = select_block_type_1(ctx2, dirty);
+      if (current_block_type_index === previous_block_index) {
+        if_blocks[current_block_type_index].p(ctx2, dirty);
+      } else {
+        group_outros();
+        transition_out(if_blocks[previous_block_index], 1, 1, () => {
+          if_blocks[previous_block_index] = null;
+        });
+        check_outros();
+        if_block = if_blocks[current_block_type_index];
+        if (!if_block) {
+          if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx2);
+          if_block.c();
+        } else {
+          if_block.p(ctx2, dirty);
+        }
+        transition_in(if_block, 1);
+        if_block.m(div1, null);
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(cardface.$$.fragment, local);
+      transition_in(if_block);
+      current = true;
+    },
+    o(local) {
+      transition_out(cardface.$$.fragment, local);
+      transition_out(if_block);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div0);
+        detach(t);
+        detach(div1);
+      }
+      destroy_component(cardface);
+      ctx[19](null);
+      if_blocks[current_block_type_index].d();
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_default_slot_32(ctx) {
+  let t;
+  return {
+    c() {
+      t = text("Return to Dashboard");
+    },
+    m(target, anchor) {
+      insert(target, t, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t);
+      }
+    }
+  };
+}
+function create_else_block5(ctx) {
+  let ratingcontrols;
+  let current;
+  ratingcontrols = new RatingControls_default({
+    props: {
+      onSubmitRating: (
+        /*onSubmitRating*/
+        ctx[2]
+      )
+    }
+  });
+  return {
+    c() {
+      create_component(ratingcontrols.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(ratingcontrols, target, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const ratingcontrols_changes = {};
+      if (dirty & /*onSubmitRating*/
+      4)
+        ratingcontrols_changes.onSubmitRating = /*onSubmitRating*/
+        ctx2[2];
+      ratingcontrols.$set(ratingcontrols_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(ratingcontrols.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(ratingcontrols.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(ratingcontrols, detaching);
+    }
+  };
+}
+function create_if_block_19(ctx) {
+  let button;
+  let current;
+  button = new Button_default({
+    props: {
+      variant: "accent",
+      className: "ka-show-answer-button",
+      ariaLabel: "Show answer",
+      $$slots: { default: [create_default_slot_23] },
+      $$scope: { ctx }
+    }
+  });
+  button.$on("click", function() {
+    if (is_function(
+      /*onShowAnswer*/
+      ctx[1]
+    ))
+      ctx[1].apply(this, arguments);
+  });
+  return {
+    c() {
+      create_component(button.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(button, target, anchor);
+      current = true;
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      const button_changes = {};
+      if (dirty & /*$$scope*/
+      2097152) {
+        button_changes.$$scope = { dirty, ctx };
+      }
+      button.$set(button_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(button.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(button.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(button, detaching);
+    }
+  };
+}
+function create_default_slot_23(ctx) {
+  let t0;
+  let span;
+  return {
+    c() {
+      t0 = text("Show Answer\n            ");
+      span = element("span");
+      span.textContent = "Space";
+      attr(span, "class", "ka-key-hint svelte-1vmaeuc");
+    },
+    m(target, anchor) {
+      insert(target, t0, anchor);
+      insert(target, span, anchor);
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(t0);
+        detach(span);
+      }
+    }
+  };
+}
+function create_default_slot_14(ctx) {
+  let icon;
+  let t0;
+  let span;
+  let current;
+  icon = new Icon_default({
+    props: { name: "chevron-left", size: 16 }
+  });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      span.textContent = "Previous";
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      insert(target, t0, anchor);
+      insert(target, span, anchor);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t0);
+        detach(span);
+      }
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_default_slot8(ctx) {
+  let span;
+  let t1;
+  let icon;
+  let current;
+  icon = new Icon_default({
+    props: { name: "chevron-right", size: 16 }
+  });
+  return {
+    c() {
+      span = element("span");
+      span.textContent = "Next";
+      t1 = space();
+      create_component(icon.$$.fragment);
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      insert(target, t1, anchor);
+      mount_component(icon, target, anchor);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+        detach(t1);
+      }
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_fragment16(ctx) {
+  let div3;
+  let header;
+  let div0;
+  let span0;
+  let icon0;
+  let t0;
+  let t1;
+  let t2;
+  let t3;
+  let t4;
+  let span1;
+  let icon1;
+  let t5;
+  let t6;
+  let t7;
+  let t8;
+  let div1;
+  let progressbar;
+  let t9;
+  let button0;
+  let t10;
+  let main;
+  let current_block_type_index;
+  let if_block;
+  let t11;
+  let footer;
+  let div2;
+  let button1;
+  let t12;
+  let button2;
+  let current;
+  icon0 = new Icon_default({ props: { name: "layers", size: 14 } });
+  icon1 = new Icon_default({ props: { name: "clock", size: 14 } });
+  progressbar = new ProgressBar_default({
+    props: {
+      progress: (
+        /*progress*/
+        ctx[12]
+      ),
+      height: 4
+    }
+  });
+  button0 = new Button_default({
+    props: {
+      variant: "ghost",
+      size: "sm",
+      ariaLabel: "End session",
+      $$slots: { default: [create_default_slot_4] },
+      $$scope: { ctx }
+    }
+  });
+  button0.$on("click", function() {
+    if (is_function(
+      /*onEndSession*/
+      ctx[5]
+    ))
+      ctx[5].apply(this, arguments);
+  });
+  const if_block_creators = [create_if_block11, create_else_block_13];
+  const if_blocks = [];
+  function select_block_type(ctx2, dirty) {
+    if (
+      /*card*/
+      ctx2[13]
+    )
+      return 0;
+    return 1;
+  }
+  current_block_type_index = select_block_type(ctx, -1);
+  if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+  button1 = new Button_default({
+    props: {
+      variant: "ghost",
+      size: "sm",
+      disabled: (
+        /*currentIndex*/
+        ctx[10] <= 1
+      ),
+      ariaLabel: "Previous card",
+      $$slots: { default: [create_default_slot_14] },
+      $$scope: { ctx }
+    }
+  });
+  button1.$on("click", function() {
+    if (is_function(
+      /*onPreviousCard*/
+      ctx[4]
+    ))
+      ctx[4].apply(this, arguments);
+  });
+  button2 = new Button_default({
+    props: {
+      variant: "ghost",
+      size: "sm",
+      disabled: (
+        /*currentIndex*/
+        ctx[10] >= /*totalCards*/
+        ctx[9]
+      ),
+      ariaLabel: "Next card",
+      $$slots: { default: [create_default_slot8] },
+      $$scope: { ctx }
+    }
+  });
+  button2.$on("click", function() {
+    if (is_function(
+      /*onNextCard*/
+      ctx[3]
+    ))
+      ctx[3].apply(this, arguments);
+  });
+  return {
+    c() {
+      div3 = element("div");
+      header = element("header");
+      div0 = element("div");
+      span0 = element("span");
+      create_component(icon0.$$.fragment);
+      t0 = space();
+      t1 = text(
+        /*currentIndex*/
+        ctx[10]
+      );
+      t2 = text(" / ");
+      t3 = text(
+        /*totalCards*/
+        ctx[9]
+      );
+      t4 = space();
+      span1 = element("span");
+      create_component(icon1.$$.fragment);
+      t5 = space();
+      t6 = text(
+        /*remaining*/
+        ctx[11]
+      );
+      t7 = text(" remaining");
+      t8 = space();
+      div1 = element("div");
+      create_component(progressbar.$$.fragment);
+      t9 = space();
+      create_component(button0.$$.fragment);
+      t10 = space();
+      main = element("main");
+      if_block.c();
+      t11 = space();
+      footer = element("footer");
+      div2 = element("div");
+      create_component(button1.$$.fragment);
+      t12 = space();
+      create_component(button2.$$.fragment);
+      attr(span0, "class", "ka-stat-item svelte-1vmaeuc");
+      attr(span1, "class", "ka-stat-item svelte-1vmaeuc");
+      attr(div0, "class", "ka-review-stats svelte-1vmaeuc");
+      attr(div1, "class", "ka-progress-wrapper svelte-1vmaeuc");
+      attr(header, "class", "ka-review-header svelte-1vmaeuc");
+      attr(main, "class", "ka-review-main svelte-1vmaeuc");
+      attr(div2, "class", "ka-navigation-controls svelte-1vmaeuc");
+      attr(footer, "class", "ka-review-footer svelte-1vmaeuc");
+      attr(div3, "class", "ka-review-container svelte-1vmaeuc");
+    },
+    m(target, anchor) {
+      insert(target, div3, anchor);
+      append(div3, header);
+      append(header, div0);
+      append(div0, span0);
+      mount_component(icon0, span0, null);
+      append(span0, t0);
+      append(span0, t1);
+      append(span0, t2);
+      append(span0, t3);
+      append(div0, t4);
+      append(div0, span1);
+      mount_component(icon1, span1, null);
+      append(span1, t5);
+      append(span1, t6);
+      append(span1, t7);
+      append(header, t8);
+      append(header, div1);
+      mount_component(progressbar, div1, null);
+      append(header, t9);
+      mount_component(button0, header, null);
+      append(div3, t10);
+      append(div3, main);
+      if_blocks[current_block_type_index].m(main, null);
+      append(div3, t11);
+      append(div3, footer);
+      append(footer, div2);
+      mount_component(button1, div2, null);
+      append(div2, t12);
+      mount_component(button2, div2, null);
+      current = true;
+    },
+    p(new_ctx, [dirty]) {
+      ctx = new_ctx;
+      if (!current || dirty & /*currentIndex*/
+      1024)
+        set_data(
+          t1,
+          /*currentIndex*/
+          ctx[10]
+        );
+      if (!current || dirty & /*totalCards*/
+      512)
+        set_data(
+          t3,
+          /*totalCards*/
+          ctx[9]
+        );
+      if (!current || dirty & /*remaining*/
+      2048)
+        set_data(
+          t6,
+          /*remaining*/
+          ctx[11]
+        );
+      const progressbar_changes = {};
+      if (dirty & /*progress*/
+      4096)
+        progressbar_changes.progress = /*progress*/
+        ctx[12];
+      progressbar.$set(progressbar_changes);
+      const button0_changes = {};
+      if (dirty & /*$$scope*/
+      2097152) {
+        button0_changes.$$scope = { dirty, ctx };
+      }
+      button0.$set(button0_changes);
+      let previous_block_index = current_block_type_index;
+      current_block_type_index = select_block_type(ctx, dirty);
+      if (current_block_type_index === previous_block_index) {
+        if_blocks[current_block_type_index].p(ctx, dirty);
+      } else {
+        group_outros();
+        transition_out(if_blocks[previous_block_index], 1, 1, () => {
+          if_blocks[previous_block_index] = null;
+        });
+        check_outros();
+        if_block = if_blocks[current_block_type_index];
+        if (!if_block) {
+          if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+          if_block.c();
+        } else {
+          if_block.p(ctx, dirty);
+        }
+        transition_in(if_block, 1);
+        if_block.m(main, null);
+      }
+      const button1_changes = {};
+      if (dirty & /*currentIndex*/
+      1024)
+        button1_changes.disabled = /*currentIndex*/
+        ctx[10] <= 1;
+      if (dirty & /*$$scope*/
+      2097152) {
+        button1_changes.$$scope = { dirty, ctx };
+      }
+      button1.$set(button1_changes);
+      const button2_changes = {};
+      if (dirty & /*currentIndex, totalCards*/
+      1536)
+        button2_changes.disabled = /*currentIndex*/
+        ctx[10] >= /*totalCards*/
+        ctx[9];
+      if (dirty & /*$$scope*/
+      2097152) {
+        button2_changes.$$scope = { dirty, ctx };
+      }
+      button2.$set(button2_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon0.$$.fragment, local);
+      transition_in(icon1.$$.fragment, local);
+      transition_in(progressbar.$$.fragment, local);
+      transition_in(button0.$$.fragment, local);
+      transition_in(if_block);
+      transition_in(button1.$$.fragment, local);
+      transition_in(button2.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon0.$$.fragment, local);
+      transition_out(icon1.$$.fragment, local);
+      transition_out(progressbar.$$.fragment, local);
+      transition_out(button0.$$.fragment, local);
+      transition_out(if_block);
+      transition_out(button1.$$.fragment, local);
+      transition_out(button2.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div3);
+      }
+      destroy_component(icon0);
+      destroy_component(icon1);
+      destroy_component(progressbar);
+      destroy_component(button0);
+      if_blocks[current_block_type_index].d();
+      destroy_component(button1);
+      destroy_component(button2);
+    }
+  };
+}
+var isGesturing = false;
+function instance16($$self, $$props, $$invalidate) {
+  let card;
+  let showingAnswer;
+  let progress;
+  let remaining;
+  let session;
+  let currentIndex;
+  let totalCards;
+  let { app } = $$props;
+  let { onShowAnswer } = $$props;
+  let { onSubmitRating } = $$props;
+  let { onNextCard } = $$props;
+  let { onPreviousCard } = $$props;
+  let { onEndSession } = $$props;
+  let { onEditCard } = $$props;
+  let { sessionStore } = $$props;
+  let cardContainer;
+  function handleKeyDown(event) {
+    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+    if (event.code === "Space") {
+      event.preventDefault();
+      if (!showingAnswer) {
+        onShowAnswer();
+      }
+    } else if (event.key === "1") {
+      if (showingAnswer)
+        onSubmitRating(1);
+    } else if (event.key === "2") {
+      if (showingAnswer)
+        onSubmitRating(2);
+    } else if (event.key === "3") {
+      if (showingAnswer)
+        onSubmitRating(3);
+    } else if (event.key === "4") {
+      if (showingAnswer)
+        onSubmitRating(4);
+    } else if (event.key.toLowerCase() === "n") {
+      onNextCard();
+    } else if (event.key.toLowerCase() === "p") {
+      onPreviousCard();
+    }
+  }
+  onMount(() => {
+    window.addEventListener("keydown", handleKeyDown);
+  });
+  onDestroy(() => {
+    window.removeEventListener("keydown", handleKeyDown);
+  });
+  function handleSwipeLeft() {
+    if (showingAnswer) {
+      onSubmitRating(1);
+    } else {
+      onPreviousCard();
+    }
+  }
+  function handleSwipeRight() {
+    if (showingAnswer) {
+      onSubmitRating(3);
+    } else {
+      onShowAnswer();
+    }
+  }
+  function handleTap() {
+    if (!showingAnswer && !isGesturing) {
+      onShowAnswer();
+    }
+  }
+  function div0_binding($$value) {
+    binding_callbacks[$$value ? "unshift" : "push"](() => {
+      cardContainer = $$value;
+      $$invalidate(7, cardContainer);
+    });
+  }
+  $$self.$$set = ($$props2) => {
+    if ("app" in $$props2)
+      $$invalidate(0, app = $$props2.app);
+    if ("onShowAnswer" in $$props2)
+      $$invalidate(1, onShowAnswer = $$props2.onShowAnswer);
+    if ("onSubmitRating" in $$props2)
+      $$invalidate(2, onSubmitRating = $$props2.onSubmitRating);
+    if ("onNextCard" in $$props2)
+      $$invalidate(3, onNextCard = $$props2.onNextCard);
+    if ("onPreviousCard" in $$props2)
+      $$invalidate(4, onPreviousCard = $$props2.onPreviousCard);
+    if ("onEndSession" in $$props2)
+      $$invalidate(5, onEndSession = $$props2.onEndSession);
+    if ("onEditCard" in $$props2)
+      $$invalidate(6, onEditCard = $$props2.onEditCard);
+    if ("sessionStore" in $$props2)
+      $$invalidate(17, sessionStore = $$props2.sessionStore);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*sessionStore*/
+    131072) {
+      $:
+        $$invalidate(13, card = sessionStore.currentCard);
+    }
+    if ($$self.$$.dirty & /*sessionStore*/
+    131072) {
+      $:
+        $$invalidate(8, showingAnswer = sessionStore.isAnswerShowing);
+    }
+    if ($$self.$$.dirty & /*sessionStore*/
+    131072) {
+      $:
+        $$invalidate(12, progress = sessionStore.sessionProgress);
+    }
+    if ($$self.$$.dirty & /*sessionStore*/
+    131072) {
+      $:
+        $$invalidate(11, remaining = sessionStore.remainingCards);
+    }
+    if ($$self.$$.dirty & /*sessionStore*/
+    131072) {
+      $:
+        $$invalidate(18, session = sessionStore.activeSession);
+    }
+    if ($$self.$$.dirty & /*session*/
+    262144) {
+      $:
+        $$invalidate(10, currentIndex = session ? session.currentIndex + 1 : 0);
+    }
+    if ($$self.$$.dirty & /*session*/
+    262144) {
+      $:
+        $$invalidate(9, totalCards = session ? session.queue.length : 0);
+    }
+  };
+  return [
+    app,
+    onShowAnswer,
+    onSubmitRating,
+    onNextCard,
+    onPreviousCard,
+    onEndSession,
+    onEditCard,
+    cardContainer,
+    showingAnswer,
+    totalCards,
+    currentIndex,
+    remaining,
+    progress,
+    card,
+    handleSwipeLeft,
+    handleSwipeRight,
+    handleTap,
+    sessionStore,
+    session,
+    div0_binding
+  ];
+}
+var Review = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance16, create_fragment16, safe_not_equal, {
+      app: 0,
+      onShowAnswer: 1,
+      onSubmitRating: 2,
+      onNextCard: 3,
+      onPreviousCard: 4,
+      onEndSession: 5,
+      onEditCard: 6,
+      sessionStore: 17
+    });
+  }
+};
+var Review_default = Review;
+
+// src/ui/views/Review/ReviewController.ts
+var import_obsidian9 = require("obsidian");
+var ReviewController = class {
+  constructor(app, indexManager, sessionStore) {
+    this.app = app;
+    __publicField(this, "indexManager");
+    __publicField(this, "sessionStore");
+    this.indexManager = indexManager;
+    this.sessionStore = sessionStore;
+  }
+  async getNextCard() {
+    let card = null;
+    this.sessionStore.subscribe((state) => {
+      card = state.currentCard;
+    })();
+    return card;
+  }
+  async submitRating(cardId, rating) {
+    await this.sessionStore.submitRating(rating);
+  }
+  async editSource(cardId) {
+    try {
+      const cardMetadata = this.indexManager.getCard(cardId);
+      if (!cardMetadata) {
+        throw new Error(`Card with ID '${cardId}' not found in index`);
+      }
+      const sourcePath = cardMetadata.source;
+      if (!sourcePath) {
+        throw new Error(`No source path found for card '${cardId}'`);
+      }
+      const file2 = this.app.vault.getAbstractFileByPath(sourcePath);
+      if (!(file2 instanceof import_obsidian9.TFile)) {
+        throw new Error(`Source file '${sourcePath}' not found or is not a file`);
+      }
+      const leaf = this.app.workspace.getLeaf("split");
+      await leaf.openFile(file2);
+      console.log(`Opened source file '${sourcePath}' for card '${cardId}'`);
+    } catch (error48) {
+      console.error("Failed to edit source:", error48);
+      throw error48;
+    }
+  }
+  async verifyAndReset(cardId) {
+    console.log("Verifying and resetting card:", cardId);
+  }
+};
+
+// src/ui/views/Review/ReviewView.ts
+var REVIEW_VIEW_TYPE = "knowledge-accelerator-review";
+var ReviewView = class extends PluginView {
+  constructor() {
+    super(...arguments);
+    /** Unique view type identifier */
+    __publicField(this, "viewType", REVIEW_VIEW_TYPE);
+    /** Display text for the view tab */
+    __publicField(this, "displayText", "Review");
+    /** Icon for the view tab */
+    __publicField(this, "icon", "brain-circuit");
+    /** Review controller instance */
+    __publicField(this, "reviewController");
+    /** Track the currently edited file for refresh */
+    __publicField(this, "editedFilePath", null);
+  }
+  /**
+   * Creates and mounts the Review Svelte component
+   *
+   * @param container - The DOM element to mount the component into
+   * @returns The mounted Svelte component
+   */
+  createSvelteComponent(container) {
+    this.reviewController = new ReviewController(this.app, this.indexManager, this.sessionStore);
+    const props = {
+      app: this.app,
+      disabled: false,
+      onShowAnswer: this.sessionStore.showAnswer,
+      onSubmitRating: (rating) => this.sessionStore.submitRating(rating),
+      onNextCard: () => this.sessionStore.nextCard(),
+      onPreviousCard: () => this.sessionStore.previousCard(),
+      onEndSession: () => this.handleEndSession(),
+      onEditCard: () => this.handleEditCard(),
+      sessionStore: this.sessionStore
+    };
+    return new Review_default({
+      target: container,
+      props
+    });
+  }
+  /**
+   * Called when the view is opened
+   */
+  async onOpen() {
+    await super.onOpen();
+    uiStore.navigate("review");
+    this.registerEvent(
+      this.app.workspace.on("file-open", (file2) => {
+        if (file2) {
+          this.editedFilePath = file2.path;
+        }
+      })
+    );
+    this.registerEvent(
+      this.app.vault.on("modify", async (file2) => {
+        if (file2 instanceof import_obsidian10.TFile && this.editedFilePath === file2.path) {
+          await this.refreshCurrentCard();
+        }
+      })
+    );
+  }
+  /**
+   * Refreshes the current card after source file changes
+   */
+  async refreshCurrentCard() {
+    try {
+      let currentCardId;
+      this.sessionStore.subscribe((s) => {
+        var _a3;
+        currentCardId = (_a3 = s.currentCard) == null ? void 0 : _a3.uuid;
+      })();
+      if (currentCardId) {
+        console.log(`Refreshing card ${currentCardId} after source modification`);
+      }
+    } catch (error48) {
+      console.error("Failed to refresh current card:", error48);
+    }
+  }
+  /**
+   * Called when the view is closed
+   */
+  async onClose() {
+    await super.onClose();
+    this.reviewController = void 0;
+  }
+  /**
+   * Handles ending the review session and navigating back to dashboard
+   */
+  async handleEndSession() {
+    try {
+      await this.sessionStore.endSession();
+      uiStore.navigate("dashboard");
+    } catch (error48) {
+      console.error("Failed to end session:", error48);
+      uiStore.notify({
+        type: "error",
+        message: "Failed to end session properly.",
+        duration: 3e3
+      });
+    }
+  }
+  /**
+   * Handles navigating to the source file to edit the current card
+   */
+  async handleEditCard() {
+    let currentCardId;
+    this.sessionStore.subscribe((s) => {
+      var _a3;
+      currentCardId = (_a3 = s.currentCard) == null ? void 0 : _a3.uuid;
+    })();
+    if (currentCardId && this.reviewController) {
+      await this.reviewController.editSource(currentCardId);
+    }
+  }
+};
+
+// src/main.ts
+var KnowledgeAcceleratorPlugin = class extends import_obsidian11.Plugin {
+  constructor() {
+    super(...arguments);
+    __publicField(this, "indexManager");
+    __publicField(this, "statsManager");
     __publicField(this, "settingsManager");
     __publicField(this, "commandRegistry");
+    __publicField(this, "vaultWatcher");
+    __publicField(this, "dueQueue");
+    __publicField(this, "sessionStore");
+    __publicField(this, "settings");
+    __publicField(this, "notificationManager");
   }
   async onload() {
-    console.log("Loading Obsidian Knowledge Accelerator");
+    Logger.info("Loading plugin");
+    await this.initializeNotificationManager();
     await this.initializeCoreComponents();
+    await this.initializeViews();
     await this.initializeSettings();
     await this.initializeCommands();
     await this.initializeVaultWatcher();
   }
   onunload() {
-    console.log("Unloading Obsidian Knowledge Accelerator");
+    Logger.info("Unloading plugin");
     this.vaultWatcher.shutdown();
+    this.notificationManager.clearStatusBar();
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_PLUGIN_SETTINGS, await this.loadData());
@@ -14803,12 +28293,44 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian2.Plugin {
     await this.saveData(this.settings);
   }
   async initializeCoreComponents() {
-    this.indexManager = new IndexManager(this.app);
+    this.indexManager = IndexManager.getInstance(this.app);
     await this.indexManager.load();
+    this.statsManager = StatsManager.getInstance(this.app);
+    await this.statsManager.load();
+    this.dueQueue = DueQueueManager.getInstance(this.app);
+    this.dueQueue.generate();
+    this.sessionStore = new SessionStore(this.indexManager, this.statsManager, this.dueQueue);
+  }
+  async initializeViews() {
+    this.registerView(
+      DASHBOARD_VIEW_TYPE,
+      (leaf) => new DashboardView(
+        leaf,
+        this.indexManager,
+        this.statsManager,
+        this.sessionStore,
+        this.dueQueue
+      )
+    );
+    this.registerView(
+      REVIEW_VIEW_TYPE,
+      (leaf) => new ReviewView(
+        leaf,
+        this.indexManager,
+        this.statsManager,
+        this.sessionStore,
+        this.dueQueue
+      )
+    );
+  }
+  async initializeNotificationManager() {
+    const statusBar = this.addStatusBarItem();
+    this.notificationManager = new NotificationManager(statusBar);
   }
   async initializeSettings() {
     this.settingsManager = new SettingsManager(this.app);
     await this.settingsManager.initialize();
+    this.addSettingTab(new KnowledgeAcceleratorSettingsTab(this.app, this, this.settingsManager));
     this.settingsManager.onSettingsChanged((settings) => {
       var _a3;
       const vaultConfig = {
@@ -14829,14 +28351,22 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian2.Plugin {
       id: "ka-start-review",
       name: "Knowledge Accelerator: Start Review",
       callback: async () => {
-        console.log("Starting review session");
+        Logger.debug("Starting review session");
+        try {
+          await this.sessionStore.startSession();
+          await this.openReviewView();
+        } catch (error48) {
+          Logger.error("Failed to start review session:", error48);
+          new import_obsidian11.Notice("No cards due for review!");
+        }
       }
     });
     this.commandRegistry.registerCommand({
       id: "ka-open-dashboard",
       name: "Knowledge Accelerator: Open Dashboard",
       callback: async () => {
-        console.log("Opening dashboard");
+        Logger.debug("Opening dashboard");
+        await this.openDashboard();
       }
     });
     this.commandRegistry.registerCommand({
@@ -14846,6 +28376,42 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian2.Plugin {
         this.app.setting.openTabById(this.manifest.id);
       }
     });
+  }
+  /**
+   * Opens the Dashboard view in the Obsidian workspace
+   */
+  async openDashboard() {
+    try {
+      const { workspace } = this.app;
+      let leaf = workspace.getLeavesOfType(DASHBOARD_VIEW_TYPE)[0];
+      if (!leaf) {
+        const newLeaf = workspace.getRightLeaf(false);
+        if (newLeaf)
+          leaf = newLeaf;
+        await leaf.setViewState({ type: DASHBOARD_VIEW_TYPE, active: true });
+      }
+      workspace.revealLeaf(leaf);
+    } catch (error48) {
+      Logger.error("Failed to open dashboard:", error48);
+      new import_obsidian11.Notice("Failed to open dashboard. Please try again.");
+    }
+  }
+  /**
+   * Opens the Review view in the Obsidian workspace
+   */
+  async openReviewView() {
+    try {
+      const { workspace } = this.app;
+      let leaf = workspace.getLeavesOfType(REVIEW_VIEW_TYPE)[0];
+      if (!leaf) {
+        leaf = workspace.getLeaf("tab");
+        await leaf.setViewState({ type: REVIEW_VIEW_TYPE, active: true });
+      }
+      workspace.revealLeaf(leaf);
+    } catch (error48) {
+      Logger.error("Failed to open review view:", error48);
+      new import_obsidian11.Notice("Failed to open review view. Please try again.");
+    }
   }
   async initializeVaultWatcher() {
     const pluginSettings = this.settingsManager.getSettings();

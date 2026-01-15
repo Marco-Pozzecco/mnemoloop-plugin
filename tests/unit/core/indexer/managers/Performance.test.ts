@@ -118,7 +118,7 @@ describe('Performance Tests', () => {
 			const success = rating >= 3; // Ratings 3+ are successful
 
 			// Record review
-			statsManager.recordReview(cardId, rating, success);
+			statsManager.recordReview(cardId, rating);
 
 			// Update card SRS data (simplified)
 			const card = indexManager.getCard(cardId);
@@ -142,7 +142,7 @@ describe('Performance Tests', () => {
 		statsManager.recomputeAll(mockCards);
 
 		// Verify consistency
-		const summary = statsManager.getSummary();
+		const summary = statsManager.statistics.summary;
 		expect(summary.total_learned).toBeGreaterThan(0);
 		expect(summary.retention_rate).toBeGreaterThanOrEqual(0);
 		expect(summary.retention_rate).toBeLessThanOrEqual(1);
