@@ -3,9 +3,9 @@ import { IndexManager } from '@/core/indexer/managers/IndexManager';
 import { StatsManager } from '@/core/indexer/managers/StatsManager';
 import { CardMetadata } from '@/core/indexer/schema/indexSchema';
 import { App } from 'obsidian';
-import { SRSState } from '@/core/deprecated/types';
 import { CardStatus } from '@/core';
 import { v4 as uuidv4 } from 'uuid';
+import { State } from 'ts-fsrs';
 
 // Mock Obsidian App
 const mockApp = {
@@ -129,7 +129,7 @@ describe('Performance Tests', () => {
 						...card.srs,
 						reps: card.srs.reps + 1,
 						last_review: new Date().toISOString(),
-						state: success ? SRSState.Review : SRSState.Relearning,
+						state: success ? State.Review : State.Relearning,
 					},
 					updated: new Date().toISOString(),
 				};

@@ -1,11 +1,11 @@
-import { SRSState } from '@/core/deprecated/types';
 import { CardStatus } from '@/core/parser';
+import { State } from 'ts-fsrs';
 import { z } from 'zod';
 
 export const SRSObjectSchema = z.object({
 	stability: z.number().min(0),
 	difficulty: z.number().min(0).max(10),
-	state: z.enum(SRSState),
+	state: z.enum(State),
 	last_review: z.iso.datetime().nullable(),
 	next_review: z.iso.datetime(),
 	reps: z.number().int().min(0),
