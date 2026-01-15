@@ -5,16 +5,24 @@ import { CardMetadata } from '../schema/indexSchema';
 import { StatisticsEngine } from '../statistics/StatisticsEngine';
 
 export class StatsManager implements IStatsManager {
+	static instance: StatsManager;
 	private app: App;
 	private stats: Stats;
-	private engine: StatisticsEngine;
 	private version: number = 1;
 	private readonly STATS_FILE = 'knowledge-accelerator/stats.json';
+	engine: StatisticsEngine;
 
 	constructor(app: App) {
 		this.app = app;
 		this.engine = new StatisticsEngine();
 		this.stats = this.createEmptyStats();
+	}
+
+	static getInstance(app: App): StatsManager {
+		if (!StatsManager.instance) {
+			StatsManager.instance = new StatsManager(app);
+		}
+		return StatsManager.instance;
 	}
 
 	async load(): Promise<void> {
