@@ -4,6 +4,8 @@ import { StatsManager } from '@/core/indexer/managers/StatsManager';
 import { CardMetadata } from '@/core/indexer/schema/indexSchema';
 import { App } from 'obsidian';
 import { SRSState } from '@/core/deprecated/types';
+import { CardStatus } from '@/core';
+import { v4 as uuidv4 } from 'uuid';
 
 // Mock Obsidian App
 const mockApp = {
@@ -35,9 +37,10 @@ describe('Performance Tests', () => {
 		const mockCards: Record<string, CardMetadata> = {};
 		for (let i = 0; i < 10000; i++) {
 			mockCards[`card-${i}`] = {
+				uuid: uuidv4(),
 				file: `flashcards/card-${i}.md`,
 				source: `Note ${i}`,
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
 				created: '2024-01-01T00:00:00.000Z',
 				updated: '2024-01-01T00:00:00.000Z',
 				deleted_at: null,
@@ -88,9 +91,10 @@ describe('Performance Tests', () => {
 		const mockCards: Record<string, CardMetadata> = {};
 		for (let i = 0; i < 100; i++) {
 			const card: CardMetadata = {
+				uuid: uuidv4(),
 				file: `flashcards/card-${i}.md`,
 				source: `Note ${i}`,
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
 				created: '2024-01-01T00:00:00.000Z',
 				updated: '2024-01-01T00:00:00.000Z',
 				deleted_at: null,
@@ -157,9 +161,10 @@ describe('Performance Tests', () => {
 		const mockCards: Record<string, CardMetadata> = {};
 		for (let i = 0; i < 50000; i++) {
 			mockCards[`card-${i}`] = {
+				uuid: uuidv4(),
 				file: `flashcards/card-${i}.md`,
 				source: `Note ${i}`,
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
 				created: '2024-01-01T00:00:00.000Z',
 				updated: '2024-01-01T00:00:00.000Z',
 				deleted_at: null,

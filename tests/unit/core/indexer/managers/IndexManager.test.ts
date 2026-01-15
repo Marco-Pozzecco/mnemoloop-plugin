@@ -1,3 +1,4 @@
+import { CardStatus } from '@/core';
 import { IndexManager } from '@/core/indexer/managers/IndexManager';
 import { CardMetadata } from '@/core/indexer/schema/indexSchema';
 import { App } from 'obsidian';
@@ -25,9 +26,10 @@ describe('IndexManager', () => {
 		vi.clearAllMocks();
 
 		mockCard = {
+			uuid: 'card-1',
 			file: 'flashcards/test.md',
 			source: 'Test Note',
-			status: 'ACTIVE',
+			status: CardStatus.ACTIVE,
 			created: '2024-01-01T00:00:00.000Z',
 			updated: '2024-01-01T00:00:00.000Z',
 			deleted_at: null,
