@@ -1,5 +1,5 @@
 import { IVaultAdapter } from '@/obsidian/contracts/IVaultAdapter';
-import { YamlExtractor } from '../parser/YamlExtractor';
+import { YamlEngine } from '../parser/engine/YamlEngine';
 import { ParserSettings } from '../parser/types';
 import { IndexRecoveryResult, IRecoveryNotifier } from './types';
 import { Index } from '../indexer';
@@ -10,7 +10,7 @@ import { Index } from '../indexer';
  */
 export class IndexRecovery {
 	private vaultAdapter: IVaultAdapter;
-	private yamlExtractor: YamlExtractor;
+	private yamlExtractor: YamlEngine;
 	private settings: ParserSettings;
 	private notifier?: IRecoveryNotifier;
 
@@ -21,7 +21,7 @@ export class IndexRecovery {
 	 */
 	constructor(vaultAdapter: IVaultAdapter, settings: ParserSettings, notifier?: IRecoveryNotifier) {
 		this.vaultAdapter = vaultAdapter;
-		this.yamlExtractor = new YamlExtractor(vaultAdapter);
+		this.yamlExtractor = new YamlEngine(vaultAdapter);
 		this.settings = settings;
 		this.notifier = notifier;
 	}
