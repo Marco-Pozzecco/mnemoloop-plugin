@@ -1,15 +1,17 @@
-import { IVaultAdapter } from '@/obsidian/contracts/IVaultAdapter';
+import { VaultAdapter } from '@/obsidian/VaultAdapter';
 import { ERROR_MESSAGES } from '@/utils/constants';
-import { YamlExtractor } from './YamlExtractor';
-import { ContentSplitResult, Flashcard, ParseResult, ParserSettings } from './types';
+import { YamlEngine } from '../engine/YamlEngine';
+import { ContentSplitResult, Flashcard, ParseResult, ParserSettings } from '../types';
 
 /**
  * Core parser for flashcard markdown files.
- * Handles YAML extraction and content splitting by a marker.
+ * It is responsible for:
+ * - YAML extraction and content splitting by a marker.
+ * - Flashcard creation and validation.
  */
-export class FlashcardParser {
-	private vaultAdapter: IVaultAdapter;
-	private yamlExtractor: YamlExtractor;
+export class FlashcardManager {
+	private vaultAdapter: VaultAdapter;
+	private yamlExtractor: YamlEngine;
 	private settings: ParserSettings;
 	private cache: Map<string, { result: ParseResult; timestamp: number }> = new Map();
 
@@ -17,9 +19,9 @@ export class FlashcardParser {
 	 * @param vaultAdapter Adapter for Obsidian Vault operations
 	 * @param settings Optional parser settings (directory, marker)
 	 */
-	constructor(vaultAdapter: IVaultAdapter, settings?: Partial<ParserSettings>) {
+	constructor(vaultAdapter: VaultAdapter, settings?: Partial<ParserSettings>) {
 		this.vaultAdapter = vaultAdapter;
-		this.yamlExtractor = new YamlExtractor(vaultAdapter);
+		this.yamlExtractor = new YamlEngine(vaultAdapter);
 		this.settings = {
 			flashcard_directory: settings?.flashcard_directory ?? '/flashcards/',
 			marker: settings?.marker ?? '?',
@@ -29,7 +31,7 @@ export class FlashcardParser {
 	/**
 	 * Parses a flashcard file into a structured Flashcard object.
 	 * Results are cached to improve performance.
-	 * 
+	 *
 	 * @param filePath Path to the markdown file in the vault
 	 * @param forceRefresh If true, bypasses the cache
 	 * @returns A ParseResult containing the flashcard or an error
@@ -37,7 +39,8 @@ export class FlashcardParser {
 	async parse(filePath: string, forceRefresh = false): Promise<ParseResult> {
 		if (!forceRefresh) {
 			const cached = this.cache.get(filePath);
-			if (cached && (Date.now() - cached.timestamp < 30000)) { // 30s cache
+			if (cached && Date.now() - cached.timestamp < 30000) {
+				// 30s cache
 				return cached.result;
 			}
 		}
@@ -100,7 +103,7 @@ export class FlashcardParser {
 
 	/**
 	 * Splits the body content into front and back parts using the configured marker.
-	 * 
+	 *
 	 * @param content Full content of the markdown file
 	 * @returns A ContentSplitResult containing front and back content
 	 */

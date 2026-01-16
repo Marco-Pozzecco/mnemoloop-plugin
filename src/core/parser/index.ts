@@ -1,5 +1,5 @@
 export * from './types';
 export * from './schema/FlashcardSchema';
 export * from './schema/ParserSchema';
-export { YamlExtractor } from './YamlExtractor';
-export { FlashcardParser } from './FlashcardParser';
+export { YamlEngine as YamlExtractor } from './engine/YamlEngine';
+export { FlashcardManager as FlashcardParser } from './manager/FlashcardManager';
