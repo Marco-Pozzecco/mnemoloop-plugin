@@ -1,26 +1,23 @@
 import { IVaultAdapter } from '@/obsidian/contracts/IVaultAdapter';
 import { ERROR_MESSAGES } from '@/utils/constants';
 import { clampFsrsParameter, isValidFsrsState, isValidTimestamp } from '@/utils/validation';
-import { DEFAULT_FSRS, FSRSStats, FSRSState } from '../srs/types';
-import { CardStatus, FlashcardMetadata, YamlParseResult } from './types';
+import { DEFAULT_FSRS, FSRSStats, FSRSState } from '../../srs/types';
+import { CardStatus, FlashcardMetadata, YamlParseResult } from '../types';
 
 /**
  * Utility for extracting and validating YAML frontmatter from flashcard files.
  * Uses Obsidian's CachedMetadata API for efficient extraction.
  */
-export class YamlExtractor {
+export class YamlEngine {
 	private vaultAdapter: IVaultAdapter;
 
-	/**
-	 * @param vaultAdapter Adapter for Obsidian Vault operations
-	 */
 	constructor(vaultAdapter: IVaultAdapter) {
 		this.vaultAdapter = vaultAdapter;
 	}
 
 	/**
 	 * Extracts flashcard metadata from a file's YAML frontmatter.
-	 * 
+	 *
 	 * @param filePath Path to the markdown file
 	 * @returns A YamlParseResult with metadata and any validation warnings
 	 */
@@ -142,7 +139,7 @@ export class YamlExtractor {
 
 	/**
 	 * Validates and clamps FSRS parameters to allowed ranges.
-	 * 
+	 *
 	 * @param rawParams Partially extracted FSRS parameters
 	 * @param warnings Array to collect validation warnings
 	 * @returns Validated FSRSStats object
