@@ -16,7 +16,7 @@
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
-		"build": "tsc && node esbuild.config.mjs --production",
+		"build": "tsc && node esbuild.config.mjs --production && sh ./scripts/post-build.sh",
 		"test": "vitest",
 		"lint": "eslint src --ext .ts,.tsx",
 		"format": "prettier --write src/**/*.{ts,tsx,svelte}"
