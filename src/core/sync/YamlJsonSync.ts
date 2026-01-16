@@ -1,6 +1,6 @@
 import { IVaultAdapter } from '@/obsidian/contracts/IVaultAdapter';
 import { SyncResult, SyncConflict, ISyncNotifier } from './types';
-import { YamlExtractor } from '../parser/YamlExtractor';
+import { YamlEngine } from '../parser/engine/YamlEngine';
 import { FlashcardMetadata } from '../parser/types';
 import { Index } from '../indexer';
 
@@ -11,7 +11,7 @@ import { Index } from '../indexer';
 export class YamlJsonSync {
 	private vaultAdapter: IVaultAdapter;
 	private index: Index;
-	private yamlExtractor: YamlExtractor;
+	private yamlExtractor: YamlEngine;
 	private notifier?: ISyncNotifier;
 
 	/**
@@ -22,7 +22,7 @@ export class YamlJsonSync {
 	constructor(vaultAdapter: IVaultAdapter, index: Index, notifier?: ISyncNotifier) {
 		this.vaultAdapter = vaultAdapter;
 		this.index = index;
-		this.yamlExtractor = new YamlExtractor(vaultAdapter);
+		this.yamlExtractor = new YamlEngine(vaultAdapter);
 		this.notifier = notifier;
 	}
 
