@@ -1,10 +1,11 @@
-import { IDashboardController } from '@/contracts/UIEngineContract';
-import { IndexManager, StatsManager } from '@/core/indexer';
+import { IndexManager } from '@/core/indexer';
 import { DueQueueManager } from '@/core/srs';
+import { StatisticsManager } from '@/core/statistics';
 import { SessionStore } from '@/ui/stores/SessionStore';
 import { uiStore } from '@/ui/stores/UIStore';
 import { DashboardConfigSchema, DashboardStatsSchema } from './schemas';
 import type { DashboardConfig, DashboardStats } from './types';
+import { IDashboardController } from './types';
 
 /**
  * Dashboard Controller
@@ -18,19 +19,19 @@ import type { DashboardConfig, DashboardStats } from './types';
 export class DashboardController implements IDashboardController {
 	private readonly indexManager: IndexManager;
 	private readonly sessionStore: SessionStore;
-	private readonly statisticsManager: StatsManager;
-	private readonly dueQueueGenerator: DueQueueManager;
+	private readonly statisticsManager: StatisticsManager;
+	private readonly dueQueueManager: DueQueueManager;
 
 	constructor(
 		indexManager: IndexManager,
-		statisticsManager: StatsManager,
-		dueQueueGenerator: DueQueueManager,
+		statisticsManager: StatisticsManager,
+		dueQueueManager: DueQueueManager,
 		sessionStore: SessionStore,
 	) {
 		this.indexManager = indexManager;
 		this.sessionStore = sessionStore;
 		this.statisticsManager = statisticsManager;
-		this.dueQueueGenerator = dueQueueGenerator;
+		this.dueQueueManager = dueQueueManager;
 	}
 
 	/**
@@ -195,7 +196,7 @@ export class DashboardController implements IDashboardController {
 	 */
 	private calculateDueCount(): number {
 		try {
-			const dueQueue = this.dueQueueGenerator.generate();
+			const dueQueue = this.dueQueueManager.generate();
 			return dueQueue.totalDue;
 		} catch (error) {
 			console.error('Failed to calculate due count:', error);

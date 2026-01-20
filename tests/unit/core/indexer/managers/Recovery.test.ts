@@ -1,8 +1,8 @@
-import { CardStatus } from '@/core';
-import { IndexManager } from '@/core/indexer/managers/IndexManager';
-import { StatsManager } from '@/core/indexer/managers/StatsManager';
-import { CardMetadata } from '@/core/indexer/schema/indexSchema';
-import { runMigrations } from '@/core/indexer/schema/migrations';
+import { CardMetadata } from '@/core/indexer';
+import { IndexManager } from '@/core/indexer/IndexerManager';
+import { runMigrations } from '@/core/indexer/utils/migration';
+import { CardStatus } from '@/core/parser';
+import { StatisticsManager } from '@/core/statistics/StatisticsManager';
 import { App } from 'obsidian';
 import { v4 as uuidv4 } from 'uuid';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -22,12 +22,12 @@ const mockApp = {
 
 describe('Recovery and Migration', () => {
 	let indexManager: IndexManager;
-	let statsManager: StatsManager;
+	let statsManager: StatisticsManager;
 	let mockCard: CardMetadata;
 
 	beforeEach(() => {
 		indexManager = new IndexManager(mockApp);
-		statsManager = new StatsManager(mockApp);
+		statsManager = new StatisticsManager(mockApp);
 		vi.clearAllMocks();
 
 		mockCard = {

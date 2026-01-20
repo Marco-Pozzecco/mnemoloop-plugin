@@ -1,5 +1,5 @@
 import { App, TAbstractFile, TFile } from 'obsidian';
-import { IIndexManager } from '../core/indexer/contracts/IIndexManager';
+import { IIndexManager } from '../core/indexer/utils/contract';
 import { IEventQueue } from './contracts/IEventQueue';
 import {
 	IVaultEvent,
@@ -9,7 +9,7 @@ import {
 } from './contracts/IVaultWatcher';
 import { EventQueue } from './EventQueue';
 import { Logger } from '@/utils/Logger';
-import { CardStatus } from '@/core';
+import { CardStatus } from '@/core/parser';
 
 export class VaultWatcher implements IVaultWatcher {
 	private app: App;

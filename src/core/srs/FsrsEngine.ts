@@ -5,7 +5,7 @@ import {
 	FSRSStats,
 	FsrsCalculationInput,
 	FsrsCalculationResult,
-} from '../types';
+} from './utils/types';
 
 import { ERROR_MESSAGES } from '@/utils/constants';
 

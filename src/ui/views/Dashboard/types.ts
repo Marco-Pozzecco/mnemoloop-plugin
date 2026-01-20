@@ -1,6 +1,16 @@
 import type { BaseComponentProps, ActionComponentProps } from '@/ui/types';
 
 /**
+ * Interface for the Dashboard View controller.
+ */
+export interface IDashboardController {
+	getStats(): Promise<any>;
+	refreshStats(): Promise<void>;
+	startReviewSession(deckId?: string): Promise<void>;
+	updateConfig(config: any): Promise<void>;
+}
+
+/**
  * Timeframe options for dashboard charts and statistics.
  */
 export type ChartTimeframe = 'week' | 'month' | 'year';

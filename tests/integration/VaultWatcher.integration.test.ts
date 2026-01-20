@@ -1,4 +1,4 @@
-import { IIndexManager } from '@/core/indexer/contracts/IIndexManager';
+import { IIndexManager } from '@/core/indexer/utils/contract';
 import { VaultWatcher } from '@/obsidian/VaultWatcher';
 import { IVaultWatcherConfig } from '@/obsidian/contracts/IVaultWatcher';
 import { TFile, Vault } from 'obsidian';

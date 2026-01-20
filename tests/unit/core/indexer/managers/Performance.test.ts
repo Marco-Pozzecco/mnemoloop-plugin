@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { IndexManager } from '@/core/indexer/managers/IndexManager';
-import { StatsManager } from '@/core/indexer/managers/StatsManager';
-import { CardMetadata } from '@/core/indexer/schema/indexSchema';
+import { CardMetadata } from '@/core/indexer/';
+import { IndexManager } from '@/core/indexer/IndexerManager';
+import { CardStatus } from '@/core/parser';
+import { StatisticsManager } from '@/core/statistics/StatisticsManager';
 import { App } from 'obsidian';
-import { CardStatus } from '@/core';
-import { v4 as uuidv4 } from 'uuid';
 import { State } from 'ts-fsrs';
+import { v4 as uuidv4 } from 'uuid';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock Obsidian App
 const mockApp = {
@@ -22,11 +22,11 @@ const mockApp = {
 
 describe('Performance Tests', () => {
 	let indexManager: IndexManager;
-	let statsManager: StatsManager;
+	let statsManager: StatisticsManager;
 
 	beforeEach(() => {
 		indexManager = new IndexManager(mockApp);
-		statsManager = new StatsManager(mockApp);
+		statsManager = new StatisticsManager(mockApp);
 		vi.clearAllMocks();
 	});
 

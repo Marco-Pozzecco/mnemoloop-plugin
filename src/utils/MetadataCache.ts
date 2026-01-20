@@ -1,4 +1,4 @@
-import { CardMetadata } from '../schema/indexSchema';
+import { CardMetadata } from '../core/indexer/schema/IndexerSchema';
 
 export class MetadataCache {
 	private cache: Map<string, CardMetadata>;

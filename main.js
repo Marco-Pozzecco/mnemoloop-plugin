@@ -835,260 +835,6 @@ var PUBLIC_VERSION = "4";
 if (typeof window !== "undefined")
   (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
 
-// node_modules/svelte/src/runtime/store/index.js
-var subscriber_queue = [];
-function readable(value, start) {
-  return {
-    subscribe: writable(value, start).subscribe
-  };
-}
-function writable(value, start = noop) {
-  let stop;
-  const subscribers = /* @__PURE__ */ new Set();
-  function set2(new_value) {
-    if (safe_not_equal(value, new_value)) {
-      value = new_value;
-      if (stop) {
-        const run_queue = !subscriber_queue.length;
-        for (const subscriber of subscribers) {
-          subscriber[1]();
-          subscriber_queue.push(subscriber, value);
-        }
-        if (run_queue) {
-          for (let i = 0; i < subscriber_queue.length; i += 2) {
-            subscriber_queue[i][0](subscriber_queue[i + 1]);
-          }
-          subscriber_queue.length = 0;
-        }
-      }
-    }
-  }
-  function update2(fn) {
-    set2(fn(value));
-  }
-  function subscribe2(run2, invalidate = noop) {
-    const subscriber = [run2, invalidate];
-    subscribers.add(subscriber);
-    if (subscribers.size === 1) {
-      stop = start(set2, update2) || noop;
-    }
-    run2(value);
-    return () => {
-      subscribers.delete(subscriber);
-      if (subscribers.size === 0 && stop) {
-        stop();
-        stop = null;
-      }
-    };
-  }
-  return { set: set2, update: update2, subscribe: subscribe2 };
-}
-function derived(stores, fn, initial_value) {
-  const single = !Array.isArray(stores);
-  const stores_array = single ? [stores] : stores;
-  if (!stores_array.every(Boolean)) {
-    throw new Error("derived() expects stores as input, got a falsy value");
-  }
-  const auto = fn.length < 2;
-  return readable(initial_value, (set2, update2) => {
-    let started = false;
-    const values = [];
-    let pending = 0;
-    let cleanup = noop;
-    const sync = () => {
-      if (pending) {
-        return;
-      }
-      cleanup();
-      const result = fn(single ? values[0] : values, set2, update2);
-      if (auto) {
-        set2(result);
-      } else {
-        cleanup = is_function(result) ? result : noop;
-      }
-    };
-    const unsubscribers = stores_array.map(
-      (store, i) => subscribe(
-        store,
-        (value) => {
-          values[i] = value;
-          pending &= ~(1 << i);
-          if (started) {
-            sync();
-          }
-        },
-        () => {
-          pending |= 1 << i;
-        }
-      )
-    );
-    started = true;
-    sync();
-    return function stop() {
-      run_all(unsubscribers);
-      cleanup();
-      started = false;
-    };
-  });
-}
-
-// src/ui/stores/SettingsStore.ts
-var DEFAULT_STATE = {
-  settings: {
-    flashcardsDirectory: "/flashcards/",
-    watchDirectories: ["/"],
-    watchTags: [],
-    ignoredDirectories: [".obsidian"],
-    debounceTimeoutMs: 1e3,
-    enableSoftDelete: true,
-    softDeleteHours: 24,
-    commandShortcuts: {}
-  },
-  isLoading: false,
-  hasChanges: false,
-  validationErrors: {}
-};
-var SettingsStore = class {
-  constructor(options) {
-    __publicField(this, "_state");
-    __publicField(this, "settingsManager");
-    __publicField(this, "initialSettings");
-    this.settingsManager = options.settingsManager;
-    this.initialSettings = { ...options.settingsManager.getSettings() };
-    this._state = writable({
-      ...DEFAULT_STATE,
-      settings: { ...this.initialSettings }
-    });
-  }
-  subscribe(run2) {
-    return this._state.subscribe(run2);
-  }
-  get settings() {
-    return derived(this._state, ($s) => $s.settings);
-  }
-  get isLoading() {
-    return derived(this._state, ($s) => $s.isLoading);
-  }
-  get hasChanges() {
-    return derived(this._state, ($s) => $s.hasChanges);
-  }
-  get validationErrors() {
-    return derived(this._state, ($s) => $s.validationErrors);
-  }
-  async updateSettings(updates) {
-    this._state.update((state) => ({
-      ...state,
-      isLoading: true
-    }));
-    try {
-      const currentSettings = get_store_value(this._state).settings;
-      const newSettings = {
-        ...currentSettings,
-        ...updates
-      };
-      const validatedSettings = this.settingsManager.validateSettings(newSettings);
-      await this.settingsManager.updateSettings(updates);
-      this._state.update((state) => ({
-        ...state,
-        settings: validatedSettings,
-        hasChanges: false,
-        validationErrors: {},
-        isLoading: false
-      }));
-      this.initialSettings = { ...validatedSettings };
-    } catch (error48) {
-      this._state.update((state) => ({
-        ...state,
-        isLoading: false
-      }));
-      throw error48;
-    }
-  }
-  setPendingChanges(updates) {
-    this._state.update((state) => {
-      const newSettings = {
-        ...state.settings,
-        ...updates
-      };
-      const hasChanges = JSON.stringify(newSettings) !== JSON.stringify(this.initialSettings);
-      return {
-        ...state,
-        settings: newSettings,
-        hasChanges
-      };
-    });
-  }
-  async resetToDefaults() {
-    this._state.update((state) => ({
-      ...state,
-      isLoading: true
-    }));
-    try {
-      await this.settingsManager.resetToDefaults();
-      const defaultSettings = this.settingsManager.getSettings();
-      this._state.update((state) => ({
-        ...state,
-        settings: { ...defaultSettings },
-        hasChanges: false,
-        validationErrors: {},
-        isLoading: false
-      }));
-      this.initialSettings = { ...defaultSettings };
-    } catch (error48) {
-      this._state.update((state) => ({
-        ...state,
-        isLoading: false
-      }));
-      throw error48;
-    }
-  }
-  discardChanges() {
-    this._state.update((state) => ({
-      ...state,
-      settings: { ...this.initialSettings },
-      hasChanges: false,
-      validationErrors: {}
-    }));
-  }
-  validateSetting(key, value) {
-    try {
-      const currentSettings = get_store_value(this._state).settings;
-      const testSettings = {
-        ...currentSettings,
-        [key]: value
-      };
-      this.settingsManager.validateSettings(testSettings);
-      this._state.update((state) => ({
-        ...state,
-        validationErrors: {
-          ...state.validationErrors,
-          [key]: ""
-        }
-      }));
-      return true;
-    } catch (error48) {
-      const errorMessage = error48 instanceof Error ? error48.message : "Invalid value";
-      this._state.update((state) => ({
-        ...state,
-        validationErrors: {
-          ...state.validationErrors,
-          [key]: errorMessage
-        }
-      }));
-      return false;
-    }
-  }
-  refresh() {
-    this.initialSettings = { ...this.settingsManager.getSettings() };
-    this._state.update((state) => ({
-      ...state,
-      settings: { ...this.initialSettings },
-      hasChanges: false,
-      validationErrors: {}
-    }));
-  }
-};
-
 // src/ui/components/common/Button.svelte
 function create_fragment(ctx) {
   let button;
@@ -1627,6 +1373,263 @@ var Icon = class extends SvelteComponent {
   }
 };
 var Icon_default = Icon;
+
+// node_modules/svelte/src/runtime/store/index.js
+var subscriber_queue = [];
+function readable(value, start) {
+  return {
+    subscribe: writable(value, start).subscribe
+  };
+}
+function writable(value, start = noop) {
+  let stop;
+  const subscribers = /* @__PURE__ */ new Set();
+  function set2(new_value) {
+    if (safe_not_equal(value, new_value)) {
+      value = new_value;
+      if (stop) {
+        const run_queue = !subscriber_queue.length;
+        for (const subscriber of subscribers) {
+          subscriber[1]();
+          subscriber_queue.push(subscriber, value);
+        }
+        if (run_queue) {
+          for (let i = 0; i < subscriber_queue.length; i += 2) {
+            subscriber_queue[i][0](subscriber_queue[i + 1]);
+          }
+          subscriber_queue.length = 0;
+        }
+      }
+    }
+  }
+  function update2(fn) {
+    set2(fn(value));
+  }
+  function subscribe2(run2, invalidate = noop) {
+    const subscriber = [run2, invalidate];
+    subscribers.add(subscriber);
+    if (subscribers.size === 1) {
+      stop = start(set2, update2) || noop;
+    }
+    run2(value);
+    return () => {
+      subscribers.delete(subscriber);
+      if (subscribers.size === 0 && stop) {
+        stop();
+        stop = null;
+      }
+    };
+  }
+  return { set: set2, update: update2, subscribe: subscribe2 };
+}
+function derived(stores, fn, initial_value) {
+  const single = !Array.isArray(stores);
+  const stores_array = single ? [stores] : stores;
+  if (!stores_array.every(Boolean)) {
+    throw new Error("derived() expects stores as input, got a falsy value");
+  }
+  const auto = fn.length < 2;
+  return readable(initial_value, (set2, update2) => {
+    let started = false;
+    const values = [];
+    let pending = 0;
+    let cleanup = noop;
+    const sync = () => {
+      if (pending) {
+        return;
+      }
+      cleanup();
+      const result = fn(single ? values[0] : values, set2, update2);
+      if (auto) {
+        set2(result);
+      } else {
+        cleanup = is_function(result) ? result : noop;
+      }
+    };
+    const unsubscribers = stores_array.map(
+      (store, i) => subscribe(
+        store,
+        (value) => {
+          values[i] = value;
+          pending &= ~(1 << i);
+          if (started) {
+            sync();
+          }
+        },
+        () => {
+          pending |= 1 << i;
+        }
+      )
+    );
+    started = true;
+    sync();
+    return function stop() {
+      run_all(unsubscribers);
+      cleanup();
+      started = false;
+    };
+  });
+}
+
+// src/ui/stores/SettingsStore.ts
+var DEFAULT_STATE = {
+  settings: {
+    flashcardsDirectory: "/flashcards/",
+    watchDirectories: ["/"],
+    watchTags: [],
+    ignoredDirectories: [".obsidian"],
+    debounceTimeoutMs: 1e3,
+    enableSoftDelete: true,
+    softDeleteHours: 24,
+    commandShortcuts: {}
+  },
+  isLoading: false,
+  hasChanges: false,
+  validationErrors: {}
+};
+var SettingsStore = class {
+  constructor(options) {
+    __publicField(this, "_state");
+    __publicField(this, "settingsManager");
+    __publicField(this, "initialSettings");
+    this.settingsManager = options.settingsManager;
+    this.initialSettings = { ...options.settingsManager.getSettings() };
+    this._state = writable({
+      ...DEFAULT_STATE,
+      settings: { ...this.initialSettings }
+    });
+  }
+  subscribe(run2) {
+    return this._state.subscribe(run2);
+  }
+  get settings() {
+    return derived(this._state, ($s) => $s.settings);
+  }
+  get isLoading() {
+    return derived(this._state, ($s) => $s.isLoading);
+  }
+  get hasChanges() {
+    return derived(this._state, ($s) => $s.hasChanges);
+  }
+  get validationErrors() {
+    return derived(this._state, ($s) => $s.validationErrors);
+  }
+  async updateSettings(updates) {
+    this._state.update((state) => ({
+      ...state,
+      isLoading: true
+    }));
+    try {
+      const currentSettings = get_store_value(this._state).settings;
+      const newSettings = {
+        ...currentSettings,
+        ...updates
+      };
+      const validatedSettings = this.settingsManager.validateSettings(newSettings);
+      await this.settingsManager.updateSettings(updates);
+      this._state.update((state) => ({
+        ...state,
+        settings: validatedSettings,
+        hasChanges: false,
+        validationErrors: {},
+        isLoading: false
+      }));
+      this.initialSettings = { ...validatedSettings };
+    } catch (error48) {
+      this._state.update((state) => ({
+        ...state,
+        isLoading: false
+      }));
+      throw error48;
+    }
+  }
+  setPendingChanges(updates) {
+    this._state.update((state) => {
+      const newSettings = {
+        ...state.settings,
+        ...updates
+      };
+      const hasChanges = JSON.stringify(newSettings) !== JSON.stringify(this.initialSettings);
+      return {
+        ...state,
+        settings: newSettings,
+        hasChanges
+      };
+    });
+  }
+  async resetToDefaults() {
+    this._state.update((state) => ({
+      ...state,
+      isLoading: true
+    }));
+    try {
+      await this.settingsManager.resetToDefaults();
+      const defaultSettings = this.settingsManager.getSettings();
+      this._state.update((state) => ({
+        ...state,
+        settings: { ...defaultSettings },
+        hasChanges: false,
+        validationErrors: {},
+        isLoading: false
+      }));
+      this.initialSettings = { ...defaultSettings };
+    } catch (error48) {
+      this._state.update((state) => ({
+        ...state,
+        isLoading: false
+      }));
+      throw error48;
+    }
+  }
+  discardChanges() {
+    this._state.update((state) => ({
+      ...state,
+      settings: { ...this.initialSettings },
+      hasChanges: false,
+      validationErrors: {}
+    }));
+  }
+  validateSetting(key, value) {
+    try {
+      const currentSettings = get_store_value(this._state).settings;
+      const testSettings = {
+        ...currentSettings,
+        [key]: value
+      };
+      this.settingsManager.validateSettings(testSettings);
+      this._state.update((state) => ({
+        ...state,
+        validationErrors: {
+          ...state.validationErrors,
+          [key]: ""
+        }
+      }));
+      return true;
+    } catch (error48) {
+      const errorMessage = error48 instanceof Error ? error48.message : "Invalid value";
+      this._state.update((state) => ({
+        ...state,
+        validationErrors: {
+          ...state.validationErrors,
+          [key]: errorMessage
+        }
+      }));
+      return false;
+    }
+  }
+  refresh() {
+    this.initialSettings = { ...this.settingsManager.getSettings() };
+    this._state.update((state) => ({
+      ...state,
+      settings: { ...this.initialSettings },
+      hasChanges: false,
+      validationErrors: {}
+    }));
+  }
+};
+
+// src/ui/settings/Settings.svelte
+var import_obsidian3 = require("obsidian");
 
 // src/ui/settings/components/TextSetting.svelte
 function create_if_block_1(ctx) {
@@ -2648,8 +2651,1639 @@ var ArraySetting = class extends SvelteComponent {
 };
 var ArraySetting_default = ArraySetting;
 
-// src/ui/settings/components/TagSetting.svelte
+// src/ui/settings/sections/AdvancedSettings.svelte
+var import_obsidian2 = require("obsidian");
 function get_each_context2(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[10] = list[i];
+  return child_ctx;
+}
+function create_each_block2(ctx) {
+  let div2;
+  let div0;
+  let span0;
+  let t1;
+  let span1;
+  let t3;
+  let div1;
+  let input;
+  let input_value_value;
+  let t4;
+  let mounted;
+  let dispose;
+  function change_handler(...args) {
+    return (
+      /*change_handler*/
+      ctx[8](
+        /*command*/
+        ctx[10],
+        ...args
+      )
+    );
+  }
+  return {
+    c() {
+      div2 = element("div");
+      div0 = element("div");
+      span0 = element("span");
+      span0.textContent = `${/*command*/
+      ctx[10].label}`;
+      t1 = space();
+      span1 = element("span");
+      span1.textContent = `${/*command*/
+      ctx[10].id}`;
+      t3 = space();
+      div1 = element("div");
+      input = element("input");
+      t4 = space();
+      attr(span0, "class", "ka-shortcut-setting__label svelte-1bksc6c");
+      attr(span1, "class", "ka-shortcut-setting__id svelte-1bksc6c");
+      attr(div0, "class", "ka-shortcut-setting__info svelte-1bksc6c");
+      attr(input, "type", "text");
+      input.value = input_value_value = /*settings*/
+      ctx[1].commandShortcuts[
+        /*command*/
+        ctx[10].id
+      ] || "";
+      attr(input, "placeholder", "None");
+      attr(input, "class", "svelte-1bksc6c");
+      attr(div1, "class", "ka-shortcut-setting__input svelte-1bksc6c");
+      attr(div2, "class", "ka-shortcut-setting svelte-1bksc6c");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, div0);
+      append(div0, span0);
+      append(div0, t1);
+      append(div0, span1);
+      append(div2, t3);
+      append(div2, div1);
+      append(div1, input);
+      append(div2, t4);
+      if (!mounted) {
+        dispose = [
+          listen(input, "change", change_handler),
+          listen(input, "keydown", keydown_handler2)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty & /*settings*/
+      2 && input_value_value !== (input_value_value = /*settings*/
+      ctx[1].commandShortcuts[
+        /*command*/
+        ctx[10].id
+      ] || "") && input.value !== input_value_value) {
+        input.value = input_value_value;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_default_slot_1(ctx) {
+  let icon;
+  let t;
+  let current;
+  icon = new Icon_default({ props: { name: "download", size: 16 } });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+      t = text("\n          Export Settings");
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      insert(target, t, anchor);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t);
+      }
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_default_slot2(ctx) {
+  let icon;
+  let t;
+  let current;
+  icon = new Icon_default({ props: { name: "upload", size: 16 } });
+  return {
+    c() {
+      create_component(icon.$$.fragment);
+      t = text("\n          Import Settings");
+    },
+    m(target, anchor) {
+      mount_component(icon, target, anchor);
+      insert(target, t, anchor);
+      current = true;
+    },
+    p: noop,
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t);
+      }
+      destroy_component(icon, detaching);
+    }
+  };
+}
+function create_fragment6(ctx) {
+  let div6;
+  let div0;
+  let t3;
+  let div5;
+  let div1;
+  let h30;
+  let t5;
+  let p1;
+  let t7;
+  let t8;
+  let div3;
+  let h31;
+  let t10;
+  let p2;
+  let t12;
+  let div2;
+  let button0;
+  let t13;
+  let button1;
+  let t14;
+  let div4;
+  let h32;
+  let t16;
+  let p3;
+  let t18;
+  let pre;
+  let t19_value = JSON.stringify(
+    /*settings*/
+    ctx[1],
+    null,
+    2
+  ) + "";
+  let t19;
+  let current;
+  let each_value = ensure_array_like(
+    /*commonCommands*/
+    ctx[6]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value.length; i += 1) {
+    each_blocks[i] = create_each_block2(get_each_context2(ctx, each_value, i));
+  }
+  button0 = new Button_default({
+    props: {
+      variant: "secondary",
+      $$slots: { default: [create_default_slot_1] },
+      $$scope: { ctx }
+    }
+  });
+  button0.$on(
+    "click",
+    /*handleExportSettings*/
+    ctx[4]
+  );
+  button1 = new Button_default({
+    props: {
+      variant: "secondary",
+      $$slots: { default: [create_default_slot2] },
+      $$scope: { ctx }
+    }
+  });
+  button1.$on(
+    "click",
+    /*handleImportSettings*/
+    ctx[5]
+  );
+  return {
+    c() {
+      div6 = element("div");
+      div0 = element("div");
+      div0.innerHTML = `<h2 class="ka-section__title svelte-1bksc6c">Advanced</h2> <p class="ka-section__description svelte-1bksc6c">Advanced configuration and data management</p>`;
+      t3 = space();
+      div5 = element("div");
+      div1 = element("div");
+      h30 = element("h3");
+      h30.textContent = "Command Shortcuts";
+      t5 = space();
+      p1 = element("p");
+      p1.textContent = "Customize keyboard shortcuts for plugin commands";
+      t7 = space();
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      t8 = space();
+      div3 = element("div");
+      h31 = element("h3");
+      h31.textContent = "Data Management";
+      t10 = space();
+      p2 = element("p");
+      p2.textContent = "Export and import your plugin settings";
+      t12 = space();
+      div2 = element("div");
+      create_component(button0.$$.fragment);
+      t13 = space();
+      create_component(button1.$$.fragment);
+      t14 = space();
+      div4 = element("div");
+      h32 = element("h3");
+      h32.textContent = "Debug Information";
+      t16 = space();
+      p3 = element("p");
+      p3.textContent = "Current settings configuration (read-only)";
+      t18 = space();
+      pre = element("pre");
+      t19 = text(t19_value);
+      attr(div0, "class", "ka-section__header svelte-1bksc6c");
+      attr(h30, "class", "ka-setting-group__title svelte-1bksc6c");
+      attr(p1, "class", "ka-setting-group__description svelte-1bksc6c");
+      attr(div1, "class", "ka-setting-group svelte-1bksc6c");
+      attr(h31, "class", "ka-setting-group__title svelte-1bksc6c");
+      attr(p2, "class", "ka-setting-group__description svelte-1bksc6c");
+      attr(div2, "class", "ka-data-actions svelte-1bksc6c");
+      attr(div3, "class", "ka-setting-group svelte-1bksc6c");
+      attr(h32, "class", "ka-setting-group__title svelte-1bksc6c");
+      attr(p3, "class", "ka-setting-group__description svelte-1bksc6c");
+      attr(pre, "class", "ka-settings-debug svelte-1bksc6c");
+      attr(div4, "class", "ka-setting-group svelte-1bksc6c");
+      attr(div5, "class", "ka-section__settings svelte-1bksc6c");
+      attr(div6, "class", "ka-section svelte-1bksc6c");
+    },
+    m(target, anchor) {
+      insert(target, div6, anchor);
+      append(div6, div0);
+      append(div6, t3);
+      append(div6, div5);
+      append(div5, div1);
+      append(div1, h30);
+      append(div1, t5);
+      append(div1, p1);
+      append(div1, t7);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div1, null);
+        }
+      }
+      append(div5, t8);
+      append(div5, div3);
+      append(div3, h31);
+      append(div3, t10);
+      append(div3, p2);
+      append(div3, t12);
+      append(div3, div2);
+      mount_component(button0, div2, null);
+      append(div2, t13);
+      mount_component(button1, div2, null);
+      append(div5, t14);
+      append(div5, div4);
+      append(div4, h32);
+      append(div4, t16);
+      append(div4, p3);
+      append(div4, t18);
+      append(div4, pre);
+      append(pre, t19);
+      current = true;
+    },
+    p(ctx2, [dirty]) {
+      if (dirty & /*settings, commonCommands, handleShortcutAdd, handleShortcutRemove*/
+      78) {
+        each_value = ensure_array_like(
+          /*commonCommands*/
+          ctx2[6]
+        );
+        let i;
+        for (i = 0; i < each_value.length; i += 1) {
+          const child_ctx = get_each_context2(ctx2, each_value, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block2(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(div1, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value.length;
+      }
+      const button0_changes = {};
+      if (dirty & /*$$scope*/
+      8192) {
+        button0_changes.$$scope = { dirty, ctx: ctx2 };
+      }
+      button0.$set(button0_changes);
+      const button1_changes = {};
+      if (dirty & /*$$scope*/
+      8192) {
+        button1_changes.$$scope = { dirty, ctx: ctx2 };
+      }
+      button1.$set(button1_changes);
+      if ((!current || dirty & /*settings*/
+      2) && t19_value !== (t19_value = JSON.stringify(
+        /*settings*/
+        ctx2[1],
+        null,
+        2
+      ) + ""))
+        set_data(t19, t19_value);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(button0.$$.fragment, local);
+      transition_in(button1.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(button0.$$.fragment, local);
+      transition_out(button1.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div6);
+      }
+      destroy_each(each_blocks, detaching);
+      destroy_component(button0);
+      destroy_component(button1);
+    }
+  };
+}
+var keydown_handler2 = (e) => {
+  if (e.key === "Enter") {
+    e.target.blur();
+  }
+};
+function instance6($$self, $$props, $$invalidate) {
+  let settings;
+  let $store, $$unsubscribe_store = noop, $$subscribe_store = () => ($$unsubscribe_store(), $$unsubscribe_store = subscribe(store, ($$value) => $$invalidate(7, $store = $$value)), store);
+  $$self.$$.on_destroy.push(() => $$unsubscribe_store());
+  let { store } = $$props;
+  $$subscribe_store();
+  function handleUpdate(key, value) {
+    if (!store)
+      return;
+    const isValid = store.validateSetting(key, value);
+    if (isValid) {
+      store.setPendingChanges({ [key]: value });
+    }
+  }
+  function handleShortcutAdd(commandId, shortcut) {
+    if (!store || !shortcut)
+      return;
+    const newShortcuts = {
+      ...settings.commandShortcuts,
+      [commandId]: shortcut
+    };
+    handleUpdate("commandShortcuts", newShortcuts);
+  }
+  function handleShortcutRemove(commandId) {
+    if (!store)
+      return;
+    const newShortcuts = { ...settings.commandShortcuts };
+    delete newShortcuts[commandId];
+    handleUpdate("commandShortcuts", newShortcuts);
+  }
+  function handleExportSettings() {
+    const settingsJson = JSON.stringify(settings, null, 2);
+    const blob = new Blob([settingsJson], { type: "application/json" });
+    const url2 = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url2;
+    a.download = "knowledge-accelerator-settings.json";
+    a.click();
+    URL.revokeObjectURL(url2);
+    new import_obsidian2.Notice("Settings exported successfully");
+  }
+  function handleImportSettings() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json";
+    input.onchange = async (event) => {
+      var _a3;
+      const file2 = (_a3 = event.target.files) == null ? void 0 : _a3[0];
+      if (!file2)
+        return;
+      try {
+        const text2 = await file2.text();
+        const importedSettings = JSON.parse(text2);
+        if (store) {
+          await store.updateSettings(importedSettings);
+          new import_obsidian2.Notice("Settings imported successfully");
+        }
+      } catch (error48) {
+        new import_obsidian2.Notice("Failed to import settings: Invalid file format", 5e3);
+      }
+    };
+    input.click();
+  }
+  const commonCommands = [
+    {
+      id: "ka-start-review",
+      label: "Start Review"
+    },
+    {
+      id: "ka-open-dashboard",
+      label: "Open Dashboard"
+    },
+    {
+      id: "open-settings",
+      label: "Open Settings"
+    }
+  ];
+  const change_handler = (command, e) => e.target.value ? handleShortcutAdd(command.id, e.target.value) : handleShortcutRemove(command.id);
+  $$self.$$set = ($$props2) => {
+    if ("store" in $$props2)
+      $$subscribe_store($$invalidate(0, store = $$props2.store));
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*$store*/
+    128) {
+      $:
+        $$invalidate(1, settings = $store == null ? void 0 : $store.settings);
+    }
+  };
+  return [
+    store,
+    settings,
+    handleShortcutAdd,
+    handleShortcutRemove,
+    handleExportSettings,
+    handleImportSettings,
+    commonCommands,
+    $store,
+    change_handler
+  ];
+}
+var AdvancedSettings = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance6, create_fragment6, safe_not_equal, { store: 0 });
+  }
+};
+var AdvancedSettings_default = AdvancedSettings;
+
+// src/ui/settings/components/NumberSetting.svelte
+function create_if_block_13(ctx) {
+  let p;
+  let t;
+  return {
+    c() {
+      p = element("p");
+      t = text(
+        /*description*/
+        ctx[1]
+      );
+      attr(p, "class", "ka-number-setting__description svelte-cxwg2w");
+    },
+    m(target, anchor) {
+      insert(target, p, anchor);
+      append(p, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*description*/
+      2)
+        set_data(
+          t,
+          /*description*/
+          ctx2[1]
+        );
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(p);
+      }
+    }
+  };
+}
+function create_if_block4(ctx) {
+  let div;
+  let icon;
+  let t0;
+  let span;
+  let t1;
+  let current;
+  icon = new Icon_default({
+    props: { name: "alert-circle", size: 14 }
+  });
+  return {
+    c() {
+      div = element("div");
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      t1 = text(
+        /*validationError*/
+        ctx[7]
+      );
+      attr(div, "class", "ka-number-setting__error svelte-cxwg2w");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(icon, div, null);
+      append(div, t0);
+      append(div, span);
+      append(span, t1);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      if (!current || dirty & /*validationError*/
+      128)
+        set_data(
+          t1,
+          /*validationError*/
+          ctx2[7]
+        );
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+    }
+  };
+}
+function create_fragment7(ctx) {
+  let div1;
+  let label_1;
+  let t0;
+  let t1;
+  let t2;
+  let div0;
+  let button0;
+  let icon0;
+  let button0_disabled_value;
+  let t3;
+  let input;
+  let t4;
+  let button1;
+  let icon1;
+  let button1_disabled_value;
+  let t5;
+  let current;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*description*/
+    ctx[1] && create_if_block_13(ctx)
+  );
+  icon0 = new Icon_default({ props: { name: "minus", size: 14 } });
+  icon1 = new Icon_default({ props: { name: "plus", size: 14 } });
+  let if_block1 = (
+    /*validationError*/
+    ctx[7] && create_if_block4(ctx)
+  );
+  return {
+    c() {
+      div1 = element("div");
+      label_1 = element("label");
+      t0 = text(
+        /*label*/
+        ctx[0]
+      );
+      t1 = space();
+      if (if_block0)
+        if_block0.c();
+      t2 = space();
+      div0 = element("div");
+      button0 = element("button");
+      create_component(icon0.$$.fragment);
+      t3 = space();
+      input = element("input");
+      t4 = space();
+      button1 = element("button");
+      create_component(icon1.$$.fragment);
+      t5 = space();
+      if (if_block1)
+        if_block1.c();
+      attr(
+        label_1,
+        "for",
+        /*label*/
+        ctx[0]
+      );
+      attr(label_1, "class", "ka-number-setting__label svelte-cxwg2w");
+      attr(button0, "class", "ka-number-setting__button ka-number-setting__button--decrement svelte-cxwg2w");
+      button0.disabled = button0_disabled_value = /*min*/
+      ctx[3] !== void 0 && /*inputValue*/
+      ctx[8] <= /*min*/
+      ctx[3];
+      attr(button0, "aria-label", "Decrease value");
+      attr(
+        input,
+        "id",
+        /*label*/
+        ctx[0]
+      );
+      attr(input, "type", "number");
+      attr(input, "class", "ka-number-setting__input svelte-cxwg2w");
+      attr(
+        input,
+        "placeholder",
+        /*placeholder*/
+        ctx[6]
+      );
+      attr(
+        input,
+        "min",
+        /*min*/
+        ctx[3]
+      );
+      attr(
+        input,
+        "max",
+        /*max*/
+        ctx[4]
+      );
+      attr(
+        input,
+        "step",
+        /*step*/
+        ctx[5]
+      );
+      input.value = /*value*/
+      ctx[2];
+      toggle_class(
+        input,
+        "has-error",
+        /*validationError*/
+        ctx[7]
+      );
+      attr(button1, "class", "ka-number-setting__button ka-number-setting__button--increment svelte-cxwg2w");
+      button1.disabled = button1_disabled_value = /*max*/
+      ctx[4] !== void 0 && /*inputValue*/
+      ctx[8] >= /*max*/
+      ctx[4];
+      attr(button1, "aria-label", "Increase value");
+      attr(div0, "class", "ka-number-setting__input-wrapper svelte-cxwg2w");
+      attr(div1, "class", "ka-number-setting svelte-cxwg2w");
+    },
+    m(target, anchor) {
+      insert(target, div1, anchor);
+      append(div1, label_1);
+      append(label_1, t0);
+      append(div1, t1);
+      if (if_block0)
+        if_block0.m(div1, null);
+      append(div1, t2);
+      append(div1, div0);
+      append(div0, button0);
+      mount_component(icon0, button0, null);
+      append(div0, t3);
+      append(div0, input);
+      append(div0, t4);
+      append(div0, button1);
+      mount_component(icon1, button1, null);
+      append(div1, t5);
+      if (if_block1)
+        if_block1.m(div1, null);
+      current = true;
+      if (!mounted) {
+        dispose = [
+          listen(
+            button0,
+            "click",
+            /*decrement*/
+            ctx[12]
+          ),
+          listen(
+            input,
+            "input",
+            /*handleInput*/
+            ctx[9]
+          ),
+          listen(
+            input,
+            "change",
+            /*handleChange*/
+            ctx[10]
+          ),
+          listen(
+            button1,
+            "click",
+            /*increment*/
+            ctx[11]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (!current || dirty & /*label*/
+      1)
+        set_data(
+          t0,
+          /*label*/
+          ctx2[0]
+        );
+      if (!current || dirty & /*label*/
+      1) {
+        attr(
+          label_1,
+          "for",
+          /*label*/
+          ctx2[0]
+        );
+      }
+      if (
+        /*description*/
+        ctx2[1]
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_13(ctx2);
+          if_block0.c();
+          if_block0.m(div1, t2);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (!current || dirty & /*min, inputValue*/
+      264 && button0_disabled_value !== (button0_disabled_value = /*min*/
+      ctx2[3] !== void 0 && /*inputValue*/
+      ctx2[8] <= /*min*/
+      ctx2[3])) {
+        button0.disabled = button0_disabled_value;
+      }
+      if (!current || dirty & /*label*/
+      1) {
+        attr(
+          input,
+          "id",
+          /*label*/
+          ctx2[0]
+        );
+      }
+      if (!current || dirty & /*placeholder*/
+      64) {
+        attr(
+          input,
+          "placeholder",
+          /*placeholder*/
+          ctx2[6]
+        );
+      }
+      if (!current || dirty & /*min*/
+      8) {
+        attr(
+          input,
+          "min",
+          /*min*/
+          ctx2[3]
+        );
+      }
+      if (!current || dirty & /*max*/
+      16) {
+        attr(
+          input,
+          "max",
+          /*max*/
+          ctx2[4]
+        );
+      }
+      if (!current || dirty & /*step*/
+      32) {
+        attr(
+          input,
+          "step",
+          /*step*/
+          ctx2[5]
+        );
+      }
+      if (!current || dirty & /*value*/
+      4 && input.value !== /*value*/
+      ctx2[2]) {
+        input.value = /*value*/
+        ctx2[2];
+      }
+      if (!current || dirty & /*validationError*/
+      128) {
+        toggle_class(
+          input,
+          "has-error",
+          /*validationError*/
+          ctx2[7]
+        );
+      }
+      if (!current || dirty & /*max, inputValue*/
+      272 && button1_disabled_value !== (button1_disabled_value = /*max*/
+      ctx2[4] !== void 0 && /*inputValue*/
+      ctx2[8] >= /*max*/
+      ctx2[4])) {
+        button1.disabled = button1_disabled_value;
+      }
+      if (
+        /*validationError*/
+        ctx2[7]
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+          if (dirty & /*validationError*/
+          128) {
+            transition_in(if_block1, 1);
+          }
+        } else {
+          if_block1 = create_if_block4(ctx2);
+          if_block1.c();
+          transition_in(if_block1, 1);
+          if_block1.m(div1, null);
+        }
+      } else if (if_block1) {
+        group_outros();
+        transition_out(if_block1, 1, 1, () => {
+          if_block1 = null;
+        });
+        check_outros();
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon0.$$.fragment, local);
+      transition_in(icon1.$$.fragment, local);
+      transition_in(if_block1);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon0.$$.fragment, local);
+      transition_out(icon1.$$.fragment, local);
+      transition_out(if_block1);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div1);
+      }
+      if (if_block0)
+        if_block0.d();
+      destroy_component(icon0);
+      destroy_component(icon1);
+      if (if_block1)
+        if_block1.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function instance7($$self, $$props, $$invalidate) {
+  let { label } = $$props;
+  let { description = "" } = $$props;
+  let { value = 0 } = $$props;
+  let { min = void 0 } = $$props;
+  let { max = void 0 } = $$props;
+  let { step = 1 } = $$props;
+  let { placeholder = "" } = $$props;
+  let { validationError = void 0 } = $$props;
+  const dispatch = createEventDispatcher();
+  let inputValue = value;
+  function handleInput(event) {
+    const target = event.target;
+    const parsed = parseFloat(target.value);
+    $$invalidate(8, inputValue = isNaN(parsed) ? 0 : parsed);
+  }
+  function handleChange() {
+    dispatch("update", inputValue);
+  }
+  function increment() {
+    const newValue = Math.min(max != null ? max : Infinity, inputValue + step);
+    $$invalidate(8, inputValue = newValue);
+    dispatch("update", newValue);
+  }
+  function decrement() {
+    const newValue = Math.max(min != null ? min : -Infinity, inputValue - step);
+    $$invalidate(8, inputValue = newValue);
+    dispatch("update", newValue);
+  }
+  $$self.$$set = ($$props2) => {
+    if ("label" in $$props2)
+      $$invalidate(0, label = $$props2.label);
+    if ("description" in $$props2)
+      $$invalidate(1, description = $$props2.description);
+    if ("value" in $$props2)
+      $$invalidate(2, value = $$props2.value);
+    if ("min" in $$props2)
+      $$invalidate(3, min = $$props2.min);
+    if ("max" in $$props2)
+      $$invalidate(4, max = $$props2.max);
+    if ("step" in $$props2)
+      $$invalidate(5, step = $$props2.step);
+    if ("placeholder" in $$props2)
+      $$invalidate(6, placeholder = $$props2.placeholder);
+    if ("validationError" in $$props2)
+      $$invalidate(7, validationError = $$props2.validationError);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*value*/
+    4) {
+      $:
+        $$invalidate(8, inputValue = value);
+    }
+  };
+  return [
+    label,
+    description,
+    value,
+    min,
+    max,
+    step,
+    placeholder,
+    validationError,
+    inputValue,
+    handleInput,
+    handleChange,
+    increment,
+    decrement
+  ];
+}
+var NumberSetting = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance7, create_fragment7, safe_not_equal, {
+      label: 0,
+      description: 1,
+      value: 2,
+      min: 3,
+      max: 4,
+      step: 5,
+      placeholder: 6,
+      validationError: 7
+    });
+  }
+};
+var NumberSetting_default = NumberSetting;
+
+// src/ui/settings/components/ToggleSetting.svelte
+function create_if_block_14(ctx) {
+  let p;
+  let t;
+  return {
+    c() {
+      p = element("p");
+      t = text(
+        /*description*/
+        ctx[1]
+      );
+      attr(p, "class", "ka-toggle-setting__description svelte-giyhds");
+    },
+    m(target, anchor) {
+      insert(target, p, anchor);
+      append(p, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*description*/
+      2)
+        set_data(
+          t,
+          /*description*/
+          ctx2[1]
+        );
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(p);
+      }
+    }
+  };
+}
+function create_if_block5(ctx) {
+  let div;
+  let icon;
+  let t0;
+  let span;
+  let t1;
+  let current;
+  icon = new Icon_default({
+    props: { name: "alert-circle", size: 14 }
+  });
+  return {
+    c() {
+      div = element("div");
+      create_component(icon.$$.fragment);
+      t0 = space();
+      span = element("span");
+      t1 = text(
+        /*validationError*/
+        ctx[3]
+      );
+      attr(div, "class", "ka-toggle-setting__error svelte-giyhds");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      mount_component(icon, div, null);
+      append(div, t0);
+      append(div, span);
+      append(span, t1);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      if (!current || dirty & /*validationError*/
+      8)
+        set_data(
+          t1,
+          /*validationError*/
+          ctx2[3]
+        );
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      destroy_component(icon);
+    }
+  };
+}
+function create_fragment8(ctx) {
+  let div3;
+  let div2;
+  let label_1;
+  let t0;
+  let t1;
+  let div1;
+  let input;
+  let t2;
+  let div0;
+  let t3;
+  let icon;
+  let t4;
+  let t5;
+  let current;
+  let mounted;
+  let dispose;
+  icon = new Icon_default({
+    props: {
+      name: "check",
+      size: 14,
+      class: "ka-toggle-setting__icon ka-toggle-setting__icon--check"
+    }
+  });
+  let if_block0 = (
+    /*description*/
+    ctx[1] && create_if_block_14(ctx)
+  );
+  let if_block1 = (
+    /*validationError*/
+    ctx[3] && create_if_block5(ctx)
+  );
+  return {
+    c() {
+      div3 = element("div");
+      div2 = element("div");
+      label_1 = element("label");
+      t0 = text(
+        /*label*/
+        ctx[0]
+      );
+      t1 = space();
+      div1 = element("div");
+      input = element("input");
+      t2 = space();
+      div0 = element("div");
+      t3 = space();
+      create_component(icon.$$.fragment);
+      t4 = space();
+      if (if_block0)
+        if_block0.c();
+      t5 = space();
+      if (if_block1)
+        if_block1.c();
+      attr(
+        label_1,
+        "for",
+        /*label*/
+        ctx[0]
+      );
+      attr(label_1, "class", "ka-toggle-setting__label svelte-giyhds");
+      attr(
+        input,
+        "id",
+        /*label*/
+        ctx[0]
+      );
+      attr(input, "type", "checkbox");
+      attr(input, "class", "ka-toggle-setting__input svelte-giyhds");
+      input.checked = /*checked*/
+      ctx[2];
+      attr(div0, "class", "ka-toggle-setting__slider svelte-giyhds");
+      attr(div1, "class", "ka-toggle-setting__switch svelte-giyhds");
+      attr(div2, "class", "ka-toggle-setting__header svelte-giyhds");
+      attr(div3, "class", "ka-toggle-setting svelte-giyhds");
+    },
+    m(target, anchor) {
+      insert(target, div3, anchor);
+      append(div3, div2);
+      append(div2, label_1);
+      append(label_1, t0);
+      append(div2, t1);
+      append(div2, div1);
+      append(div1, input);
+      append(div1, t2);
+      append(div1, div0);
+      append(div1, t3);
+      mount_component(icon, div1, null);
+      append(div3, t4);
+      if (if_block0)
+        if_block0.m(div3, null);
+      append(div3, t5);
+      if (if_block1)
+        if_block1.m(div3, null);
+      current = true;
+      if (!mounted) {
+        dispose = listen(
+          input,
+          "change",
+          /*handleChange*/
+          ctx[4]
+        );
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (!current || dirty & /*label*/
+      1)
+        set_data(
+          t0,
+          /*label*/
+          ctx2[0]
+        );
+      if (!current || dirty & /*label*/
+      1) {
+        attr(
+          label_1,
+          "for",
+          /*label*/
+          ctx2[0]
+        );
+      }
+      if (!current || dirty & /*label*/
+      1) {
+        attr(
+          input,
+          "id",
+          /*label*/
+          ctx2[0]
+        );
+      }
+      if (!current || dirty & /*checked*/
+      4) {
+        input.checked = /*checked*/
+        ctx2[2];
+      }
+      if (
+        /*description*/
+        ctx2[1]
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_14(ctx2);
+          if_block0.c();
+          if_block0.m(div3, t5);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (
+        /*validationError*/
+        ctx2[3]
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+          if (dirty & /*validationError*/
+          8) {
+            transition_in(if_block1, 1);
+          }
+        } else {
+          if_block1 = create_if_block5(ctx2);
+          if_block1.c();
+          transition_in(if_block1, 1);
+          if_block1.m(div3, null);
+        }
+      } else if (if_block1) {
+        group_outros();
+        transition_out(if_block1, 1, 1, () => {
+          if_block1 = null;
+        });
+        check_outros();
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(icon.$$.fragment, local);
+      transition_in(if_block1);
+      current = true;
+    },
+    o(local) {
+      transition_out(icon.$$.fragment, local);
+      transition_out(if_block1);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div3);
+      }
+      destroy_component(icon);
+      if (if_block0)
+        if_block0.d();
+      if (if_block1)
+        if_block1.d();
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function instance8($$self, $$props, $$invalidate) {
+  let { label } = $$props;
+  let { description = "" } = $$props;
+  let { checked = false } = $$props;
+  let { validationError = void 0 } = $$props;
+  const dispatch = createEventDispatcher();
+  function handleChange(event) {
+    const target = event.target;
+    dispatch("update", target.checked);
+  }
+  $$self.$$set = ($$props2) => {
+    if ("label" in $$props2)
+      $$invalidate(0, label = $$props2.label);
+    if ("description" in $$props2)
+      $$invalidate(1, description = $$props2.description);
+    if ("checked" in $$props2)
+      $$invalidate(2, checked = $$props2.checked);
+    if ("validationError" in $$props2)
+      $$invalidate(3, validationError = $$props2.validationError);
+  };
+  return [label, description, checked, validationError, handleChange];
+}
+var ToggleSetting = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance8, create_fragment8, safe_not_equal, {
+      label: 0,
+      description: 1,
+      checked: 2,
+      validationError: 3
+    });
+  }
+};
+var ToggleSetting_default = ToggleSetting;
+
+// src/ui/settings/sections/ReviewSettings.svelte
+function create_if_block6(ctx) {
+  let numbersetting;
+  let current;
+  numbersetting = new NumberSetting_default({
+    props: {
+      label: "Soft Delete Duration",
+      description: "Hours before soft-deleted cards are permanently removed",
+      value: (
+        /*settings*/
+        ctx[2].softDeleteHours
+      ),
+      min: 1,
+      max: 168,
+      step: 1,
+      validationError: (
+        /*$store*/
+        ctx[1].validationErrors.softDeleteHours
+      )
+    }
+  });
+  numbersetting.$on(
+    "update",
+    /*update_handler_3*/
+    ctx[7]
+  );
+  return {
+    c() {
+      create_component(numbersetting.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(numbersetting, target, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const numbersetting_changes = {};
+      if (dirty & /*settings*/
+      4)
+        numbersetting_changes.value = /*settings*/
+        ctx2[2].softDeleteHours;
+      if (dirty & /*$store*/
+      2)
+        numbersetting_changes.validationError = /*$store*/
+        ctx2[1].validationErrors.softDeleteHours;
+      numbersetting.$set(numbersetting_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(numbersetting.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(numbersetting.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(numbersetting, detaching);
+    }
+  };
+}
+function create_fragment9(ctx) {
+  let div2;
+  let div0;
+  let t3;
+  let div1;
+  let textsetting;
+  let t4;
+  let numbersetting;
+  let t5;
+  let togglesetting;
+  let t6;
+  let current;
+  textsetting = new TextSetting_default({
+    props: {
+      label: "Flashcards Directory",
+      description: "The default directory for flashcard files",
+      value: (
+        /*settings*/
+        ctx[2].flashcardsDirectory
+      ),
+      placeholder: "/flashcards/",
+      validationError: (
+        /*$store*/
+        ctx[1].validationErrors.flashcardsDirectory
+      )
+    }
+  });
+  textsetting.$on(
+    "update",
+    /*update_handler*/
+    ctx[4]
+  );
+  numbersetting = new NumberSetting_default({
+    props: {
+      label: "Debounce Timeout",
+      description: "Milliseconds to wait before processing file changes",
+      value: (
+        /*settings*/
+        ctx[2].debounceTimeoutMs
+      ),
+      min: 100,
+      max: 5e3,
+      step: 100,
+      validationError: (
+        /*$store*/
+        ctx[1].validationErrors.debounceTimeoutMs
+      )
+    }
+  });
+  numbersetting.$on(
+    "update",
+    /*update_handler_1*/
+    ctx[5]
+  );
+  togglesetting = new ToggleSetting_default({
+    props: {
+      label: "Enable Soft Delete",
+      description: "Move deleted cards to trash instead of permanent deletion",
+      checked: (
+        /*settings*/
+        ctx[2].enableSoftDelete
+      ),
+      validationError: (
+        /*$store*/
+        ctx[1].validationErrors.enableSoftDelete
+      )
+    }
+  });
+  togglesetting.$on(
+    "update",
+    /*update_handler_2*/
+    ctx[6]
+  );
+  let if_block = (
+    /*settings*/
+    ctx[2].enableSoftDelete && create_if_block6(ctx)
+  );
+  return {
+    c() {
+      div2 = element("div");
+      div0 = element("div");
+      div0.innerHTML = `<h2 class="ka-section__title svelte-imkoou">Review Settings</h2> <p class="ka-section__description svelte-imkoou">Configure review behavior and card management</p>`;
+      t3 = space();
+      div1 = element("div");
+      create_component(textsetting.$$.fragment);
+      t4 = space();
+      create_component(numbersetting.$$.fragment);
+      t5 = space();
+      create_component(togglesetting.$$.fragment);
+      t6 = space();
+      if (if_block)
+        if_block.c();
+      attr(div0, "class", "ka-section__header svelte-imkoou");
+      attr(div1, "class", "ka-section__settings svelte-imkoou");
+      attr(div2, "class", "ka-section svelte-imkoou");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, div0);
+      append(div2, t3);
+      append(div2, div1);
+      mount_component(textsetting, div1, null);
+      append(div1, t4);
+      mount_component(numbersetting, div1, null);
+      append(div1, t5);
+      mount_component(togglesetting, div1, null);
+      append(div1, t6);
+      if (if_block)
+        if_block.m(div1, null);
+      current = true;
+    },
+    p(ctx2, [dirty]) {
+      const textsetting_changes = {};
+      if (dirty & /*settings*/
+      4)
+        textsetting_changes.value = /*settings*/
+        ctx2[2].flashcardsDirectory;
+      if (dirty & /*$store*/
+      2)
+        textsetting_changes.validationError = /*$store*/
+        ctx2[1].validationErrors.flashcardsDirectory;
+      textsetting.$set(textsetting_changes);
+      const numbersetting_changes = {};
+      if (dirty & /*settings*/
+      4)
+        numbersetting_changes.value = /*settings*/
+        ctx2[2].debounceTimeoutMs;
+      if (dirty & /*$store*/
+      2)
+        numbersetting_changes.validationError = /*$store*/
+        ctx2[1].validationErrors.debounceTimeoutMs;
+      numbersetting.$set(numbersetting_changes);
+      const togglesetting_changes = {};
+      if (dirty & /*settings*/
+      4)
+        togglesetting_changes.checked = /*settings*/
+        ctx2[2].enableSoftDelete;
+      if (dirty & /*$store*/
+      2)
+        togglesetting_changes.validationError = /*$store*/
+        ctx2[1].validationErrors.enableSoftDelete;
+      togglesetting.$set(togglesetting_changes);
+      if (
+        /*settings*/
+        ctx2[2].enableSoftDelete
+      ) {
+        if (if_block) {
+          if_block.p(ctx2, dirty);
+          if (dirty & /*settings*/
+          4) {
+            transition_in(if_block, 1);
+          }
+        } else {
+          if_block = create_if_block6(ctx2);
+          if_block.c();
+          transition_in(if_block, 1);
+          if_block.m(div1, null);
+        }
+      } else if (if_block) {
+        group_outros();
+        transition_out(if_block, 1, 1, () => {
+          if_block = null;
+        });
+        check_outros();
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(textsetting.$$.fragment, local);
+      transition_in(numbersetting.$$.fragment, local);
+      transition_in(togglesetting.$$.fragment, local);
+      transition_in(if_block);
+      current = true;
+    },
+    o(local) {
+      transition_out(textsetting.$$.fragment, local);
+      transition_out(numbersetting.$$.fragment, local);
+      transition_out(togglesetting.$$.fragment, local);
+      transition_out(if_block);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      destroy_component(textsetting);
+      destroy_component(numbersetting);
+      destroy_component(togglesetting);
+      if (if_block)
+        if_block.d();
+    }
+  };
+}
+function instance9($$self, $$props, $$invalidate) {
+  let settings;
+  let $store, $$unsubscribe_store = noop, $$subscribe_store = () => ($$unsubscribe_store(), $$unsubscribe_store = subscribe(store, ($$value) => $$invalidate(1, $store = $$value)), store);
+  $$self.$$.on_destroy.push(() => $$unsubscribe_store());
+  let { store } = $$props;
+  $$subscribe_store();
+  function handleUpdate(key, value) {
+    if (!store)
+      return;
+    const isValid = store.validateSetting(key, value);
+    if (isValid) {
+      store.setPendingChanges({ [key]: value });
+    }
+  }
+  const update_handler = (value) => handleUpdate("flashcardsDirectory", value);
+  const update_handler_1 = (value) => handleUpdate("debounceTimeoutMs", value);
+  const update_handler_2 = (value) => handleUpdate("enableSoftDelete", value);
+  const update_handler_3 = (value) => handleUpdate("softDeleteHours", value);
+  $$self.$$set = ($$props2) => {
+    if ("store" in $$props2)
+      $$subscribe_store($$invalidate(0, store = $$props2.store));
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*$store*/
+    2) {
+      $:
+        $$invalidate(2, settings = $store == null ? void 0 : $store.settings);
+    }
+  };
+  return [
+    store,
+    $store,
+    settings,
+    handleUpdate,
+    update_handler,
+    update_handler_1,
+    update_handler_2,
+    update_handler_3
+  ];
+}
+var ReviewSettings = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance9, create_fragment9, safe_not_equal, { store: 0 });
+  }
+};
+var ReviewSettings_default = ReviewSettings;
+
+// src/ui/settings/components/TagSetting.svelte
+function get_each_context3(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[16] = list[i];
   child_ctx[18] = i;
@@ -2732,7 +4366,7 @@ function create_else_block2(ctx) {
     }
   };
 }
-function create_each_block2(ctx) {
+function create_each_block3(ctx) {
   let div;
   let span;
   let t0_value = (
@@ -2819,7 +4453,7 @@ function create_each_block2(ctx) {
     }
   };
 }
-function create_default_slot2(ctx) {
+function create_default_slot3(ctx) {
   let icon;
   let t;
   let current;
@@ -2853,7 +4487,7 @@ function create_default_slot2(ctx) {
     }
   };
 }
-function create_if_block_13(ctx) {
+function create_if_block_15(ctx) {
   let div;
   let icon;
   let t0;
@@ -2910,7 +4544,7 @@ function create_if_block_13(ctx) {
     }
   };
 }
-function create_if_block4(ctx) {
+function create_if_block7(ctx) {
   let div;
   let icon;
   let t0;
@@ -2967,7 +4601,7 @@ function create_if_block4(ctx) {
     }
   };
 }
-function create_fragment6(ctx) {
+function create_fragment10(ctx) {
   let div2;
   let label_1;
   let t0;
@@ -2996,7 +4630,7 @@ function create_fragment6(ctx) {
   );
   let each_blocks = [];
   for (let i = 0; i < each_value.length; i += 1) {
-    each_blocks[i] = create_each_block2(get_each_context2(ctx, each_value, i));
+    each_blocks[i] = create_each_block3(get_each_context3(ctx, each_value, i));
   }
   const out = (i) => transition_out(each_blocks[i], 1, 1, () => {
     each_blocks[i] = null;
@@ -3011,7 +4645,7 @@ function create_fragment6(ctx) {
       size: "small",
       disabled: !/*newInputValue*/
       ctx[5].trim(),
-      $$slots: { default: [create_default_slot2] },
+      $$slots: { default: [create_default_slot3] },
       $$scope: { ctx }
     }
   });
@@ -3022,11 +4656,11 @@ function create_fragment6(ctx) {
   );
   let if_block1 = (
     /*tagError*/
-    ctx[7] && create_if_block_13(ctx)
+    ctx[7] && create_if_block_15(ctx)
   );
   let if_block2 = (
     /*validationError*/
-    ctx[4] && create_if_block4(ctx)
+    ctx[4] && create_if_block7(ctx)
   );
   return {
     c() {
@@ -3177,12 +4811,12 @@ function create_fragment6(ctx) {
         );
         let i;
         for (i = 0; i < each_value.length; i += 1) {
-          const child_ctx = get_each_context2(ctx2, each_value, i);
+          const child_ctx = get_each_context3(ctx2, each_value, i);
           if (each_blocks[i]) {
             each_blocks[i].p(child_ctx, dirty);
             transition_in(each_blocks[i], 1);
           } else {
-            each_blocks[i] = create_each_block2(child_ctx);
+            each_blocks[i] = create_each_block3(child_ctx);
             each_blocks[i].c();
             transition_in(each_blocks[i], 1);
             each_blocks[i].m(div0, null);
@@ -3262,7 +4896,7 @@ function create_fragment6(ctx) {
             transition_in(if_block1, 1);
           }
         } else {
-          if_block1 = create_if_block_13(ctx2);
+          if_block1 = create_if_block_15(ctx2);
           if_block1.c();
           transition_in(if_block1, 1);
           if_block1.m(div2, t6);
@@ -3285,7 +4919,7 @@ function create_fragment6(ctx) {
             transition_in(if_block2, 1);
           }
         } else {
-          if_block2 = create_if_block4(ctx2);
+          if_block2 = create_if_block7(ctx2);
           if_block2.c();
           transition_in(if_block2, 1);
           if_block2.m(div2, null);
@@ -3339,7 +4973,7 @@ function create_fragment6(ctx) {
     }
   };
 }
-function instance6($$self, $$props, $$invalidate) {
+function instance10($$self, $$props, $$invalidate) {
   let { label } = $$props;
   let { description = "" } = $$props;
   let { tags = [] } = $$props;
@@ -3426,7 +5060,7 @@ function instance6($$self, $$props, $$invalidate) {
 var TagSetting = class extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance6, create_fragment6, safe_not_equal, {
+    init(this, options, instance10, create_fragment10, safe_not_equal, {
       label: 0,
       description: 1,
       tags: 2,
@@ -3438,7 +5072,7 @@ var TagSetting = class extends SvelteComponent {
 var TagSetting_default = TagSetting;
 
 // src/ui/settings/sections/WatchingSettings.svelte
-function create_fragment7(ctx) {
+function create_fragment11(ctx) {
   let div2;
   let div0;
   let t3;
@@ -3647,7 +5281,7 @@ function create_fragment7(ctx) {
     }
   };
 }
-function instance7($$self, $$props, $$invalidate) {
+function instance11($$self, $$props, $$invalidate) {
   let settings;
   let $store, $$unsubscribe_store = noop, $$subscribe_store = () => ($$unsubscribe_store(), $$unsubscribe_store = subscribe(store, ($$value) => $$invalidate(1, $store = $$value)), store);
   $$self.$$.on_destroy.push(() => $$unsubscribe_store());
@@ -3712,1644 +5346,12 @@ function instance7($$self, $$props, $$invalidate) {
 var WatchingSettings = class extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance7, create_fragment7, safe_not_equal, { store: 0 });
+    init(this, options, instance11, create_fragment11, safe_not_equal, { store: 0 });
   }
 };
 var WatchingSettings_default = WatchingSettings;
 
-// src/ui/settings/components/NumberSetting.svelte
-function create_if_block_14(ctx) {
-  let p;
-  let t;
-  return {
-    c() {
-      p = element("p");
-      t = text(
-        /*description*/
-        ctx[1]
-      );
-      attr(p, "class", "ka-number-setting__description svelte-cxwg2w");
-    },
-    m(target, anchor) {
-      insert(target, p, anchor);
-      append(p, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty & /*description*/
-      2)
-        set_data(
-          t,
-          /*description*/
-          ctx2[1]
-        );
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(p);
-      }
-    }
-  };
-}
-function create_if_block5(ctx) {
-  let div;
-  let icon;
-  let t0;
-  let span;
-  let t1;
-  let current;
-  icon = new Icon_default({
-    props: { name: "alert-circle", size: 14 }
-  });
-  return {
-    c() {
-      div = element("div");
-      create_component(icon.$$.fragment);
-      t0 = space();
-      span = element("span");
-      t1 = text(
-        /*validationError*/
-        ctx[7]
-      );
-      attr(div, "class", "ka-number-setting__error svelte-cxwg2w");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      mount_component(icon, div, null);
-      append(div, t0);
-      append(div, span);
-      append(span, t1);
-      current = true;
-    },
-    p(ctx2, dirty) {
-      if (!current || dirty & /*validationError*/
-      128)
-        set_data(
-          t1,
-          /*validationError*/
-          ctx2[7]
-        );
-    },
-    i(local) {
-      if (current)
-        return;
-      transition_in(icon.$$.fragment, local);
-      current = true;
-    },
-    o(local) {
-      transition_out(icon.$$.fragment, local);
-      current = false;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-      destroy_component(icon);
-    }
-  };
-}
-function create_fragment8(ctx) {
-  let div1;
-  let label_1;
-  let t0;
-  let t1;
-  let t2;
-  let div0;
-  let button0;
-  let icon0;
-  let button0_disabled_value;
-  let t3;
-  let input;
-  let t4;
-  let button1;
-  let icon1;
-  let button1_disabled_value;
-  let t5;
-  let current;
-  let mounted;
-  let dispose;
-  let if_block0 = (
-    /*description*/
-    ctx[1] && create_if_block_14(ctx)
-  );
-  icon0 = new Icon_default({ props: { name: "minus", size: 14 } });
-  icon1 = new Icon_default({ props: { name: "plus", size: 14 } });
-  let if_block1 = (
-    /*validationError*/
-    ctx[7] && create_if_block5(ctx)
-  );
-  return {
-    c() {
-      div1 = element("div");
-      label_1 = element("label");
-      t0 = text(
-        /*label*/
-        ctx[0]
-      );
-      t1 = space();
-      if (if_block0)
-        if_block0.c();
-      t2 = space();
-      div0 = element("div");
-      button0 = element("button");
-      create_component(icon0.$$.fragment);
-      t3 = space();
-      input = element("input");
-      t4 = space();
-      button1 = element("button");
-      create_component(icon1.$$.fragment);
-      t5 = space();
-      if (if_block1)
-        if_block1.c();
-      attr(
-        label_1,
-        "for",
-        /*label*/
-        ctx[0]
-      );
-      attr(label_1, "class", "ka-number-setting__label svelte-cxwg2w");
-      attr(button0, "class", "ka-number-setting__button ka-number-setting__button--decrement svelte-cxwg2w");
-      button0.disabled = button0_disabled_value = /*min*/
-      ctx[3] !== void 0 && /*inputValue*/
-      ctx[8] <= /*min*/
-      ctx[3];
-      attr(button0, "aria-label", "Decrease value");
-      attr(
-        input,
-        "id",
-        /*label*/
-        ctx[0]
-      );
-      attr(input, "type", "number");
-      attr(input, "class", "ka-number-setting__input svelte-cxwg2w");
-      attr(
-        input,
-        "placeholder",
-        /*placeholder*/
-        ctx[6]
-      );
-      attr(
-        input,
-        "min",
-        /*min*/
-        ctx[3]
-      );
-      attr(
-        input,
-        "max",
-        /*max*/
-        ctx[4]
-      );
-      attr(
-        input,
-        "step",
-        /*step*/
-        ctx[5]
-      );
-      input.value = /*value*/
-      ctx[2];
-      toggle_class(
-        input,
-        "has-error",
-        /*validationError*/
-        ctx[7]
-      );
-      attr(button1, "class", "ka-number-setting__button ka-number-setting__button--increment svelte-cxwg2w");
-      button1.disabled = button1_disabled_value = /*max*/
-      ctx[4] !== void 0 && /*inputValue*/
-      ctx[8] >= /*max*/
-      ctx[4];
-      attr(button1, "aria-label", "Increase value");
-      attr(div0, "class", "ka-number-setting__input-wrapper svelte-cxwg2w");
-      attr(div1, "class", "ka-number-setting svelte-cxwg2w");
-    },
-    m(target, anchor) {
-      insert(target, div1, anchor);
-      append(div1, label_1);
-      append(label_1, t0);
-      append(div1, t1);
-      if (if_block0)
-        if_block0.m(div1, null);
-      append(div1, t2);
-      append(div1, div0);
-      append(div0, button0);
-      mount_component(icon0, button0, null);
-      append(div0, t3);
-      append(div0, input);
-      append(div0, t4);
-      append(div0, button1);
-      mount_component(icon1, button1, null);
-      append(div1, t5);
-      if (if_block1)
-        if_block1.m(div1, null);
-      current = true;
-      if (!mounted) {
-        dispose = [
-          listen(
-            button0,
-            "click",
-            /*decrement*/
-            ctx[12]
-          ),
-          listen(
-            input,
-            "input",
-            /*handleInput*/
-            ctx[9]
-          ),
-          listen(
-            input,
-            "change",
-            /*handleChange*/
-            ctx[10]
-          ),
-          listen(
-            button1,
-            "click",
-            /*increment*/
-            ctx[11]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p(ctx2, [dirty]) {
-      if (!current || dirty & /*label*/
-      1)
-        set_data(
-          t0,
-          /*label*/
-          ctx2[0]
-        );
-      if (!current || dirty & /*label*/
-      1) {
-        attr(
-          label_1,
-          "for",
-          /*label*/
-          ctx2[0]
-        );
-      }
-      if (
-        /*description*/
-        ctx2[1]
-      ) {
-        if (if_block0) {
-          if_block0.p(ctx2, dirty);
-        } else {
-          if_block0 = create_if_block_14(ctx2);
-          if_block0.c();
-          if_block0.m(div1, t2);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (!current || dirty & /*min, inputValue*/
-      264 && button0_disabled_value !== (button0_disabled_value = /*min*/
-      ctx2[3] !== void 0 && /*inputValue*/
-      ctx2[8] <= /*min*/
-      ctx2[3])) {
-        button0.disabled = button0_disabled_value;
-      }
-      if (!current || dirty & /*label*/
-      1) {
-        attr(
-          input,
-          "id",
-          /*label*/
-          ctx2[0]
-        );
-      }
-      if (!current || dirty & /*placeholder*/
-      64) {
-        attr(
-          input,
-          "placeholder",
-          /*placeholder*/
-          ctx2[6]
-        );
-      }
-      if (!current || dirty & /*min*/
-      8) {
-        attr(
-          input,
-          "min",
-          /*min*/
-          ctx2[3]
-        );
-      }
-      if (!current || dirty & /*max*/
-      16) {
-        attr(
-          input,
-          "max",
-          /*max*/
-          ctx2[4]
-        );
-      }
-      if (!current || dirty & /*step*/
-      32) {
-        attr(
-          input,
-          "step",
-          /*step*/
-          ctx2[5]
-        );
-      }
-      if (!current || dirty & /*value*/
-      4 && input.value !== /*value*/
-      ctx2[2]) {
-        input.value = /*value*/
-        ctx2[2];
-      }
-      if (!current || dirty & /*validationError*/
-      128) {
-        toggle_class(
-          input,
-          "has-error",
-          /*validationError*/
-          ctx2[7]
-        );
-      }
-      if (!current || dirty & /*max, inputValue*/
-      272 && button1_disabled_value !== (button1_disabled_value = /*max*/
-      ctx2[4] !== void 0 && /*inputValue*/
-      ctx2[8] >= /*max*/
-      ctx2[4])) {
-        button1.disabled = button1_disabled_value;
-      }
-      if (
-        /*validationError*/
-        ctx2[7]
-      ) {
-        if (if_block1) {
-          if_block1.p(ctx2, dirty);
-          if (dirty & /*validationError*/
-          128) {
-            transition_in(if_block1, 1);
-          }
-        } else {
-          if_block1 = create_if_block5(ctx2);
-          if_block1.c();
-          transition_in(if_block1, 1);
-          if_block1.m(div1, null);
-        }
-      } else if (if_block1) {
-        group_outros();
-        transition_out(if_block1, 1, 1, () => {
-          if_block1 = null;
-        });
-        check_outros();
-      }
-    },
-    i(local) {
-      if (current)
-        return;
-      transition_in(icon0.$$.fragment, local);
-      transition_in(icon1.$$.fragment, local);
-      transition_in(if_block1);
-      current = true;
-    },
-    o(local) {
-      transition_out(icon0.$$.fragment, local);
-      transition_out(icon1.$$.fragment, local);
-      transition_out(if_block1);
-      current = false;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div1);
-      }
-      if (if_block0)
-        if_block0.d();
-      destroy_component(icon0);
-      destroy_component(icon1);
-      if (if_block1)
-        if_block1.d();
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function instance8($$self, $$props, $$invalidate) {
-  let { label } = $$props;
-  let { description = "" } = $$props;
-  let { value = 0 } = $$props;
-  let { min = void 0 } = $$props;
-  let { max = void 0 } = $$props;
-  let { step = 1 } = $$props;
-  let { placeholder = "" } = $$props;
-  let { validationError = void 0 } = $$props;
-  const dispatch = createEventDispatcher();
-  let inputValue = value;
-  function handleInput(event) {
-    const target = event.target;
-    const parsed = parseFloat(target.value);
-    $$invalidate(8, inputValue = isNaN(parsed) ? 0 : parsed);
-  }
-  function handleChange() {
-    dispatch("update", inputValue);
-  }
-  function increment() {
-    const newValue = Math.min(max != null ? max : Infinity, inputValue + step);
-    $$invalidate(8, inputValue = newValue);
-    dispatch("update", newValue);
-  }
-  function decrement() {
-    const newValue = Math.max(min != null ? min : -Infinity, inputValue - step);
-    $$invalidate(8, inputValue = newValue);
-    dispatch("update", newValue);
-  }
-  $$self.$$set = ($$props2) => {
-    if ("label" in $$props2)
-      $$invalidate(0, label = $$props2.label);
-    if ("description" in $$props2)
-      $$invalidate(1, description = $$props2.description);
-    if ("value" in $$props2)
-      $$invalidate(2, value = $$props2.value);
-    if ("min" in $$props2)
-      $$invalidate(3, min = $$props2.min);
-    if ("max" in $$props2)
-      $$invalidate(4, max = $$props2.max);
-    if ("step" in $$props2)
-      $$invalidate(5, step = $$props2.step);
-    if ("placeholder" in $$props2)
-      $$invalidate(6, placeholder = $$props2.placeholder);
-    if ("validationError" in $$props2)
-      $$invalidate(7, validationError = $$props2.validationError);
-  };
-  $$self.$$.update = () => {
-    if ($$self.$$.dirty & /*value*/
-    4) {
-      $:
-        $$invalidate(8, inputValue = value);
-    }
-  };
-  return [
-    label,
-    description,
-    value,
-    min,
-    max,
-    step,
-    placeholder,
-    validationError,
-    inputValue,
-    handleInput,
-    handleChange,
-    increment,
-    decrement
-  ];
-}
-var NumberSetting = class extends SvelteComponent {
-  constructor(options) {
-    super();
-    init(this, options, instance8, create_fragment8, safe_not_equal, {
-      label: 0,
-      description: 1,
-      value: 2,
-      min: 3,
-      max: 4,
-      step: 5,
-      placeholder: 6,
-      validationError: 7
-    });
-  }
-};
-var NumberSetting_default = NumberSetting;
-
-// src/ui/settings/components/ToggleSetting.svelte
-function create_if_block_15(ctx) {
-  let p;
-  let t;
-  return {
-    c() {
-      p = element("p");
-      t = text(
-        /*description*/
-        ctx[1]
-      );
-      attr(p, "class", "ka-toggle-setting__description svelte-giyhds");
-    },
-    m(target, anchor) {
-      insert(target, p, anchor);
-      append(p, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty & /*description*/
-      2)
-        set_data(
-          t,
-          /*description*/
-          ctx2[1]
-        );
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(p);
-      }
-    }
-  };
-}
-function create_if_block6(ctx) {
-  let div;
-  let icon;
-  let t0;
-  let span;
-  let t1;
-  let current;
-  icon = new Icon_default({
-    props: { name: "alert-circle", size: 14 }
-  });
-  return {
-    c() {
-      div = element("div");
-      create_component(icon.$$.fragment);
-      t0 = space();
-      span = element("span");
-      t1 = text(
-        /*validationError*/
-        ctx[3]
-      );
-      attr(div, "class", "ka-toggle-setting__error svelte-giyhds");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      mount_component(icon, div, null);
-      append(div, t0);
-      append(div, span);
-      append(span, t1);
-      current = true;
-    },
-    p(ctx2, dirty) {
-      if (!current || dirty & /*validationError*/
-      8)
-        set_data(
-          t1,
-          /*validationError*/
-          ctx2[3]
-        );
-    },
-    i(local) {
-      if (current)
-        return;
-      transition_in(icon.$$.fragment, local);
-      current = true;
-    },
-    o(local) {
-      transition_out(icon.$$.fragment, local);
-      current = false;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-      destroy_component(icon);
-    }
-  };
-}
-function create_fragment9(ctx) {
-  let div3;
-  let div2;
-  let label_1;
-  let t0;
-  let t1;
-  let div1;
-  let input;
-  let t2;
-  let div0;
-  let t3;
-  let icon;
-  let t4;
-  let t5;
-  let current;
-  let mounted;
-  let dispose;
-  icon = new Icon_default({
-    props: {
-      name: "check",
-      size: 14,
-      class: "ka-toggle-setting__icon ka-toggle-setting__icon--check"
-    }
-  });
-  let if_block0 = (
-    /*description*/
-    ctx[1] && create_if_block_15(ctx)
-  );
-  let if_block1 = (
-    /*validationError*/
-    ctx[3] && create_if_block6(ctx)
-  );
-  return {
-    c() {
-      div3 = element("div");
-      div2 = element("div");
-      label_1 = element("label");
-      t0 = text(
-        /*label*/
-        ctx[0]
-      );
-      t1 = space();
-      div1 = element("div");
-      input = element("input");
-      t2 = space();
-      div0 = element("div");
-      t3 = space();
-      create_component(icon.$$.fragment);
-      t4 = space();
-      if (if_block0)
-        if_block0.c();
-      t5 = space();
-      if (if_block1)
-        if_block1.c();
-      attr(
-        label_1,
-        "for",
-        /*label*/
-        ctx[0]
-      );
-      attr(label_1, "class", "ka-toggle-setting__label svelte-giyhds");
-      attr(
-        input,
-        "id",
-        /*label*/
-        ctx[0]
-      );
-      attr(input, "type", "checkbox");
-      attr(input, "class", "ka-toggle-setting__input svelte-giyhds");
-      input.checked = /*checked*/
-      ctx[2];
-      attr(div0, "class", "ka-toggle-setting__slider svelte-giyhds");
-      attr(div1, "class", "ka-toggle-setting__switch svelte-giyhds");
-      attr(div2, "class", "ka-toggle-setting__header svelte-giyhds");
-      attr(div3, "class", "ka-toggle-setting svelte-giyhds");
-    },
-    m(target, anchor) {
-      insert(target, div3, anchor);
-      append(div3, div2);
-      append(div2, label_1);
-      append(label_1, t0);
-      append(div2, t1);
-      append(div2, div1);
-      append(div1, input);
-      append(div1, t2);
-      append(div1, div0);
-      append(div1, t3);
-      mount_component(icon, div1, null);
-      append(div3, t4);
-      if (if_block0)
-        if_block0.m(div3, null);
-      append(div3, t5);
-      if (if_block1)
-        if_block1.m(div3, null);
-      current = true;
-      if (!mounted) {
-        dispose = listen(
-          input,
-          "change",
-          /*handleChange*/
-          ctx[4]
-        );
-        mounted = true;
-      }
-    },
-    p(ctx2, [dirty]) {
-      if (!current || dirty & /*label*/
-      1)
-        set_data(
-          t0,
-          /*label*/
-          ctx2[0]
-        );
-      if (!current || dirty & /*label*/
-      1) {
-        attr(
-          label_1,
-          "for",
-          /*label*/
-          ctx2[0]
-        );
-      }
-      if (!current || dirty & /*label*/
-      1) {
-        attr(
-          input,
-          "id",
-          /*label*/
-          ctx2[0]
-        );
-      }
-      if (!current || dirty & /*checked*/
-      4) {
-        input.checked = /*checked*/
-        ctx2[2];
-      }
-      if (
-        /*description*/
-        ctx2[1]
-      ) {
-        if (if_block0) {
-          if_block0.p(ctx2, dirty);
-        } else {
-          if_block0 = create_if_block_15(ctx2);
-          if_block0.c();
-          if_block0.m(div3, t5);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (
-        /*validationError*/
-        ctx2[3]
-      ) {
-        if (if_block1) {
-          if_block1.p(ctx2, dirty);
-          if (dirty & /*validationError*/
-          8) {
-            transition_in(if_block1, 1);
-          }
-        } else {
-          if_block1 = create_if_block6(ctx2);
-          if_block1.c();
-          transition_in(if_block1, 1);
-          if_block1.m(div3, null);
-        }
-      } else if (if_block1) {
-        group_outros();
-        transition_out(if_block1, 1, 1, () => {
-          if_block1 = null;
-        });
-        check_outros();
-      }
-    },
-    i(local) {
-      if (current)
-        return;
-      transition_in(icon.$$.fragment, local);
-      transition_in(if_block1);
-      current = true;
-    },
-    o(local) {
-      transition_out(icon.$$.fragment, local);
-      transition_out(if_block1);
-      current = false;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div3);
-      }
-      destroy_component(icon);
-      if (if_block0)
-        if_block0.d();
-      if (if_block1)
-        if_block1.d();
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function instance9($$self, $$props, $$invalidate) {
-  let { label } = $$props;
-  let { description = "" } = $$props;
-  let { checked = false } = $$props;
-  let { validationError = void 0 } = $$props;
-  const dispatch = createEventDispatcher();
-  function handleChange(event) {
-    const target = event.target;
-    dispatch("update", target.checked);
-  }
-  $$self.$$set = ($$props2) => {
-    if ("label" in $$props2)
-      $$invalidate(0, label = $$props2.label);
-    if ("description" in $$props2)
-      $$invalidate(1, description = $$props2.description);
-    if ("checked" in $$props2)
-      $$invalidate(2, checked = $$props2.checked);
-    if ("validationError" in $$props2)
-      $$invalidate(3, validationError = $$props2.validationError);
-  };
-  return [label, description, checked, validationError, handleChange];
-}
-var ToggleSetting = class extends SvelteComponent {
-  constructor(options) {
-    super();
-    init(this, options, instance9, create_fragment9, safe_not_equal, {
-      label: 0,
-      description: 1,
-      checked: 2,
-      validationError: 3
-    });
-  }
-};
-var ToggleSetting_default = ToggleSetting;
-
-// src/ui/settings/sections/ReviewSettings.svelte
-function create_if_block7(ctx) {
-  let numbersetting;
-  let current;
-  numbersetting = new NumberSetting_default({
-    props: {
-      label: "Soft Delete Duration",
-      description: "Hours before soft-deleted cards are permanently removed",
-      value: (
-        /*settings*/
-        ctx[2].softDeleteHours
-      ),
-      min: 1,
-      max: 168,
-      step: 1,
-      validationError: (
-        /*$store*/
-        ctx[1].validationErrors.softDeleteHours
-      )
-    }
-  });
-  numbersetting.$on(
-    "update",
-    /*update_handler_3*/
-    ctx[7]
-  );
-  return {
-    c() {
-      create_component(numbersetting.$$.fragment);
-    },
-    m(target, anchor) {
-      mount_component(numbersetting, target, anchor);
-      current = true;
-    },
-    p(ctx2, dirty) {
-      const numbersetting_changes = {};
-      if (dirty & /*settings*/
-      4)
-        numbersetting_changes.value = /*settings*/
-        ctx2[2].softDeleteHours;
-      if (dirty & /*$store*/
-      2)
-        numbersetting_changes.validationError = /*$store*/
-        ctx2[1].validationErrors.softDeleteHours;
-      numbersetting.$set(numbersetting_changes);
-    },
-    i(local) {
-      if (current)
-        return;
-      transition_in(numbersetting.$$.fragment, local);
-      current = true;
-    },
-    o(local) {
-      transition_out(numbersetting.$$.fragment, local);
-      current = false;
-    },
-    d(detaching) {
-      destroy_component(numbersetting, detaching);
-    }
-  };
-}
-function create_fragment10(ctx) {
-  let div2;
-  let div0;
-  let t3;
-  let div1;
-  let textsetting;
-  let t4;
-  let numbersetting;
-  let t5;
-  let togglesetting;
-  let t6;
-  let current;
-  textsetting = new TextSetting_default({
-    props: {
-      label: "Flashcards Directory",
-      description: "The default directory for flashcard files",
-      value: (
-        /*settings*/
-        ctx[2].flashcardsDirectory
-      ),
-      placeholder: "/flashcards/",
-      validationError: (
-        /*$store*/
-        ctx[1].validationErrors.flashcardsDirectory
-      )
-    }
-  });
-  textsetting.$on(
-    "update",
-    /*update_handler*/
-    ctx[4]
-  );
-  numbersetting = new NumberSetting_default({
-    props: {
-      label: "Debounce Timeout",
-      description: "Milliseconds to wait before processing file changes",
-      value: (
-        /*settings*/
-        ctx[2].debounceTimeoutMs
-      ),
-      min: 100,
-      max: 5e3,
-      step: 100,
-      validationError: (
-        /*$store*/
-        ctx[1].validationErrors.debounceTimeoutMs
-      )
-    }
-  });
-  numbersetting.$on(
-    "update",
-    /*update_handler_1*/
-    ctx[5]
-  );
-  togglesetting = new ToggleSetting_default({
-    props: {
-      label: "Enable Soft Delete",
-      description: "Move deleted cards to trash instead of permanent deletion",
-      checked: (
-        /*settings*/
-        ctx[2].enableSoftDelete
-      ),
-      validationError: (
-        /*$store*/
-        ctx[1].validationErrors.enableSoftDelete
-      )
-    }
-  });
-  togglesetting.$on(
-    "update",
-    /*update_handler_2*/
-    ctx[6]
-  );
-  let if_block = (
-    /*settings*/
-    ctx[2].enableSoftDelete && create_if_block7(ctx)
-  );
-  return {
-    c() {
-      div2 = element("div");
-      div0 = element("div");
-      div0.innerHTML = `<h2 class="ka-section__title svelte-imkoou">Review Settings</h2> <p class="ka-section__description svelte-imkoou">Configure review behavior and card management</p>`;
-      t3 = space();
-      div1 = element("div");
-      create_component(textsetting.$$.fragment);
-      t4 = space();
-      create_component(numbersetting.$$.fragment);
-      t5 = space();
-      create_component(togglesetting.$$.fragment);
-      t6 = space();
-      if (if_block)
-        if_block.c();
-      attr(div0, "class", "ka-section__header svelte-imkoou");
-      attr(div1, "class", "ka-section__settings svelte-imkoou");
-      attr(div2, "class", "ka-section svelte-imkoou");
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-      append(div2, div0);
-      append(div2, t3);
-      append(div2, div1);
-      mount_component(textsetting, div1, null);
-      append(div1, t4);
-      mount_component(numbersetting, div1, null);
-      append(div1, t5);
-      mount_component(togglesetting, div1, null);
-      append(div1, t6);
-      if (if_block)
-        if_block.m(div1, null);
-      current = true;
-    },
-    p(ctx2, [dirty]) {
-      const textsetting_changes = {};
-      if (dirty & /*settings*/
-      4)
-        textsetting_changes.value = /*settings*/
-        ctx2[2].flashcardsDirectory;
-      if (dirty & /*$store*/
-      2)
-        textsetting_changes.validationError = /*$store*/
-        ctx2[1].validationErrors.flashcardsDirectory;
-      textsetting.$set(textsetting_changes);
-      const numbersetting_changes = {};
-      if (dirty & /*settings*/
-      4)
-        numbersetting_changes.value = /*settings*/
-        ctx2[2].debounceTimeoutMs;
-      if (dirty & /*$store*/
-      2)
-        numbersetting_changes.validationError = /*$store*/
-        ctx2[1].validationErrors.debounceTimeoutMs;
-      numbersetting.$set(numbersetting_changes);
-      const togglesetting_changes = {};
-      if (dirty & /*settings*/
-      4)
-        togglesetting_changes.checked = /*settings*/
-        ctx2[2].enableSoftDelete;
-      if (dirty & /*$store*/
-      2)
-        togglesetting_changes.validationError = /*$store*/
-        ctx2[1].validationErrors.enableSoftDelete;
-      togglesetting.$set(togglesetting_changes);
-      if (
-        /*settings*/
-        ctx2[2].enableSoftDelete
-      ) {
-        if (if_block) {
-          if_block.p(ctx2, dirty);
-          if (dirty & /*settings*/
-          4) {
-            transition_in(if_block, 1);
-          }
-        } else {
-          if_block = create_if_block7(ctx2);
-          if_block.c();
-          transition_in(if_block, 1);
-          if_block.m(div1, null);
-        }
-      } else if (if_block) {
-        group_outros();
-        transition_out(if_block, 1, 1, () => {
-          if_block = null;
-        });
-        check_outros();
-      }
-    },
-    i(local) {
-      if (current)
-        return;
-      transition_in(textsetting.$$.fragment, local);
-      transition_in(numbersetting.$$.fragment, local);
-      transition_in(togglesetting.$$.fragment, local);
-      transition_in(if_block);
-      current = true;
-    },
-    o(local) {
-      transition_out(textsetting.$$.fragment, local);
-      transition_out(numbersetting.$$.fragment, local);
-      transition_out(togglesetting.$$.fragment, local);
-      transition_out(if_block);
-      current = false;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-      destroy_component(textsetting);
-      destroy_component(numbersetting);
-      destroy_component(togglesetting);
-      if (if_block)
-        if_block.d();
-    }
-  };
-}
-function instance10($$self, $$props, $$invalidate) {
-  let settings;
-  let $store, $$unsubscribe_store = noop, $$subscribe_store = () => ($$unsubscribe_store(), $$unsubscribe_store = subscribe(store, ($$value) => $$invalidate(1, $store = $$value)), store);
-  $$self.$$.on_destroy.push(() => $$unsubscribe_store());
-  let { store } = $$props;
-  $$subscribe_store();
-  function handleUpdate(key, value) {
-    if (!store)
-      return;
-    const isValid = store.validateSetting(key, value);
-    if (isValid) {
-      store.setPendingChanges({ [key]: value });
-    }
-  }
-  const update_handler = (value) => handleUpdate("flashcardsDirectory", value);
-  const update_handler_1 = (value) => handleUpdate("debounceTimeoutMs", value);
-  const update_handler_2 = (value) => handleUpdate("enableSoftDelete", value);
-  const update_handler_3 = (value) => handleUpdate("softDeleteHours", value);
-  $$self.$$set = ($$props2) => {
-    if ("store" in $$props2)
-      $$subscribe_store($$invalidate(0, store = $$props2.store));
-  };
-  $$self.$$.update = () => {
-    if ($$self.$$.dirty & /*$store*/
-    2) {
-      $:
-        $$invalidate(2, settings = $store == null ? void 0 : $store.settings);
-    }
-  };
-  return [
-    store,
-    $store,
-    settings,
-    handleUpdate,
-    update_handler,
-    update_handler_1,
-    update_handler_2,
-    update_handler_3
-  ];
-}
-var ReviewSettings = class extends SvelteComponent {
-  constructor(options) {
-    super();
-    init(this, options, instance10, create_fragment10, safe_not_equal, { store: 0 });
-  }
-};
-var ReviewSettings_default = ReviewSettings;
-
-// src/ui/settings/sections/AdvancedSettings.svelte
-var import_obsidian2 = require("obsidian");
-function get_each_context3(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[10] = list[i];
-  return child_ctx;
-}
-function create_each_block3(ctx) {
-  let div2;
-  let div0;
-  let span0;
-  let t1;
-  let span1;
-  let t3;
-  let div1;
-  let input;
-  let input_value_value;
-  let t4;
-  let mounted;
-  let dispose;
-  function change_handler(...args) {
-    return (
-      /*change_handler*/
-      ctx[8](
-        /*command*/
-        ctx[10],
-        ...args
-      )
-    );
-  }
-  return {
-    c() {
-      div2 = element("div");
-      div0 = element("div");
-      span0 = element("span");
-      span0.textContent = `${/*command*/
-      ctx[10].label}`;
-      t1 = space();
-      span1 = element("span");
-      span1.textContent = `${/*command*/
-      ctx[10].id}`;
-      t3 = space();
-      div1 = element("div");
-      input = element("input");
-      t4 = space();
-      attr(span0, "class", "ka-shortcut-setting__label svelte-1bksc6c");
-      attr(span1, "class", "ka-shortcut-setting__id svelte-1bksc6c");
-      attr(div0, "class", "ka-shortcut-setting__info svelte-1bksc6c");
-      attr(input, "type", "text");
-      input.value = input_value_value = /*settings*/
-      ctx[1].commandShortcuts[
-        /*command*/
-        ctx[10].id
-      ] || "";
-      attr(input, "placeholder", "None");
-      attr(input, "class", "svelte-1bksc6c");
-      attr(div1, "class", "ka-shortcut-setting__input svelte-1bksc6c");
-      attr(div2, "class", "ka-shortcut-setting svelte-1bksc6c");
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-      append(div2, div0);
-      append(div0, span0);
-      append(div0, t1);
-      append(div0, span1);
-      append(div2, t3);
-      append(div2, div1);
-      append(div1, input);
-      append(div2, t4);
-      if (!mounted) {
-        dispose = [
-          listen(input, "change", change_handler),
-          listen(input, "keydown", keydown_handler2)
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty & /*settings*/
-      2 && input_value_value !== (input_value_value = /*settings*/
-      ctx[1].commandShortcuts[
-        /*command*/
-        ctx[10].id
-      ] || "") && input.value !== input_value_value) {
-        input.value = input_value_value;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_default_slot_1(ctx) {
-  let icon;
-  let t;
-  let current;
-  icon = new Icon_default({ props: { name: "download", size: 16 } });
-  return {
-    c() {
-      create_component(icon.$$.fragment);
-      t = text("\n          Export Settings");
-    },
-    m(target, anchor) {
-      mount_component(icon, target, anchor);
-      insert(target, t, anchor);
-      current = true;
-    },
-    p: noop,
-    i(local) {
-      if (current)
-        return;
-      transition_in(icon.$$.fragment, local);
-      current = true;
-    },
-    o(local) {
-      transition_out(icon.$$.fragment, local);
-      current = false;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(t);
-      }
-      destroy_component(icon, detaching);
-    }
-  };
-}
-function create_default_slot3(ctx) {
-  let icon;
-  let t;
-  let current;
-  icon = new Icon_default({ props: { name: "upload", size: 16 } });
-  return {
-    c() {
-      create_component(icon.$$.fragment);
-      t = text("\n          Import Settings");
-    },
-    m(target, anchor) {
-      mount_component(icon, target, anchor);
-      insert(target, t, anchor);
-      current = true;
-    },
-    p: noop,
-    i(local) {
-      if (current)
-        return;
-      transition_in(icon.$$.fragment, local);
-      current = true;
-    },
-    o(local) {
-      transition_out(icon.$$.fragment, local);
-      current = false;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(t);
-      }
-      destroy_component(icon, detaching);
-    }
-  };
-}
-function create_fragment11(ctx) {
-  let div6;
-  let div0;
-  let t3;
-  let div5;
-  let div1;
-  let h30;
-  let t5;
-  let p1;
-  let t7;
-  let t8;
-  let div3;
-  let h31;
-  let t10;
-  let p2;
-  let t12;
-  let div2;
-  let button0;
-  let t13;
-  let button1;
-  let t14;
-  let div4;
-  let h32;
-  let t16;
-  let p3;
-  let t18;
-  let pre;
-  let t19_value = JSON.stringify(
-    /*settings*/
-    ctx[1],
-    null,
-    2
-  ) + "";
-  let t19;
-  let current;
-  let each_value = ensure_array_like(
-    /*commonCommands*/
-    ctx[6]
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value.length; i += 1) {
-    each_blocks[i] = create_each_block3(get_each_context3(ctx, each_value, i));
-  }
-  button0 = new Button_default({
-    props: {
-      variant: "secondary",
-      $$slots: { default: [create_default_slot_1] },
-      $$scope: { ctx }
-    }
-  });
-  button0.$on(
-    "click",
-    /*handleExportSettings*/
-    ctx[4]
-  );
-  button1 = new Button_default({
-    props: {
-      variant: "secondary",
-      $$slots: { default: [create_default_slot3] },
-      $$scope: { ctx }
-    }
-  });
-  button1.$on(
-    "click",
-    /*handleImportSettings*/
-    ctx[5]
-  );
-  return {
-    c() {
-      div6 = element("div");
-      div0 = element("div");
-      div0.innerHTML = `<h2 class="ka-section__title svelte-1bksc6c">Advanced</h2> <p class="ka-section__description svelte-1bksc6c">Advanced configuration and data management</p>`;
-      t3 = space();
-      div5 = element("div");
-      div1 = element("div");
-      h30 = element("h3");
-      h30.textContent = "Command Shortcuts";
-      t5 = space();
-      p1 = element("p");
-      p1.textContent = "Customize keyboard shortcuts for plugin commands";
-      t7 = space();
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      t8 = space();
-      div3 = element("div");
-      h31 = element("h3");
-      h31.textContent = "Data Management";
-      t10 = space();
-      p2 = element("p");
-      p2.textContent = "Export and import your plugin settings";
-      t12 = space();
-      div2 = element("div");
-      create_component(button0.$$.fragment);
-      t13 = space();
-      create_component(button1.$$.fragment);
-      t14 = space();
-      div4 = element("div");
-      h32 = element("h3");
-      h32.textContent = "Debug Information";
-      t16 = space();
-      p3 = element("p");
-      p3.textContent = "Current settings configuration (read-only)";
-      t18 = space();
-      pre = element("pre");
-      t19 = text(t19_value);
-      attr(div0, "class", "ka-section__header svelte-1bksc6c");
-      attr(h30, "class", "ka-setting-group__title svelte-1bksc6c");
-      attr(p1, "class", "ka-setting-group__description svelte-1bksc6c");
-      attr(div1, "class", "ka-setting-group svelte-1bksc6c");
-      attr(h31, "class", "ka-setting-group__title svelte-1bksc6c");
-      attr(p2, "class", "ka-setting-group__description svelte-1bksc6c");
-      attr(div2, "class", "ka-data-actions svelte-1bksc6c");
-      attr(div3, "class", "ka-setting-group svelte-1bksc6c");
-      attr(h32, "class", "ka-setting-group__title svelte-1bksc6c");
-      attr(p3, "class", "ka-setting-group__description svelte-1bksc6c");
-      attr(pre, "class", "ka-settings-debug svelte-1bksc6c");
-      attr(div4, "class", "ka-setting-group svelte-1bksc6c");
-      attr(div5, "class", "ka-section__settings svelte-1bksc6c");
-      attr(div6, "class", "ka-section svelte-1bksc6c");
-    },
-    m(target, anchor) {
-      insert(target, div6, anchor);
-      append(div6, div0);
-      append(div6, t3);
-      append(div6, div5);
-      append(div5, div1);
-      append(div1, h30);
-      append(div1, t5);
-      append(div1, p1);
-      append(div1, t7);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(div1, null);
-        }
-      }
-      append(div5, t8);
-      append(div5, div3);
-      append(div3, h31);
-      append(div3, t10);
-      append(div3, p2);
-      append(div3, t12);
-      append(div3, div2);
-      mount_component(button0, div2, null);
-      append(div2, t13);
-      mount_component(button1, div2, null);
-      append(div5, t14);
-      append(div5, div4);
-      append(div4, h32);
-      append(div4, t16);
-      append(div4, p3);
-      append(div4, t18);
-      append(div4, pre);
-      append(pre, t19);
-      current = true;
-    },
-    p(ctx2, [dirty]) {
-      if (dirty & /*settings, commonCommands, handleShortcutAdd, handleShortcutRemove*/
-      78) {
-        each_value = ensure_array_like(
-          /*commonCommands*/
-          ctx2[6]
-        );
-        let i;
-        for (i = 0; i < each_value.length; i += 1) {
-          const child_ctx = get_each_context3(ctx2, each_value, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block3(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(div1, null);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value.length;
-      }
-      const button0_changes = {};
-      if (dirty & /*$$scope*/
-      8192) {
-        button0_changes.$$scope = { dirty, ctx: ctx2 };
-      }
-      button0.$set(button0_changes);
-      const button1_changes = {};
-      if (dirty & /*$$scope*/
-      8192) {
-        button1_changes.$$scope = { dirty, ctx: ctx2 };
-      }
-      button1.$set(button1_changes);
-      if ((!current || dirty & /*settings*/
-      2) && t19_value !== (t19_value = JSON.stringify(
-        /*settings*/
-        ctx2[1],
-        null,
-        2
-      ) + ""))
-        set_data(t19, t19_value);
-    },
-    i(local) {
-      if (current)
-        return;
-      transition_in(button0.$$.fragment, local);
-      transition_in(button1.$$.fragment, local);
-      current = true;
-    },
-    o(local) {
-      transition_out(button0.$$.fragment, local);
-      transition_out(button1.$$.fragment, local);
-      current = false;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div6);
-      }
-      destroy_each(each_blocks, detaching);
-      destroy_component(button0);
-      destroy_component(button1);
-    }
-  };
-}
-var keydown_handler2 = (e) => {
-  if (e.key === "Enter") {
-    e.target.blur();
-  }
-};
-function instance11($$self, $$props, $$invalidate) {
-  let settings;
-  let $store, $$unsubscribe_store = noop, $$subscribe_store = () => ($$unsubscribe_store(), $$unsubscribe_store = subscribe(store, ($$value) => $$invalidate(7, $store = $$value)), store);
-  $$self.$$.on_destroy.push(() => $$unsubscribe_store());
-  let { store } = $$props;
-  $$subscribe_store();
-  function handleUpdate(key, value) {
-    if (!store)
-      return;
-    const isValid = store.validateSetting(key, value);
-    if (isValid) {
-      store.setPendingChanges({ [key]: value });
-    }
-  }
-  function handleShortcutAdd(commandId, shortcut) {
-    if (!store || !shortcut)
-      return;
-    const newShortcuts = {
-      ...settings.commandShortcuts,
-      [commandId]: shortcut
-    };
-    handleUpdate("commandShortcuts", newShortcuts);
-  }
-  function handleShortcutRemove(commandId) {
-    if (!store)
-      return;
-    const newShortcuts = { ...settings.commandShortcuts };
-    delete newShortcuts[commandId];
-    handleUpdate("commandShortcuts", newShortcuts);
-  }
-  function handleExportSettings() {
-    const settingsJson = JSON.stringify(settings, null, 2);
-    const blob = new Blob([settingsJson], { type: "application/json" });
-    const url2 = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url2;
-    a.download = "knowledge-accelerator-settings.json";
-    a.click();
-    URL.revokeObjectURL(url2);
-    new import_obsidian2.Notice("Settings exported successfully");
-  }
-  function handleImportSettings() {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "application/json";
-    input.onchange = async (event) => {
-      var _a3;
-      const file2 = (_a3 = event.target.files) == null ? void 0 : _a3[0];
-      if (!file2)
-        return;
-      try {
-        const text2 = await file2.text();
-        const importedSettings = JSON.parse(text2);
-        if (store) {
-          await store.updateSettings(importedSettings);
-          new import_obsidian2.Notice("Settings imported successfully");
-        }
-      } catch (error48) {
-        new import_obsidian2.Notice("Failed to import settings: Invalid file format", 5e3);
-      }
-    };
-    input.click();
-  }
-  const commonCommands = [
-    {
-      id: "ka-start-review",
-      label: "Start Review"
-    },
-    {
-      id: "ka-open-dashboard",
-      label: "Open Dashboard"
-    },
-    {
-      id: "open-settings",
-      label: "Open Settings"
-    }
-  ];
-  const change_handler = (command, e) => e.target.value ? handleShortcutAdd(command.id, e.target.value) : handleShortcutRemove(command.id);
-  $$self.$$set = ($$props2) => {
-    if ("store" in $$props2)
-      $$subscribe_store($$invalidate(0, store = $$props2.store));
-  };
-  $$self.$$.update = () => {
-    if ($$self.$$.dirty & /*$store*/
-    128) {
-      $:
-        $$invalidate(1, settings = $store == null ? void 0 : $store.settings);
-    }
-  };
-  return [
-    store,
-    settings,
-    handleShortcutAdd,
-    handleShortcutRemove,
-    handleExportSettings,
-    handleImportSettings,
-    commonCommands,
-    $store,
-    change_handler
-  ];
-}
-var AdvancedSettings = class extends SvelteComponent {
-  constructor(options) {
-    super();
-    init(this, options, instance11, create_fragment11, safe_not_equal, { store: 0 });
-  }
-};
-var AdvancedSettings_default = AdvancedSettings;
-
 // src/ui/settings/Settings.svelte
-var import_obsidian3 = require("obsidian");
 function create_if_block_6(ctx) {
   let div;
   let icon;
@@ -6405,7 +6407,7 @@ var KnowledgeAcceleratorSettingsTab = class extends import_obsidian4.PluginSetti
   }
 };
 
-// src/core/indexer/cache/MetadataCache.ts
+// src/utils/MetadataCache.ts
 var MetadataCache = class {
   constructor() {
     __publicField(this, "cache");
@@ -6455,7 +6457,7 @@ var MetadataCache = class {
   }
 };
 
-// src/core/parser/types.ts
+// src/core/parser/utils/types.ts
 var CardStatus = /* @__PURE__ */ ((CardStatus2) => {
   CardStatus2["ACTIVE"] = "ACTIVE";
   CardStatus2["DELETED"] = "DELETED";
@@ -22434,7 +22436,7 @@ var FSRS = class extends FSRSAlgorithm {
   }
 };
 
-// src/core/srs/types.ts
+// src/core/srs/utils/types.ts
 var CardRating = /* @__PURE__ */ ((CardRating2) => {
   CardRating2[CardRating2["AGAIN"] = 0] = "AGAIN";
   CardRating2[CardRating2["HARD"] = 1] = "HARD";
@@ -22460,7 +22462,7 @@ var DEFAULT_FILTER = {
   include_deleted: false
 };
 
-// src/core/indexer/schema/indexSchema.ts
+// src/core/indexer/schema/IndexerSchema.ts
 var SRSObjectSchema = external_exports.object({
   stability: external_exports.number().min(0),
   difficulty: external_exports.number().min(0).max(10),
@@ -22541,7 +22543,7 @@ function v4(options, buf, offset) {
 }
 var v4_default = v4;
 
-// src/core/indexer/managers/IndexManager.ts
+// src/core/indexer/IndexerManager.ts
 var _IndexManager = class _IndexManager {
   constructor(app) {
     __publicField(this, "app");
@@ -22850,448 +22852,6 @@ var Logger = class {
   }
 };
 __publicField(Logger, "prefix", "[Knowledge Accelerator]");
-
-// src/core/srs/schema/FSRSSchema.ts
-var FSRSParametersSchema = external_exports.object({
-  stability: external_exports.number().nonnegative(),
-  difficulty: external_exports.number().nonnegative(),
-  elapsed_days: external_exports.number().nonnegative(),
-  scheduled_days: external_exports.number().nonnegative(),
-  learning_steps: external_exports.number().int().nonnegative(),
-  reps: external_exports.number().int().nonnegative(),
-  lapses: external_exports.number().int().nonnegative(),
-  state: external_exports.nativeEnum(State),
-  last_review: external_exports.string().datetime().nullable(),
-  next_review: external_exports.string().datetime()
-});
-var FsrsCalculationInputSchema = external_exports.object({
-  current_params: FSRSParametersSchema,
-  rating: external_exports.nativeEnum(CardRating),
-  review_time: external_exports.string().datetime().optional()
-});
-var FsrsCalculationResultSchema = external_exports.object({
-  updated_params: FSRSParametersSchema,
-  interval_days: external_exports.number()
-});
-var DueQueueSchema = external_exports.object({
-  totalDue: external_exports.number().int().nonnegative(),
-  cards: external_exports.array(external_exports.any())
-});
-var DueQueueFilterSchema = external_exports.object({
-  include_stale: external_exports.boolean().optional().default(false),
-  include_paused: external_exports.boolean().optional().default(false),
-  include_deleted: external_exports.boolean().optional().default(false),
-  max_cards: external_exports.number().int().positive().optional()
-});
-
-// src/core/srs/engines/FsrsEngine.ts
-var FsrsEngine = class {
-  constructor() {
-    __publicField(this, "fsrs");
-    this.fsrs = new FSRS(generatorParameters());
-  }
-  /**
-   * Calculates updated FSRS parameters based on a user rating.
-   *
-   * @param input FSRS calculation input (current params, rating, review time)
-   * @returns Updated FSRS parameters and interval in days
-   */
-  calculate(input) {
-    try {
-      const { current_params, rating, review_time } = input;
-      const reviewDate = review_time ? new Date(review_time) : /* @__PURE__ */ new Date();
-      const fsrsCard = this.mapToFsrsCard(current_params);
-      const fsrsRating = this.mapToFsrsRating(rating);
-      const recordLog = this.fsrs.repeat(fsrsCard, reviewDate);
-      const updatedCard = recordLog[fsrsRating].card;
-      const updatedParams = this.mapFromFsrsCard(updatedCard);
-      const intervalDays = this.calculateIntervalDays(updatedParams.next_review, reviewDate);
-      return {
-        updated_params: updatedParams,
-        interval_days: intervalDays
-      };
-    } catch (error48) {
-      console.error(`${ERROR_MESSAGES.CALCULATION_ERROR}:`, error48);
-      return {
-        updated_params: this.getInitialState(),
-        interval_days: 1
-      };
-    }
-  }
-  /**
-   * Returns default FSRS parameters for a new card.
-   */
-  getInitialState() {
-    return { ...DEFAULT_FSRS2 };
-  }
-  /**
-   * Maps internal FSRSStats to ts-fsrs Card object.
-   */
-  mapToFsrsCard(params) {
-    return {
-      due: new Date(params.next_review),
-      stability: params.stability,
-      difficulty: params.difficulty,
-      elapsed_days: params.elapsed_days,
-      scheduled_days: params.scheduled_days,
-      learning_steps: params.learning_steps,
-      reps: params.reps,
-      lapses: params.lapses,
-      state: params.state,
-      last_review: params.last_review ? new Date(params.last_review) : void 0
-    };
-  }
-  /**
-   * Maps ts-fsrs Card object back to internal FSRSStats.
-   */
-  mapFromFsrsCard(card) {
-    return {
-      stability: card.stability,
-      difficulty: card.difficulty,
-      elapsed_days: card.elapsed_days,
-      scheduled_days: card.scheduled_days,
-      learning_steps: card.learning_steps,
-      reps: card.reps,
-      lapses: card.lapses,
-      state: card.state,
-      last_review: card.last_review ? card.last_review.toISOString() : null,
-      next_review: card.due.toISOString()
-    };
-  }
-  /**
-   * Maps internal CardRating enum to ts-fsrs Rating enum.
-   */
-  mapToFsrsRating(rating) {
-    switch (rating) {
-      case 0 /* AGAIN */:
-        return Rating.Again;
-      case 1 /* HARD */:
-        return Rating.Hard;
-      case 2 /* GOOD */:
-        return Rating.Good;
-      case 3 /* EASY */:
-        return Rating.Easy;
-      default:
-        return Rating.Good;
-    }
-  }
-  /**
-   * Calculates the number of days between review and next review.
-   */
-  calculateIntervalDays(nextReviewStr, reviewDate) {
-    const nextReview = new Date(nextReviewStr);
-    const diffMs = nextReview.getTime() - reviewDate.getTime();
-    const diffDays = Math.ceil(diffMs / (1e3 * 60 * 60 * 24));
-    return Math.max(1, diffDays);
-  }
-  /**
-   * Updates the underlying FSRS algorithm parameters.
-   */
-  updateParameters(params) {
-    this.fsrs.parameters = params;
-  }
-};
-
-// src/core/indexer/schema/statsSchema.ts
-var StatisticsSummarySchema = external_exports.object({
-  retention_rate: external_exports.number().min(0).max(1),
-  difficulty_dist: external_exports.record(external_exports.string(), external_exports.number()),
-  total_learned: external_exports.number().int().min(0),
-  due_today: external_exports.number().int().min(0)
-});
-var StatsSchema = external_exports.object({
-  version: external_exports.number().int().positive(),
-  summary: StatisticsSummarySchema,
-  last_updated: external_exports.iso.datetime(),
-  history: external_exports.record(external_exports.iso.datetime("YY-MM-DD"), external_exports.any())
-});
-
-// src/core/indexer/statistics/StatisticsEngine.ts
-var StatisticsEngine = class {
-  calculateRetention(cards) {
-    const reviewedCards = cards.filter(
-      (card) => card.srs.reps > 0 && card.srs.last_review !== null
-    );
-    if (reviewedCards.length === 0) {
-      return 0;
-    }
-    const matureCards = reviewedCards.filter((card) => card.srs.state >= 2);
-    return matureCards.length / reviewedCards.length;
-  }
-  calculateDifficultyDistribution(cards) {
-    const distribution = /* @__PURE__ */ new Map();
-    for (const card of cards) {
-      const difficulty = Math.round(card.srs.difficulty);
-      distribution.set(difficulty, (distribution.get(difficulty) || 0) + 1);
-    }
-    return distribution;
-  }
-  calculateTotalLearned(cards) {
-    return cards.filter((card) => card.srs.state > 0).length;
-  }
-  calculateDueToday(cards) {
-    const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
-    return cards.filter((card) => card.status === "ACTIVE" && card.srs.next_review <= today).length;
-  }
-  generateSummary(cards) {
-    return {
-      retention_rate: this.calculateRetention(cards),
-      difficulty_dist: Object.fromEntries(this.calculateDifficultyDistribution(cards)),
-      total_learned: this.calculateTotalLearned(cards),
-      due_today: this.calculateDueToday(cards)
-    };
-  }
-};
-
-// src/core/indexer/managers/StatsManager.ts
-var _StatsManager = class _StatsManager {
-  constructor(app) {
-    __publicField(this, "app");
-    __publicField(this, "stats");
-    __publicField(this, "version", 1);
-    __publicField(this, "STATS_FILE", "knowledge-accelerator/stats.json");
-    __publicField(this, "engine");
-    this.app = app;
-    this.engine = new StatisticsEngine();
-    this.stats = this.createEmptyStats();
-  }
-  get statistics() {
-    return this.stats;
-  }
-  static getInstance(app) {
-    if (!_StatsManager.instance) {
-      _StatsManager.instance = new _StatsManager(app);
-    }
-    return _StatsManager.instance;
-  }
-  async load() {
-    try {
-      const adapter = this.app.vault.adapter;
-      if (await adapter.exists(this.STATS_FILE)) {
-        const data = await adapter.read(this.STATS_FILE);
-        const parsedStats = JSON.parse(data);
-        const validatedStats = StatsSchema.parse(parsedStats);
-        if (validatedStats.version !== this.version) {
-          console.warn(
-            `Stats version mismatch: expected ${this.version}, got ${validatedStats.version}`
-          );
-        }
-        this.stats = validatedStats;
-      } else {
-        await this.save();
-      }
-    } catch (error48) {
-      console.error("Failed to load stats:", error48);
-      if (error48 instanceof Error && error48.message.includes("JSON.parse")) {
-        console.warn("Stats file corrupted, will create new one");
-        this.stats = this.createEmptyStats();
-        await this.save();
-        return;
-      }
-      throw new Error(
-        `Stats loading failed: ${error48 instanceof Error ? error48.message : "Unknown error"}`
-      );
-    }
-  }
-  async save() {
-    try {
-      const adapter = this.app.vault.adapter;
-      const dir = this.STATS_FILE.split("/").slice(0, -1).join("/");
-      if (!await adapter.exists(dir)) {
-        await adapter.mkdir(dir);
-      }
-      const validatedStats = StatsSchema.parse(this.stats);
-      await adapter.write(this.STATS_FILE, JSON.stringify(validatedStats, null, 2));
-    } catch (error48) {
-      console.error("Failed to save stats:", error48);
-      throw new Error(
-        `Stats saving failed: ${error48 instanceof Error ? error48.message : "Unknown error"}`
-      );
-    }
-  }
-  recordReview(cardId, rating) {
-    this.stats.history[(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)] = {
-      cardUuid: cardId,
-      rating
-    };
-  }
-  recomputeAll(index) {
-    const cards = Object.values(index).filter((card) => card.status === "ACTIVE");
-    this.stats.summary = this.engine.generateSummary(cards);
-    this.stats.last_updated = (/* @__PURE__ */ new Date()).toISOString();
-  }
-  createEmptyStats() {
-    return {
-      version: this.version,
-      summary: {
-        retention_rate: 0,
-        difficulty_dist: {},
-        total_learned: 0,
-        due_today: 0
-      },
-      last_updated: (/* @__PURE__ */ new Date()).toISOString(),
-      history: {}
-    };
-  }
-};
-__publicField(_StatsManager, "instance");
-var StatsManager = _StatsManager;
-
-// src/core/srs/managers/DueQueueManager.ts
-var _DueQueueManager = class _DueQueueManager {
-  /**
-   * @param index The flashcard index containing all card metadata
-   */
-  constructor(app) {
-    __publicField(this, "indexManager");
-    __publicField(this, "cachedQueue", null);
-    __publicField(this, "lastFilter", "");
-    this.indexManager = IndexManager.getInstance(app);
-  }
-  static getInstance(app) {
-    if (!_DueQueueManager.instance) {
-      _DueQueueManager.instance = new _DueQueueManager(app);
-    }
-    return _DueQueueManager.instance;
-  }
-  /**
-   * Generates a queue of cards due for review.
-   * Results are cached until the index changes or a different filter is used.
-   *
-   * @param filter Options for filtering the due queue
-   * @returns A sorted DueQueue containing cards due for review
-   */
-  generate(filter = DEFAULT_FILTER) {
-    const filterKey = JSON.stringify(filter);
-    if (this.cachedQueue && this.lastFilter === filterKey) {
-      return this.cachedQueue;
-    }
-    const now2 = /* @__PURE__ */ new Date();
-    const cards = [];
-    const cardTimestamps = /* @__PURE__ */ new Map();
-    const index = this.indexManager.index;
-    for (const uuid3 in index.cards) {
-      const card = index.cards[uuid3];
-      if (this.shouldInclude(card, filter, now2)) {
-        cards.push(card);
-        cardTimestamps.set(card.uuid, new Date(card.srs.next_review).getTime());
-      }
-    }
-    cards.sort((a, b) => {
-      const dateA = cardTimestamps.get(a.uuid);
-      const dateB = cardTimestamps.get(b.uuid);
-      if (dateA !== dateB) {
-        return dateA - dateB;
-      }
-      return b.srs.difficulty - a.srs.difficulty;
-    });
-    const limitedCards = filter.max_cards ? cards.slice(0, filter.max_cards) : cards;
-    const result = {
-      totalDue: limitedCards.length,
-      cards: limitedCards
-    };
-    this.cachedQueue = result;
-    this.lastFilter = filterKey;
-    return result;
-  }
-  /**
-   * Invalidates the generated queue cache.
-   * Should be called when the index is modified.
-   */
-  invalidateCache() {
-    this.cachedQueue = null;
-    this.lastFilter = "";
-  }
-  /**
-   * Gets all cards with STALE status.
-   */
-  getStaleCards() {
-    return this.filterByStatus("STALE" /* STALE */);
-  }
-  /**
-   * Gets all cards with PAUSED status.
-   */
-  getPausedCards() {
-    return this.filterByStatus("PAUSED" /* PAUSED */);
-  }
-  filterByStatus(status) {
-    const result = [];
-    const index = this.indexManager.index;
-    for (const uuid3 in index.cards) {
-      const card = index.cards[uuid3];
-      if (card.status === status) {
-        result.push(card);
-      }
-    }
-    return result;
-  }
-  shouldInclude(card, filter, now2) {
-    if (card.status === "DELETED" /* DELETED */ && !filter.include_deleted) {
-      return false;
-    }
-    if (card.status === "PAUSED" /* PAUSED */ && !filter.include_paused) {
-      return false;
-    }
-    if (card.status === "STALE" /* STALE */ && !filter.include_stale) {
-      return false;
-    }
-    if (card.status === "ACTIVE" /* ACTIVE */ || card.status === "STALE" /* STALE */ && filter.include_stale || card.status === "PAUSED" /* PAUSED */ && filter.include_paused || card.status === "DELETED" /* DELETED */ && filter.include_deleted) {
-      const nextReview = new Date(card.srs.next_review);
-      return nextReview <= now2;
-    }
-    return false;
-  }
-};
-__publicField(_DueQueueManager, "instance");
-var DueQueueManager = _DueQueueManager;
-
-// src/core/sync/types.ts
-var SyncSource = /* @__PURE__ */ ((SyncSource2) => {
-  SyncSource2["JSON"] = "json";
-  SyncSource2["YAML"] = "yaml";
-  return SyncSource2;
-})(SyncSource || {});
-var DEFAULT_INDEX = {
-  version: 0,
-  last_updated: (/* @__PURE__ */ new Date()).toISOString(),
-  cards: {}
-};
-
-// src/core/sync/schemas.ts
-var SyncStateSchema = external_exports.object({
-  uuid: external_exports.string().uuid(),
-  source: external_exports.nativeEnum(SyncSource),
-  timestamp: external_exports.string().datetime(),
-  changes: external_exports.record(external_exports.string(), external_exports.any()),
-  conflict: external_exports.boolean()
-});
-var SyncResultSchema = external_exports.object({
-  success: external_exports.boolean(),
-  conflicts_resolved: external_exports.number().int().nonnegative(),
-  errors: external_exports.array(external_exports.string())
-});
-var SyncConflictSchema = external_exports.object({
-  field: external_exports.string(),
-  json_value: external_exports.any(),
-  yaml_value: external_exports.any(),
-  last_write: external_exports.enum(["json", "yaml"]),
-  resolved_value: external_exports.any()
-});
-var IndexRecoveryResultSchema = external_exports.object({
-  success: external_exports.boolean(),
-  cards_recovered: external_exports.number().int().nonnegative(),
-  cards_failed: external_exports.number().int().nonnegative(),
-  errors: external_exports.array(external_exports.object({
-    file: external_exports.string(),
-    error: external_exports.string()
-  })),
-  duration_ms: external_exports.number().nonnegative()
-});
-var IndexSchema2 = external_exports.object({
-  version: external_exports.string(),
-  last_updated: external_exports.string().datetime(),
-  cards: external_exports.record(external_exports.string(), external_exports.any())
-});
 
 // src/obsidian/VaultWatcher.ts
 var VaultWatcher = class {
@@ -23959,18 +23519,18 @@ var PluginView = class extends import_obsidian7.ItemView {
   /**
    * @param leaf - The workspace leaf this view will reside in
    */
-  constructor(leaf, indexManager, statsManager, sessionStore, dueQueue) {
+  constructor(leaf, indexManager, statisticsManager, sessionStore, dueQueueManager) {
     super(leaf);
     /** Reference to the mounted Svelte component instance */
     __publicField(this, "component");
-    __publicField(this, "statsManager");
+    __publicField(this, "statisticsManager");
     __publicField(this, "indexManager");
     __publicField(this, "sessionStore");
-    __publicField(this, "dueQueue");
+    __publicField(this, "dueQueueManager");
     this.indexManager = indexManager;
-    this.statsManager = statsManager;
+    this.statisticsManager = statisticsManager;
     this.sessionStore = sessionStore;
-    this.dueQueue = dueQueue;
+    this.dueQueueManager = dueQueueManager;
   }
   /**
    * Returns the unique identifier for this view type.
@@ -25533,15 +25093,15 @@ var StatsCardPropsSchema = external_exports.object({
 
 // src/ui/views/Dashboard/DashboardController.ts
 var DashboardController = class {
-  constructor(indexManager, statisticsManager, dueQueueGenerator, sessionStore) {
+  constructor(indexManager, statisticsManager, dueQueueManager, sessionStore) {
     __publicField(this, "indexManager");
     __publicField(this, "sessionStore");
     __publicField(this, "statisticsManager");
-    __publicField(this, "dueQueueGenerator");
+    __publicField(this, "dueQueueManager");
     this.indexManager = indexManager;
     this.sessionStore = sessionStore;
     this.statisticsManager = statisticsManager;
-    this.dueQueueGenerator = dueQueueGenerator;
+    this.dueQueueManager = dueQueueManager;
   }
   /**
    * Fetches aggregated statistics for the dashboard
@@ -25669,7 +25229,7 @@ var DashboardController = class {
    */
   calculateDueCount() {
     try {
-      const dueQueue = this.dueQueueGenerator.generate();
+      const dueQueue = this.dueQueueManager.generate();
       return dueQueue.totalDue;
     } catch (error48) {
       console.error("Failed to calculate due count:", error48);
@@ -25780,8 +25340,8 @@ var DashboardView = class extends PluginView {
   createSvelteComponent(container) {
     this.dashboardController = new DashboardController(
       this.indexManager,
-      this.statsManager,
-      this.dueQueue,
+      this.statisticsManager,
+      this.dueQueueManager,
       this.sessionStore
     );
     const props = {
@@ -26779,6 +26339,114 @@ function gesture(node, options = {}) {
   };
 }
 
+// src/core/srs/FsrsEngine.ts
+var FsrsEngine = class {
+  constructor() {
+    __publicField(this, "fsrs");
+    this.fsrs = new FSRS(generatorParameters());
+  }
+  /**
+   * Calculates updated FSRS parameters based on a user rating.
+   *
+   * @param input FSRS calculation input (current params, rating, review time)
+   * @returns Updated FSRS parameters and interval in days
+   */
+  calculate(input) {
+    try {
+      const { current_params, rating, review_time } = input;
+      const reviewDate = review_time ? new Date(review_time) : /* @__PURE__ */ new Date();
+      const fsrsCard = this.mapToFsrsCard(current_params);
+      const fsrsRating = this.mapToFsrsRating(rating);
+      const recordLog = this.fsrs.repeat(fsrsCard, reviewDate);
+      const updatedCard = recordLog[fsrsRating].card;
+      const updatedParams = this.mapFromFsrsCard(updatedCard);
+      const intervalDays = this.calculateIntervalDays(updatedParams.next_review, reviewDate);
+      return {
+        updated_params: updatedParams,
+        interval_days: intervalDays
+      };
+    } catch (error48) {
+      console.error(`${ERROR_MESSAGES.CALCULATION_ERROR}:`, error48);
+      return {
+        updated_params: this.getInitialState(),
+        interval_days: 1
+      };
+    }
+  }
+  /**
+   * Returns default FSRS parameters for a new card.
+   */
+  getInitialState() {
+    return { ...DEFAULT_FSRS2 };
+  }
+  /**
+   * Maps internal FSRSStats to ts-fsrs Card object.
+   */
+  mapToFsrsCard(params) {
+    return {
+      due: new Date(params.next_review),
+      stability: params.stability,
+      difficulty: params.difficulty,
+      elapsed_days: params.elapsed_days,
+      scheduled_days: params.scheduled_days,
+      learning_steps: params.learning_steps,
+      reps: params.reps,
+      lapses: params.lapses,
+      state: params.state,
+      last_review: params.last_review ? new Date(params.last_review) : void 0
+    };
+  }
+  /**
+   * Maps ts-fsrs Card object back to internal FSRSStats.
+   */
+  mapFromFsrsCard(card) {
+    return {
+      stability: card.stability,
+      difficulty: card.difficulty,
+      elapsed_days: card.elapsed_days,
+      scheduled_days: card.scheduled_days,
+      learning_steps: card.learning_steps,
+      reps: card.reps,
+      lapses: card.lapses,
+      state: card.state,
+      last_review: card.last_review ? card.last_review.toISOString() : null,
+      next_review: card.due.toISOString()
+    };
+  }
+  /**
+   * Maps internal CardRating enum to ts-fsrs Rating enum.
+   */
+  mapToFsrsRating(rating) {
+    switch (rating) {
+      case 0 /* AGAIN */:
+        return Rating.Again;
+      case 1 /* HARD */:
+        return Rating.Hard;
+      case 2 /* GOOD */:
+        return Rating.Good;
+      case 3 /* EASY */:
+        return Rating.Easy;
+      default:
+        return Rating.Good;
+    }
+  }
+  /**
+   * Calculates the number of days between review and next review.
+   */
+  calculateIntervalDays(nextReviewStr, reviewDate) {
+    const nextReview = new Date(nextReviewStr);
+    const diffMs = nextReview.getTime() - reviewDate.getTime();
+    const diffDays = Math.ceil(diffMs / (1e3 * 60 * 60 * 24));
+    return Math.max(1, diffDays);
+  }
+  /**
+   * Updates the underlying FSRS algorithm parameters.
+   */
+  updateParameters(params) {
+    this.fsrs.parameters = params;
+  }
+};
+
 // src/ui/schemas.ts
 var ReviewRatingSchema = external_exports.union([external_exports.literal(1), external_exports.literal(2), external_exports.literal(3), external_exports.literal(4)]);
 var DashboardConfigSchema2 = external_exports.object({
@@ -26838,18 +26506,18 @@ var DEFAULT_STATE3 = {
   }
 };
 var SessionStore = class {
-  constructor(indexManager, statsManager, dueQueue) {
+  constructor(indexManager, statsManager, dueQueueManager) {
     __publicField(this, "_state");
     __publicField(this, "fsrsController");
     __publicField(this, "indexManager");
     __publicField(this, "statsManager");
     __publicField(this, "sessionTimer");
-    __publicField(this, "dueQueueGenerator");
+    __publicField(this, "dueQueueManager");
     this._state = writable(DEFAULT_STATE3);
     this.fsrsController = new FsrsEngine();
     this.indexManager = indexManager;
     this.statsManager = statsManager;
-    this.dueQueueGenerator = dueQueue;
+    this.dueQueueManager = dueQueueManager;
   }
   /**
    * Subscribe to session state changes
@@ -26867,7 +26535,7 @@ var SessionStore = class {
   async startSession() {
     try {
       await this.endSession();
-      const queue = this.dueQueueGenerator.generate();
+      const queue = this.dueQueueManager.generate();
       const sessionId = v4_default();
       const newSession = {
         sessionId,
@@ -28258,16 +27926,306 @@ var ReviewView = class extends PluginView {
   }
 };
 
+// src/core/statistics/schema/StatisticsSchema.ts
+var StatisticsSummarySchema = external_exports.object({
+  retention_rate: external_exports.number().min(0).max(1),
+  difficulty_dist: external_exports.record(external_exports.string(), external_exports.number()),
+  total_learned: external_exports.number().int().min(0),
+  due_today: external_exports.number().int().min(0)
+});
+var StatsSchema = external_exports.object({
+  version: external_exports.number().int().positive(),
+  summary: StatisticsSummarySchema,
+  last_updated: external_exports.iso.datetime(),
+  history: external_exports.record(external_exports.iso.datetime("YY-MM-DD"), external_exports.any())
+});
+
+// src/core/statistics/StatisticsEngine.ts
+var StatisticsEngine = class {
+  calculateRetention(cards) {
+    const reviewedCards = cards.filter(
+      (card) => card.srs.reps > 0 && card.srs.last_review !== null
+    );
+    if (reviewedCards.length === 0) {
+      return 0;
+    }
+    const matureCards = reviewedCards.filter((card) => card.srs.state >= 2);
+    return matureCards.length / reviewedCards.length;
+  }
+  calculateDifficultyDistribution(cards) {
+    const distribution = /* @__PURE__ */ new Map();
+    for (const card of cards) {
+      const difficulty = Math.round(card.srs.difficulty);
+      distribution.set(difficulty, (distribution.get(difficulty) || 0) + 1);
+    }
+    return distribution;
+  }
+  calculateTotalLearned(cards) {
+    return cards.filter((card) => card.srs.state > 0).length;
+  }
+  calculateDueToday(cards) {
+    const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+    return cards.filter((card) => card.status === "ACTIVE" && card.srs.next_review <= today).length;
+  }
+  generateSummary(cards) {
+    return {
+      retention_rate: this.calculateRetention(cards),
+      difficulty_dist: Object.fromEntries(this.calculateDifficultyDistribution(cards)),
+      total_learned: this.calculateTotalLearned(cards),
+      due_today: this.calculateDueToday(cards)
+    };
+  }
+};
+
+// src/core/statistics/StatisticsManager.ts
+var _StatisticsManager = class _StatisticsManager {
+  constructor(app) {
+    __publicField(this, "app");
+    __publicField(this, "stats");
+    __publicField(this, "version", 1);
+    __publicField(this, "STATS_FILE", "knowledge-accelerator/stats.json");
+    __publicField(this, "engine");
+    this.app = app;
+    this.engine = new StatisticsEngine();
+    this.stats = this.createEmptyStats();
+  }
+  get statistics() {
+    return this.stats;
+  }
+  static getInstance(app) {
+    if (!_StatisticsManager.instance) {
+      _StatisticsManager.instance = new _StatisticsManager(app);
+    }
+    return _StatisticsManager.instance;
+  }
+  async load() {
+    try {
+      const adapter = this.app.vault.adapter;
+      if (await adapter.exists(this.STATS_FILE)) {
+        const data = await adapter.read(this.STATS_FILE);
+        const parsedStats = JSON.parse(data);
+        const validatedStats = StatsSchema.parse(parsedStats);
+        if (validatedStats.version !== this.version) {
+          console.warn(
+            `Stats version mismatch: expected ${this.version}, got ${validatedStats.version}`
+          );
+        }
+        this.stats = validatedStats;
+      } else {
+        await this.save();
+      }
+    } catch (error48) {
+      console.error("Failed to load stats:", error48);
+      if (error48 instanceof Error && error48.message.includes("JSON.parse")) {
+        console.warn("Stats file corrupted, will create new one");
+        this.stats = this.createEmptyStats();
+        await this.save();
+        return;
+      }
+      throw new Error(
+        `Stats loading failed: ${error48 instanceof Error ? error48.message : "Unknown error"}`
+      );
+    }
+  }
+  async save() {
+    try {
+      const adapter = this.app.vault.adapter;
+      const dir = this.STATS_FILE.split("/").slice(0, -1).join("/");
+      if (!await adapter.exists(dir)) {
+        await adapter.mkdir(dir);
+      }
+      const validatedStats = StatsSchema.parse(this.stats);
+      await adapter.write(this.STATS_FILE, JSON.stringify(validatedStats, null, 2));
+    } catch (error48) {
+      console.error("Failed to save stats:", error48);
+      throw new Error(
+        `Stats saving failed: ${error48 instanceof Error ? error48.message : "Unknown error"}`
+      );
+    }
+  }
+  recordReview(cardId, rating) {
+    this.stats.history[(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)] = {
+      cardUuid: cardId,
+      rating
+    };
+  }
+  recomputeAll(index) {
+    const cards = Object.values(index).filter((card) => card.status === "ACTIVE");
+    this.stats.summary = this.engine.generateSummary(cards);
+    this.stats.last_updated = (/* @__PURE__ */ new Date()).toISOString();
+  }
+  createEmptyStats() {
+    return {
+      version: this.version,
+      summary: {
+        retention_rate: 0,
+        difficulty_dist: {},
+        total_learned: 0,
+        due_today: 0
+      },
+      last_updated: (/* @__PURE__ */ new Date()).toISOString(),
+      history: {}
+    };
+  }
+};
+__publicField(_StatisticsManager, "instance");
+var StatisticsManager = _StatisticsManager;
+
+// src/core/srs/schema/FSRSSchema.ts
+var FSRSParametersSchema = external_exports.object({
+  stability: external_exports.number().nonnegative(),
+  difficulty: external_exports.number().nonnegative(),
+  elapsed_days: external_exports.number().nonnegative(),
+  scheduled_days: external_exports.number().nonnegative(),
+  learning_steps: external_exports.number().int().nonnegative(),
+  reps: external_exports.number().int().nonnegative(),
+  lapses: external_exports.number().int().nonnegative(),
+  state: external_exports.nativeEnum(State),
+  last_review: external_exports.string().datetime().nullable(),
+  next_review: external_exports.string().datetime()
+});
+var FsrsCalculationInputSchema = external_exports.object({
+  current_params: FSRSParametersSchema,
+  rating: external_exports.nativeEnum(CardRating),
+  review_time: external_exports.string().datetime().optional()
+});
+var FsrsCalculationResultSchema = external_exports.object({
+  updated_params: FSRSParametersSchema,
+  interval_days: external_exports.number()
+});
+var DueQueueSchema = external_exports.object({
+  totalDue: external_exports.number().int().nonnegative(),
+  cards: external_exports.array(external_exports.any())
+});
+var DueQueueFilterSchema = external_exports.object({
+  include_stale: external_exports.boolean().optional().default(false),
+  include_paused: external_exports.boolean().optional().default(false),
+  include_deleted: external_exports.boolean().optional().default(false),
+  max_cards: external_exports.number().int().positive().optional()
+});
+
+// src/core/srs/DueQueueManager.ts
+var DueQueueInitialState = { cards: [], totalDue: 0 };
+var _DueQueueManager = class _DueQueueManager {
+  /**
+   * @param index The flashcard index containing all card metadata
+   */
+  constructor(app) {
+    __publicField(this, "indexManager");
+    __publicField(this, "cachedQueue", DueQueueInitialState);
+    __publicField(this, "lastFilter", "");
+    this.indexManager = IndexManager.getInstance(app);
+  }
+  static getInstance(app) {
+    if (!_DueQueueManager.instance) {
+      _DueQueueManager.instance = new _DueQueueManager(app);
+    }
+    return _DueQueueManager.instance;
+  }
+  get dueQueue() {
+    return this.cachedQueue;
+  }
+  /**
+   * Generates a queue of cards due for review.
+   * Results are cached until the index changes or a different filter is used.
+   *
+   * @param filter Options for filtering the due queue
+   * @returns A sorted DueQueue containing cards due for review
+   */
+  generate(filter = DEFAULT_FILTER) {
+    const filterKey = JSON.stringify(filter);
+    if (this.cachedQueue && this.lastFilter === filterKey) {
+      return this.cachedQueue;
+    }
+    const now2 = /* @__PURE__ */ new Date();
+    const cards = [];
+    const cardTimestamps = /* @__PURE__ */ new Map();
+    const index = this.indexManager.index;
+    for (const uuid3 in index.cards) {
+      const card = index.cards[uuid3];
+      if (this.shouldInclude(card, filter, now2)) {
+        cards.push(card);
+        cardTimestamps.set(card.uuid, new Date(card.srs.next_review).getTime());
+      }
+    }
+    cards.sort((a, b) => {
+      const dateA = cardTimestamps.get(a.uuid);
+      const dateB = cardTimestamps.get(b.uuid);
+      if (dateA !== dateB) {
+        return dateA - dateB;
+      }
+      return b.srs.difficulty - a.srs.difficulty;
+    });
+    const limitedCards = filter.max_cards ? cards.slice(0, filter.max_cards) : cards;
+    const result = {
+      totalDue: limitedCards.length,
+      cards: limitedCards
+    };
+    this.cachedQueue = result;
+    this.lastFilter = filterKey;
+    return result;
+  }
+  /**
+   * Invalidates the generated queue cache.
+   * Should be called when the index is modified.
+   */
+  invalidateCache() {
+    this.cachedQueue = DueQueueInitialState;
+    this.lastFilter = "";
+  }
+  /**
+   * Gets all cards with STALE status.
+   */
+  getStaleCards() {
+    return this.filterByStatus("STALE" /* STALE */);
+  }
+  /**
+   * Gets all cards with PAUSED status.
+   */
+  getPausedCards() {
+    return this.filterByStatus("PAUSED" /* PAUSED */);
+  }
+  filterByStatus(status) {
+    const result = [];
+    const index = this.indexManager.index;
+    for (const uuid3 in index.cards) {
+      const card = index.cards[uuid3];
+      if (card.status === status) {
+        result.push(card);
+      }
+    }
+    return result;
+  }
+  shouldInclude(card, filter, now2) {
+    if (card.status === "DELETED" /* DELETED */ && !filter.include_deleted) {
+      return false;
+    }
+    if (card.status === "PAUSED" /* PAUSED */ && !filter.include_paused) {
+      return false;
+    }
+    if (card.status === "STALE" /* STALE */ && !filter.include_stale) {
+      return false;
+    }
+    if (card.status === "ACTIVE" /* ACTIVE */ || card.status === "STALE" /* STALE */ && filter.include_stale || card.status === "PAUSED" /* PAUSED */ && filter.include_paused || card.status === "DELETED" /* DELETED */ && filter.include_deleted) {
+      const nextReview = new Date(card.srs.next_review);
+      return nextReview <= now2;
+    }
+    return false;
+  }
+};
+__publicField(_DueQueueManager, "instance");
+var DueQueueManager = _DueQueueManager;
+
 // src/main.ts
 var KnowledgeAcceleratorPlugin = class extends import_obsidian11.Plugin {
   constructor() {
     super(...arguments);
     __publicField(this, "indexManager");
-    __publicField(this, "statsManager");
+    __publicField(this, "statisticsManager");
     __publicField(this, "settingsManager");
     __publicField(this, "commandRegistry");
     __publicField(this, "vaultWatcher");
-    __publicField(this, "dueQueue");
+    __publicField(this, "dueQueueManager");
     __publicField(this, "sessionStore");
     __publicField(this, "settings");
     __publicField(this, "notificationManager");
@@ -28295,11 +28253,15 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian11.Plugin {
   async initializeCoreComponents() {
     this.indexManager = IndexManager.getInstance(this.app);
     await this.indexManager.load();
-    this.statsManager = StatsManager.getInstance(this.app);
-    await this.statsManager.load();
-    this.dueQueue = DueQueueManager.getInstance(this.app);
-    this.dueQueue.generate();
-    this.sessionStore = new SessionStore(this.indexManager, this.statsManager, this.dueQueue);
+    this.statisticsManager = StatisticsManager.getInstance(this.app);
+    await this.statisticsManager.load();
+    this.dueQueueManager = DueQueueManager.getInstance(this.app);
+    this.dueQueueManager.generate();
+    this.sessionStore = new SessionStore(
+      this.indexManager,
+      this.statisticsManager,
+      this.dueQueueManager
+    );
   }
   async initializeViews() {
     this.registerView(
@@ -28307,9 +28269,9 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian11.Plugin {
       (leaf) => new DashboardView(
         leaf,
         this.indexManager,
-        this.statsManager,
+        this.statisticsManager,
         this.sessionStore,
-        this.dueQueue
+        this.dueQueueManager
       )
     );
     this.registerView(
@@ -28317,9 +28279,9 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian11.Plugin {
       (leaf) => new ReviewView(
         leaf,
         this.indexManager,
-        this.statsManager,
+        this.statisticsManager,
         this.sessionStore,
-        this.dueQueue
+        this.dueQueueManager
       )
     );
   }

@@ -1,25 +1,26 @@
-import { IVaultAdapter } from '@/obsidian/contracts/IVaultAdapter';
-import { YamlEngine } from '../parser/engine/YamlEngine';
-import { ParserSettings } from '../parser/types';
-import { IndexRecoveryResult, IRecoveryNotifier } from './types';
+import { RecoveryNotifier } from '@/core/sync/RecoveryNotifier';
+import { VaultAdapter } from '@/obsidian/VaultAdapter';
 import { Index } from '../indexer';
+import { YamlEngine } from '../parser';
+import { ParserSettings } from '../parser/utils/types';
+import { IndexRecoveryResult } from './utils/types';
 
 /**
  * Resilience manager for flashcard index recovery.
  * Rebuilds the JSON index from YAML frontmatter in case of corruption or loss.
  */
 export class IndexRecovery {
-	private vaultAdapter: IVaultAdapter;
+	private vaultAdapter: VaultAdapter;
 	private yamlExtractor: YamlEngine;
 	private settings: ParserSettings;
-	private notifier?: IRecoveryNotifier;
+	private notifier?: RecoveryNotifier;
 
 	/**
 	 * @param vaultAdapter Adapter for Obsidian Vault operations
 	 * @param settings Parser settings for finding flashcards
 	 * @param notifier Optional notifier for recovery status and errors
 	 */
-	constructor(vaultAdapter: IVaultAdapter, settings: ParserSettings, notifier?: IRecoveryNotifier) {
+	constructor(vaultAdapter: VaultAdapter, settings: ParserSettings, notifier?: RecoveryNotifier) {
 		this.vaultAdapter = vaultAdapter;
 		this.yamlExtractor = new YamlEngine(vaultAdapter);
 		this.settings = settings;

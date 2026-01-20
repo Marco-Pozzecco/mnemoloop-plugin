@@ -1,5 +1,5 @@
-import { FSRSStats } from '../core/srs/types';
-import { ParserSettings } from '../core/parser/types';
+import { FSRSStats } from '../core/srs/utils/types';
+import { ParserSettings } from '../core/parser/utils/types';
 
 export const DEFAULT_FSRS: FSRSStats = {
 	stability: 0,

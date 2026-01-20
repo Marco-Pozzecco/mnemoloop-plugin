@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { FSRSState, CardRating } from '../types';
+import { FSRSState, CardRating } from '../utils/types';
 
 export const FSRSParametersSchema = z.object({
 	stability: z.number().nonnegative(),

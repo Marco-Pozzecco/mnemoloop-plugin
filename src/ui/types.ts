@@ -1,4 +1,4 @@
-import type { Flashcard } from '../core/parser/types';
+import type { Flashcard } from '../core/parser/utils/types';
 
 /**
  * Represents the reactive state of the dashboard.

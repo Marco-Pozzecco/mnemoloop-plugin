@@ -1,12 +1,12 @@
-import { CardRating } from '@/core';
-import { IndexManager, StatsManager } from '@/core/indexer';
+import { CardRating, DueQueueManager } from '@/core/srs';
+import { IndexManager } from '@/core/indexer';
 import { get, writable, type Writable } from 'svelte/store';
 import { v4 as uuidv4 } from 'uuid';
-import type { Flashcard } from '../../core/parser/types';
-import { DueQueueManager } from '../../core/srs/managers/DueQueueManager';
-import { FsrsEngine } from '../../core/srs/engines/FsrsEngine';
+import type { Flashcard } from '../../core/parser/utils/types';
+import { FsrsEngine } from '../../core/srs/FsrsEngine';
 import { ReviewRatingSchema } from '../schemas';
 import type { ReviewSession } from '../types';
+import { StatisticsManager } from '@/core/statistics';
 
 /**
  * Interface for session store state
@@ -55,16 +55,20 @@ export class SessionStore {
 	private readonly _state: Writable<SessionState>;
 	private readonly fsrsController: FsrsEngine;
 	private readonly indexManager: IndexManager;
-	private readonly statsManager: StatsManager;
+	private readonly statsManager: StatisticsManager;
 	private sessionTimer?: NodeJS.Timeout;
-	private dueQueueGenerator: DueQueueManager;
+	private dueQueueManager: DueQueueManager;
 
-	constructor(indexManager: IndexManager, statsManager: StatsManager, dueQueue: DueQueueManager) {
+	constructor(
+		indexManager: IndexManager,
+		statsManager: StatisticsManager,
+		dueQueueManager: DueQueueManager,
+	) {
 		this._state = writable(DEFAULT_STATE);
 		this.fsrsController = new FsrsEngine();
 		this.indexManager = indexManager;
 		this.statsManager = statsManager;
-		this.dueQueueGenerator = dueQueue;
+		this.dueQueueManager = dueQueueManager;
 	}
 
 	/**
@@ -87,7 +91,7 @@ export class SessionStore {
 			await this.endSession();
 
 			// Generate due queue
-			const queue = this.dueQueueGenerator.generate();
+			const queue = this.dueQueueManager.generate();
 
 			// Create new session
 			const sessionId = uuidv4();

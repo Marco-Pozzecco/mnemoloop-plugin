@@ -1,5 +1,5 @@
 import { State } from 'ts-fsrs';
-import { Flashcard } from '../parser';
+import { Flashcard } from '@/core/parser';
 
 export { State as FSRSState };
 

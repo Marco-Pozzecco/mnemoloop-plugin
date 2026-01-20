@@ -1,8 +1,9 @@
 import { IVaultAdapter } from '@/obsidian/contracts/IVaultAdapter';
-import { SyncResult, SyncConflict, ISyncNotifier } from './types';
-import { YamlEngine } from '../parser/engine/YamlEngine';
-import { FlashcardMetadata } from '../parser/types';
+import { SyncResult, SyncConflict } from './utils/types';
+import { YamlEngine } from '../parser/YamlEngine';
+import { FlashcardMetadata } from '../parser/utils/types';
 import { Index } from '../indexer';
+import { ISyncNotifier } from './utils/contract';
 
 /**
  * Manager for bidirectional synchronization between JSON index and YAML frontmatter.

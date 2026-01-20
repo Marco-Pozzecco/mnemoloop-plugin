@@ -1,6 +1,6 @@
-import { CardStatus } from '@/core';
-import { IndexManager } from '@/core/indexer/managers/IndexManager';
-import { CardMetadata } from '@/core/indexer/schema/indexSchema';
+import { CardStatus } from '@/core/parser';
+import { IndexManager } from '@/core/indexer/IndexerManager';
+import { CardMetadata } from '@/core/indexer';
 import { App } from 'obsidian';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 

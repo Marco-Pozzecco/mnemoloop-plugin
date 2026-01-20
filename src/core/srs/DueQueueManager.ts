@@ -1,7 +1,9 @@
 import { IndexManager } from '@/core/indexer';
 import { App } from 'obsidian';
-import { CardStatus, Flashcard } from '../../parser/types';
-import { DEFAULT_FILTER, DueQueue, DueQueueFilter } from '../types';
+import { CardStatus, Flashcard } from '../parser/utils/types';
+import { DEFAULT_FILTER, DueQueue, DueQueueFilter } from './utils/types';
+
+const DueQueueInitialState: DueQueue = { cards: [], totalDue: 0 };
 
 /**
  * Generator for daily flashcard review queues.
@@ -10,7 +12,7 @@ import { DEFAULT_FILTER, DueQueue, DueQueueFilter } from '../types';
 export class DueQueueManager {
 	static instance: DueQueueManager;
 	private indexManager: IndexManager;
-	private cachedQueue: DueQueue | null = null;
+	private cachedQueue: DueQueue = DueQueueInitialState;
 	private lastFilter: string = '';
 
 	/**
@@ -25,6 +27,10 @@ export class DueQueueManager {
 			DueQueueManager.instance = new DueQueueManager(app);
 		}
 		return DueQueueManager.instance;
+	}
+
+	get dueQueue() {
+		return this.cachedQueue;
 	}
 
 	/**
@@ -86,7 +92,7 @@ export class DueQueueManager {
 	 * Should be called when the index is modified.
 	 */
 	invalidateCache(): void {
-		this.cachedQueue = null;
+		this.cachedQueue = DueQueueInitialState;
 		this.lastFilter = '';
 	}
 

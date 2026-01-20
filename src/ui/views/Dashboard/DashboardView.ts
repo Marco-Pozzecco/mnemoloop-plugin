@@ -41,8 +41,8 @@ export class DashboardView extends PluginView {
 		// Initialize dashboard controller
 		this.dashboardController = new DashboardController(
 			this.indexManager,
-			this.statsManager,
-			this.dueQueue,
+			this.statisticsManager,
+			this.dueQueueManager,
 			this.sessionStore,
 		);
 
