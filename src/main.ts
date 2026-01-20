@@ -1,7 +1,8 @@
+import './ui/styles/main.css';
 import { Plugin, Notice } from 'obsidian';
 import { PluginSettings, DEFAULT_PLUGIN_SETTINGS } from './core/plugin/types';
 import { KnowledgeAcceleratorSettingsTab } from './obsidian/SettingsTab';
-import { IndexManager } from './core/indexer/managers/IndexManager';
+import { IndexManager } from './core/indexer/IndexerManager';
 import { VaultWatcher } from './obsidian/VaultWatcher';
 import { SettingsManager } from './obsidian/SettingsManager';
 import { CommandRegistry } from './obsidian/CommandRegistry';
@@ -12,16 +13,16 @@ import { ReviewView, REVIEW_VIEW_TYPE } from './ui/views/Review/ReviewView';
 import { SessionStore } from './ui/stores/SessionStore';
 
 import { Logger } from './utils/Logger';
-import { StatsManager } from './core/indexer';
-import { DueQueueManager } from './core';
+import { StatisticsManager } from './core/statistics';
+import { DueQueueManager } from './core/srs';
 
 export default class KnowledgeAcceleratorPlugin extends Plugin {
 	private indexManager!: IndexManager;
-	private statsManager!: StatsManager;
+	private statisticsManager!: StatisticsManager;
 	private settingsManager!: SettingsManager;
 	private commandRegistry!: CommandRegistry;
 	private vaultWatcher!: VaultWatcher;
-	private dueQueue!: DueQueueManager;
+	private dueQueueManager!: DueQueueManager;
 	private sessionStore!: SessionStore;
 	settings!: PluginSettings;
 	notificationManager!: NotificationManager;
@@ -54,11 +55,15 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	private async initializeCoreComponents() {
 		this.indexManager = IndexManager.getInstance(this.app);
 		await this.indexManager.load();
-		this.statsManager = StatsManager.getInstance(this.app);
-		await this.statsManager.load();
-		this.dueQueue = DueQueueManager.getInstance(this.app);
-		this.dueQueue.generate();
-		this.sessionStore = new SessionStore(this.indexManager, this.statsManager, this.dueQueue);
+		this.statisticsManager = StatisticsManager.getInstance(this.app);
+		await this.statisticsManager.load();
+		this.dueQueueManager = DueQueueManager.getInstance(this.app);
+		this.dueQueueManager.generate();
+		this.sessionStore = new SessionStore(
+			this.indexManager,
+			this.statisticsManager,
+			this.dueQueueManager,
+		);
 	}
 
 	private async initializeViews() {
@@ -69,9 +74,9 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 				new DashboardView(
 					leaf,
 					this.indexManager,
-					this.statsManager,
+					this.statisticsManager,
 					this.sessionStore,
-					this.dueQueue,
+					this.dueQueueManager,
 				),
 		);
 		// Register the Review view type
@@ -81,9 +86,9 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 				new ReviewView(
 					leaf,
 					this.indexManager,
-					this.statsManager,
+					this.statisticsManager,
 					this.sessionStore,
-					this.dueQueue,
+					this.dueQueueManager,
 				),
 		);
 	}

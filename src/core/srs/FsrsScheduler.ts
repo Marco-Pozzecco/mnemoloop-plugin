@@ -1,6 +1,6 @@
-import { FsrsEngine } from '../engines/FsrsEngine';
-import { Flashcard } from '../../parser/types';
-import { FsrsCalculationInput, CardRating } from '../types';
+import { FsrsEngine } from './FsrsEngine';
+import { Flashcard } from '../parser/utils/types';
+import { FsrsCalculationInput, CardRating } from './utils/types';
 
 /**
  * Service for scheduling the next review of a flashcard.

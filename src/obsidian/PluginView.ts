@@ -1,11 +1,12 @@
-import { ItemView, WorkspaceLeaf, type ViewStateResult } from 'obsidian';
-import { get } from 'svelte/store';
-import type { SvelteComponent } from 'svelte';
-import { ViewState } from '../ui/types';
-import { uiStore } from '../ui/stores/UIStore';
-import { IndexManager, StatsManager } from '@/core/indexer';
-import { DueQueueManager } from '@/core';
+import { IndexManager } from '@/core/indexer';
+import { DueQueueManager } from '@/core/srs';
+import { StatisticsManager } from '@/core/statistics';
 import { SessionStore } from '@/ui/stores/SessionStore';
+import { ItemView, WorkspaceLeaf, type ViewStateResult } from 'obsidian';
+import type { SvelteComponent } from 'svelte';
+import { get } from 'svelte/store';
+import { uiStore } from '../ui/stores/UIStore';
+import { ViewState } from '../ui/types';
 
 /**
  * Base class for all plugin views in Obsidian.
@@ -28,10 +29,10 @@ export abstract class PluginView extends ItemView {
 	/** Icon identifier from Obsidian's internal icon set */
 	public abstract icon: string;
 
-	protected statsManager: StatsManager;
+	protected statisticsManager: StatisticsManager;
 	protected indexManager: IndexManager;
 	protected sessionStore: SessionStore;
-	protected dueQueue: DueQueueManager;
+	protected dueQueueManager: DueQueueManager;
 
 	/**
 	 * @param leaf - The workspace leaf this view will reside in
@@ -39,15 +40,15 @@ export abstract class PluginView extends ItemView {
 	constructor(
 		leaf: WorkspaceLeaf,
 		indexManager: IndexManager,
-		statsManager: StatsManager,
+		statisticsManager: StatisticsManager,
 		sessionStore: SessionStore,
-		dueQueue: DueQueueManager,
+		dueQueueManager: DueQueueManager,
 	) {
 		super(leaf);
 		this.indexManager = indexManager;
-		this.statsManager = statsManager;
+		this.statisticsManager = statisticsManager;
 		this.sessionStore = sessionStore;
-		this.dueQueue = dueQueue;
+		this.dueQueueManager = dueQueueManager;
 	}
 
 	/**

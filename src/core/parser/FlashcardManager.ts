@@ -1,7 +1,7 @@
 import { VaultAdapter } from '@/obsidian/VaultAdapter';
 import { ERROR_MESSAGES } from '@/utils/constants';
-import { YamlEngine } from '../engine/YamlEngine';
-import { ContentSplitResult, Flashcard, ParseResult, ParserSettings } from '../types';
+import { YamlEngine } from './YamlEngine';
+import { ContentSplitResult, Flashcard, ParseResult, ParserSettings } from './utils/types';
 
 /**
  * Core parser for flashcard markdown files.

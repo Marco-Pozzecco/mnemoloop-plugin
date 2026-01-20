@@ -1,10 +1,4 @@
-export * from './types';
-export {
-	SyncStateSchema,
-	SyncResultSchema,
-	SyncConflictSchema,
-	IndexRecoveryResultSchema,
-	IndexSchema,
-} from './schema/SyncSchema';
-export { YamlJsonSync } from './YamlJsonSync';
-export { IndexRecovery } from './IndexRecovery';
+export * from './utils/types';
+export * from './schema/SyncSchema';
+export * from './YamlJsonSync';
+export * from './IndexRecovery';

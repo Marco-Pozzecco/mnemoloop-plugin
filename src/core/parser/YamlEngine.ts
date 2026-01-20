@@ -1,8 +1,8 @@
 import { IVaultAdapter } from '@/obsidian/contracts/IVaultAdapter';
 import { ERROR_MESSAGES } from '@/utils/constants';
 import { clampFsrsParameter, isValidFsrsState, isValidTimestamp } from '@/utils/validation';
-import { DEFAULT_FSRS, FSRSStats, FSRSState } from '../../srs/types';
-import { CardStatus, FlashcardMetadata, YamlParseResult } from '../types';
+import { DEFAULT_FSRS, FSRSStats, FSRSState } from '../srs/utils/types';
+import { CardStatus, FlashcardMetadata, YamlParseResult } from './utils/types';
 
 /**
  * Utility for extracting and validating YAML frontmatter from flashcard files.

@@ -1,7 +1,7 @@
 import { App } from 'obsidian';
-import { MetadataCache } from '../cache/MetadataCache';
-import { IIndexManager } from '../contracts/IIndexManager';
-import { CardMetadata, CardMetadataSchema, Index, IndexSchema } from '../schema/indexSchema';
+import { MetadataCache } from '../../utils/MetadataCache';
+import { IIndexManager } from './utils/contract';
+import { CardMetadata, CardMetadataSchema, Index, IndexSchema } from './schema/IndexerSchema';
 import { CardStatus } from '@/core/parser';
 import { v4 as uuidV4 } from 'uuid';
 

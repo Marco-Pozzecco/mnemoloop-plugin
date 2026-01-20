@@ -1,5 +1,5 @@
-import { CardMetadata } from '../schema/indexSchema';
-import { StatisticsSummary } from '../schema/statsSchema';
+import { CardMetadata } from '../indexer/schema/IndexerSchema';
+import { StatisticsSummary } from './schema/StatisticsSchema';
 
 export class StatisticsEngine {
 	calculateRetention(cards: CardMetadata[]): number {

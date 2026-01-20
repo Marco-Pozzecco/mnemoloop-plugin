@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { MetadataCache } from '@/core/indexer/cache/MetadataCache';
-import { CardMetadata } from '@/core/indexer/schema/indexSchema';
-import { CardStatus } from '@/core';
+import { MetadataCache } from '@/utils/MetadataCache';
+import { CardMetadata } from '@/core/indexer';
+import { CardStatus } from '@/core/parser';
 
 describe('MetadataCache', () => {
 	let cache: MetadataCache;

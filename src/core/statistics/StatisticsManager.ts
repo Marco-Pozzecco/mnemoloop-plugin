@@ -1,11 +1,11 @@
 import { App } from 'obsidian';
-import { IStatsManager } from '../contracts/IStatsManager';
-import { CardMetadata } from '../schema/indexSchema';
-import { Stats, StatsSchema } from '../schema/statsSchema';
-import { StatisticsEngine } from '../statistics/StatisticsEngine';
+import { IStatsManager } from './utils/contract';
+import { CardMetadata } from '../indexer/schema/IndexerSchema';
+import { Stats, StatsSchema } from './schema/StatisticsSchema';
+import { StatisticsEngine } from './StatisticsEngine';
 
-export class StatsManager implements IStatsManager {
-	static instance: StatsManager;
+export class StatisticsManager implements IStatsManager {
+	static instance: StatisticsManager;
 	private app: App;
 	private stats: Stats;
 	private version: number = 1;
@@ -22,11 +22,11 @@ export class StatsManager implements IStatsManager {
 		return this.stats;
 	}
 
-	static getInstance(app: App): StatsManager {
-		if (!StatsManager.instance) {
-			StatsManager.instance = new StatsManager(app);
+	static getInstance(app: App): StatisticsManager {
+		if (!StatisticsManager.instance) {
+			StatisticsManager.instance = new StatisticsManager(app);
 		}
-		return StatsManager.instance;
+		return StatisticsManager.instance;
 	}
 
 	async load(): Promise<void> {

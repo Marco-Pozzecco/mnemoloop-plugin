@@ -1,16 +1,16 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { SettingsStore, type SettingsStoreOptions } from '@/ui/stores/SettingsStore';
-  import type { App } from 'obsidian';
   import type KnowledgeAcceleratorPlugin from '@/main';
   import type { SettingsManager } from '@/obsidian/SettingsManager';
   import type { IPluginSettings } from '@/obsidian/contracts/ISettingsManager';
   import { Button, Icon } from '@/ui/components/common';
-  import WatchingSettings from './sections/WatchingSettings.svelte';
-  import ReviewSettings from './sections/ReviewSettings.svelte';
-  import AdvancedSettings from './sections/AdvancedSettings.svelte';
+  import { SettingsStore } from '@/ui/stores/SettingsStore';
+  import type { App } from 'obsidian';
   import { Notice } from 'obsidian';
-  import { SETTINGS_SECTIONS, type SettingsSectionKey } from './types';
+  import { onMount } from 'svelte';
+  import AdvancedSettings from './sections/AdvancedSettings.svelte';
+  import ReviewSettings from './sections/ReviewSettings.svelte';
+  import WatchingSettings from './sections/WatchingSettings.svelte';
+  import { type SettingsSectionKey } from './types';
 
   export let app: App;
   export let plugin: KnowledgeAcceleratorPlugin;

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SyncSource, CardStatus } from '../types';
+import { SyncSource, CardStatus } from '../utils/types';
 
 export const SyncStateSchema = z.object({
 	uuid: z.uuid(),

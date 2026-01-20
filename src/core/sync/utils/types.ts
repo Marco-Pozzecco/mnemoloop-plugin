@@ -1,5 +1,5 @@
-import { Index } from '../indexer';
-import { CardStatus } from '../parser/types';
+import { Index } from '../../indexer';
+import { CardStatus } from '../../parser/utils/types';
 
 export { CardStatus };
 
@@ -39,17 +39,6 @@ export interface IndexRecoveryResult {
 		error: string;
 	}>;
 	duration_ms: number;
-}
-
-export interface ISyncNotifier {
-	notifyConflict(conflict: SyncConflict): void;
-	logError(message: string): void;
-}
-
-export interface IRecoveryNotifier {
-	notifyRecoveryStarted(): void;
-	notifyRecoveryComplete(result: IndexRecoveryResult): void;
-	logError(file: string, error: string): void;
 }
 
 export const DEFAULT_INDEX: Index = {

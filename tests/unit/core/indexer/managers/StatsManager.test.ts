@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { StatsManager } from '@/core/indexer/managers/StatsManager';
-import { CardMetadata } from '@/core/indexer/schema/indexSchema';
+import { CardMetadata } from '@/core/indexer';
+import { CardStatus } from '@/core/parser';
+import { StatisticsManager } from '@/core/statistics/StatisticsManager';
 import { App } from 'obsidian';
-import { CardStatus } from '@/core';
 import { v4 as uuidv4 } from 'uuid';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock Obsidian App
 const mockApp = {
@@ -18,11 +18,11 @@ const mockApp = {
 } as unknown as App;
 
 describe('StatsManager', () => {
-	let statsManager: StatsManager;
+	let statsManager: StatisticsManager;
 	let mockCards: CardMetadata[];
 
 	beforeEach(() => {
-		statsManager = new StatsManager(mockApp);
+		statsManager = new StatisticsManager(mockApp);
 		vi.clearAllMocks();
 
 		mockCards = [

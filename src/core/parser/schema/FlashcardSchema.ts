@@ -1,5 +1,5 @@
 import z from 'zod';
-import { CardStatus } from '../types';
+import { CardStatus } from '../utils/types';
 
 export const FlashcardSchema = z
 	.object({

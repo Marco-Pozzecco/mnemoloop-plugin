@@ -1,7 +1,7 @@
 import { App, TFile } from 'obsidian';
-import type { Flashcard } from '@/core/parser/types';
-import type { IReviewController } from '@/contracts/UIEngineContract';
-import { IndexManager } from '@/core/indexer/managers/IndexManager';
+import type { Flashcard } from '@/core/parser/utils/types';
+import type { IReviewController } from './types';
+import { IndexManager } from '@/core/indexer/IndexerManager';
 import { SessionStore } from '@/ui/stores/SessionStore';
 
 export class ReviewController implements IReviewController {

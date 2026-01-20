@@ -5,7 +5,6 @@ import { uiStore } from '@/ui/stores/UIStore';
 import type { ReviewProps } from './types';
 import Review from './Review.svelte';
 import { ReviewController } from './ReviewController';
-import type { IReviewController } from '@/contracts/UIEngineContract';
 
 export const REVIEW_VIEW_TYPE = 'knowledge-accelerator-review';
 
@@ -27,7 +26,7 @@ export class ReviewView extends PluginView {
 	public icon = 'brain-circuit';
 
 	/** Review controller instance */
-	private reviewController?: IReviewController;
+	private reviewController?: ReviewController;
 	/** Track the currently edited file for refresh */
 	private editedFilePath: string | null = null;
 

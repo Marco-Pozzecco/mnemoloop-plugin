@@ -1,4 +1,4 @@
-import { Index, IndexSchema } from './indexSchema';
+import { Index, IndexSchema } from '../schema/IndexerSchema';
 
 export interface Migration {
 	version: number;

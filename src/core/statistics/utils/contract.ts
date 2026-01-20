@@ -1,5 +1,5 @@
-import { CardMetadata } from '../schema/indexSchema';
-import { Stats } from '../schema/statsSchema';
+import { CardMetadata } from '../../indexer/schema/IndexerSchema';
+import { Stats } from '../schema/StatisticsSchema';
 
 export interface IStatsManager {
 	load(): Promise<void>;
