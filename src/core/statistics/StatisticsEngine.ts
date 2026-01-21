@@ -1,8 +1,8 @@
-import { CardMetadata } from '../indexer/schema/IndexerSchema';
+import { FlashcardMetadata } from '../indexer/schema/IndexerSchema';
 import { StatisticsSummary } from './schema/StatisticsSchema';
 
 export class StatisticsEngine {
-	calculateRetention(cards: CardMetadata[]): number {
+	calculateRetention(cards: FlashcardMetadata[]): number {
 		const reviewedCards = cards.filter(
 			(card) => card.srs.reps > 0 && card.srs.last_review !== null,
 		);
@@ -16,7 +16,7 @@ export class StatisticsEngine {
 		return matureCards.length / reviewedCards.length;
 	}
 
-	calculateDifficultyDistribution(cards: CardMetadata[]): Map<number, number> {
+	calculateDifficultyDistribution(cards: FlashcardMetadata[]): Map<number, number> {
 		const distribution = new Map<number, number>();
 
 		for (const card of cards) {
@@ -27,16 +27,16 @@ export class StatisticsEngine {
 		return distribution;
 	}
 
-	calculateTotalLearned(cards: CardMetadata[]): number {
+	calculateTotalLearned(cards: FlashcardMetadata[]): number {
 		return cards.filter((card) => card.srs.state > 0).length;
 	}
 
-	calculateDueToday(cards: CardMetadata[]): number {
+	calculateDueToday(cards: FlashcardMetadata[]): number {
 		const today = new Date().toISOString().split('T')[0];
 		return cards.filter((card) => card.status === 'ACTIVE' && card.srs.next_review <= today).length;
 	}
 
-	generateSummary(cards: CardMetadata[]): StatisticsSummary {
+	generateSummary(cards: FlashcardMetadata[]): StatisticsSummary {
 		return {
 			retention_rate: this.calculateRetention(cards),
 			difficulty_dist: Object.fromEntries(this.calculateDifficultyDistribution(cards)),

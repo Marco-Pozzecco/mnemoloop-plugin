@@ -1,10 +1,11 @@
-import { CardMetadata } from '../../indexer/schema/IndexerSchema';
+import { FlashcardMetadata } from '../../indexer/schema/IndexerSchema';
 import { Stats } from '../schema/StatisticsSchema';
+import { ReviewSession } from '../schema/StatisticsSchema';
 
 export interface IStatsManager {
 	load(): Promise<void>;
 	save(): Promise<void>;
 	get statistics(): Stats;
-	recordReview(cardId: string, rating: number): void;
-	recomputeAll(index: Record<string, CardMetadata>): void;
+	recordSession(session: ReviewSession): Promise<void>;
+	recomputeAll(index: Record<string, FlashcardMetadata>): void;
 }

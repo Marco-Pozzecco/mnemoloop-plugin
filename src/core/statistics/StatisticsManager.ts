@@ -1,13 +1,14 @@
 import { App } from 'obsidian';
 import { IStatsManager } from './utils/contract';
-import { CardMetadata } from '../indexer/schema/IndexerSchema';
-import { Stats, StatsSchema } from './schema/StatisticsSchema';
+import { FlashcardMetadata } from '../indexer/schema/IndexerSchema';
+import { ReviewSession, ReviewSessionSchema, Stats, StatsSchema } from './schema/StatisticsSchema';
 import { StatisticsEngine } from './StatisticsEngine';
+import { DEFAULT_STATISTICS } from '@/utils/constants';
 
 export class StatisticsManager implements IStatsManager {
 	static instance: StatisticsManager;
 	private app: App;
-	private stats: Stats;
+	private stats: Stats = DEFAULT_STATISTICS;
 	private version: number = 1;
 	private readonly STATS_FILE = 'knowledge-accelerator/stats.json';
 	engine: StatisticsEngine;
@@ -15,7 +16,6 @@ export class StatisticsManager implements IStatsManager {
 	constructor(app: App) {
 		this.app = app;
 		this.engine = new StatisticsEngine();
-		this.stats = this.createEmptyStats();
 	}
 
 	get statistics(): Stats {
@@ -54,7 +54,7 @@ export class StatisticsManager implements IStatsManager {
 			// Don't throw on parse errors to allow recovery
 			if (error instanceof Error && error.message.includes('JSON.parse')) {
 				console.warn('Stats file corrupted, will create new one');
-				this.stats = this.createEmptyStats();
+				this.stats = DEFAULT_STATISTICS;
 				await this.save();
 				return;
 			}
@@ -84,31 +84,16 @@ export class StatisticsManager implements IStatsManager {
 		}
 	}
 
-	recordReview(cardId: string, rating: number): void {
-		this.stats.history[new Date().toISOString().slice(0, 10)] = {
-			cardUuid: cardId,
-			rating,
-		};
+	async recordSession(session: ReviewSession): Promise<void> {
+		const parsedSession = ReviewSessionSchema.parse(session);
+		this.stats.history.push(parsedSession);
+		await this.save();
 	}
 
-	recomputeAll(index: Record<string, CardMetadata>): void {
+	recomputeAll(index: Record<string, FlashcardMetadata>): void {
 		const cards = Object.values(index).filter((card) => card.status === 'ACTIVE');
 
 		this.stats.summary = this.engine.generateSummary(cards);
 		this.stats.last_updated = new Date().toISOString();
-	}
-
-	private createEmptyStats(): Stats {
-		return {
-			version: this.version,
-			summary: {
-				retention_rate: 0,
-				difficulty_dist: {},
-				total_learned: 0,
-				due_today: 0,
-			},
-			last_updated: new Date().toISOString(),
-			history: {},
-		};
 	}
 }
