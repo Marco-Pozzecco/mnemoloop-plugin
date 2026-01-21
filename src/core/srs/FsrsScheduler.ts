@@ -31,7 +31,7 @@ export class FsrsScheduler {
 		const result = this.engine.calculate(input);
 
 		card.srs = result.updated_params;
-		card.updated = reviewTime || new Date().toISOString();
+		card.updated_at = reviewTime || new Date().toISOString();
 
 		return card;
 	}

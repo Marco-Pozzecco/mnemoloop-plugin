@@ -1,7 +1,11 @@
 import { IndexManager } from '@/core/indexer';
 import { App } from 'obsidian';
-import { CardStatus, Flashcard } from '../parser/utils/types';
+import { CardStatus, Flashcard, ParserSettings } from '../parser/utils/types';
 import { DEFAULT_FILTER, DueQueue, DueQueueFilter } from './utils/types';
+import { FlashcardManager } from '../parser';
+import { VaultAdapter } from '@/obsidian/VaultAdapter';
+import { PluginSettings } from '@/obsidian/schema/SettingsSchema';
+import { Logger } from '@/utils/Logger';
 
 const DueQueueInitialState: DueQueue = { cards: [], totalDue: 0 };
 
@@ -13,18 +17,21 @@ export class DueQueueManager {
 	static instance: DueQueueManager;
 	private indexManager: IndexManager;
 	private cachedQueue: DueQueue = DueQueueInitialState;
+	private flashcardManager: FlashcardManager;
 	private lastFilter: string = '';
 
 	/**
 	 * @param index The flashcard index containing all card metadata
 	 */
-	constructor(app: App) {
+	constructor(app: App, settings: Partial<PluginSettings>) {
 		this.indexManager = IndexManager.getInstance(app);
+		const vaultAdapter = new VaultAdapter(app);
+		this.flashcardManager = new FlashcardManager(vaultAdapter, settings);
 	}
 
-	static getInstance(app: App): DueQueueManager {
+	static getInstance(app: App, settings: Partial<PluginSettings>): DueQueueManager {
 		if (!DueQueueManager.instance) {
-			DueQueueManager.instance = new DueQueueManager(app);
+			DueQueueManager.instance = new DueQueueManager(app, settings);
 		}
 		return DueQueueManager.instance;
 	}
@@ -40,7 +47,8 @@ export class DueQueueManager {
 	 * @param filter Options for filtering the due queue
 	 * @returns A sorted DueQueue containing cards due for review
 	 */
-	generate(filter: DueQueueFilter = DEFAULT_FILTER): DueQueue {
+	async generate(filter: DueQueueFilter = DEFAULT_FILTER): Promise<DueQueue> {
+		Logger.info('Generating due queue');
 		const filterKey = JSON.stringify(filter);
 		if (this.cachedQueue && this.lastFilter === filterKey) {
 			return this.cachedQueue;
@@ -51,12 +59,20 @@ export class DueQueueManager {
 		const cardTimestamps = new Map<string, number>();
 		const index = this.indexManager.index;
 
-		for (const uuid in index.cards) {
-			const card = index.cards[uuid] as Flashcard;
+		Logger.info('Cards available in index', index.cards);
 
-			if (this.shouldInclude(card, filter, now)) {
-				cards.push(card);
-				cardTimestamps.set(card.uuid, new Date(card.srs.next_review).getTime());
+		for (const uuid in index.cards) {
+			const { file } = index.cards[uuid];
+			const { flashcard, success, error } = await this.flashcardManager.parse(file);
+
+			if (!success) {
+				console.error(`Failed to parse flashcard ${uuid}: ${error}`);
+				continue;
+			}
+
+			if (this.shouldInclude(flashcard, filter, now)) {
+				cards.push(flashcard);
+				cardTimestamps.set(flashcard.uuid, new Date(flashcard.srs.next_review).getTime());
 			}
 		}
 
@@ -122,7 +138,7 @@ export class DueQueueManager {
 		return result;
 	}
 
-	private shouldInclude(card: Flashcard, filter: DueQueueFilter, now: Date): boolean {
+	private shouldInclude(card: Flashcard, filter: DueQueueFilter, reviewDate: Date): boolean {
 		// Basic status check
 		if (card.status === CardStatus.DELETED && !filter.include_deleted) {
 			return false;
@@ -144,7 +160,12 @@ export class DueQueueManager {
 			(card.status === CardStatus.DELETED && filter.include_deleted)
 		) {
 			const nextReview = new Date(card.srs.next_review);
-			return nextReview <= now;
+
+			Logger.info('nextReview', nextReview);
+			Logger.info('reviewDate', reviewDate);
+			Logger.info('Is in Review', nextReview <= reviewDate);
+
+			return nextReview <= reviewDate;
 		}
 
 		return false;

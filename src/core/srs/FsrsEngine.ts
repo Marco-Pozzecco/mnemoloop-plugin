@@ -1,13 +1,6 @@
-import { Card, FSRS, FSRSParameters, Rating, generatorParameters, Grade } from 'ts-fsrs';
-import {
-	CardRating,
-	DEFAULT_FSRS,
-	FSRSStats,
-	FsrsCalculationInput,
-	FsrsCalculationResult,
-} from './utils/types';
-
-import { ERROR_MESSAGES } from '@/utils/constants';
+import { DEFAULT_FSRS, ERROR_MESSAGES } from '@/utils/constants';
+import { Card, FSRS, FSRSParameters, Grade, Rating, generatorParameters } from 'ts-fsrs';
+import { CardRating, FSRSStats, FsrsCalculationInput, FsrsCalculationResult } from './utils/types';
 
 /**
  * Wrapper for the ts-fsrs library.
