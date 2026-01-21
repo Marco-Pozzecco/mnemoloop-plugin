@@ -1,6 +1,6 @@
 import { DEFAULT_FSRS, ERROR_MESSAGES } from '@/utils/constants';
 import { Card, FSRS, FSRSParameters, Grade, Rating, generatorParameters } from 'ts-fsrs';
-import { CardRating, FSRSStats, FsrsCalculationInput, FsrsCalculationResult } from './utils/types';
+import { FsrsCalculationInput, FsrsCalculationResult, FSRSParams } from './';
 
 /**
  * Wrapper for the ts-fsrs library.
@@ -25,12 +25,11 @@ export class FsrsEngine {
 			const reviewDate = review_time ? new Date(review_time) : new Date();
 
 			const fsrsCard: Card = this.mapToFsrsCard(current_params);
-			const fsrsRating = this.mapToFsrsRating(rating);
 
 			const recordLog = this.fsrs.repeat(fsrsCard, reviewDate);
-			const updatedCard = recordLog[fsrsRating as Grade].card;
+			const updatedCard = recordLog[rating].card;
 
-			const updatedParams: FSRSStats = this.mapFromFsrsCard(updatedCard);
+			const updatedParams: FSRSParams = this.mapFromFsrsCard(updatedCard);
 
 			const intervalDays = this.calculateIntervalDays(updatedParams.next_review, reviewDate);
 
@@ -50,14 +49,14 @@ export class FsrsEngine {
 	/**
 	 * Returns default FSRS parameters for a new card.
 	 */
-	getInitialState(): FSRSStats {
+	getInitialState(): FSRSParams {
 		return { ...DEFAULT_FSRS };
 	}
 
 	/**
 	 * Maps internal FSRSStats to ts-fsrs Card object.
 	 */
-	private mapToFsrsCard(params: FSRSStats): Card {
+	private mapToFsrsCard(params: FSRSParams): Card {
 		return {
 			due: new Date(params.next_review),
 			stability: params.stability,
@@ -75,7 +74,7 @@ export class FsrsEngine {
 	/**
 	 * Maps ts-fsrs Card object back to internal FSRSStats.
 	 */
-	private mapFromFsrsCard(card: Card): FSRSStats {
+	private mapFromFsrsCard(card: Card): FSRSParams {
 		return {
 			stability: card.stability,
 			difficulty: card.difficulty,
@@ -88,24 +87,6 @@ export class FsrsEngine {
 			last_review: card.last_review ? card.last_review.toISOString() : null,
 			next_review: card.due.toISOString(),
 		};
-	}
-
-	/**
-	 * Maps internal CardRating enum to ts-fsrs Rating enum.
-	 */
-	private mapToFsrsRating(rating: CardRating): Rating {
-		switch (rating) {
-			case CardRating.AGAIN:
-				return Rating.Again;
-			case CardRating.HARD:
-				return Rating.Hard;
-			case CardRating.GOOD:
-				return Rating.Good;
-			case CardRating.EASY:
-				return Rating.Easy;
-			default:
-				return Rating.Good;
-		}
 	}
 
 	/**
