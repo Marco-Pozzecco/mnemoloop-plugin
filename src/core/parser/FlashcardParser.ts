@@ -2,16 +2,16 @@ import { VaultAdapter } from '@/obsidian/VaultAdapter';
 import { ERROR_MESSAGES } from '@/utils/constants';
 import { YamlEngine } from './YamlEngine';
 import { ContentSplitResult, Flashcard, ParseResult, ParserSettings } from './utils/types';
+import { PluginSettings } from '@/obsidian/schema/SettingsSchema';
 
 /**
  * Core parser for flashcard markdown files.
  * It is responsible for:
  * - YAML extraction and content splitting by a marker.
- * - Flashcard creation and validation.
  */
-export class FlashcardManager {
+export class FlashcardParser {
+	private yaml: YamlEngine;
 	private vaultAdapter: VaultAdapter;
-	private yamlExtractor: YamlEngine;
 	private settings: ParserSettings;
 	private cache: Map<string, { result: ParseResult; timestamp: number }> = new Map();
 
@@ -19,12 +19,12 @@ export class FlashcardManager {
 	 * @param vaultAdapter Adapter for Obsidian Vault operations
 	 * @param settings Optional parser settings (directory, marker)
 	 */
-	constructor(vaultAdapter: VaultAdapter, settings?: Partial<ParserSettings>) {
+	constructor(vaultAdapter: VaultAdapter, settings?: Partial<PluginSettings>) {
 		this.vaultAdapter = vaultAdapter;
-		this.yamlExtractor = new YamlEngine(vaultAdapter);
+		this.yaml = new YamlEngine(vaultAdapter);
 		this.settings = {
-			flashcard_directory: settings?.flashcard_directory ?? '/flashcards/',
-			marker: settings?.marker ?? '?',
+			flashcard_directory: settings?.flashcardsDirectory ?? '/flashcards/',
+			marker: '?',
 		};
 	}
 
@@ -47,13 +47,14 @@ export class FlashcardManager {
 
 		try {
 			const content = await this.vaultAdapter.readFile(filePath);
-			const yamlResult = await this.yamlExtractor.extract(filePath);
+			const yamlResult = await this.yaml.extract(filePath);
 
 			if (!yamlResult.success || !yamlResult.metadata) {
 				const errorResult = {
 					success: false,
+					flashcard: undefined,
 					error: yamlResult.error || ERROR_MESSAGES.INVALID_YAML,
-				};
+				} as const;
 				this.cache.set(filePath, { result: errorResult, timestamp: Date.now() });
 				return errorResult;
 			}
@@ -63,8 +64,9 @@ export class FlashcardManager {
 			if (!splitResult.success || !splitResult.front) {
 				const errorResult = {
 					success: false,
+					flashcard: undefined,
 					error: splitResult.error || ERROR_MESSAGES.MISSING_MARKER,
-				};
+				} as const;
 				this.cache.set(filePath, { result: errorResult, timestamp: Date.now() });
 				return errorResult;
 			}
@@ -78,12 +80,14 @@ export class FlashcardManager {
 			const successResult = {
 				success: true,
 				flashcard,
-			};
+				error: undefined,
+			} as const;
 
 			this.cache.set(filePath, { result: successResult, timestamp: Date.now() });
 			return successResult;
 		} catch (error) {
 			return {
+				flashcard: undefined,
 				success: false,
 				error: error instanceof Error ? error.message : 'Unknown error parsing flashcard',
 			};

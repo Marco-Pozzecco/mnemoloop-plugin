@@ -1,14 +1,33 @@
-export interface ParseResult {
-	success: boolean;
-	flashcard?: any;
-	error?: string;
+import { FlashcardMetadata } from '@/core/indexer';
+
+export type ParseResult = ParseResultSuccess | ParseResultError;
+
+interface ParseResultSuccess {
+	success: true;
+	flashcard: Flashcard;
+	error: undefined;
 }
 
-export interface YamlParseResult {
-	success: boolean;
-	metadata?: any;
-	error?: string;
-	warnings?: string[];
+interface ParseResultError {
+	success: false;
+	flashcard: undefined;
+	error: string;
+}
+
+export type YamlParseResult = YamlParseResultSuccess | YamlParseResultError;
+
+interface YamlParseResultSuccess {
+	success: true;
+	metadata: FlashcardMetadata;
+	error: undefined;
+	warnings: string[];
+}
+
+interface YamlParseResultError {
+	success: false;
+	metadata: undefined;
+	error: string;
+	warnings: undefined;
 }
 
 export interface ContentSplitResult {
@@ -25,38 +44,14 @@ export enum CardStatus {
 	STALE = 'STALE',
 }
 
-export interface Flashcard {
-	uuid: string;
-	file: string;
-	source: string;
-	status: CardStatus;
-	created: string;
-	updated: string;
-	deleted_at: string | null;
+export interface Flashcard extends FlashcardMetadata {
 	front: string;
 	back: string;
-	srs: any;
-}
-
-export interface FlashcardMetadata {
-	uuid: string;
-	file: string;
-	source: string;
-	status: CardStatus;
-	created: string;
-	updated: string;
-	deleted_at: string | null;
-	srs: any;
 }
 
 export type ValidationError = {
 	path: string[];
 	message: string;
-};
-
-export type FlashcardWithOptionalContent = Omit<Flashcard, 'front' | 'back'> & {
-	front?: string;
-	back?: string;
 };
 
 export interface ParserSettings {
