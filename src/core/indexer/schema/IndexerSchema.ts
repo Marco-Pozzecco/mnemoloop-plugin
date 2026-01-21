@@ -1,5 +1,5 @@
 import { CardStatus } from '@/core/parser';
-import { FSRSParametersSchema } from '@/core/srs';
+import { FSRSParams } from '@/core/srs';
 import { z } from 'zod';
 
 export const FlashcardMetadataSchema = z.object({
@@ -13,7 +13,7 @@ export const FlashcardMetadataSchema = z.object({
 	created_at: z.iso.datetime(),
 	updated_at: z.iso.datetime(),
 	deleted_at: z.iso.datetime().nullable(),
-	srs: FSRSParametersSchema,
+	srs: FSRSParams,
 });
 
 export const IndexSchema = z.object({
