@@ -1,6 +1,6 @@
 import { FsrsEngine } from './FsrsEngine';
 import { Flashcard } from '../parser/utils/types';
-import { FsrsCalculationInput, CardRating } from './utils/types';
+import { FsrsCalculationInput, FSRSRating } from './';
 
 /**
  * Service for scheduling the next review of a flashcard.
@@ -21,10 +21,10 @@ export class FsrsScheduler {
 	 * @param reviewTime Optional override for review timestamp
 	 * @returns The updated flashcard object
 	 */
-	scheduleNextReview(card: Flashcard, rating: CardRating, reviewTime?: string): Flashcard {
+	scheduleNextReview(card: Flashcard, rating: FSRSRating, reviewTime?: string): Flashcard {
 		const input: FsrsCalculationInput = {
 			current_params: card.srs,
-			rating: rating,
+			rating,
 			review_time: reviewTime,
 		};
 

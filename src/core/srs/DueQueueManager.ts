@@ -1,7 +1,7 @@
 import { IndexManager } from '@/core/indexer';
 import { App } from 'obsidian';
 import { CardStatus, Flashcard, ParserSettings } from '../parser/utils/types';
-import { DEFAULT_FILTER, DueQueue, DueQueueFilter } from './utils/types';
+import { DEFAULT_DUE_QUEUE_FILTER, DueQueue, DueQueueFilter } from './';
 import { FlashcardManager } from '../parser';
 import { VaultAdapter } from '@/obsidian/VaultAdapter';
 import { PluginSettings } from '@/obsidian/schema/SettingsSchema';
@@ -9,10 +9,6 @@ import { Logger } from '@/utils/Logger';
 
 const DueQueueInitialState: DueQueue = { cards: [], totalDue: 0 };
 
-/**
- * Generator for daily flashcard review queues.
- * Filters and sorts cards from the index based on due dates and status.
- */
 export class DueQueueManager {
 	static instance: DueQueueManager;
 	private indexManager: IndexManager;
@@ -47,7 +43,7 @@ export class DueQueueManager {
 	 * @param filter Options for filtering the due queue
 	 * @returns A sorted DueQueue containing cards due for review
 	 */
-	async generate(filter: DueQueueFilter = DEFAULT_FILTER): Promise<DueQueue> {
+	async generate(filter: DueQueueFilter = DEFAULT_DUE_QUEUE_FILTER): Promise<DueQueue> {
 		Logger.info('Generating due queue');
 		const filterKey = JSON.stringify(filter);
 		if (this.cachedQueue && this.lastFilter === filterKey) {
