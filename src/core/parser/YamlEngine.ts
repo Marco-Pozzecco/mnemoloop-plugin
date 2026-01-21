@@ -1,10 +1,10 @@
 import { VaultAdapter } from '@/obsidian/VaultAdapter';
-import { ERROR_MESSAGES } from '@/utils/constants';
+import { DEFAULT_FSRS, ERROR_MESSAGES } from '@/utils/constants';
 import { Logger } from '@/utils/Logger';
 import { clampFsrsParameter, isValidFsrsState, isValidTimestamp } from '@/utils/validation';
 import { v4 as uuid } from 'uuid';
 import { FlashcardMetadata, FlashcardMetadataSchema } from '../indexer';
-import { DEFAULT_FSRS, FSRSState, FSRSStats } from '../srs/utils/types';
+import { FSRSState, FSRSStats } from '../srs/utils/types';
 import { IYamlEngine } from './utils/contract';
 import { CardStatus, YamlParseResult } from './utils/types';
 
