@@ -1,17 +1,21 @@
-import { IVaultAdapter } from '@/obsidian/contracts/IVaultAdapter';
+import { VaultAdapter } from '@/obsidian/VaultAdapter';
 import { ERROR_MESSAGES } from '@/utils/constants';
+import { Logger } from '@/utils/Logger';
 import { clampFsrsParameter, isValidFsrsState, isValidTimestamp } from '@/utils/validation';
-import { DEFAULT_FSRS, FSRSStats, FSRSState } from '../srs/utils/types';
-import { CardStatus, FlashcardMetadata, YamlParseResult } from './utils/types';
+import { v4 as uuid } from 'uuid';
+import { FlashcardMetadata, FlashcardMetadataSchema } from '../indexer';
+import { DEFAULT_FSRS, FSRSState, FSRSStats } from '../srs/utils/types';
+import { IYamlEngine } from './utils/contract';
+import { CardStatus, YamlParseResult } from './utils/types';
 
 /**
  * Utility for extracting and validating YAML frontmatter from flashcard files.
  * Uses Obsidian's CachedMetadata API for efficient extraction.
  */
-export class YamlEngine {
-	private vaultAdapter: IVaultAdapter;
+export class YamlEngine implements IYamlEngine {
+	private vaultAdapter: VaultAdapter;
 
-	constructor(vaultAdapter: IVaultAdapter) {
+	constructor(vaultAdapter: VaultAdapter) {
 		this.vaultAdapter = vaultAdapter;
 	}
 
@@ -27,6 +31,8 @@ export class YamlEngine {
 
 			if (!metadata || !metadata.frontmatter) {
 				return {
+					metadata: undefined,
+					warnings: undefined,
 					success: false,
 					error: ERROR_MESSAGES.INVALID_YAML,
 				};
@@ -40,28 +46,48 @@ export class YamlEngine {
 				file: filePath,
 				source: this.extractSource(fm),
 				status: this.extractStatus(fm),
-				created: this.extractTimestamp(fm, 'created') || new Date().toISOString(),
-				updated: this.extractTimestamp(fm, 'updated') || new Date().toISOString(),
+				created_at: this.extractTimestamp(fm, 'created') || new Date().toISOString(),
+				updated_at: this.extractTimestamp(fm, 'updated') || new Date().toISOString(),
 				deleted_at: this.extractTimestamp(fm, 'deleted_at'),
 				srs: this.extractAndValidateFSRS(fm, warnings),
 			};
 
 			return {
+				error: undefined,
 				success: true,
 				metadata: flashcardMetadata,
-				warnings: warnings.length > 0 ? warnings : undefined,
+				warnings: warnings,
 			};
 		} catch (error) {
 			return {
+				metadata: undefined,
+				warnings: undefined,
 				success: false,
 				error: error instanceof Error ? error.message : 'Unknown error extracting YAML',
 			};
 		}
 	}
 
-	/**
-	 * Extracts UUID from frontmatter or filename, or generates a new one.
-	 */
+	async generateYaml(metadata: FlashcardMetadata): Promise<string> {
+		const lines: string[] = [];
+
+		const entries = Object.entries(metadata);
+
+		lines.push('---');
+
+		for (const [key, value] of entries) {
+			if (typeof value === 'object') {
+				lines.push(`${key}: ${JSON.stringify(value)}`);
+			} else {
+				lines.push(`${key}: ${value}`);
+			}
+		}
+
+		lines.push('---');
+
+		return lines.join('\n');
+	}
+
 	private extractUuid(filePath: string, frontmatter: Record<string, any>): string {
 		if (frontmatter.uuid && typeof frontmatter.uuid === 'string') {
 			return frontmatter.uuid;
@@ -70,7 +96,7 @@ export class YamlEngine {
 		if (match) {
 			return match[1];
 		}
-		return crypto.randomUUID();
+		return uuid();
 	}
 
 	/**
@@ -113,28 +139,9 @@ export class YamlEngine {
 	 * Orchestrates FSRS parameter extraction and validation.
 	 */
 	private extractAndValidateFSRS(frontmatter: Record<string, any>, warnings: string[]): FSRSStats {
-		const rawParams: Partial<FSRSStats> = {};
+		const params = FlashcardMetadataSchema.parse(frontmatter);
 
-		if (typeof frontmatter.srs_stability === 'number') {
-			rawParams.stability = frontmatter.srs_stability;
-		}
-		if (typeof frontmatter.srs_difficulty === 'number') {
-			rawParams.difficulty = frontmatter.srs_difficulty;
-		}
-		if (typeof frontmatter.srs_state === 'number') {
-			rawParams.state = frontmatter.srs_state;
-		}
-		if (typeof frontmatter.srs_last_review === 'string' || frontmatter.srs_last_review === null) {
-			rawParams.last_review = frontmatter.srs_last_review;
-		}
-		if (typeof frontmatter.srs_next_review === 'string') {
-			rawParams.next_review = frontmatter.srs_next_review;
-		}
-		if (typeof frontmatter.srs_reps === 'number') {
-			rawParams.reps = frontmatter.srs_reps;
-		}
-
-		return this.validateFSRS(rawParams, warnings);
+		return this.validateFSRS(params.srs, warnings);
 	}
 
 	/**
@@ -147,10 +154,12 @@ export class YamlEngine {
 	validateFSRS(rawParams: Partial<FSRSStats>, warnings: string[]): FSRSStats {
 		const params: FSRSStats = { ...DEFAULT_FSRS };
 
+		Logger.info('Validating FSRS parameters', rawParams);
+
 		if (rawParams.stability !== undefined) {
 			const clamped = clampFsrsParameter(rawParams.stability);
 			if (clamped !== rawParams.stability) {
-				warnings.push(`stability clamped from ${rawParams.stability} to ${clamped}`);
+				Logger.warn(`stability clamped from ${rawParams.stability} to ${clamped}`);
 			}
 			params.stability = clamped;
 		}
@@ -158,7 +167,7 @@ export class YamlEngine {
 		if (rawParams.difficulty !== undefined) {
 			const clamped = clampFsrsParameter(rawParams.difficulty);
 			if (clamped !== rawParams.difficulty) {
-				warnings.push(`difficulty clamped from ${rawParams.difficulty} to ${clamped}`);
+				Logger.warn(`difficulty clamped from ${rawParams.difficulty} to ${clamped}`);
 			}
 			params.difficulty = clamped;
 		}
@@ -167,7 +176,7 @@ export class YamlEngine {
 			if (isValidFsrsState(rawParams.state)) {
 				params.state = rawParams.state;
 			} else {
-				warnings.push(`invalid state ${rawParams.state}, using default ${FSRSState.New}`);
+				Logger.warn(`invalid state ${rawParams.state}, using default ${FSRSState.New}`);
 				params.state = FSRSState.New;
 			}
 		}
@@ -176,7 +185,7 @@ export class YamlEngine {
 			if (rawParams.last_review === null || isValidTimestamp(rawParams.last_review)) {
 				params.last_review = rawParams.last_review;
 			} else {
-				warnings.push(`invalid last_review timestamp, using null`);
+				Logger.warn(`invalid last_review timestamp, using null`);
 				params.last_review = null;
 			}
 		}
@@ -184,7 +193,7 @@ export class YamlEngine {
 		if (rawParams.next_review !== undefined && isValidTimestamp(rawParams.next_review)) {
 			params.next_review = rawParams.next_review;
 		} else {
-			warnings.push(`invalid next_review timestamp, using default`);
+			Logger.warn(`invalid next_review timestamp, using default`);
 			params.next_review = new Date().toISOString();
 		}
 
