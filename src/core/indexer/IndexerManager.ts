@@ -1,12 +1,27 @@
+import { CardStatus, YamlEngine } from '@/core/parser';
+import { VaultAdapter } from '@/obsidian/VaultAdapter';
+import { Logger } from '@/utils/Logger';
+import { DEFAULT_FSRS } from '@/utils/constants';
 import { App } from 'obsidian';
+import { v4 as uuid } from 'uuid';
 import { MetadataCache } from '../../utils/MetadataCache';
+import {
+	FlashcardMetadata,
+	FlashcardMetadataSchema,
+	Index,
+	IndexSchema,
+} from './schema/IndexerSchema';
 import { IIndexManager } from './utils/contract';
-import { CardMetadata, CardMetadataSchema, Index, IndexSchema } from './schema/IndexerSchema';
-import { CardStatus } from '@/core/parser';
-import { v4 as uuidV4 } from 'uuid';
 
+/**
+ * Role:
+ * - create an in memory index of all the flashcards present on disk during initialization
+ * - persistance of the index on disk
+ */
 export class IndexManager implements IIndexManager {
 	static instance: IndexManager;
+	private vaultAdapter: VaultAdapter;
+	private yamlEngine: YamlEngine;
 	private app: App;
 	private cache: MetadataCache;
 	private version: number = 1;
@@ -15,6 +30,8 @@ export class IndexManager implements IIndexManager {
 
 	constructor(app: App) {
 		this.app = app;
+		this.vaultAdapter = new VaultAdapter(app);
+		this.yamlEngine = new YamlEngine(this.vaultAdapter);
 		this.cache = new MetadataCache();
 	}
 
@@ -33,11 +50,16 @@ export class IndexManager implements IIndexManager {
 					acc[card.uuid] = card;
 					return acc;
 				},
-				{} as Record<string, CardMetadata>,
+				{} as Record<string, FlashcardMetadata>,
 			),
 			last_updated: this.last_updated.toISOString(),
 		};
 		return index;
+	}
+
+	async initialize(): Promise<void> {
+		Logger.info('Initializing index');
+		await this.rebuildFromVault();
 	}
 
 	async load(): Promise<void> {
@@ -90,7 +112,7 @@ export class IndexManager implements IIndexManager {
 			const index: Index = {
 				version: this.version,
 				last_updated: new Date().toISOString(),
-				cards: Object.fromEntries(this.cache.getAll()) as Record<string, CardMetadata>,
+				cards: Object.fromEntries(this.cache.getAll()) as Record<string, FlashcardMetadata>,
 			};
 
 			const validatedIndex = IndexSchema.parse(index);
@@ -107,18 +129,18 @@ export class IndexManager implements IIndexManager {
 		}
 	}
 
-	getCard(id: string): CardMetadata | undefined {
+	getCard(id: string): FlashcardMetadata | undefined {
 		return this.cache.get(id);
 	}
 
-	upsertCard(id: string, data: Partial<CardMetadata>): void {
+	upsertCard(id: string, data: Partial<FlashcardMetadata>): void {
 		const existingCard = this.cache.get(id);
 		const updatedCard = {
 			...(existingCard || {}),
 			...data,
 			updated: new Date().toISOString(),
 		};
-		const validatedCard = CardMetadataSchema.parse(updatedCard);
+		const validatedCard = FlashcardMetadataSchema.parse(updatedCard);
 		this.cache.set(id, validatedCard);
 		this.last_updated = new Date();
 	}
@@ -132,7 +154,7 @@ export class IndexManager implements IIndexManager {
 				deleted_at: new Date().toISOString(),
 				updated: new Date().toISOString(),
 			};
-			const validatedCard = CardMetadataSchema.parse(deletedCard);
+			const validatedCard = FlashcardMetadataSchema.parse(deletedCard);
 			this.cache.set(id, validatedCard);
 			this.last_updated = new Date();
 		}
@@ -146,40 +168,45 @@ export class IndexManager implements IIndexManager {
 			const adapter = this.app.vault.adapter;
 
 			if (!(await adapter.exists(flashcardFolder))) {
-				console.warn(`Flashcard folder '${flashcardFolder}' not found`);
+				Logger.warn(`Flashcard folder '${flashcardFolder}' not found`);
 				return;
 			}
 
-			const files = await adapter.list(flashcardFolder);
+			const { files } = await this.vaultAdapter.list(flashcardFolder);
 
-			for (const file of files.files) {
+			for (const file of files) {
 				if (file.endsWith('.md')) {
 					try {
-						const content = await adapter.read(file);
-						const metadata = this.extractYamlMetadata(content, file);
+						Logger.info(`Processing file ${file}`);
+						const { error, metadata, success } = await this.yamlEngine.extract(file);
 
+						if (success === false) {
+							Logger.error(`Error parsing YAML in file ${file}: ${error}`);
+						}
+
+						Logger.info(`Validating metadata for file ${file}`);
 						if (metadata) {
-							const cardId = this.generateCardId(file);
-							const cardData: CardMetadata = {
-								uuid: uuidV4(),
+							Logger.info(`Metadata is present`, metadata);
+							const validatedCard = FlashcardMetadataSchema.parse(metadata);
+							this.cache.set(metadata.uuid, validatedCard);
+						} else {
+							const cardData: FlashcardMetadata = {
+								uuid: uuid(),
 								file,
-								source: metadata.source || '',
+								source: null,
 								status: CardStatus.ACTIVE,
-								created: metadata.created || new Date().toISOString(),
-								updated: new Date().toISOString(),
+								created_at: new Date().toISOString(),
+								updated_at: new Date().toISOString(),
 								deleted_at: null,
-								srs: metadata.srs || {
-									stability: 0,
-									difficulty: 5,
-									state: 0,
-									last_review: null,
-									next_review: new Date().toISOString(),
-									reps: 0,
-								},
+								srs: DEFAULT_FSRS,
 							};
 
-							const validatedCard = CardMetadataSchema.parse(cardData);
-							this.cache.set(cardId, validatedCard);
+							const validatedCard = FlashcardMetadataSchema.parse(cardData);
+							const yamlMetadata = await this.yamlEngine.generateYaml(cardData);
+							const content = await this.vaultAdapter.readFile(file);
+
+							await this.vaultAdapter.writeFile(file, yamlMetadata + '\n' + content);
+							this.cache.set(cardData.uuid, validatedCard);
 						}
 					} catch (error) {
 						console.error(`Failed to process file '${file}':`, error);
@@ -197,50 +224,11 @@ export class IndexManager implements IIndexManager {
 		}
 	}
 
-	findCardsBySource(sourcePath: string): CardMetadata[] {
+	findCardsBySource(sourcePath: string): FlashcardMetadata[] {
 		return this.cache.query((card) => card.source === sourcePath);
 	}
 
-	getAllCards(): CardMetadata[] {
+	getAllCards(): FlashcardMetadata[] {
 		return Array.from(this.cache.getAll().values());
-	}
-
-	private extractYamlMetadata(content: string, filePath: string): any | null {
-		try {
-			const yamlMatch = content.match(/^---\n([\s\S]*?)\n---/);
-			if (!yamlMatch) {
-				return null;
-			}
-
-			// Simple YAML parsing for our known fields
-			const yamlContent = yamlMatch[1];
-			const metadata: any = {};
-
-			const lines = yamlContent.split('\n');
-			for (const line of lines) {
-				const match = line.match(/^(\w+):\s*(.*)$/);
-				if (match) {
-					const [, key, value] = match;
-					if (key === 'srs' && value.startsWith('{')) {
-						// Simple SRS object parsing
-						metadata.srs = JSON.parse(value);
-					} else if (key === 'source') {
-						metadata.source = value.replace(/['"]/g, '');
-					} else if (key === 'created') {
-						metadata.created = value.replace(/['"]/g, '');
-					}
-				}
-			}
-
-			return metadata.source ? metadata : null;
-		} catch (error) {
-			console.error(`Failed to extract YAML metadata from '${filePath}':`, error);
-			return null;
-		}
-	}
-
-	private generateCardId(filePath: string): string {
-		// Use normalized file path as ID
-		return filePath.replace(/^\/+/, '').replace(/[^a-zA-Z0-9]/g, '-');
 	}
 }
