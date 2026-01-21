@@ -4,7 +4,7 @@ import { Logger } from '@/utils/Logger';
 import { clampFsrsParameter, isValidFsrsState, isValidTimestamp } from '@/utils/validation';
 import { v4 as uuid } from 'uuid';
 import { FlashcardMetadata, FlashcardMetadataSchema } from '../indexer';
-import { FSRSState, FSRSStats } from '../srs/utils/types';
+import { FSRSState, FSRSParams } from '@/core/srs/';
 import { IYamlEngine } from './utils/contract';
 import { CardStatus, YamlParseResult } from './utils/types';
 
@@ -138,7 +138,7 @@ export class YamlEngine implements IYamlEngine {
 	/**
 	 * Orchestrates FSRS parameter extraction and validation.
 	 */
-	private extractAndValidateFSRS(frontmatter: Record<string, any>, warnings: string[]): FSRSStats {
+	private extractAndValidateFSRS(frontmatter: Record<string, any>, warnings: string[]): FSRSParams {
 		const params = FlashcardMetadataSchema.parse(frontmatter);
 
 		return this.validateFSRS(params.srs, warnings);
@@ -151,8 +151,8 @@ export class YamlEngine implements IYamlEngine {
 	 * @param warnings Array to collect validation warnings
 	 * @returns Validated FSRSStats object
 	 */
-	validateFSRS(rawParams: Partial<FSRSStats>, warnings: string[]): FSRSStats {
-		const params: FSRSStats = { ...DEFAULT_FSRS };
+	validateFSRS(rawParams: Partial<FSRSParams>, warnings: string[]): FSRSParams {
+		const params: FSRSParams = { ...DEFAULT_FSRS };
 
 		Logger.info('Validating FSRS parameters', rawParams);
 
