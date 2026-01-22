@@ -1,6 +1,7 @@
 import type { SvelteComponent } from 'svelte';
 import { PluginView } from '@/obsidian/PluginView';
 import { uiStore } from '@/ui/stores/UIStore';
+import { statisticsStore } from '@/ui/stores/StatisticsStore';
 import type { DashboardProps, DashboardStats } from './types';
 import Dashboard from './Dashboard.svelte';
 import { DashboardController } from './DashboardController';
@@ -32,12 +33,12 @@ export class DashboardView extends PluginView {
 	private isLoading = false;
 
 	/**
-	 * Creates and mounts the Dashboard Svelte component
+	 * Creates and mounts Dashboard Svelte component
 	 *
-	 * @param container - The DOM element to mount the component into
+	 * @param container - The DOM element to mount component into
 	 * @returns The mounted Svelte component
 	 */
-	protected createSvelteComponent(container: Element): SvelteComponent {
+	protected async createSvelteComponent(container: Element): Promise<SvelteComponent> {
 		// Initialize dashboard controller
 		this.dashboardController = new DashboardController(
 			this.indexManager,
@@ -48,7 +49,7 @@ export class DashboardView extends PluginView {
 
 		// Create component props
 		const props: DashboardProps = {
-			stats: this.getMockStats(), // Will be replaced with real data
+			stats: await this.getInitialStats(), // Use real data from controller
 			config: this.getConfig(),
 			onStartReview: this.handleStartReview.bind(this),
 			onConfigChange: this.handleConfigChange.bind(this),
@@ -64,7 +65,7 @@ export class DashboardView extends PluginView {
 	}
 
 	/**
-	 * Called when the view is opened
+	 * Called when view is opened
 	 */
 	async onOpen(): Promise<void> {
 		await super.onOpen();
@@ -72,8 +73,12 @@ export class DashboardView extends PluginView {
 		// Set current view in UI store
 		uiStore.navigate('dashboard');
 
-		// Load initial data
+		// Initial stats are already loaded in createSvelteComponent
+		// Just ensure data is fresh
 		await this.refreshData();
+
+		// Set up real-time statistics updates when sessions complete
+		this.setupSessionCompleteListener();
 	}
 
 	/**
@@ -83,6 +88,72 @@ export class DashboardView extends PluginView {
 		await super.onClose();
 		this.dashboardController = undefined;
 		this.currentStats = null;
+	}
+
+	/**
+	 * Gets initial dashboard statistics
+	 *
+	 * @returns Promise resolving to dashboard statistics
+	 */
+	private async getInitialStats(): Promise<DashboardStats> {
+		if (!this.dashboardController) {
+			const fallbackStats = this.getFallbackStats();
+			statisticsStore.set(fallbackStats);
+			return fallbackStats;
+		}
+
+		try {
+			const stats = await this.dashboardController.getStats();
+			statisticsStore.set(stats);
+			return stats;
+		} catch (error) {
+			console.error('Failed to get initial dashboard stats:', error);
+			const fallbackStats = this.getFallbackStats();
+			statisticsStore.set(fallbackStats);
+			return fallbackStats;
+		}
+	}
+
+	/**
+	 * Gets fallback statistics when controller fails
+	 *
+	 * @returns Fallback dashboard statistics
+	 */
+	private getFallbackStats(): DashboardStats {
+		return {
+			totalCards: 0,
+			retentionRate: 0,
+			dueCount: 0,
+			dailyGoal: 20,
+			streakDays: 0,
+			cardsLearnedToday: 0,
+			estimatedTimeMinutes: 0,
+			progressData: this.getFallbackProgressData(),
+		};
+	}
+
+	/**
+	 * Gets fallback progress data when controller fails
+	 *
+	 * @returns Empty progress data for last 7 days
+	 */
+	private getFallbackProgressData(): DashboardStats['progressData'] {
+		const progressData: DashboardStats['progressData'] = [];
+		const today = new Date();
+
+		for (let i = 6; i >= 0; i--) {
+			const date = new Date(today);
+			date.setDate(today.getDate() - i);
+			progressData.push({
+				date: date.toISOString().split('T')[0],
+				completed: 0,
+				target: 20,
+				newCards: 0,
+				retention: 0,
+			});
+		}
+
+		return progressData;
 	}
 
 	/**
@@ -98,10 +169,13 @@ export class DashboardView extends PluginView {
 			const stats = await this.dashboardController.getStats();
 			this.currentStats = stats;
 
-			// Update the component with new data
+			// Update both component and reactive store
 			if (this.component) {
 				this.component.$set({ stats });
 			}
+			
+			// Update reactive statistics store for real-time updates
+			statisticsStore.set(stats);
 
 			this.setLoading(false);
 		} catch (error) {
@@ -263,9 +337,23 @@ export class DashboardView extends PluginView {
 	}
 
 	/**
+	 * Sets up listener for session completion events to trigger real-time updates
+	 */
+	private setupSessionCompleteListener(): void {
+		// Subscribe to session store to detect session completion
+		this.sessionStore.subscribe((state) => {
+			// Check if a session just completed (activeSession became null but stats were just saved)
+			if (!state.activeSession && state.sessionStats.totalReviewed > 0) {
+				// Session just completed, refresh dashboard data
+				this.refreshData();
+			}
+		});
+	}
+
+	/**
 	 * Sets loading state and updates component
 	 *
-	 * @param loading - Whether the view is loading
+	 * @param loading - Whether view is loading
 	 */
 	setLoading(loading: boolean): void {
 		this.isLoading = loading;

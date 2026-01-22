@@ -30,13 +30,13 @@ export class ReviewView extends PluginView {
 	/** Track the currently edited file for refresh */
 	private editedFilePath: string | null = null;
 
-	/**
-	 * Creates and mounts the Review Svelte component
+/**
+	 * Creates and mounts Review Svelte component
 	 *
 	 * @param container - The DOM element to mount the component into
 	 * @returns The mounted Svelte component
 	 */
-	protected createSvelteComponent(container: Element): SvelteComponent {
+	protected async createSvelteComponent(container: Element): Promise<SvelteComponent> {
 		// Initialize review controller
 		this.reviewController = new ReviewController(this.app, this.indexManager, this.sessionStore);
 

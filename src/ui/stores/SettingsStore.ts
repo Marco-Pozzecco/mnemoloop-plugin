@@ -22,7 +22,7 @@ const DEFAULT_STATE: SettingsStoreState = {
 		debounceTimeoutMs: 1000,
 		enableSoftDelete: true,
 		softDeleteHours: 24,
-		commandShortcuts: {},
+		// commandShortcuts: {},
 	},
 	isLoading: false,
 	hasChanges: false,
@@ -48,23 +48,23 @@ export class SettingsStore {
 	}
 
 	get settings() {
-		return derived(this._state, $s => $s.settings);
+		return derived(this._state, ($s) => $s.settings);
 	}
 
 	get isLoading() {
-		return derived(this._state, $s => $s.isLoading);
+		return derived(this._state, ($s) => $s.isLoading);
 	}
 
 	get hasChanges() {
-		return derived(this._state, $s => $s.hasChanges);
+		return derived(this._state, ($s) => $s.hasChanges);
 	}
 
 	get validationErrors() {
-		return derived(this._state, $s => $s.validationErrors);
+		return derived(this._state, ($s) => $s.validationErrors);
 	}
 
 	async updateSettings(updates: Partial<IPluginSettings>): Promise<void> {
-		this._state.update(state => ({
+		this._state.update((state) => ({
 			...state,
 			isLoading: true,
 		}));
@@ -79,7 +79,7 @@ export class SettingsStore {
 			const validatedSettings = this.settingsManager.validateSettings(newSettings);
 			await this.settingsManager.updateSettings(updates);
 
-			this._state.update(state => ({
+			this._state.update((state) => ({
 				...state,
 				settings: validatedSettings,
 				hasChanges: false,
@@ -89,7 +89,7 @@ export class SettingsStore {
 
 			this.initialSettings = { ...validatedSettings };
 		} catch (error) {
-			this._state.update(state => ({
+			this._state.update((state) => ({
 				...state,
 				isLoading: false,
 			}));
@@ -98,7 +98,7 @@ export class SettingsStore {
 	}
 
 	setPendingChanges(updates: Partial<IPluginSettings>): void {
-		this._state.update(state => {
+		this._state.update((state) => {
 			const newSettings = {
 				...state.settings,
 				...updates,
@@ -115,7 +115,7 @@ export class SettingsStore {
 	}
 
 	async resetToDefaults(): Promise<void> {
-		this._state.update(state => ({
+		this._state.update((state) => ({
 			...state,
 			isLoading: true,
 		}));
@@ -124,7 +124,7 @@ export class SettingsStore {
 			await this.settingsManager.resetToDefaults();
 			const defaultSettings = this.settingsManager.getSettings();
 
-			this._state.update(state => ({
+			this._state.update((state) => ({
 				...state,
 				settings: { ...defaultSettings },
 				hasChanges: false,
@@ -134,7 +134,7 @@ export class SettingsStore {
 
 			this.initialSettings = { ...defaultSettings };
 		} catch (error) {
-			this._state.update(state => ({
+			this._state.update((state) => ({
 				...state,
 				isLoading: false,
 			}));
@@ -143,7 +143,7 @@ export class SettingsStore {
 	}
 
 	discardChanges(): void {
-		this._state.update(state => ({
+		this._state.update((state) => ({
 			...state,
 			settings: { ...this.initialSettings },
 			hasChanges: false,
@@ -160,7 +160,7 @@ export class SettingsStore {
 			};
 			this.settingsManager.validateSettings(testSettings);
 
-			this._state.update(state => ({
+			this._state.update((state) => ({
 				...state,
 				validationErrors: {
 					...state.validationErrors,
@@ -170,7 +170,7 @@ export class SettingsStore {
 			return true;
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : 'Invalid value';
-			this._state.update(state => ({
+			this._state.update((state) => ({
 				...state,
 				validationErrors: {
 					...state.validationErrors,
@@ -183,7 +183,7 @@ export class SettingsStore {
 
 	refresh(): void {
 		this.initialSettings = { ...this.settingsManager.getSettings() };
-		this._state.update(state => ({
+		this._state.update((state) => ({
 			...state,
 			settings: { ...this.initialSettings },
 			hasChanges: false,

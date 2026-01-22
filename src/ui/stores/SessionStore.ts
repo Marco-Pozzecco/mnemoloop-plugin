@@ -1,12 +1,13 @@
-import { CardRating, DueQueueManager } from '@/core/srs';
 import { IndexManager } from '@/core/indexer';
+import { DueQueueManager } from '@/core/srs';
+import { StatisticsManager } from '@/core/statistics';
 import { get, writable, type Writable } from 'svelte/store';
 import { v4 as uuidv4 } from 'uuid';
 import type { Flashcard } from '../../core/parser/utils/types';
 import { FsrsEngine } from '../../core/srs/FsrsEngine';
 import { ReviewRatingSchema } from '../schemas';
-import type { ReviewSession } from '../types';
-import { StatisticsManager } from '@/core/statistics';
+import { ReviewSession } from '../types';
+import { Logger } from '@/utils/Logger';
 
 /**
  * Interface for session store state
@@ -91,7 +92,7 @@ export class SessionStore {
 			await this.endSession();
 
 			// Generate due queue
-			const queue = this.dueQueueManager.generate();
+			const queue = await this.dueQueueManager.generate();
 
 			// Create new session
 			const sessionId = uuidv4();
@@ -170,7 +171,7 @@ export class SessionStore {
 			// Submit rating to FSRS controller
 			this.fsrsController.calculate({
 				current_params: currentCard.srs,
-				rating: validatedRating as CardRating,
+				rating: validatedRating,
 				review_time: new Date().toISOString(),
 			});
 
@@ -397,13 +398,11 @@ export class SessionStore {
 	 * @param session - The completed session to save
 	 */
 	private async saveSessionStats(session: ReviewSession): Promise<void> {
-		// Implementation would save to a session history file or index
-		// For now, we'll just log the session completion
-		console.log('Session completed:', {
-			sessionId: session.sessionId,
-			cardsReviewed: session.stats.total,
-			duration: get(this._state).sessionStats.sessionDuration,
-			completedAt: new Date().toISOString(),
-		});
+		try {
+			Logger.info('Saving session statistics (to be implemented)');
+		} catch (error) {
+			console.error('Failed to save session statistics:', error);
+			throw error;
+		}
 	}
 }
