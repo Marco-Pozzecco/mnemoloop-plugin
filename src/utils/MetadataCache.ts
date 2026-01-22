@@ -1,7 +1,7 @@
-import { CardMetadata } from '../core/indexer/schema/IndexerSchema';
+import { FlashcardMetadata } from '../core/indexer/schema/IndexerSchema';
 
 export class MetadataCache {
-	private cache: Map<string, CardMetadata>;
+	private cache: Map<string, FlashcardMetadata>;
 	private dirty: boolean;
 
 	constructor() {
@@ -9,12 +9,12 @@ export class MetadataCache {
 		this.dirty = false;
 	}
 
-	set(id: string, data: CardMetadata): void {
+	set(id: string, data: FlashcardMetadata): void {
 		this.cache.set(id, data);
 		this.dirty = true;
 	}
 
-	get(id: string): CardMetadata | undefined {
+	get(id: string): FlashcardMetadata | undefined {
 		return this.cache.get(id);
 	}
 
@@ -32,11 +32,11 @@ export class MetadataCache {
 		this.dirty = true;
 	}
 
-	query(predicate: (card: CardMetadata) => boolean): CardMetadata[] {
+	query(predicate: (card: FlashcardMetadata) => boolean): FlashcardMetadata[] {
 		return Array.from(this.cache.values()).filter(predicate);
 	}
 
-	getAll(): Map<string, CardMetadata> {
+	getAll(): Map<string, FlashcardMetadata> {
 		return new Map(this.cache);
 	}
 
@@ -52,12 +52,12 @@ export class MetadataCache {
 		this.dirty = false;
 	}
 
-	load(entries: Record<string, CardMetadata>): void {
+	load(entries: Record<string, FlashcardMetadata>): void {
 		this.cache = new Map(Object.entries(entries));
 		this.dirty = false;
 	}
 
-	dump(): Record<string, CardMetadata> {
+	dump(): Record<string, FlashcardMetadata> {
 		return Object.fromEntries(this.cache);
 	}
 }
