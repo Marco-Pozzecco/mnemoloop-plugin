@@ -86,8 +86,8 @@ export abstract class PluginView extends ItemView {
 		container.empty();
 
 		try {
-			// Create and mount the specific Svelte component for this view
-			this.component = this.createSvelteComponent(container);
+			// Create and mount of specific Svelte component for this view
+			this.component = await this.createSvelteComponent(container);
 
 			// Register for theme changes to allow components to react if needed
 			this.registerEvent(
@@ -119,7 +119,7 @@ export abstract class PluginView extends ItemView {
 	 * @param container - The DOM element to mount the component into
 	 * @returns The instantiated Svelte component
 	 */
-	protected abstract createSvelteComponent(container: Element): SvelteComponent;
+	protected abstract createSvelteComponent(container: Element): Promise<SvelteComponent>;
 
 	/**
 	 * Hook for handling theme changes (light/dark mode).
