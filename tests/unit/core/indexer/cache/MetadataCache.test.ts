@@ -24,6 +24,10 @@ describe('MetadataCache', () => {
 				last_review: null,
 				next_review: '2024-01-02T00:00:00.000Z',
 				reps: 0,
+				elapsed_days: 0,
+				lapses: 0,
+				learning_steps: 0,
+				scheduled_days: 0,
 			},
 		};
 	});
