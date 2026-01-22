@@ -1,20 +1,21 @@
 import './ui/styles/main.css';
-import { Plugin, Notice } from 'obsidian';
-import { PluginSettings, DEFAULT_PLUGIN_SETTINGS } from './core/plugin/types';
-import { KnowledgeAcceleratorSettingsTab } from './obsidian/SettingsTab';
+
+import { Notice, Plugin } from 'obsidian';
 import { IndexManager } from './core/indexer/IndexerManager';
-import { VaultWatcher } from './obsidian/VaultWatcher';
-import { SettingsManager } from './obsidian/SettingsManager';
+import { DueQueueManager } from './core/srs';
+import { StatisticsManager } from './core/statistics';
 import { CommandRegistry } from './obsidian/CommandRegistry';
 import { NotificationManager } from './obsidian/NotificationManager';
+import { SettingsManager } from './obsidian/SettingsManager';
+import { KnowledgeAcceleratorSettingsTab } from './obsidian/SettingsTab';
+import { VaultWatcher } from './obsidian/VaultWatcher';
 import { IVaultWatcherConfig } from './obsidian/contracts';
-import { DASHBOARD_VIEW_TYPE, DashboardView } from './ui/views/Dashboard/DashboardView';
-import { ReviewView, REVIEW_VIEW_TYPE } from './ui/views/Review/ReviewView';
 import { SessionStore } from './ui/stores/SessionStore';
-
+import { AppView } from './ui/views/App/AppView';
+import { DASHBOARD_VIEW_TYPE, DashboardView } from './ui/views/Dashboard/DashboardView';
+import { REVIEW_VIEW_TYPE, ReviewView } from './ui/views/Review/ReviewView';
 import { Logger } from './utils/Logger';
-import { StatisticsManager } from './core/statistics';
-import { DueQueueManager } from './core/srs';
+import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from './obsidian/schema/SettingsSchema';
 
 export default class KnowledgeAcceleratorPlugin extends Plugin {
 	private indexManager!: IndexManager;
@@ -30,11 +31,11 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	async onload() {
 		Logger.info('Loading plugin');
 
+		await this.initializeSettings();
+		await this.initializeCommands();
 		await this.initializeNotificationManager();
 		await this.initializeCoreComponents();
 		await this.initializeViews();
-		await this.initializeSettings();
-		await this.initializeCommands();
 		await this.initializeVaultWatcher();
 	}
 
@@ -54,10 +55,10 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 
 	private async initializeCoreComponents() {
 		this.indexManager = IndexManager.getInstance(this.app);
-		await this.indexManager.load();
+		await this.indexManager.initialize();
 		this.statisticsManager = StatisticsManager.getInstance(this.app);
 		await this.statisticsManager.load();
-		this.dueQueueManager = DueQueueManager.getInstance(this.app);
+		this.dueQueueManager = DueQueueManager.getInstance(this.app, this.settings);
 		this.dueQueueManager.generate();
 		this.sessionStore = new SessionStore(
 			this.indexManager,
@@ -91,6 +92,8 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 					this.dueQueueManager,
 				),
 		);
+
+		// this.registerView('', (leaf) => new AppView(leaf, this.app));
 	}
 
 	private async initializeNotificationManager() {
