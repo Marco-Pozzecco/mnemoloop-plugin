@@ -216,7 +216,7 @@ export class DashboardController implements IDashboardController {
 		} catch (error) {
 			console.error('Failed to get daily goal:', error);
 			// Return a default value if statistics are not available
-			return 20;
+			return 0;
 		}
 	}
 

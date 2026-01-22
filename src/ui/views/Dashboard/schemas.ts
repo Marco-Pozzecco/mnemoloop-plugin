@@ -18,7 +18,7 @@ export const DashboardStatsSchema = z.object({
 	totalCards: z.number().int().nonnegative(),
 	retentionRate: z.number().min(0).max(1),
 	dueCount: z.number().int().nonnegative(),
-	dailyGoal: z.number().int().positive(),
+	dailyGoal: z.number().int(),
 	streakDays: z.number().int().nonnegative(),
 	cardsLearnedToday: z.number().int().nonnegative(),
 	estimatedTimeMinutes: z.number().int().nonnegative(),
