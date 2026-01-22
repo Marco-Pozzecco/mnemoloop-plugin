@@ -51,7 +51,7 @@ export class DashboardController implements IDashboardController {
 
 			// Calculate statistics
 			const totalCards = cards.length;
-			const dueCount = this.calculateDueCount();
+			const dueCount = await this.calculateDueCount();
 			const retentionRate = this.statisticsManager.engine.calculateRetention(cards);
 			const dailyGoal = await this.getDailyGoal();
 			const cardsLearnedToday = await this.getCardsReviewedToday();
@@ -124,7 +124,7 @@ export class DashboardController implements IDashboardController {
 			uiStore.setLoading(true, 'Starting review session...');
 
 			// Check if there are cards due
-			const dueCount = this.calculateDueCount();
+			const dueCount = await this.calculateDueCount();
 			if (dueCount === 0) {
 				uiStore.setLoading(false);
 				uiStore.notify({
@@ -194,9 +194,9 @@ export class DashboardController implements IDashboardController {
 	 *
 	 * @returns Promise resolving to due card count
 	 */
-	private calculateDueCount(): number {
+	private async calculateDueCount(): Promise<number> {
 		try {
-			const dueQueue = this.dueQueueManager.generate();
+			const dueQueue = await this.dueQueueManager.generate();
 			return dueQueue.totalDue;
 		} catch (error) {
 			console.error('Failed to calculate due count:', error);
@@ -210,9 +210,14 @@ export class DashboardController implements IDashboardController {
 	 * @returns Promise resolving to daily goal
 	 */
 	private async getDailyGoal(): Promise<number> {
-		// This would typically come from plugin settings
-		// For now, return a default value
-		return 20;
+		try {
+			// Return the daily goal from StatisticsManager
+			return this.statisticsManager.statistics.daily_goal;
+		} catch (error) {
+			console.error('Failed to get daily goal:', error);
+			// Return a default value if statistics are not available
+			return 20;
+		}
 	}
 
 	/**
@@ -222,9 +227,15 @@ export class DashboardController implements IDashboardController {
 	 */
 	private async getCardsReviewedToday(): Promise<number> {
 		try {
-			// This would come from session history or statistics
-			// For now, return a mock value that will be replaced
-			return 8;
+			const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+			// Query StatisticsManager.progress for today's date
+			const todayProgress = this.statisticsManager.statistics.progress.find(
+				(progress) => progress.date === today,
+			);
+
+			// Return DailyProgress.cardsReviewed for today, or 0 if no data
+			return todayProgress?.cardsReviewed ?? 0;
 		} catch (error) {
 			console.error("Failed to get today's review count:", error);
 			return 0;
@@ -238,9 +249,8 @@ export class DashboardController implements IDashboardController {
 	 */
 	private async calculateStreak(): Promise<number> {
 		try {
-			// This would analyze session history
-			// For now, return a mock value that will be replaced
-			return 5;
+			// Return StatisticsManager.currentStreak directly
+			return this.statisticsManager.statistics.current_streak;
 		} catch (error) {
 			console.error('Failed to calculate streak:', error);
 			return 0;
@@ -266,28 +276,38 @@ export class DashboardController implements IDashboardController {
 	 */
 	private async getProgressData(): Promise<DashboardStats['progressData']> {
 		try {
-			const progressData = [];
 			const today = new Date();
+			// const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
+
+			// Get the daily goal from StatisticsManager
+			const dailyGoal = this.statisticsManager.statistics.daily_goal;
+
+			// Get StatisticsManager.progress (DailyProgress array)
+			const progressArray = this.statisticsManager.statistics.progress;
+
+			// Create a map for quick lookup by date
+			const progressMap = new Map<string, (typeof progressArray)[0]>();
+			for (const entry of progressArray) {
+				progressMap.set(entry.date, entry);
+			}
 
 			// Generate data for the last 7 days
+			const progressData: DashboardStats['progressData'] = [];
+
 			for (let i = 6; i >= 0; i--) {
 				const date = new Date(today);
 				date.setDate(today.getDate() - i);
 				const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
 
-				// This would come from session history
-				// For now, generate mock data
-				const completed = Math.floor(Math.random() * 30) + 10;
-				const target = 20;
-				const newCards = Math.floor(Math.random() * 5);
-				const retention = 0.8 + Math.random() * 0.15; // 0.8-0.95
+				// Get DailyProgress entry for this date, or use default values
+				const dailyProgress = progressMap.get(dateStr);
 
 				progressData.push({
 					date: dateStr,
-					completed,
-					target,
-					newCards,
-					retention,
+					completed: dailyProgress?.cardsReviewed ?? 0,
+					target: dailyGoal,
+					newCards: 0, // Not directly available in DailyProgress, may be derived from session data
+					retention: dailyProgress?.retentionRate ?? 0,
 				});
 			}
 
