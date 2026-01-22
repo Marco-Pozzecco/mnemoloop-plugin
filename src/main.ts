@@ -11,9 +11,8 @@ import { KnowledgeAcceleratorSettingsTab } from './obsidian/SettingsTab';
 import { VaultWatcher } from './obsidian/VaultWatcher';
 import { IVaultWatcherConfig } from './obsidian/contracts';
 import { SessionStore } from './ui/stores/SessionStore';
-import { AppView } from './ui/views/App/AppView';
-import { DASHBOARD_VIEW_TYPE, DashboardView } from './ui/views/Dashboard/DashboardView';
-import { REVIEW_VIEW_TYPE, ReviewView } from './ui/views/Review/ReviewView';
+import { AppView, APP_VIEW } from './ui/views/App/AppView';
+import { NavigationManager } from './ui/views/App/NavigationManager';
 import { Logger } from './utils/Logger';
 import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from './obsidian/schema/SettingsSchema';
 
@@ -27,13 +26,15 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	private sessionStore!: SessionStore;
 	settings!: PluginSettings;
 	notificationManager!: NotificationManager;
+	private navigationManager!: NavigationManager;
+	private ribbonIcon?: HTMLElement;
 
 	async onload() {
 		Logger.info('Loading plugin');
 
+		this.initializeRibbonIcon();
 		await this.initializeSettings();
 		await this.initializeCommands();
-		await this.initializeNotificationManager();
 		await this.initializeCoreComponents();
 		await this.initializeViews();
 		await this.initializeVaultWatcher();
@@ -41,8 +42,9 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 
 	onunload() {
 		Logger.info('Unloading plugin');
-		this.vaultWatcher.shutdown();
-		this.notificationManager.clearStatusBar();
+		this.vaultWatcher?.shutdown();
+		this.notificationManager?.clearStatusBar();
+		this.ribbonIcon?.remove();
 	}
 
 	async loadSettings() {
@@ -65,35 +67,24 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 			this.statisticsManager,
 			this.dueQueueManager,
 		);
+		this.navigationManager = new NavigationManager(this.app);
 	}
 
 	private async initializeViews() {
-		// Register the Dashboard view type
+		// Register the unified AppView
 		this.registerView(
-			DASHBOARD_VIEW_TYPE,
+			APP_VIEW,
 			(leaf) =>
-				new DashboardView(
+				new AppView(
 					leaf,
+					this.app,
+					this.navigationManager,
 					this.indexManager,
 					this.statisticsManager,
 					this.sessionStore,
 					this.dueQueueManager,
 				),
 		);
-		// Register the Review view type
-		this.registerView(
-			REVIEW_VIEW_TYPE,
-			(leaf) =>
-				new ReviewView(
-					leaf,
-					this.indexManager,
-					this.statisticsManager,
-					this.sessionStore,
-					this.dueQueueManager,
-				),
-		);
-
-		// this.registerView('', (leaf) => new AppView(leaf, this.app));
 	}
 
 	private async initializeNotificationManager() {
@@ -130,7 +121,8 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 				Logger.debug('Starting review session');
 				try {
 					await this.sessionStore.startSession();
-					await this.openReviewView();
+					await this.navigationManager.openUnifiedView();
+					await this.navigationManager.navigateTo('review');
 				} catch (error) {
 					Logger.error('Failed to start review session:', error);
 					new Notice('No cards due for review!');
@@ -142,8 +134,9 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 			id: 'ka-open-dashboard',
 			name: 'Knowledge Accelerator: Open Dashboard',
 			callback: async () => {
-				Logger.debug('Opening dashboard');
-				await this.openDashboard();
+				Logger.debug('Opening dashboard from command');
+				await this.navigationManager.openUnifiedView();
+				await this.navigationManager.navigateTo('dashboard');
 			},
 		});
 
@@ -154,47 +147,6 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 				(this.app as any).setting.openTabById(this.manifest.id);
 			},
 		});
-	}
-
-	/**
-	 * Opens the Dashboard view in the Obsidian workspace
-	 */
-	private async openDashboard() {
-		try {
-			const { workspace } = this.app;
-			let leaf = workspace.getLeavesOfType(DASHBOARD_VIEW_TYPE)[0];
-
-			if (!leaf) {
-				const newLeaf = workspace.getRightLeaf(false);
-				if (newLeaf) leaf = newLeaf;
-				await leaf.setViewState({ type: DASHBOARD_VIEW_TYPE, active: true });
-			}
-
-			workspace.revealLeaf(leaf);
-		} catch (error) {
-			Logger.error('Failed to open dashboard:', error);
-			new Notice('Failed to open dashboard. Please try again.');
-		}
-	}
-
-	/**
-	 * Opens the Review view in the Obsidian workspace
-	 */
-	private async openReviewView() {
-		try {
-			const { workspace } = this.app;
-			let leaf = workspace.getLeavesOfType(REVIEW_VIEW_TYPE)[0];
-
-			if (!leaf) {
-				leaf = workspace.getLeaf('tab');
-				await leaf.setViewState({ type: REVIEW_VIEW_TYPE, active: true });
-			}
-
-			workspace.revealLeaf(leaf);
-		} catch (error) {
-			Logger.error('Failed to open review view:', error);
-			new Notice('Failed to open review view. Please try again.');
-		}
 	}
 
 	private async initializeVaultWatcher() {
@@ -208,5 +160,11 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 			softDeleteHours: pluginSettings.softDeleteHours,
 		});
 		await this.vaultWatcher.initialize();
+	}
+
+	private initializeRibbonIcon() {
+		this.ribbonIcon = this.addRibbonIcon('brain', 'Knowledge Accelerator', () => {
+			this.navigationManager.openUnifiedView();
+		});
 	}
 }

@@ -56,6 +56,15 @@ export class NavigationManager implements INavigationManager {
 	}
 
 	/**
+	 * Initializes the navigation manager with a specific workspace leaf.
+	 * @param leaf - The workspace leaf to use for the unified view
+	 */
+	initializeWithLeaf(leaf: WorkspaceLeaf): void {
+		this.leaf = leaf;
+		void this.initialize();
+	}
+
+	/**
 	 * Navigates to the specified view.
 	 * @param view - Target view ("dashboard" or "review")
 	 * @param context - Optional context data for the target view

@@ -1,6 +1,12 @@
 import type { App } from 'obsidian';
-import { NavigationManager } from './NavigationManager';
 import { ItemView, WorkspaceLeaf } from 'obsidian';
+import type { NavigationManager } from './NavigationManager';
+import type { IndexManager } from '@/core/indexer/IndexerManager';
+import type { StatisticsManager } from '@/core/statistics';
+import type { SessionStore } from '@/ui/stores/SessionStore';
+import type { DueQueueManager } from '@/core/srs';
+import { SvelteComponent } from 'svelte';
+import { default as Home } from './App.svelte';
 
 /**
  * View type for the unified home view
@@ -13,11 +19,28 @@ export const APP_VIEW = 'knowledge-accelerator-home';
  */
 export class AppView extends ItemView {
 	private navigationManager: NavigationManager;
+	private indexManager: IndexManager;
+	private statisticsManager: StatisticsManager;
+	private sessionStore: SessionStore;
+	private dueQueueManager: DueQueueManager;
+	private homeComponent: Home | null = null;
 	protected viewType: string = APP_VIEW;
 
-	constructor(leaf: WorkspaceLeaf, app: App) {
+	constructor(
+		leaf: WorkspaceLeaf,
+		app: App,
+		navigationManager: NavigationManager,
+		indexManager: IndexManager,
+		statisticsManager: StatisticsManager,
+		sessionStore: SessionStore,
+		dueQueueManager: DueQueueManager,
+	) {
 		super(leaf);
-		this.navigationManager = new NavigationManager(app);
+		this.navigationManager = navigationManager;
+		this.indexManager = indexManager;
+		this.statisticsManager = statisticsManager;
+		this.sessionStore = sessionStore;
+		this.dueQueueManager = dueQueueManager;
 	}
 
 	/**
@@ -46,21 +69,24 @@ export class AppView extends ItemView {
 	 */
 	async onOpen(): Promise<void> {
 		try {
-			// Initialize the navigation manager
-			await this.navigationManager.initialize();
+			// Store the leaf reference in NavigationManager
+			this.navigationManager.initializeWithLeaf(this.leaf);
 
 			// Load the Svelte component
-			const { default: Home } = await import('./App.svelte');
 			const homeComponent = new Home({
-				target: this.containerEl,
-				// props: {
-				// 	app: this.app,
-				// 	navigationManager: this.navigationManager,
-				// },
+				target: this.contentEl,
+				props: {
+					app: this.app,
+					navigationManager: this.navigationManager,
+					indexManager: this.indexManager,
+					statisticsManager: this.statisticsManager,
+					sessionStore: this.sessionStore,
+					dueQueueManager: this.dueQueueManager,
+				},
 			});
 
 			// Store component reference for cleanup
-			(this as any).homeComponent = homeComponent;
+			this.homeComponent = homeComponent;
 		} catch (error) {
 			console.error('Failed to open Home view:', error);
 			this.containerEl.createEl('div', { text: 'Failed to load Knowledge Accelerator' });
@@ -73,9 +99,9 @@ export class AppView extends ItemView {
 	async onClose(): Promise<void> {
 		try {
 			// Clean up Svelte component
-			if ((this as any).homeComponent) {
-				(this as any).homeComponent.$destroy();
-				delete (this as any).homeComponent;
+			if (this.homeComponent) {
+				this.homeComponent.$destroy();
+				this.homeComponent = null;
 			}
 
 			// Close unified view

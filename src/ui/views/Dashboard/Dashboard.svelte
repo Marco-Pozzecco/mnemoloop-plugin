@@ -223,6 +223,7 @@
     flex-direction: column;
     gap: 24px;
     padding: 24px;
+    width: 100%;
     max-width: 800px;
     margin: 0 auto;
     color: var(--text-normal);

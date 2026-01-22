@@ -82,7 +82,7 @@ export const StatisticsSummarySchema = z.object({
 // StatsSchema - updated with proper history field and new statistics fields
 export const StatsSchema = z.object({
 	// Version field maintained for schema migrations
-	version: z.number().int().positive(),
+	version: z.number().int(),
 
 	// Summary maintained for backward compatibility
 	summary: StatisticsSummarySchema,
@@ -94,7 +94,7 @@ export const StatsSchema = z.object({
 	// New fields from Statistics entity
 	current_streak: z.number().int().min(0),
 	longest_streak: z.number().int().min(0),
-	daily_goal: z.number().int().positive(),
+	daily_goal: z.number().int(),
 	progress: z.array(DailyProgressSchema).max(30),
 	total_cards: z.number().int().min(0),
 });
