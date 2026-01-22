@@ -33,7 +33,7 @@ __export(main_exports, {
   default: () => KnowledgeAcceleratorPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian12 = require("obsidian");
+var import_obsidian11 = require("obsidian");
 
 // src/core/parser/utils/types.ts
 var CardStatus = /* @__PURE__ */ ((CardStatus2) => {
@@ -15546,8 +15546,8 @@ var FSRS = class extends FSRSAlgorithm {
       StrategyMode.SCHEDULER
     );
     const Scheduler = schedulerStrategy || this.Scheduler;
-    const instance17 = new Scheduler(card, now2, this, this.strategyHandler);
-    return instance17;
+    const instance18 = new Scheduler(card, now2, this, this.strategyHandler);
+    return instance18;
   }
   /**
    * Display the collection of cards and logs for the four scenarios after scheduling the card at the current time.
@@ -15608,8 +15608,8 @@ var FSRS = class extends FSRSAlgorithm {
    * ```
    */
   repeat(card, now2, afterHandler) {
-    const instance17 = this.getScheduler(card, now2);
-    const recordLog = instance17.preview();
+    const instance18 = this.getScheduler(card, now2);
+    const recordLog = instance18.preview();
     if (afterHandler && typeof afterHandler === "function") {
       return afterHandler(recordLog);
     } else {
@@ -15671,12 +15671,12 @@ var FSRS = class extends FSRSAlgorithm {
    * ```
    */
   next(card, now2, grade, afterHandler) {
-    const instance17 = this.getScheduler(card, now2);
+    const instance18 = this.getScheduler(card, now2);
     const g = TypeConvert.rating(grade);
     if (g === Rating.Manual) {
       throw new Error("Cannot review a manual rating");
     }
-    const recordLogItem = instance17.review(g);
+    const recordLogItem = instance18.review(g);
     if (afterHandler && typeof afterHandler === "function") {
       return afterHandler(recordLogItem);
     } else {
@@ -17023,7 +17023,7 @@ var StatisticsSummarySchema = external_exports.object({
 });
 var StatsSchema = external_exports.object({
   // Version field maintained for schema migrations
-  version: external_exports.number().int().positive(),
+  version: external_exports.number().int(),
   // Summary maintained for backward compatibility
   summary: StatisticsSummarySchema,
   last_updated: external_exports.iso.datetime(),
@@ -17032,7 +17032,7 @@ var StatsSchema = external_exports.object({
   // New fields from Statistics entity
   current_streak: external_exports.number().int().min(0),
   longest_streak: external_exports.number().int().min(0),
-  daily_goal: external_exports.number().int().positive(),
+  daily_goal: external_exports.number().int(),
   progress: external_exports.array(DailyProgressSchema).max(30),
   total_cards: external_exports.number().int().min(0)
 });
@@ -17960,7 +17960,7 @@ function make_dirty(component, i) {
   }
   component.$$.dirty[i / 31 | 0] |= 1 << i % 31;
 }
-function init(component, options, instance17, create_fragment17, not_equal, props, append_styles = null, dirty = [-1]) {
+function init(component, options, instance18, create_fragment18, not_equal, props, append_styles = null, dirty = [-1]) {
   const parent_component = current_component;
   set_current_component(component);
   const $$ = component.$$ = {
@@ -17986,7 +17986,7 @@ function init(component, options, instance17, create_fragment17, not_equal, prop
   };
   append_styles && append_styles($$.root);
   let ready = false;
-  $$.ctx = instance17 ? instance17(component, options.props || {}, (i, ret, ...rest) => {
+  $$.ctx = instance18 ? instance18(component, options.props || {}, (i, ret, ...rest) => {
     const value = rest.length ? rest[0] : ret;
     if ($$.ctx && not_equal($$.ctx[i], $$.ctx[i] = value)) {
       if (!$$.skip_bound && $$.bound[i])
@@ -17999,7 +17999,7 @@ function init(component, options, instance17, create_fragment17, not_equal, prop
   $$.update();
   ready = true;
   run_all($$.before_update);
-  $$.fragment = create_fragment17 ? create_fragment17($$.ctx) : false;
+  $$.fragment = create_fragment18 ? create_fragment18($$.ctx) : false;
   if (options.target) {
     if (options.hydrate) {
       start_hydrating();
@@ -24516,8 +24516,207 @@ var SessionStore = class {
   }
 };
 
-// src/obsidian/PluginView.ts
-var import_obsidian8 = require("obsidian");
+// src/ui/views/App/AppView.ts
+var import_obsidian10 = require("obsidian");
+
+// src/ui/stores/types.ts
+var NavigationStateSchema2 = external_exports.object({
+  currentView: external_exports.enum(["dashboard", "review"]),
+  reviewContext: external_exports.object({
+    currentSessionId: external_exports.string().uuid(),
+    currentCardIndex: external_exports.number().int().min(0),
+    queueSize: external_exports.number().int().min(0),
+    sessionStartTime: external_exports.number().int().positive()
+  }).nullable(),
+  dashboardContext: external_exports.object({
+    selectedPeriod: external_exports.enum(["today", "7days", "30days"]),
+    showDetails: external_exports.boolean()
+  }).nullable()
+});
+
+// src/ui/views/App/NavigationManager.ts
+var navigationState = writable({
+  currentView: "dashboard",
+  reviewContext: null,
+  dashboardContext: {
+    selectedPeriod: "7days",
+    showDetails: false
+  }
+});
+var NavigationManager = class {
+  constructor(app) {
+    __publicField(this, "app");
+    __publicField(this, "leaf", null);
+    __publicField(this, "UNIFIED_VIEW_TYPE", "knowledge-accelerator-home");
+    this.app = app;
+  }
+  /**
+   * Initializes the navigation state to dashboard view.
+   * Loads persisted state if available.
+   */
+  async initialize() {
+    try {
+      await this.load();
+      if (!this.leaf) {
+        await this.openUnifiedView();
+      }
+    } catch (error48) {
+      console.error("Failed to initialize NavigationManager:", error48);
+      navigationState.set({
+        currentView: "dashboard",
+        reviewContext: null,
+        dashboardContext: {
+          selectedPeriod: "7days",
+          showDetails: false
+        }
+      });
+    }
+  }
+  /**
+   * Initializes the navigation manager with a specific workspace leaf.
+   * @param leaf - The workspace leaf to use for the unified view
+   */
+  initializeWithLeaf(leaf) {
+    this.leaf = leaf;
+    void this.initialize();
+  }
+  /**
+   * Navigates to the specified view.
+   * @param view - Target view ("dashboard" or "review")
+   * @param context - Optional context data for the target view
+   */
+  async navigateTo(view, context) {
+    try {
+      const currentState = this.getState();
+      if (currentState.currentView === view) {
+        throw new Error(`Invalid navigation: already in ${view} view`);
+      }
+      const newState = {
+        currentView: view,
+        reviewContext: view === "review" ? context : null,
+        dashboardContext: view === "dashboard" ? context != null ? context : currentState.dashboardContext : null
+      };
+      navigationState.set(newState);
+      await this.save();
+    } catch (error48) {
+      console.error("Navigation failed:", error48);
+      throw error48;
+    }
+  }
+  /**
+   * Returns the current navigation state.
+   */
+  getState() {
+    let state;
+    navigationState.subscribe((s) => {
+      state = s;
+    })();
+    return state;
+  }
+  /**
+   * Updates the review context (e.g., during session).
+   * @param context - New review context
+   */
+  updateReviewContext(context) {
+    navigationState.update((state) => ({
+      ...state,
+      reviewContext: context
+    }));
+    void this.save();
+  }
+  /**
+   * Updates the dashboard context (e.g., period selection).
+   * @param context - New dashboard context
+   */
+  updateDashboardContext(context) {
+    navigationState.update((state) => ({
+      ...state,
+      reviewContext: null,
+      dashboardContext: context
+    }));
+    void this.save();
+  }
+  /**
+   * Opens the unified view in a new ribbon-icon leaf.
+   * @returns Promise that resolves when view is opened
+   */
+  async openUnifiedView() {
+    try {
+      if (this.leaf) {
+        this.app.workspace.revealLeaf(this.leaf);
+        return;
+      }
+      this.leaf = this.app.workspace.getRightLeaf(false);
+      if (!this.leaf) {
+        throw new Error("Failed to create workspace leaf");
+      }
+      this.leaf.setViewState({
+        type: this.UNIFIED_VIEW_TYPE,
+        active: true
+      });
+      this.app.workspace.revealLeaf(this.leaf);
+    } catch (error48) {
+      console.error("Failed to open unified view:", error48);
+      throw error48;
+    }
+  }
+  /**
+   * Closes the unified view.
+   */
+  closeUnifiedView() {
+    try {
+      if (this.leaf) {
+        this.leaf.detach();
+        this.leaf = null;
+      }
+    } catch (error48) {
+      console.error("Failed to close unified view:", error48);
+    }
+  }
+  /**
+   * Persists the current navigation state to plugin settings.
+   * Called on state changes.
+   */
+  async save() {
+    var _a3;
+    try {
+      const state = this.getState();
+      const plugin = (_a3 = this.app.plugins) == null ? void 0 : _a3.getPlugin("obs-knowledge-accelerator");
+      if (plugin && plugin.settings) {
+        plugin.settings.navigationState = state;
+        await plugin.saveSettings();
+      }
+    } catch (error48) {
+      console.error("Failed to save navigation state:", error48);
+    }
+  }
+  /**
+   * Loads navigation state from plugin settings.
+   */
+  async load() {
+    var _a3, _b;
+    try {
+      const plugin = (_a3 = this.app.plugins) == null ? void 0 : _a3.getPlugin("obs-knowledge-accelerator");
+      if ((_b = plugin == null ? void 0 : plugin.settings) == null ? void 0 : _b.navigationState) {
+        const validState = NavigationStateSchema2.parse(plugin.settings.navigationState);
+        navigationState.set(validState);
+        console.log("[NavigationManager] Loaded navigation state:", validState);
+      } else {
+        console.log("[NavigationManager] No saved state, using defaults");
+      }
+    } catch (error48) {
+      console.error("[NavigationManager] Failed to load navigation state:", error48);
+      navigationState.set({
+        currentView: "dashboard",
+        reviewContext: null,
+        dashboardContext: {
+          selectedPeriod: "7days",
+          showDetails: false
+        }
+      });
+    }
+  }
+};
 
 // src/ui/stores/UIStore.ts
 var DEFAULT_STATE3 = {
@@ -24632,232 +24831,326 @@ var loadingMessage = derived(uiStore, ($s) => $s.loading.message);
 var errorState = derived(uiStore, ($s) => $s.error);
 var notifications = derived(uiStore, ($s) => $s.notifications);
 
-// src/obsidian/PluginView.ts
-var PluginView = class extends import_obsidian8.ItemView {
-  /**
-   * @param leaf - The workspace leaf this view will reside in
-   */
-  constructor(leaf, indexManager, statisticsManager, sessionStore, dueQueueManager) {
-    super(leaf);
-    /** Reference to the mounted Svelte component instance */
-    __publicField(this, "component");
-    __publicField(this, "statisticsManager");
+// src/ui/views/Dashboard/schemas.ts
+var ProgressEntrySchema = external_exports.object({
+  date: external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+  completed: external_exports.number().int().nonnegative(),
+  target: external_exports.number().int().nonnegative(),
+  newCards: external_exports.number().int().nonnegative(),
+  retention: external_exports.number().min(0).max(1)
+});
+var DashboardStatsSchema = external_exports.object({
+  totalCards: external_exports.number().int().nonnegative(),
+  retentionRate: external_exports.number().min(0).max(1),
+  dueCount: external_exports.number().int().nonnegative(),
+  dailyGoal: external_exports.number().int(),
+  streakDays: external_exports.number().int().nonnegative(),
+  cardsLearnedToday: external_exports.number().int().nonnegative(),
+  estimatedTimeMinutes: external_exports.number().int().nonnegative(),
+  progressData: external_exports.array(ProgressEntrySchema)
+});
+var DashboardConfigSchema2 = external_exports.object({
+  dailyGoal: external_exports.number().int().positive().default(20),
+  showProgressChart: external_exports.boolean().default(true),
+  showRetentionRate: external_exports.boolean().default(true),
+  chartTimeframe: external_exports.enum(["week", "month", "year"]).default("week"),
+  preferredChartType: external_exports.enum(["bar", "line"]).default("bar")
+});
+var StatsTrendSchema = external_exports.object({
+  value: external_exports.number(),
+  isPositive: external_exports.boolean()
+});
+var StatsCardPropsSchema = external_exports.object({
+  label: external_exports.string().min(1),
+  value: external_exports.union([external_exports.string(), external_exports.number()]),
+  icon: external_exports.string().optional(),
+  trend: StatsTrendSchema.optional(),
+  description: external_exports.string().optional()
+});
+
+// src/ui/views/Dashboard/DashboardController.ts
+var DashboardController = class {
+  constructor(indexManager, statisticsManager, dueQueueManager, sessionStore) {
     __publicField(this, "indexManager");
     __publicField(this, "sessionStore");
+    __publicField(this, "statisticsManager");
     __publicField(this, "dueQueueManager");
     this.indexManager = indexManager;
-    this.statisticsManager = statisticsManager;
     this.sessionStore = sessionStore;
+    this.statisticsManager = statisticsManager;
     this.dueQueueManager = dueQueueManager;
   }
   /**
-   * Returns the unique identifier for this view type.
-   * @override
+   * Fetches aggregated statistics for the dashboard
+   *
+   * @returns Promise resolving to dashboard statistics
    */
-  getViewType() {
-    return this.viewType;
-  }
-  /**
-   * Returns the text to display in the view tab.
-   * @override
-   */
-  getDisplayText() {
-    return this.displayText;
-  }
-  /**
-   * Returns the icon to display in the view tab.
-   * @override
-   */
-  getIcon() {
-    return this.icon;
-  }
-  /**
-   * Called when the view is opened.
-   * Initializes the container and mounts the Svelte component.
-   * @override
-   */
-  async onOpen() {
-    const container = this.containerEl.children[1];
-    container.empty();
+  async getStats() {
     try {
-      this.component = await this.createSvelteComponent(container);
-      this.registerEvent(
-        this.app.workspace.on("css-change", () => {
-          this.handleThemeChange();
-        })
-      );
+      uiStore.setLoading(true, "Loading statistics...");
+      const cards = this.indexManager.getAllCards();
+      if (!cards) {
+        throw new Error("No cards data available");
+      }
+      const totalCards = cards.length;
+      const dueCount = await this.calculateDueCount();
+      const retentionRate = this.statisticsManager.engine.calculateRetention(cards);
+      const dailyGoal = await this.getDailyGoal();
+      const cardsLearnedToday = await this.getCardsReviewedToday();
+      const streakDays = await this.calculateStreak();
+      const estimatedTime = await this.estimateReviewTime(dueCount);
+      const progressData = await this.getProgressData();
+      const stats = {
+        totalCards,
+        retentionRate,
+        dueCount,
+        dailyGoal,
+        streakDays,
+        cardsLearnedToday,
+        estimatedTimeMinutes: estimatedTime,
+        progressData
+      };
+      const validatedStats = DashboardStatsSchema.parse(stats);
+      uiStore.setLoading(false);
+      return validatedStats;
     } catch (error48) {
-      console.error(`Failed to initialize view ${this.viewType}:`, error48);
-      this.displayError("Failed to load view. Please try reloading the plugin.");
+      uiStore.setLoading(false);
+      console.error("Failed to fetch dashboard statistics:", error48);
+      throw error48;
     }
   }
   /**
-   * Called when the view is closed.
-   * Ensures proper cleanup of the Svelte component to prevent memory leaks.
-   * @override
+   * Refreshes all dashboard data from the index
+   * Forces a complete recalculation of statistics
    */
-  async onClose() {
-    if (this.component) {
-      this.component.$destroy();
-      this.component = void 0;
+  async refreshStats() {
+    try {
+      uiStore.setLoading(true, "Refreshing dashboard...");
+      uiStore.notify({
+        type: "success",
+        message: "Dashboard refreshed successfully",
+        duration: 3e3
+      });
+      uiStore.setLoading(false);
+    } catch (error48) {
+      uiStore.setLoading(false);
+      console.error("Failed to refresh dashboard:", error48);
+      uiStore.notify({
+        type: "error",
+        message: "Failed to refresh dashboard data",
+        duration: 5e3
+      });
+      throw error48;
     }
   }
   /**
-   * Hook for handling theme changes (light/dark mode).
-   * Subclasses can override this if they need specific logic when switching themes.
-   */
-  handleThemeChange() {
-  }
-  /**
-   * Updates the view state. Used by Obsidian for navigation and history.
-   * Synchronizes the internal UIStore with Obsidian's view state.
+   * Starts a review session with optional deck filter
    *
-   * @param state - The new state to apply
-   * @param result - Result object for the state change
-   * @override
+   * @param deckId - Optional deck ID to filter cards by
    */
-  async setState(state, result) {
-    if (state.view) {
-      uiStore.navigate(state.view);
+  async startReviewSession() {
+    try {
+      uiStore.setLoading(true, "Starting review session...");
+      const dueCount = await this.calculateDueCount();
+      if (dueCount === 0) {
+        uiStore.setLoading(false);
+        uiStore.notify({
+          type: "info",
+          message: "No cards are due for review. Great job!",
+          duration: 4e3
+        });
+        return;
+      }
+      await this.sessionStore.startSession();
+      uiStore.navigate("review");
+      uiStore.setLoading(false);
+    } catch (error48) {
+      uiStore.setLoading(false);
+      console.error("Failed to start review session:", error48);
+      uiStore.notify({
+        type: "error",
+        message: "Failed to start review session",
+        duration: 5e3
+      });
+      throw error48;
     }
-    await super.setState(state, result);
   }
   /**
-   * Returns the current view state for persistence.
+   * Updates dashboard configuration
    *
-   * @returns The current state object
-   * @override
+   * @param config - New configuration to save
    */
-  getState() {
-    const state = super.getState();
-    return {
-      ...state,
-      view: get_store_value(uiStore).currentView
-    };
+  async updateConfig(config2) {
+    try {
+      const validatedConfig = DashboardConfigSchema2.partial().parse(config2);
+      console.log("Dashboard configuration updated:", validatedConfig);
+      uiStore.notify({
+        type: "success",
+        message: "Settings saved successfully",
+        duration: 3e3
+      });
+    } catch (error48) {
+      console.error("Failed to update dashboard configuration:", error48);
+      uiStore.notify({
+        type: "error",
+        message: "Failed to save settings",
+        duration: 4e3
+      });
+      throw error48;
+    }
   }
   /**
-   * Helper method to show an error in the view via the global UI store.
+   * Calculates the number of cards currently due for review
    *
-   * @param message - Error message to display
-   * @param retry - Optional retry callback
+   * @returns Promise resolving to due card count
    */
-  displayError(message, retry) {
-    uiStore.setError(message, void 0, retry);
+  async calculateDueCount() {
+    try {
+      const dueQueue = await this.dueQueueManager.generate();
+      return dueQueue.totalDue;
+    } catch (error48) {
+      console.error("Failed to calculate due count:", error48);
+      return 0;
+    }
   }
   /**
-   * Helper method to set the loading state of the view.
+   * Gets the user's daily review goal
    *
-   * @param isLoading - Whether the view is loading
-   * @param message - Optional loading message
+   * @returns Promise resolving to daily goal
    */
-  setLoading(isLoading2, message) {
-    uiStore.setLoading(isLoading2, message);
+  async getDailyGoal() {
+    try {
+      return this.statisticsManager.statistics.daily_goal;
+    } catch (error48) {
+      console.error("Failed to get daily goal:", error48);
+      return 0;
+    }
+  }
+  /**
+   * Gets the number of cards reviewed today
+   *
+   * @returns Promise resolving to today's review count
+   */
+  async getCardsReviewedToday() {
+    var _a3;
+    try {
+      const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+      const todayProgress = this.statisticsManager.statistics.progress.find(
+        (progress) => progress.date === today
+      );
+      return (_a3 = todayProgress == null ? void 0 : todayProgress.cardsReviewed) != null ? _a3 : 0;
+    } catch (error48) {
+      console.error("Failed to get today's review count:", error48);
+      return 0;
+    }
+  }
+  /**
+   * Calculates the current streak of consecutive days meeting daily goal
+   *
+   * @returns Promise resolving to current streak
+   */
+  async calculateStreak() {
+    try {
+      return this.statisticsManager.statistics.current_streak;
+    } catch (error48) {
+      console.error("Failed to calculate streak:", error48);
+      return 0;
+    }
+  }
+  /**
+   * Estimates the time required to complete due reviews
+   *
+   * @param dueCount - Number of cards due
+   * @returns Estimated time in minutes
+   */
+  async estimateReviewTime(dueCount) {
+    const averageSecondsPerCard = 30;
+    return Math.round(dueCount * averageSecondsPerCard / 60);
+  }
+  /**
+   * Gets historical progress data for the last 7 days
+   *
+   * @returns Promise resolving to progress data array
+   */
+  async getProgressData() {
+    var _a3, _b;
+    try {
+      const today = /* @__PURE__ */ new Date();
+      const dailyGoal = this.statisticsManager.statistics.daily_goal;
+      const progressArray = this.statisticsManager.statistics.progress;
+      const progressMap = /* @__PURE__ */ new Map();
+      for (const entry of progressArray) {
+        progressMap.set(entry.date, entry);
+      }
+      const progressData = [];
+      for (let i = 6; i >= 0; i--) {
+        const date5 = new Date(today);
+        date5.setDate(today.getDate() - i);
+        const dateStr = date5.toISOString().split("T")[0];
+        const dailyProgress = progressMap.get(dateStr);
+        progressData.push({
+          date: dateStr,
+          completed: (_a3 = dailyProgress == null ? void 0 : dailyProgress.cardsReviewed) != null ? _a3 : 0,
+          target: dailyGoal,
+          newCards: 0,
+          // Not directly available in DailyProgress, may be derived from session data
+          retention: (_b = dailyProgress == null ? void 0 : dailyProgress.retentionRate) != null ? _b : 0
+        });
+      }
+      return progressData;
+    } catch (error48) {
+      console.error("Failed to get progress data:", error48);
+      return [];
+    }
   }
 };
 
-// src/ui/stores/StatisticsStore.ts
-var StatisticsStore = class {
-  constructor(initialStats = null) {
-    __publicField(this, "_state");
-    this._state = writable(initialStats);
+// src/ui/views/Review/ReviewController.ts
+var import_obsidian8 = require("obsidian");
+var ReviewController = class {
+  constructor(app, indexManager, sessionStore) {
+    this.app = app;
+    __publicField(this, "indexManager");
+    __publicField(this, "sessionStore");
+    this.indexManager = indexManager;
+    this.sessionStore = sessionStore;
   }
-  /**
-   * Subscribe to statistics changes
-   */
-  subscribe(run2) {
-    return this._state.subscribe(run2);
+  async getNextCard() {
+    let card = null;
+    this.sessionStore.subscribe((state) => {
+      card = state.currentCard;
+    })();
+    return card;
   }
-  /**
-   * Update statistics data
-   */
-  set(stats) {
-    this._state.set(stats);
+  async submitRating(cardId, rating) {
+    await this.sessionStore.submitRating(rating);
   }
-  /**
-   * Get current statistics value
-   */
-  get current() {
-    let value = null;
-    this._state.subscribe((v) => value = v)();
-    return value;
+  async editSource(cardId) {
+    try {
+      const cardMetadata = this.indexManager.getCard(cardId);
+      if (!cardMetadata) {
+        throw new Error(`Card with ID '${cardId}' not found in index`);
+      }
+      const sourcePath = cardMetadata.source;
+      if (!sourcePath) {
+        throw new Error(`No source path found for card '${cardId}'`);
+      }
+      const file2 = this.app.vault.getAbstractFileByPath(sourcePath);
+      if (!(file2 instanceof import_obsidian8.TFile)) {
+        throw new Error(`Source file '${sourcePath}' not found or is not a file`);
+      }
+      const leaf = this.app.workspace.getLeaf("split");
+      await leaf.openFile(file2);
+      console.log(`Opened source file '${sourcePath}' for card '${cardId}'`);
+    } catch (error48) {
+      console.error("Failed to edit source:", error48);
+      throw error48;
+    }
   }
-  /**
-   * Clear statistics (set to null)
-   */
-  clear() {
-    this._state.set(null);
-  }
-  /**
-   * Derived stores for individual statistics values
-   */
-  get totalCards() {
-    return derived(this._state, (stats) => {
-      var _a3;
-      return (_a3 = stats == null ? void 0 : stats.totalCards) != null ? _a3 : 0;
-    });
-  }
-  get retentionRate() {
-    return derived(this._state, (stats) => {
-      var _a3;
-      return (_a3 = stats == null ? void 0 : stats.retentionRate) != null ? _a3 : 0;
-    });
-  }
-  get dueCount() {
-    return derived(this._state, (stats) => {
-      var _a3;
-      return (_a3 = stats == null ? void 0 : stats.dueCount) != null ? _a3 : 0;
-    });
-  }
-  get dailyGoal() {
-    return derived(this._state, (stats) => {
-      var _a3;
-      return (_a3 = stats == null ? void 0 : stats.dailyGoal) != null ? _a3 : 20;
-    });
-  }
-  get streakDays() {
-    return derived(this._state, (stats) => {
-      var _a3;
-      return (_a3 = stats == null ? void 0 : stats.streakDays) != null ? _a3 : 0;
-    });
-  }
-  get cardsLearnedToday() {
-    return derived(this._state, (stats) => {
-      var _a3;
-      return (_a3 = stats == null ? void 0 : stats.cardsLearnedToday) != null ? _a3 : 0;
-    });
-  }
-  get estimatedTimeMinutes() {
-    return derived(this._state, (stats) => {
-      var _a3;
-      return (_a3 = stats == null ? void 0 : stats.estimatedTimeMinutes) != null ? _a3 : 0;
-    });
-  }
-  get progressData() {
-    return derived(this._state, (stats) => {
-      var _a3;
-      return (_a3 = stats == null ? void 0 : stats.progressData) != null ? _a3 : [];
-    });
-  }
-  /**
-   * Check if daily goal is met
-   */
-  get isDailyGoalMet() {
-    return derived(
-      [this.cardsLearnedToday, this.dailyGoal],
-      ([$cardsLearnedToday, $dailyGoal]) => $cardsLearnedToday >= $dailyGoal
-    );
-  }
-  /**
-   * Get completion percentage for today's goal
-   */
-  get dailyGoalProgress() {
-    return derived(
-      [this.cardsLearnedToday, this.dailyGoal],
-      ([$cardsLearnedToday, $dailyGoal]) => $dailyGoal > 0 ? Math.min($cardsLearnedToday / $dailyGoal * 100, 100) : 0
-    );
+  async verifyAndReset(cardId) {
+    console.log("Verifying and resetting card:", cardId);
   }
 };
-var statisticsStore = new StatisticsStore();
 
 // src/ui/views/Dashboard/Dashboard.svelte
 function get_each_context4(ctx, list, i) {
@@ -25113,27 +25406,27 @@ function create_else_block4(ctx) {
       t28 = space();
       div5 = element("div");
       create_component(button.$$.fragment);
-      attr(span0, "class", "ka-stat-card__label svelte-1pkx7yu");
-      attr(span1, "class", "ka-stat-card__value svelte-1pkx7yu");
-      attr(span2, "class", "ka-stat-card__description svelte-1pkx7yu");
-      attr(div0, "class", "ka-stat-card svelte-1pkx7yu");
-      attr(span3, "class", "ka-stat-card__label svelte-1pkx7yu");
-      attr(span4, "class", "ka-stat-card__value svelte-1pkx7yu");
-      attr(span5, "class", "ka-stat-card__description svelte-1pkx7yu");
-      attr(div1, "class", "ka-stat-card svelte-1pkx7yu");
-      attr(span6, "class", "ka-stat-card__label svelte-1pkx7yu");
-      attr(span7, "class", "ka-stat-card__value svelte-1pkx7yu");
-      attr(span8, "class", "ka-stat-card__description svelte-1pkx7yu");
-      attr(div2, "class", "ka-stat-card svelte-1pkx7yu");
-      attr(div3, "class", "ka-dashboard__stats-grid svelte-1pkx7yu");
+      attr(span0, "class", "ka-stat-card__label svelte-bt0spb");
+      attr(span1, "class", "ka-stat-card__value svelte-bt0spb");
+      attr(span2, "class", "ka-stat-card__description svelte-bt0spb");
+      attr(div0, "class", "ka-stat-card svelte-bt0spb");
+      attr(span3, "class", "ka-stat-card__label svelte-bt0spb");
+      attr(span4, "class", "ka-stat-card__value svelte-bt0spb");
+      attr(span5, "class", "ka-stat-card__description svelte-bt0spb");
+      attr(div1, "class", "ka-stat-card svelte-bt0spb");
+      attr(span6, "class", "ka-stat-card__label svelte-bt0spb");
+      attr(span7, "class", "ka-stat-card__value svelte-bt0spb");
+      attr(span8, "class", "ka-stat-card__description svelte-bt0spb");
+      attr(div2, "class", "ka-stat-card svelte-bt0spb");
+      attr(div3, "class", "ka-dashboard__stats-grid svelte-bt0spb");
       attr(h2, "id", "daily-goal-title");
-      attr(h2, "class", "ka-section-title svelte-1pkx7yu");
-      attr(span9, "class", "ka-section-value svelte-1pkx7yu");
+      attr(h2, "class", "ka-section-title svelte-bt0spb");
+      attr(span9, "class", "ka-section-value svelte-bt0spb");
       attr(span9, "aria-live", "polite");
-      attr(div4, "class", "ka-section-header svelte-1pkx7yu");
-      attr(section, "class", "ka-dashboard__progress svelte-1pkx7yu");
+      attr(div4, "class", "ka-section-header svelte-bt0spb");
+      attr(section, "class", "ka-dashboard__progress svelte-bt0spb");
       attr(section, "aria-labelledby", "daily-goal-title");
-      attr(div5, "class", "ka-dashboard__footer-actions svelte-1pkx7yu");
+      attr(div5, "class", "ka-dashboard__footer-actions svelte-bt0spb");
     },
     m(target, anchor) {
       insert(target, div3, anchor);
@@ -25335,8 +25628,8 @@ function create_if_block9(ctx) {
       t2 = space();
       if (if_block)
         if_block.c();
-      attr(p, "class", "svelte-1pkx7yu");
-      attr(div, "class", "ka-dashboard__error svelte-1pkx7yu");
+      attr(p, "class", "svelte-bt0spb");
+      attr(div, "class", "ka-dashboard__error svelte-bt0spb");
       attr(div, "role", "alert");
     },
     m(target, anchor) {
@@ -25424,10 +25717,10 @@ function create_if_block_62(ctx) {
       t3 = space();
       span2 = element("span");
       span2.textContent = "average accuracy";
-      attr(span0, "class", "ka-stat-card__label svelte-1pkx7yu");
-      attr(span1, "class", "ka-stat-card__value svelte-1pkx7yu");
-      attr(span2, "class", "ka-stat-card__description svelte-1pkx7yu");
-      attr(div, "class", "ka-stat-card svelte-1pkx7yu");
+      attr(span0, "class", "ka-stat-card__label svelte-bt0spb");
+      attr(span1, "class", "ka-stat-card__value svelte-bt0spb");
+      attr(span2, "class", "ka-stat-card__description svelte-bt0spb");
+      attr(div, "class", "ka-stat-card svelte-bt0spb");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -25472,7 +25765,7 @@ function create_if_block_52(ctx) {
       t1 = text(t1_value);
       t2 = text(" min");
       t3 = text(" to finish due cards");
-      attr(p, "class", "ka-progress-estimate svelte-1pkx7yu");
+      attr(p, "class", "ka-progress-estimate svelte-bt0spb");
     },
     m(target, anchor) {
       insert(target, p, anchor);
@@ -25526,7 +25819,7 @@ function create_if_block_42(ctx) {
         each_blocks[i].c();
       }
       attr(h2, "id", "progress-chart-title");
-      attr(h2, "class", "ka-section-title svelte-1pkx7yu");
+      attr(h2, "class", "ka-section-title svelte-bt0spb");
       attr(line, "x1", "0");
       attr(line, "y1", line_y__value = /*goalY*/
       ctx[18]);
@@ -25539,10 +25832,10 @@ function create_if_block_42(ctx) {
       attr(line, "opacity", "0.5");
       attr(svg, "viewBox", svg_viewBox_value = "0 0 " + chartWidth + " " + (chartHeight + 30));
       attr(svg, "preserveAspectRatio", "xMidYMid meet");
-      attr(svg, "class", "ka-progress-chart svelte-1pkx7yu");
+      attr(svg, "class", "ka-progress-chart svelte-bt0spb");
       attr(svg, "aria-hidden", "true");
-      attr(div, "class", "ka-chart-container svelte-1pkx7yu");
-      attr(section, "class", "ka-dashboard__chart-section svelte-1pkx7yu");
+      attr(div, "class", "ka-chart-container svelte-bt0spb");
+      attr(section, "class", "ka-dashboard__chart-section svelte-bt0spb");
       attr(section, "aria-labelledby", "progress-chart-title");
     },
     m(target, anchor) {
@@ -25653,7 +25946,7 @@ function create_each_block4(ctx) {
       attr(rect, "fill", rect_fill_value = /*entry*/
       ctx[19].completed >= /*entry*/
       ctx[19].target ? "var(--interactive-accent)" : "var(--background-modifier-border-focus)");
-      attr(rect, "class", "ka-chart-bar svelte-1pkx7yu");
+      attr(rect, "class", "ka-chart-bar svelte-bt0spb");
       attr(text_1, "x", text_1_x_value = /*x*/
       ctx[20] + /*barWidth*/
       ctx[6] / 2);
@@ -26052,7 +26345,7 @@ function create_fragment13(ctx) {
       div2 = element("div");
       header = element("header");
       div0 = element("div");
-      div0.innerHTML = `<h1 class="ka-dashboard__title svelte-1pkx7yu">Learning Dashboard</h1> <p class="ka-dashboard__subtitle svelte-1pkx7yu">Track your progress and stay consistent</p>`;
+      div0.innerHTML = `<h1 class="ka-dashboard__title svelte-bt0spb">Learning Dashboard</h1> <p class="ka-dashboard__subtitle svelte-bt0spb">Track your progress and stay consistent</p>`;
       t3 = space();
       div1 = element("div");
       create_component(button0.$$.fragment);
@@ -26061,10 +26354,10 @@ function create_fragment13(ctx) {
       t5 = space();
       if_block.c();
       attr(div0, "class", "ka-dashboard__title-group");
-      attr(div1, "class", "ka-dashboard__actions svelte-1pkx7yu");
-      attr(header, "class", "ka-dashboard__header svelte-1pkx7yu");
+      attr(div1, "class", "ka-dashboard__actions svelte-bt0spb");
+      attr(header, "class", "ka-dashboard__header svelte-bt0spb");
       attr(div2, "class", div2_class_value = "ka-dashboard " + /*className*/
-      ctx[2] + " svelte-1pkx7yu");
+      ctx[2] + " svelte-bt0spb");
       attr(div2, "role", "main");
       attr(div2, "aria-label", "Learning Dashboard");
     },
@@ -26120,7 +26413,7 @@ function create_fragment13(ctx) {
       }
       if (!current || dirty & /*className*/
       4 && div2_class_value !== (div2_class_value = "ka-dashboard " + /*className*/
-      ctx2[2] + " svelte-1pkx7yu")) {
+      ctx2[2] + " svelte-bt0spb")) {
         attr(div2, "class", div2_class_value);
       }
     },
@@ -26275,585 +26568,6 @@ var Dashboard = class extends SvelteComponent {
   }
 };
 var Dashboard_default = Dashboard;
-
-// src/ui/views/Dashboard/schemas.ts
-var ProgressEntrySchema = external_exports.object({
-  date: external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
-  completed: external_exports.number().int().nonnegative(),
-  target: external_exports.number().int().nonnegative(),
-  newCards: external_exports.number().int().nonnegative(),
-  retention: external_exports.number().min(0).max(1)
-});
-var DashboardStatsSchema = external_exports.object({
-  totalCards: external_exports.number().int().nonnegative(),
-  retentionRate: external_exports.number().min(0).max(1),
-  dueCount: external_exports.number().int().nonnegative(),
-  dailyGoal: external_exports.number().int().positive(),
-  streakDays: external_exports.number().int().nonnegative(),
-  cardsLearnedToday: external_exports.number().int().nonnegative(),
-  estimatedTimeMinutes: external_exports.number().int().nonnegative(),
-  progressData: external_exports.array(ProgressEntrySchema)
-});
-var DashboardConfigSchema2 = external_exports.object({
-  dailyGoal: external_exports.number().int().positive().default(20),
-  showProgressChart: external_exports.boolean().default(true),
-  showRetentionRate: external_exports.boolean().default(true),
-  chartTimeframe: external_exports.enum(["week", "month", "year"]).default("week"),
-  preferredChartType: external_exports.enum(["bar", "line"]).default("bar")
-});
-var StatsTrendSchema = external_exports.object({
-  value: external_exports.number(),
-  isPositive: external_exports.boolean()
-});
-var StatsCardPropsSchema = external_exports.object({
-  label: external_exports.string().min(1),
-  value: external_exports.union([external_exports.string(), external_exports.number()]),
-  icon: external_exports.string().optional(),
-  trend: StatsTrendSchema.optional(),
-  description: external_exports.string().optional()
-});
-
-// src/ui/views/Dashboard/DashboardController.ts
-var DashboardController = class {
-  constructor(indexManager, statisticsManager, dueQueueManager, sessionStore) {
-    __publicField(this, "indexManager");
-    __publicField(this, "sessionStore");
-    __publicField(this, "statisticsManager");
-    __publicField(this, "dueQueueManager");
-    this.indexManager = indexManager;
-    this.sessionStore = sessionStore;
-    this.statisticsManager = statisticsManager;
-    this.dueQueueManager = dueQueueManager;
-  }
-  /**
-   * Fetches aggregated statistics for the dashboard
-   *
-   * @returns Promise resolving to dashboard statistics
-   */
-  async getStats() {
-    try {
-      uiStore.setLoading(true, "Loading statistics...");
-      const cards = this.indexManager.getAllCards();
-      if (!cards) {
-        throw new Error("No cards data available");
-      }
-      const totalCards = cards.length;
-      const dueCount = await this.calculateDueCount();
-      const retentionRate = this.statisticsManager.engine.calculateRetention(cards);
-      const dailyGoal = await this.getDailyGoal();
-      const cardsLearnedToday = await this.getCardsReviewedToday();
-      const streakDays = await this.calculateStreak();
-      const estimatedTime = await this.estimateReviewTime(dueCount);
-      const progressData = await this.getProgressData();
-      const stats = {
-        totalCards,
-        retentionRate,
-        dueCount,
-        dailyGoal,
-        streakDays,
-        cardsLearnedToday,
-        estimatedTimeMinutes: estimatedTime,
-        progressData
-      };
-      const validatedStats = DashboardStatsSchema.parse(stats);
-      uiStore.setLoading(false);
-      return validatedStats;
-    } catch (error48) {
-      uiStore.setLoading(false);
-      console.error("Failed to fetch dashboard statistics:", error48);
-      throw error48;
-    }
-  }
-  /**
-   * Refreshes all dashboard data from the index
-   * Forces a complete recalculation of statistics
-   */
-  async refreshStats() {
-    try {
-      uiStore.setLoading(true, "Refreshing dashboard...");
-      uiStore.notify({
-        type: "success",
-        message: "Dashboard refreshed successfully",
-        duration: 3e3
-      });
-      uiStore.setLoading(false);
-    } catch (error48) {
-      uiStore.setLoading(false);
-      console.error("Failed to refresh dashboard:", error48);
-      uiStore.notify({
-        type: "error",
-        message: "Failed to refresh dashboard data",
-        duration: 5e3
-      });
-      throw error48;
-    }
-  }
-  /**
-   * Starts a review session with optional deck filter
-   *
-   * @param deckId - Optional deck ID to filter cards by
-   */
-  async startReviewSession() {
-    try {
-      uiStore.setLoading(true, "Starting review session...");
-      const dueCount = await this.calculateDueCount();
-      if (dueCount === 0) {
-        uiStore.setLoading(false);
-        uiStore.notify({
-          type: "info",
-          message: "No cards are due for review. Great job!",
-          duration: 4e3
-        });
-        return;
-      }
-      await this.sessionStore.startSession();
-      uiStore.navigate("review");
-      uiStore.setLoading(false);
-    } catch (error48) {
-      uiStore.setLoading(false);
-      console.error("Failed to start review session:", error48);
-      uiStore.notify({
-        type: "error",
-        message: "Failed to start review session",
-        duration: 5e3
-      });
-      throw error48;
-    }
-  }
-  /**
-   * Updates dashboard configuration
-   *
-   * @param config - New configuration to save
-   */
-  async updateConfig(config2) {
-    try {
-      const validatedConfig = DashboardConfigSchema2.partial().parse(config2);
-      console.log("Dashboard configuration updated:", validatedConfig);
-      uiStore.notify({
-        type: "success",
-        message: "Settings saved successfully",
-        duration: 3e3
-      });
-    } catch (error48) {
-      console.error("Failed to update dashboard configuration:", error48);
-      uiStore.notify({
-        type: "error",
-        message: "Failed to save settings",
-        duration: 4e3
-      });
-      throw error48;
-    }
-  }
-  /**
-   * Calculates the number of cards currently due for review
-   *
-   * @returns Promise resolving to due card count
-   */
-  async calculateDueCount() {
-    try {
-      const dueQueue = await this.dueQueueManager.generate();
-      return dueQueue.totalDue;
-    } catch (error48) {
-      console.error("Failed to calculate due count:", error48);
-      return 0;
-    }
-  }
-  /**
-   * Gets the user's daily review goal
-   *
-   * @returns Promise resolving to daily goal
-   */
-  async getDailyGoal() {
-    try {
-      return this.statisticsManager.statistics.daily_goal;
-    } catch (error48) {
-      console.error("Failed to get daily goal:", error48);
-      return 20;
-    }
-  }
-  /**
-   * Gets the number of cards reviewed today
-   *
-   * @returns Promise resolving to today's review count
-   */
-  async getCardsReviewedToday() {
-    var _a3;
-    try {
-      const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
-      const todayProgress = this.statisticsManager.statistics.progress.find(
-        (progress) => progress.date === today
-      );
-      return (_a3 = todayProgress == null ? void 0 : todayProgress.cardsReviewed) != null ? _a3 : 0;
-    } catch (error48) {
-      console.error("Failed to get today's review count:", error48);
-      return 0;
-    }
-  }
-  /**
-   * Calculates the current streak of consecutive days meeting daily goal
-   *
-   * @returns Promise resolving to current streak
-   */
-  async calculateStreak() {
-    try {
-      return this.statisticsManager.statistics.current_streak;
-    } catch (error48) {
-      console.error("Failed to calculate streak:", error48);
-      return 0;
-    }
-  }
-  /**
-   * Estimates the time required to complete due reviews
-   *
-   * @param dueCount - Number of cards due
-   * @returns Estimated time in minutes
-   */
-  async estimateReviewTime(dueCount) {
-    const averageSecondsPerCard = 30;
-    return Math.round(dueCount * averageSecondsPerCard / 60);
-  }
-  /**
-   * Gets historical progress data for the last 7 days
-   *
-   * @returns Promise resolving to progress data array
-   */
-  async getProgressData() {
-    var _a3, _b;
-    try {
-      const today = /* @__PURE__ */ new Date();
-      const dailyGoal = this.statisticsManager.statistics.daily_goal;
-      const progressArray = this.statisticsManager.statistics.progress;
-      const progressMap = /* @__PURE__ */ new Map();
-      for (const entry of progressArray) {
-        progressMap.set(entry.date, entry);
-      }
-      const progressData = [];
-      for (let i = 6; i >= 0; i--) {
-        const date5 = new Date(today);
-        date5.setDate(today.getDate() - i);
-        const dateStr = date5.toISOString().split("T")[0];
-        const dailyProgress = progressMap.get(dateStr);
-        progressData.push({
-          date: dateStr,
-          completed: (_a3 = dailyProgress == null ? void 0 : dailyProgress.cardsReviewed) != null ? _a3 : 0,
-          target: dailyGoal,
-          newCards: 0,
-          // Not directly available in DailyProgress, may be derived from session data
-          retention: (_b = dailyProgress == null ? void 0 : dailyProgress.retentionRate) != null ? _b : 0
-        });
-      }
-      return progressData;
-    } catch (error48) {
-      console.error("Failed to get progress data:", error48);
-      return [];
-    }
-  }
-};
-
-// src/ui/views/Dashboard/DashboardView.ts
-var DASHBOARD_VIEW_TYPE = "knowledge-accelerator-dashboard";
-var DashboardView = class extends PluginView {
-  constructor() {
-    super(...arguments);
-    /** Unique view type identifier */
-    __publicField(this, "viewType", DASHBOARD_VIEW_TYPE);
-    /** Display text for the view tab */
-    __publicField(this, "displayText", "Knowledge Accelerator");
-    /** Icon for the view tab */
-    __publicField(this, "icon", "brain-circuit");
-    /** Dashboard controller instance */
-    __publicField(this, "dashboardController");
-    /** Currently loaded statistics */
-    __publicField(this, "currentStats", null);
-    /** Loading state for data fetching */
-    __publicField(this, "isLoading", false);
-  }
-  /**
-   * Creates and mounts Dashboard Svelte component
-   *
-   * @param container - The DOM element to mount component into
-   * @returns The mounted Svelte component
-   */
-  async createSvelteComponent(container) {
-    this.dashboardController = new DashboardController(
-      this.indexManager,
-      this.statisticsManager,
-      this.dueQueueManager,
-      this.sessionStore
-    );
-    const props = {
-      stats: await this.getInitialStats(),
-      // Use real data from controller
-      config: this.getConfig(),
-      onStartReview: this.handleStartReview.bind(this),
-      onConfigChange: this.handleConfigChange.bind(this),
-      onRefresh: this.refreshData.bind(this),
-      onOpenSettings: this.handleOpenSettings.bind(this)
-    };
-    return new Dashboard_default({
-      target: container,
-      props
-    });
-  }
-  /**
-   * Called when view is opened
-   */
-  async onOpen() {
-    await super.onOpen();
-    uiStore.navigate("dashboard");
-    await this.refreshData();
-    this.setupSessionCompleteListener();
-  }
-  /**
-   * Called when the view is closed
-   */
-  async onClose() {
-    await super.onClose();
-    this.dashboardController = void 0;
-    this.currentStats = null;
-  }
-  /**
-   * Gets initial dashboard statistics
-   *
-   * @returns Promise resolving to dashboard statistics
-   */
-  async getInitialStats() {
-    if (!this.dashboardController) {
-      const fallbackStats = this.getFallbackStats();
-      statisticsStore.set(fallbackStats);
-      return fallbackStats;
-    }
-    try {
-      const stats = await this.dashboardController.getStats();
-      statisticsStore.set(stats);
-      return stats;
-    } catch (error48) {
-      console.error("Failed to get initial dashboard stats:", error48);
-      const fallbackStats = this.getFallbackStats();
-      statisticsStore.set(fallbackStats);
-      return fallbackStats;
-    }
-  }
-  /**
-   * Gets fallback statistics when controller fails
-   *
-   * @returns Fallback dashboard statistics
-   */
-  getFallbackStats() {
-    return {
-      totalCards: 0,
-      retentionRate: 0,
-      dueCount: 0,
-      dailyGoal: 20,
-      streakDays: 0,
-      cardsLearnedToday: 0,
-      estimatedTimeMinutes: 0,
-      progressData: this.getFallbackProgressData()
-    };
-  }
-  /**
-   * Gets fallback progress data when controller fails
-   *
-   * @returns Empty progress data for last 7 days
-   */
-  getFallbackProgressData() {
-    const progressData = [];
-    const today = /* @__PURE__ */ new Date();
-    for (let i = 6; i >= 0; i--) {
-      const date5 = new Date(today);
-      date5.setDate(today.getDate() - i);
-      progressData.push({
-        date: date5.toISOString().split("T")[0],
-        completed: 0,
-        target: 20,
-        newCards: 0,
-        retention: 0
-      });
-    }
-    return progressData;
-  }
-  /**
-   * Refreshes dashboard data from the core system
-   */
-  async refreshData() {
-    if (!this.dashboardController)
-      return;
-    try {
-      this.setLoading(true);
-      const stats = await this.dashboardController.getStats();
-      this.currentStats = stats;
-      if (this.component) {
-        this.component.$set({ stats });
-      }
-      statisticsStore.set(stats);
-      this.setLoading(false);
-    } catch (error48) {
-      console.error("Failed to refresh dashboard data:", error48);
-      this.displayError("Failed to load dashboard data. Please try again.");
-      this.setLoading(false);
-    }
-  }
-  /**
-   * Handles starting a review session
-   */
-  async handleStartReview() {
-    if (!this.dashboardController)
-      return;
-    try {
-      await this.dashboardController.startReviewSession();
-      uiStore.navigate("review");
-    } catch (error48) {
-      console.error("Failed to start review session:", error48);
-      uiStore.notify({
-        type: "error",
-        message: "Failed to start review session. Please try again.",
-        duration: 5e3
-      });
-    }
-  }
-  /**
-   * Handles opening the settings tab
-   */
-  handleOpenSettings() {
-    try {
-      this.app.setting.openTabById("obs-knowledge-accelerator");
-    } catch (error48) {
-      console.error("Failed to open settings tab:", error48);
-      uiStore.notify({
-        type: "error",
-        message: "Could not open settings automatically.",
-        duration: 3e3
-      });
-    }
-  }
-  /**
-   * Handles configuration changes from the dashboard
-   *
-   * @param configChanges - Partial configuration updates
-   */
-  async handleConfigChange(configChanges) {
-    if (!this.dashboardController)
-      return;
-    try {
-      const currentConfig = this.getConfig();
-      const newConfig = { ...currentConfig, ...configChanges };
-      console.log("Dashboard configuration updated:", newConfig);
-    } catch (error48) {
-      console.error("Failed to update dashboard configuration:", error48);
-      uiStore.notify({
-        type: "error",
-        message: "Failed to save settings.",
-        duration: 3e3
-      });
-    }
-  }
-  /**
-   * Gets current dashboard configuration
-   *
-   * @returns Current configuration object
-   */
-  getConfig() {
-    return {
-      dailyGoal: 20,
-      showProgressChart: true,
-      showRetentionRate: true,
-      chartTimeframe: "week",
-      preferredChartType: "bar"
-    };
-  }
-  /**
-   * Gets mock statistics for testing (will be replaced with real data)
-   *
-   * @returns Mock dashboard statistics
-   */
-  getMockStats() {
-    return {
-      totalCards: 245,
-      retentionRate: 0.87,
-      dueCount: 12,
-      dailyGoal: 20,
-      streakDays: 5,
-      cardsLearnedToday: 8,
-      estimatedTimeMinutes: 15,
-      progressData: [
-        {
-          date: "2026-01-08",
-          completed: 18,
-          target: 20,
-          newCards: 3,
-          retention: 0.89
-        },
-        {
-          date: "2026-01-09",
-          completed: 22,
-          target: 20,
-          newCards: 5,
-          retention: 0.91
-        },
-        {
-          date: "2026-01-10",
-          completed: 15,
-          target: 20,
-          newCards: 2,
-          retention: 0.85
-        },
-        {
-          date: "2026-01-11",
-          completed: 20,
-          target: 20,
-          newCards: 4,
-          retention: 0.88
-        },
-        {
-          date: "2026-01-12",
-          completed: 25,
-          target: 20,
-          newCards: 6,
-          retention: 0.92
-        },
-        {
-          date: "2026-01-13",
-          completed: 19,
-          target: 20,
-          newCards: 3,
-          retention: 0.87
-        },
-        {
-          date: "2026-01-14",
-          completed: 8,
-          target: 20,
-          newCards: 1,
-          retention: 0.86
-        }
-      ]
-    };
-  }
-  /**
-   * Sets up listener for session completion events to trigger real-time updates
-   */
-  setupSessionCompleteListener() {
-    this.sessionStore.subscribe((state) => {
-      if (!state.activeSession && state.sessionStats.totalReviewed > 0) {
-        this.refreshData();
-      }
-    });
-  }
-  /**
-   * Sets loading state and updates component
-   *
-   * @param loading - Whether view is loading
-   */
-  setLoading(loading) {
-    this.isLoading = loading;
-    uiStore.setLoading(loading, loading ? "Loading dashboard..." : void 0);
-    if (this.component) {
-      this.component.$set({ loading });
-    }
-  }
-};
-
-// src/ui/views/Review/ReviewView.ts
-var import_obsidian11 = require("obsidian");
 
 // src/ui/components/flashcards/CardFace.svelte
 var import_obsidian9 = require("obsidian");
@@ -27692,18 +27406,16 @@ function create_else_block_13(ctx) {
   });
   button = new Button_default({
     props: {
-      variant: "accent",
+      variant: "primary",
       $$slots: { default: [create_default_slot_32] },
       $$scope: { ctx }
     }
   });
-  button.$on("click", function() {
-    if (is_function(
-      /*onEndSession*/
-      ctx[5]
-    ))
-      ctx[5].apply(this, arguments);
-  });
+  button.$on(
+    "click",
+    /*handleEndSession*/
+    ctx[12]
+  );
   return {
     c() {
       div = element("div");
@@ -27716,9 +27428,9 @@ function create_else_block_13(ctx) {
       p.textContent = "You've reviewed all cards in this session.";
       t4 = space();
       create_component(button.$$.fragment);
-      attr(h2, "class", "svelte-1vmaeuc");
-      attr(p, "class", "svelte-1vmaeuc");
-      attr(div, "class", "ka-empty-state svelte-1vmaeuc");
+      attr(h2, "class", "svelte-1tj58h9");
+      attr(p, "class", "svelte-1tj58h9");
+      attr(div, "class", "ka-empty-state svelte-1tj58h9");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -27731,12 +27443,11 @@ function create_else_block_13(ctx) {
       mount_component(button, div, null);
       current = true;
     },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
+    p(ctx2, dirty) {
       const button_changes = {};
       if (dirty & /*$$scope*/
-      2097152) {
-        button_changes.$$scope = { dirty, ctx };
+      33554432) {
+        button_changes.$$scope = { dirty, ctx: ctx2 };
       }
       button.$set(button_changes);
     },
@@ -27780,23 +27491,23 @@ function create_if_block11(ctx) {
       ),
       front: (
         /*card*/
-        ctx[13].front
+        ctx[8].front
       ),
       back: (
         /*card*/
-        ctx[13].back
+        ctx[8].back
       ),
       mode: (
         /*showingAnswer*/
-        ctx[8] ? "both" : "front"
+        ctx[3] ? "both" : "front"
       ),
       onFlip: (
-        /*onShowAnswer*/
-        ctx[1]
+        /*func*/
+        ctx[18]
       ),
       onEdit: (
-        /*onEditCard*/
-        ctx[6]
+        /*func_1*/
+        ctx[19]
       )
     }
   });
@@ -27804,7 +27515,7 @@ function create_if_block11(ctx) {
   const if_blocks = [];
   function select_block_type_1(ctx2, dirty) {
     if (!/*showingAnswer*/
-    ctx2[8])
+    ctx2[3])
       return 0;
     return 1;
   }
@@ -27817,13 +27528,13 @@ function create_if_block11(ctx) {
       t = space();
       div1 = element("div");
       if_block.c();
-      attr(div0, "class", "ka-card-wrapper svelte-1vmaeuc");
-      attr(div1, "class", "ka-controls-wrapper svelte-1vmaeuc");
+      attr(div0, "class", "ka-card-wrapper svelte-1tj58h9");
+      attr(div1, "class", "ka-controls-wrapper svelte-1tj58h9");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
       mount_component(cardface, div0, null);
-      ctx[19](div0);
+      ctx[20](div0);
       insert(target, t, anchor);
       insert(target, div1, anchor);
       if_blocks[current_block_type_index].m(div1, null);
@@ -27832,15 +27543,15 @@ function create_if_block11(ctx) {
         dispose = action_destroyer(gesture_action = gesture.call(null, div0, {
           onSwipeLeft: (
             /*handleSwipeLeft*/
-            ctx[14]
+            ctx[9]
           ),
           onSwipeRight: (
             /*handleSwipeRight*/
-            ctx[15]
+            ctx[10]
           ),
           onTap: (
             /*handleTap*/
-            ctx[16]
+            ctx[11]
           ),
           swipeThreshold: 50,
           tapMaxDuration: 200,
@@ -27856,25 +27567,21 @@ function create_if_block11(ctx) {
         cardface_changes.app = /*app*/
         ctx2[0];
       if (dirty & /*card*/
-      8192)
-        cardface_changes.front = /*card*/
-        ctx2[13].front;
-      if (dirty & /*card*/
-      8192)
-        cardface_changes.back = /*card*/
-        ctx2[13].back;
-      if (dirty & /*showingAnswer*/
       256)
+        cardface_changes.front = /*card*/
+        ctx2[8].front;
+      if (dirty & /*card*/
+      256)
+        cardface_changes.back = /*card*/
+        ctx2[8].back;
+      if (dirty & /*showingAnswer*/
+      8)
         cardface_changes.mode = /*showingAnswer*/
-        ctx2[8] ? "both" : "front";
-      if (dirty & /*onShowAnswer*/
+        ctx2[3] ? "both" : "front";
+      if (dirty & /*sessionStore*/
       2)
-        cardface_changes.onFlip = /*onShowAnswer*/
-        ctx2[1];
-      if (dirty & /*onEditCard*/
-      64)
-        cardface_changes.onEdit = /*onEditCard*/
-        ctx2[6];
+        cardface_changes.onFlip = /*func*/
+        ctx2[18];
       cardface.$set(cardface_changes);
       let previous_block_index = current_block_type_index;
       current_block_type_index = select_block_type_1(ctx2, dirty);
@@ -27916,7 +27623,7 @@ function create_if_block11(ctx) {
         detach(div1);
       }
       destroy_component(cardface);
-      ctx[19](null);
+      ctx[20](null);
       if_blocks[current_block_type_index].d();
       mounted = false;
       dispose();
@@ -27945,8 +27652,8 @@ function create_else_block5(ctx) {
   ratingcontrols = new RatingControls_default({
     props: {
       onSubmitRating: (
-        /*onSubmitRating*/
-        ctx[2]
+        /*handleSubmitRating*/
+        ctx[13]
       )
     }
   });
@@ -27958,14 +27665,7 @@ function create_else_block5(ctx) {
       mount_component(ratingcontrols, target, anchor);
       current = true;
     },
-    p(ctx2, dirty) {
-      const ratingcontrols_changes = {};
-      if (dirty & /*onSubmitRating*/
-      4)
-        ratingcontrols_changes.onSubmitRating = /*onSubmitRating*/
-        ctx2[2];
-      ratingcontrols.$set(ratingcontrols_changes);
-    },
+    p: noop,
     i(local) {
       if (current)
         return;
@@ -27986,20 +27686,18 @@ function create_if_block_19(ctx) {
   let current;
   button = new Button_default({
     props: {
-      variant: "accent",
-      className: "ka-show-answer-button",
+      variant: "primary",
+      class: "ka-show-answer-button",
       ariaLabel: "Show answer",
       $$slots: { default: [create_default_slot_23] },
       $$scope: { ctx }
     }
   });
-  button.$on("click", function() {
-    if (is_function(
-      /*onShowAnswer*/
-      ctx[1]
-    ))
-      ctx[1].apply(this, arguments);
-  });
+  button.$on(
+    "click",
+    /*click_handler*/
+    ctx[21]
+  );
   return {
     c() {
       create_component(button.$$.fragment);
@@ -28008,12 +27706,11 @@ function create_if_block_19(ctx) {
       mount_component(button, target, anchor);
       current = true;
     },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
+    p(ctx2, dirty) {
       const button_changes = {};
       if (dirty & /*$$scope*/
-      2097152) {
-        button_changes.$$scope = { dirty, ctx };
+      33554432) {
+        button_changes.$$scope = { dirty, ctx: ctx2 };
       }
       button.$set(button_changes);
     },
@@ -28040,7 +27737,7 @@ function create_default_slot_23(ctx) {
       t0 = text("Show Answer\n            ");
       span = element("span");
       span.textContent = "Space";
-      attr(span, "class", "ka-key-hint svelte-1vmaeuc");
+      attr(span, "class", "ka-key-hint svelte-1tj58h9");
     },
     m(target, anchor) {
       insert(target, t0, anchor);
@@ -28172,13 +27869,10 @@ function create_fragment16(ctx) {
   icon0 = new Icon_default({ props: { name: "layers", size: 14 } });
   icon1 = new Icon_default({ props: { name: "clock", size: 14 } });
   progressbar = new ProgressBar_default({
-    props: {
-      progress: (
-        /*progress*/
-        ctx[12]
-      ),
-      height: 4
-    }
+    props: { value: (
+      /*progress*/
+      ctx[7]
+    ), height: 4 }
   });
   button0 = new Button_default({
     props: {
@@ -28189,19 +27883,17 @@ function create_fragment16(ctx) {
       $$scope: { ctx }
     }
   });
-  button0.$on("click", function() {
-    if (is_function(
-      /*onEndSession*/
-      ctx[5]
-    ))
-      ctx[5].apply(this, arguments);
-  });
+  button0.$on(
+    "click",
+    /*handleEndSession*/
+    ctx[12]
+  );
   const if_block_creators = [create_if_block11, create_else_block_13];
   const if_blocks = [];
   function select_block_type(ctx2, dirty) {
     if (
       /*card*/
-      ctx2[13]
+      ctx2[8]
     )
       return 0;
     return 1;
@@ -28210,45 +27902,41 @@ function create_fragment16(ctx) {
   if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
   button1 = new Button_default({
     props: {
-      variant: "ghost",
+      variant: "secondary",
       size: "sm",
       disabled: (
         /*currentIndex*/
-        ctx[10] <= 1
+        ctx[5] <= 1
       ),
       ariaLabel: "Previous card",
       $$slots: { default: [create_default_slot_14] },
       $$scope: { ctx }
     }
   });
-  button1.$on("click", function() {
-    if (is_function(
-      /*onPreviousCard*/
-      ctx[4]
-    ))
-      ctx[4].apply(this, arguments);
-  });
+  button1.$on(
+    "click",
+    /*handlePreviousCard*/
+    ctx[14]
+  );
   button2 = new Button_default({
     props: {
-      variant: "ghost",
+      variant: "secondary",
       size: "sm",
       disabled: (
         /*currentIndex*/
-        ctx[10] >= /*totalCards*/
-        ctx[9]
+        ctx[5] >= /*totalCards*/
+        ctx[4]
       ),
       ariaLabel: "Next card",
       $$slots: { default: [create_default_slot8] },
       $$scope: { ctx }
     }
   });
-  button2.$on("click", function() {
-    if (is_function(
-      /*onNextCard*/
-      ctx[3]
-    ))
-      ctx[3].apply(this, arguments);
-  });
+  button2.$on(
+    "click",
+    /*handleNextCard*/
+    ctx[15]
+  );
   return {
     c() {
       div3 = element("div");
@@ -28259,12 +27947,12 @@ function create_fragment16(ctx) {
       t0 = space();
       t1 = text(
         /*currentIndex*/
-        ctx[10]
+        ctx[5]
       );
       t2 = text(" / ");
       t3 = text(
         /*totalCards*/
-        ctx[9]
+        ctx[4]
       );
       t4 = space();
       span1 = element("span");
@@ -28272,7 +27960,7 @@ function create_fragment16(ctx) {
       t5 = space();
       t6 = text(
         /*remaining*/
-        ctx[11]
+        ctx[6]
       );
       t7 = text(" remaining");
       t8 = space();
@@ -28289,15 +27977,15 @@ function create_fragment16(ctx) {
       create_component(button1.$$.fragment);
       t12 = space();
       create_component(button2.$$.fragment);
-      attr(span0, "class", "ka-stat-item svelte-1vmaeuc");
-      attr(span1, "class", "ka-stat-item svelte-1vmaeuc");
-      attr(div0, "class", "ka-review-stats svelte-1vmaeuc");
-      attr(div1, "class", "ka-progress-wrapper svelte-1vmaeuc");
-      attr(header, "class", "ka-review-header svelte-1vmaeuc");
-      attr(main, "class", "ka-review-main svelte-1vmaeuc");
-      attr(div2, "class", "ka-navigation-controls svelte-1vmaeuc");
-      attr(footer, "class", "ka-review-footer svelte-1vmaeuc");
-      attr(div3, "class", "ka-review-container svelte-1vmaeuc");
+      attr(span0, "class", "ka-stat-item svelte-1tj58h9");
+      attr(span1, "class", "ka-stat-item svelte-1tj58h9");
+      attr(div0, "class", "ka-review-stats svelte-1tj58h9");
+      attr(div1, "class", "ka-progress-wrapper svelte-1tj58h9");
+      attr(header, "class", "ka-review-header svelte-1tj58h9");
+      attr(main, "class", "ka-review-main svelte-1tj58h9");
+      attr(div2, "class", "ka-navigation-controls svelte-1tj58h9");
+      attr(footer, "class", "ka-review-footer svelte-1tj58h9");
+      attr(div3, "class", "ka-review-container svelte-1tj58h9");
     },
     m(target, anchor) {
       insert(target, div3, anchor);
@@ -28331,45 +28019,44 @@ function create_fragment16(ctx) {
       mount_component(button2, div2, null);
       current = true;
     },
-    p(new_ctx, [dirty]) {
-      ctx = new_ctx;
+    p(ctx2, [dirty]) {
       if (!current || dirty & /*currentIndex*/
-      1024)
+      32)
         set_data(
           t1,
           /*currentIndex*/
-          ctx[10]
+          ctx2[5]
         );
       if (!current || dirty & /*totalCards*/
-      512)
+      16)
         set_data(
           t3,
           /*totalCards*/
-          ctx[9]
+          ctx2[4]
         );
       if (!current || dirty & /*remaining*/
-      2048)
+      64)
         set_data(
           t6,
           /*remaining*/
-          ctx[11]
+          ctx2[6]
         );
       const progressbar_changes = {};
       if (dirty & /*progress*/
-      4096)
-        progressbar_changes.progress = /*progress*/
-        ctx[12];
+      128)
+        progressbar_changes.value = /*progress*/
+        ctx2[7];
       progressbar.$set(progressbar_changes);
       const button0_changes = {};
       if (dirty & /*$$scope*/
-      2097152) {
-        button0_changes.$$scope = { dirty, ctx };
+      33554432) {
+        button0_changes.$$scope = { dirty, ctx: ctx2 };
       }
       button0.$set(button0_changes);
       let previous_block_index = current_block_type_index;
-      current_block_type_index = select_block_type(ctx, dirty);
+      current_block_type_index = select_block_type(ctx2, dirty);
       if (current_block_type_index === previous_block_index) {
-        if_blocks[current_block_type_index].p(ctx, dirty);
+        if_blocks[current_block_type_index].p(ctx2, dirty);
       } else {
         group_outros();
         transition_out(if_blocks[previous_block_index], 1, 1, () => {
@@ -28378,33 +28065,33 @@ function create_fragment16(ctx) {
         check_outros();
         if_block = if_blocks[current_block_type_index];
         if (!if_block) {
-          if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+          if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx2);
           if_block.c();
         } else {
-          if_block.p(ctx, dirty);
+          if_block.p(ctx2, dirty);
         }
         transition_in(if_block, 1);
         if_block.m(main, null);
       }
       const button1_changes = {};
       if (dirty & /*currentIndex*/
-      1024)
+      32)
         button1_changes.disabled = /*currentIndex*/
-        ctx[10] <= 1;
+        ctx2[5] <= 1;
       if (dirty & /*$$scope*/
-      2097152) {
-        button1_changes.$$scope = { dirty, ctx };
+      33554432) {
+        button1_changes.$$scope = { dirty, ctx: ctx2 };
       }
       button1.$set(button1_changes);
       const button2_changes = {};
       if (dirty & /*currentIndex, totalCards*/
-      1536)
+      48)
         button2_changes.disabled = /*currentIndex*/
-        ctx[10] >= /*totalCards*/
-        ctx[9];
+        ctx2[5] >= /*totalCards*/
+        ctx2[4];
       if (dirty & /*$$scope*/
-      2097152) {
-        button2_changes.$$scope = { dirty, ctx };
+      33554432) {
+        button2_changes.$$scope = { dirty, ctx: ctx2 };
       }
       button2.$set(button2_changes);
     },
@@ -28454,13 +28141,8 @@ function instance16($$self, $$props, $$invalidate) {
   let currentIndex;
   let totalCards;
   let { app } = $$props;
-  let { onShowAnswer } = $$props;
-  let { onSubmitRating } = $$props;
-  let { onNextCard } = $$props;
-  let { onPreviousCard } = $$props;
-  let { onEndSession } = $$props;
-  let { onEditCard } = $$props;
   let { sessionStore } = $$props;
+  let { navigationManager } = $$props;
   let cardContainer;
   function handleKeyDown(event) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -28469,24 +28151,24 @@ function instance16($$self, $$props, $$invalidate) {
     if (event.code === "Space") {
       event.preventDefault();
       if (!showingAnswer) {
-        onShowAnswer();
+        sessionStore.showAnswer();
       }
     } else if (event.key === "1") {
       if (showingAnswer)
-        onSubmitRating(1);
+        sessionStore.submitRating(1);
     } else if (event.key === "2") {
       if (showingAnswer)
-        onSubmitRating(2);
+        sessionStore.submitRating(2);
     } else if (event.key === "3") {
       if (showingAnswer)
-        onSubmitRating(3);
+        sessionStore.submitRating(3);
     } else if (event.key === "4") {
       if (showingAnswer)
-        onSubmitRating(4);
+        sessionStore.submitRating(4);
     } else if (event.key.toLowerCase() === "n") {
-      onNextCard();
+      sessionStore.nextCard();
     } else if (event.key.toLowerCase() === "p") {
-      onPreviousCard();
+      sessionStore.previousCard();
     }
   }
   onMount(() => {
@@ -28497,92 +28179,98 @@ function instance16($$self, $$props, $$invalidate) {
   });
   function handleSwipeLeft() {
     if (showingAnswer) {
-      onSubmitRating(1);
+      sessionStore.submitRating(1);
     } else {
-      onPreviousCard();
+      sessionStore.previousCard();
     }
   }
   function handleSwipeRight() {
     if (showingAnswer) {
-      onSubmitRating(3);
+      sessionStore.submitRating(3);
     } else {
-      onShowAnswer();
+      sessionStore.showAnswer();
     }
   }
   function handleTap() {
     if (!showingAnswer && !isGesturing) {
-      onShowAnswer();
+      sessionStore.showAnswer();
     }
   }
+  function handleEndSession() {
+    navigationManager.navigateTo("dashboard");
+  }
+  function handleStartSession() {
+    sessionStore.startSession();
+  }
+  function handleShowAnswer() {
+    sessionStore.showAnswer();
+  }
+  function handleSubmitRating(rating) {
+    sessionStore.submitRating(rating);
+  }
+  function handlePreviousCard() {
+    sessionStore.previousCard();
+  }
+  function handleNextCard() {
+    sessionStore.nextCard();
+  }
+  const func = () => sessionStore.showAnswer();
+  const func_1 = () => console.log("Edit card");
   function div0_binding($$value) {
     binding_callbacks[$$value ? "unshift" : "push"](() => {
       cardContainer = $$value;
-      $$invalidate(7, cardContainer);
+      $$invalidate(2, cardContainer);
     });
   }
+  const click_handler = () => sessionStore.showAnswer();
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
       $$invalidate(0, app = $$props2.app);
-    if ("onShowAnswer" in $$props2)
-      $$invalidate(1, onShowAnswer = $$props2.onShowAnswer);
-    if ("onSubmitRating" in $$props2)
-      $$invalidate(2, onSubmitRating = $$props2.onSubmitRating);
-    if ("onNextCard" in $$props2)
-      $$invalidate(3, onNextCard = $$props2.onNextCard);
-    if ("onPreviousCard" in $$props2)
-      $$invalidate(4, onPreviousCard = $$props2.onPreviousCard);
-    if ("onEndSession" in $$props2)
-      $$invalidate(5, onEndSession = $$props2.onEndSession);
-    if ("onEditCard" in $$props2)
-      $$invalidate(6, onEditCard = $$props2.onEditCard);
     if ("sessionStore" in $$props2)
-      $$invalidate(17, sessionStore = $$props2.sessionStore);
+      $$invalidate(1, sessionStore = $$props2.sessionStore);
+    if ("navigationManager" in $$props2)
+      $$invalidate(16, navigationManager = $$props2.navigationManager);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*sessionStore*/
-    131072) {
+    2) {
       $:
-        $$invalidate(13, card = sessionStore.currentCard);
+        $$invalidate(8, card = sessionStore.currentCard);
     }
     if ($$self.$$.dirty & /*sessionStore*/
-    131072) {
+    2) {
       $:
-        $$invalidate(8, showingAnswer = sessionStore.isAnswerShowing);
+        $$invalidate(3, showingAnswer = sessionStore.isAnswerShowing);
     }
     if ($$self.$$.dirty & /*sessionStore*/
-    131072) {
+    2) {
       $:
-        $$invalidate(12, progress = sessionStore.sessionProgress);
+        $$invalidate(7, progress = sessionStore.sessionProgress);
     }
     if ($$self.$$.dirty & /*sessionStore*/
-    131072) {
+    2) {
       $:
-        $$invalidate(11, remaining = sessionStore.remainingCards);
+        $$invalidate(6, remaining = sessionStore.remainingCards);
     }
     if ($$self.$$.dirty & /*sessionStore*/
-    131072) {
+    2) {
       $:
-        $$invalidate(18, session = sessionStore.activeSession);
+        $$invalidate(17, session = sessionStore.activeSession);
     }
     if ($$self.$$.dirty & /*session*/
-    262144) {
+    131072) {
       $:
-        $$invalidate(10, currentIndex = session ? session.currentIndex + 1 : 0);
+        $$invalidate(5, currentIndex = session ? session.currentIndex + 1 : 0);
     }
     if ($$self.$$.dirty & /*session*/
-    262144) {
+    131072) {
       $:
-        $$invalidate(9, totalCards = session ? session.queue.length : 0);
+        $$invalidate(4, totalCards = session ? session.queue.length : 0);
     }
   };
   return [
     app,
-    onShowAnswer,
-    onSubmitRating,
-    onNextCard,
-    onPreviousCard,
-    onEndSession,
-    onEditCard,
+    sessionStore,
     cardContainer,
     showingAnswer,
     totalCards,
@@ -28593,9 +28281,16 @@ function instance16($$self, $$props, $$invalidate) {
     handleSwipeLeft,
     handleSwipeRight,
     handleTap,
-    sessionStore,
+    handleEndSession,
+    handleSubmitRating,
+    handlePreviousCard,
+    handleNextCard,
+    navigationManager,
     session,
-    div0_binding
+    func,
+    func_1,
+    div0_binding,
+    click_handler
   ];
 }
 var Review = class extends SvelteComponent {
@@ -28603,183 +28298,379 @@ var Review = class extends SvelteComponent {
     super();
     init(this, options, instance16, create_fragment16, safe_not_equal, {
       app: 0,
-      onShowAnswer: 1,
-      onSubmitRating: 2,
-      onNextCard: 3,
-      onPreviousCard: 4,
-      onEndSession: 5,
-      onEditCard: 6,
-      sessionStore: 17
+      sessionStore: 1,
+      navigationManager: 16
     });
   }
 };
 var Review_default = Review;
 
-// src/ui/views/Review/ReviewController.ts
-var import_obsidian10 = require("obsidian");
-var ReviewController = class {
-  constructor(app, indexManager, sessionStore) {
-    this.app = app;
-    __publicField(this, "indexManager");
-    __publicField(this, "sessionStore");
-    this.indexManager = indexManager;
-    this.sessionStore = sessionStore;
+// src/ui/views/App/App.svelte
+function create_if_block_110(ctx) {
+  let review;
+  let current;
+  review = new Review_default({
+    props: {
+      app: (
+        /*app*/
+        ctx[0]
+      ),
+      sessionStore: (
+        /*sessionStore*/
+        ctx[2]
+      ),
+      navigationManager: (
+        /*navigationManager*/
+        ctx[1]
+      )
+    }
+  });
+  return {
+    c() {
+      create_component(review.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(review, target, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const review_changes = {};
+      if (dirty & /*app*/
+      1)
+        review_changes.app = /*app*/
+        ctx2[0];
+      if (dirty & /*sessionStore*/
+      4)
+        review_changes.sessionStore = /*sessionStore*/
+        ctx2[2];
+      if (dirty & /*navigationManager*/
+      2)
+        review_changes.navigationManager = /*navigationManager*/
+        ctx2[1];
+      review.$set(review_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(review.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(review.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(review, detaching);
+    }
+  };
+}
+function create_if_block12(ctx) {
+  let dashboard;
+  let current;
+  dashboard = new Dashboard_default({
+    props: {
+      stats: (
+        /*dashboardStats*/
+        ctx[3]
+      ),
+      config: (
+        /*dashboardConfig*/
+        ctx[5]
+      ),
+      onStartReview: (
+        /*handleStartReview*/
+        ctx[7]
+      ),
+      onRefresh: (
+        /*loadDashboardData*/
+        ctx[6]
+      )
+    }
+  });
+  return {
+    c() {
+      create_component(dashboard.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(dashboard, target, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const dashboard_changes = {};
+      if (dirty & /*dashboardStats*/
+      8)
+        dashboard_changes.stats = /*dashboardStats*/
+        ctx2[3];
+      dashboard.$set(dashboard_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(dashboard.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(dashboard.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(dashboard, detaching);
+    }
+  };
+}
+function create_fragment17(ctx) {
+  let div;
+  let current_block_type_index;
+  let if_block;
+  let current;
+  const if_block_creators = [create_if_block12, create_if_block_110];
+  const if_blocks = [];
+  function select_block_type(ctx2, dirty) {
+    if (
+      /*$navigationState*/
+      ctx2[4].currentView === "dashboard" && /*dashboardStats*/
+      ctx2[3]
+    )
+      return 0;
+    if (
+      /*$navigationState*/
+      ctx2[4].currentView === "review"
+    )
+      return 1;
+    return -1;
   }
-  async getNextCard() {
-    let card = null;
-    this.sessionStore.subscribe((state) => {
-      card = state.currentCard;
-    })();
-    return card;
+  if (~(current_block_type_index = select_block_type(ctx, -1))) {
+    if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
   }
-  async submitRating(cardId, rating) {
-    await this.sessionStore.submitRating(rating);
-  }
-  async editSource(cardId) {
+  return {
+    c() {
+      div = element("div");
+      if (if_block)
+        if_block.c();
+      attr(div, "class", "app-container svelte-bpb9rl");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      if (~current_block_type_index) {
+        if_blocks[current_block_type_index].m(div, null);
+      }
+      current = true;
+    },
+    p(ctx2, [dirty]) {
+      let previous_block_index = current_block_type_index;
+      current_block_type_index = select_block_type(ctx2, dirty);
+      if (current_block_type_index === previous_block_index) {
+        if (~current_block_type_index) {
+          if_blocks[current_block_type_index].p(ctx2, dirty);
+        }
+      } else {
+        if (if_block) {
+          group_outros();
+          transition_out(if_blocks[previous_block_index], 1, 1, () => {
+            if_blocks[previous_block_index] = null;
+          });
+          check_outros();
+        }
+        if (~current_block_type_index) {
+          if_block = if_blocks[current_block_type_index];
+          if (!if_block) {
+            if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx2);
+            if_block.c();
+          } else {
+            if_block.p(ctx2, dirty);
+          }
+          transition_in(if_block, 1);
+          if_block.m(div, null);
+        } else {
+          if_block = null;
+        }
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(if_block);
+      current = true;
+    },
+    o(local) {
+      transition_out(if_block);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      if (~current_block_type_index) {
+        if_blocks[current_block_type_index].d();
+      }
+    }
+  };
+}
+function instance17($$self, $$props, $$invalidate) {
+  let $navigationState;
+  component_subscribe($$self, navigationState, ($$value) => $$invalidate(4, $navigationState = $$value));
+  let { app } = $$props;
+  let { navigationManager } = $$props;
+  let { indexManager } = $$props;
+  let { statisticsManager } = $$props;
+  let { sessionStore } = $$props;
+  let { dueQueueManager } = $$props;
+  let dashboardStats = null;
+  let dashboardConfig = {
+    dailyGoal: 20,
+    showProgressChart: true,
+    showRetentionRate: true,
+    chartTimeframe: "week",
+    preferredChartType: "bar"
+  };
+  let dashboardController;
+  let reviewController;
+  onMount(async () => {
+    dashboardController = new DashboardController(indexManager, statisticsManager, dueQueueManager, sessionStore);
+    reviewController = new ReviewController(app, indexManager, sessionStore);
+    if ($navigationState.currentView === "dashboard") {
+      await loadDashboardData();
+    }
+  });
+  async function loadDashboardData() {
     try {
-      const cardMetadata = this.indexManager.getCard(cardId);
-      if (!cardMetadata) {
-        throw new Error(`Card with ID '${cardId}' not found in index`);
-      }
-      const sourcePath = cardMetadata.source;
-      if (!sourcePath) {
-        throw new Error(`No source path found for card '${cardId}'`);
-      }
-      const file2 = this.app.vault.getAbstractFileByPath(sourcePath);
-      if (!(file2 instanceof import_obsidian10.TFile)) {
-        throw new Error(`Source file '${sourcePath}' not found or is not a file`);
-      }
-      const leaf = this.app.workspace.getLeaf("split");
-      await leaf.openFile(file2);
-      console.log(`Opened source file '${sourcePath}' for card '${cardId}'`);
+      $$invalidate(3, dashboardStats = await dashboardController.getStats());
     } catch (error48) {
-      console.error("Failed to edit source:", error48);
-      throw error48;
+      console.error("Failed to load dashboard data:", error48);
     }
   }
-  async verifyAndReset(cardId) {
-    console.log("Verifying and resetting card:", cardId);
+  async function handleStartReview() {
+    await sessionStore.startSession();
+    navigationManager.navigateTo("review");
   }
-};
-
-// src/ui/views/Review/ReviewView.ts
-var REVIEW_VIEW_TYPE = "knowledge-accelerator-review";
-var ReviewView = class extends PluginView {
-  constructor() {
-    super(...arguments);
-    /** Unique view type identifier */
-    __publicField(this, "viewType", REVIEW_VIEW_TYPE);
-    /** Display text for the view tab */
-    __publicField(this, "displayText", "Review");
-    /** Icon for the view tab */
-    __publicField(this, "icon", "brain-circuit");
-    /** Review controller instance */
-    __publicField(this, "reviewController");
-    /** Track the currently edited file for refresh */
-    __publicField(this, "editedFilePath", null);
+  function navigateTo(view) {
+    if ($navigationState.currentView !== view) {
+      navigationManager.navigateTo(view);
+      if (view === "dashboard") {
+        loadDashboardData();
+      }
+    }
   }
-  /**
-  	 * Creates and mounts Review Svelte component
-  	 *
-  	 * @param container - The DOM element to mount the component into
-  	 * @returns The mounted Svelte component
-  	 */
-  async createSvelteComponent(container) {
-    this.reviewController = new ReviewController(this.app, this.indexManager, this.sessionStore);
-    const props = {
-      app: this.app,
-      disabled: false,
-      onShowAnswer: this.sessionStore.showAnswer,
-      onSubmitRating: (rating) => this.sessionStore.submitRating(rating),
-      onNextCard: () => this.sessionStore.nextCard(),
-      onPreviousCard: () => this.sessionStore.previousCard(),
-      onEndSession: () => this.handleEndSession(),
-      onEditCard: () => this.handleEditCard(),
-      sessionStore: this.sessionStore
-    };
-    return new Review_default({
-      target: container,
-      props
+  $$self.$$set = ($$props2) => {
+    if ("app" in $$props2)
+      $$invalidate(0, app = $$props2.app);
+    if ("navigationManager" in $$props2)
+      $$invalidate(1, navigationManager = $$props2.navigationManager);
+    if ("indexManager" in $$props2)
+      $$invalidate(8, indexManager = $$props2.indexManager);
+    if ("statisticsManager" in $$props2)
+      $$invalidate(9, statisticsManager = $$props2.statisticsManager);
+    if ("sessionStore" in $$props2)
+      $$invalidate(2, sessionStore = $$props2.sessionStore);
+    if ("dueQueueManager" in $$props2)
+      $$invalidate(10, dueQueueManager = $$props2.dueQueueManager);
+  };
+  return [
+    app,
+    navigationManager,
+    sessionStore,
+    dashboardStats,
+    $navigationState,
+    dashboardConfig,
+    loadDashboardData,
+    handleStartReview,
+    indexManager,
+    statisticsManager,
+    dueQueueManager
+  ];
+}
+var App4 = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance17, create_fragment17, safe_not_equal, {
+      app: 0,
+      navigationManager: 1,
+      indexManager: 8,
+      statisticsManager: 9,
+      sessionStore: 2,
+      dueQueueManager: 10
     });
   }
-  /**
-   * Called when the view is opened
-   */
-  async onOpen() {
-    await super.onOpen();
-    uiStore.navigate("review");
-    this.registerEvent(
-      this.app.workspace.on("file-open", (file2) => {
-        if (file2) {
-          this.editedFilePath = file2.path;
-        }
-      })
-    );
-    this.registerEvent(
-      this.app.vault.on("modify", async (file2) => {
-        if (file2 instanceof import_obsidian11.TFile && this.editedFilePath === file2.path) {
-          await this.refreshCurrentCard();
-        }
-      })
-    );
+};
+var App_default = App4;
+
+// src/ui/views/App/AppView.ts
+var APP_VIEW = "knowledge-accelerator-home";
+var AppView = class extends import_obsidian10.ItemView {
+  constructor(leaf, app, navigationManager, indexManager, statisticsManager, sessionStore, dueQueueManager) {
+    super(leaf);
+    __publicField(this, "navigationManager");
+    __publicField(this, "indexManager");
+    __publicField(this, "statisticsManager");
+    __publicField(this, "sessionStore");
+    __publicField(this, "dueQueueManager");
+    __publicField(this, "homeComponent", null);
+    __publicField(this, "viewType", APP_VIEW);
+    this.navigationManager = navigationManager;
+    this.indexManager = indexManager;
+    this.statisticsManager = statisticsManager;
+    this.sessionStore = sessionStore;
+    this.dueQueueManager = dueQueueManager;
   }
   /**
-   * Refreshes the current card after source file changes
+   * Returns the view type identifier
    */
-  async refreshCurrentCard() {
+  getViewType() {
+    return APP_VIEW;
+  }
+  /**
+   * Returns the display name for the view
+   */
+  getDisplayText() {
+    return "Knowledge Accelerator";
+  }
+  /**
+   * Returns the icon for the view
+   */
+  getIcon() {
+    return "brain";
+  }
+  /**
+   * Called when the view is opened in the workspace
+   */
+  async onOpen() {
     try {
-      let currentCardId;
-      this.sessionStore.subscribe((s) => {
-        var _a3;
-        currentCardId = (_a3 = s.currentCard) == null ? void 0 : _a3.uuid;
-      })();
-      if (currentCardId) {
-        console.log(`Refreshing card ${currentCardId} after source modification`);
-      }
+      this.navigationManager.initializeWithLeaf(this.leaf);
+      const homeComponent = new App_default({
+        target: this.contentEl,
+        props: {
+          app: this.app,
+          navigationManager: this.navigationManager,
+          indexManager: this.indexManager,
+          statisticsManager: this.statisticsManager,
+          sessionStore: this.sessionStore,
+          dueQueueManager: this.dueQueueManager
+        }
+      });
+      this.homeComponent = homeComponent;
     } catch (error48) {
-      console.error("Failed to refresh current card:", error48);
+      console.error("Failed to open Home view:", error48);
+      this.containerEl.createEl("div", { text: "Failed to load Knowledge Accelerator" });
     }
   }
   /**
    * Called when the view is closed
    */
   async onClose() {
-    await super.onClose();
-    this.reviewController = void 0;
-  }
-  /**
-   * Handles ending the review session and navigating back to dashboard
-   */
-  async handleEndSession() {
     try {
-      await this.sessionStore.endSession();
-      uiStore.navigate("dashboard");
+      if (this.homeComponent) {
+        this.homeComponent.$destroy();
+        this.homeComponent = null;
+      }
+      this.navigationManager.closeUnifiedView();
     } catch (error48) {
-      console.error("Failed to end session:", error48);
-      uiStore.notify({
-        type: "error",
-        message: "Failed to end session properly.",
-        duration: 3e3
-      });
-    }
-  }
-  /**
-   * Handles navigating to the source file to edit the current card
-   */
-  async handleEditCard() {
-    let currentCardId;
-    this.sessionStore.subscribe((s) => {
-      var _a3;
-      currentCardId = (_a3 = s.currentCard) == null ? void 0 : _a3.uuid;
-    })();
-    if (currentCardId && this.reviewController) {
-      await this.reviewController.editSource(currentCardId);
+      console.error("Failed to close Home view:", error48);
     }
   }
 };
 
 // src/main.ts
-var KnowledgeAcceleratorPlugin = class extends import_obsidian12.Plugin {
+var KnowledgeAcceleratorPlugin = class extends import_obsidian11.Plugin {
   constructor() {
     super(...arguments);
     __publicField(this, "indexManager");
@@ -28791,20 +28682,24 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian12.Plugin {
     __publicField(this, "sessionStore");
     __publicField(this, "settings");
     __publicField(this, "notificationManager");
+    __publicField(this, "navigationManager");
+    __publicField(this, "ribbonIcon");
   }
   async onload() {
     Logger.info("Loading plugin");
+    this.initializeRibbonIcon();
     await this.initializeSettings();
     await this.initializeCommands();
-    await this.initializeNotificationManager();
     await this.initializeCoreComponents();
     await this.initializeViews();
     await this.initializeVaultWatcher();
   }
   onunload() {
+    var _a3, _b, _c;
     Logger.info("Unloading plugin");
-    this.vaultWatcher.shutdown();
-    this.notificationManager.clearStatusBar();
+    (_a3 = this.vaultWatcher) == null ? void 0 : _a3.shutdown();
+    (_b = this.notificationManager) == null ? void 0 : _b.clearStatusBar();
+    (_c = this.ribbonIcon) == null ? void 0 : _c.remove();
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_PLUGIN_SETTINGS, await this.loadData());
@@ -28824,22 +28719,15 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian12.Plugin {
       this.statisticsManager,
       this.dueQueueManager
     );
+    this.navigationManager = new NavigationManager(this.app);
   }
   async initializeViews() {
     this.registerView(
-      DASHBOARD_VIEW_TYPE,
-      (leaf) => new DashboardView(
+      APP_VIEW,
+      (leaf) => new AppView(
         leaf,
-        this.indexManager,
-        this.statisticsManager,
-        this.sessionStore,
-        this.dueQueueManager
-      )
-    );
-    this.registerView(
-      REVIEW_VIEW_TYPE,
-      (leaf) => new ReviewView(
-        leaf,
+        this.app,
+        this.navigationManager,
         this.indexManager,
         this.statisticsManager,
         this.sessionStore,
@@ -28878,10 +28766,11 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian12.Plugin {
         Logger.debug("Starting review session");
         try {
           await this.sessionStore.startSession();
-          await this.openReviewView();
+          await this.navigationManager.openUnifiedView();
+          await this.navigationManager.navigateTo("review");
         } catch (error48) {
           Logger.error("Failed to start review session:", error48);
-          new import_obsidian12.Notice("No cards due for review!");
+          new import_obsidian11.Notice("No cards due for review!");
         }
       }
     });
@@ -28889,8 +28778,9 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian12.Plugin {
       id: "ka-open-dashboard",
       name: "Knowledge Accelerator: Open Dashboard",
       callback: async () => {
-        Logger.debug("Opening dashboard");
-        await this.openDashboard();
+        Logger.debug("Opening dashboard from command");
+        await this.navigationManager.openUnifiedView();
+        await this.navigationManager.navigateTo("dashboard");
       }
     });
     this.commandRegistry.registerCommand({
@@ -28900,42 +28790,6 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian12.Plugin {
         this.app.setting.openTabById(this.manifest.id);
       }
     });
-  }
-  /**
-   * Opens the Dashboard view in the Obsidian workspace
-   */
-  async openDashboard() {
-    try {
-      const { workspace } = this.app;
-      let leaf = workspace.getLeavesOfType(DASHBOARD_VIEW_TYPE)[0];
-      if (!leaf) {
-        const newLeaf = workspace.getRightLeaf(false);
-        if (newLeaf)
-          leaf = newLeaf;
-        await leaf.setViewState({ type: DASHBOARD_VIEW_TYPE, active: true });
-      }
-      workspace.revealLeaf(leaf);
-    } catch (error48) {
-      Logger.error("Failed to open dashboard:", error48);
-      new import_obsidian12.Notice("Failed to open dashboard. Please try again.");
-    }
-  }
-  /**
-   * Opens the Review view in the Obsidian workspace
-   */
-  async openReviewView() {
-    try {
-      const { workspace } = this.app;
-      let leaf = workspace.getLeavesOfType(REVIEW_VIEW_TYPE)[0];
-      if (!leaf) {
-        leaf = workspace.getLeaf("tab");
-        await leaf.setViewState({ type: REVIEW_VIEW_TYPE, active: true });
-      }
-      workspace.revealLeaf(leaf);
-    } catch (error48) {
-      Logger.error("Failed to open review view:", error48);
-      new import_obsidian12.Notice("Failed to open review view. Please try again.");
-    }
   }
   async initializeVaultWatcher() {
     const pluginSettings = this.settingsManager.getSettings();
@@ -28948,5 +28802,10 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian12.Plugin {
       softDeleteHours: pluginSettings.softDeleteHours
     });
     await this.vaultWatcher.initialize();
+  }
+  initializeRibbonIcon() {
+    this.ribbonIcon = this.addRibbonIcon("brain", "Knowledge Accelerator", () => {
+      this.navigationManager.openUnifiedView();
+    });
   }
 };
