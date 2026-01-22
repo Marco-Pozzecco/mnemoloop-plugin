@@ -1,4 +1,4 @@
-import { FSRSState } from '../core/srs/utils/types';
+import { FSRSState } from '@/core/srs';
 
 export function clampFsrsParameter(value: number): number {
 	return Math.max(0.0, Math.min(10.0, value));
