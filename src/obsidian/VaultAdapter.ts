@@ -1,5 +1,6 @@
 import { App, TFile } from 'obsidian';
 import { IVaultAdapter, CachedMetadata } from './contracts/IVaultAdapter';
+import { YamlEngine } from '@/core/parser';
 
 export class VaultAdapter implements IVaultAdapter {
 	private app: App;

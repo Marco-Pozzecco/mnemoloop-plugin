@@ -15,7 +15,7 @@ export class SettingsManager implements ISettingsManager {
 		debounceTimeoutMs: 1000,
 		enableSoftDelete: true,
 		softDeleteHours: 24,
-		commandShortcuts: {},
+		// commandShortcuts: {},
 	};
 	private readonly CONFIG_FILE = 'knowledge-accelerator/config.json';
 

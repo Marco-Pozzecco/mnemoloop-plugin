@@ -227,7 +227,7 @@ export class VaultWatcher implements IVaultWatcher {
 			const cardId = this.generateCardId(card.file);
 			this.indexManager.upsertCard(cardId, {
 				source: event.filePath,
-				updated: new Date().toISOString(),
+				updated_at: new Date().toISOString(),
 			});
 		}
 	}

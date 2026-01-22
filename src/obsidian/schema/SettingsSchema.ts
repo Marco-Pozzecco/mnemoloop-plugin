@@ -8,7 +8,22 @@ export const pluginSettingsSchema = z.object({
 	debounceTimeoutMs: z.number().min(100).max(5000),
 	enableSoftDelete: z.boolean(),
 	softDeleteHours: z.number().min(1).max(168),
-	commandShortcuts: z.record(z.string(), z.string()),
+	// commandShortcuts: z.record(z.string(), z.string()),
+});
+
+export const DEFAULT_PLUGIN_SETTINGS = pluginSettingsSchema.parse({
+	flashcardsDirectory: 'flashcards',
+	watchDirectories: ['/'],
+	watchTags: ['#flashcard'],
+	ignoredDirectories: ['trash'],
+	debounceTimeoutMs: 500,
+	enableSoftDelete: true,
+	softDeleteHours: 24,
+	// commandShortcuts: {
+	// 	createFlashcard: 'mod+shift+f',
+	// 	createReview: 'mod+shift+r',
+	// 	createDashboard: 'mod+shift+d',
+	// },
 });
 
 export type PluginSettings = z.infer<typeof pluginSettingsSchema>;
