@@ -10,11 +10,10 @@ import { SettingsManager } from './obsidian/SettingsManager';
 import { KnowledgeAcceleratorSettingsTab } from './obsidian/SettingsTab';
 import { VaultWatcher } from './obsidian/VaultWatcher';
 import { IVaultWatcherConfig } from './obsidian/contracts';
-import { SessionStore } from './ui/stores/session/SessionStore';
-import { AppView, APP_VIEW } from './ui/views/App/AppView';
+import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from './obsidian/schema/SettingsSchema';
+import { APP_VIEW, AppView } from './ui/views/App/AppView';
 import { NavigationManager } from './ui/views/App/NavigationManager';
 import { Logger } from './utils/Logger';
-import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from './obsidian/schema/SettingsSchema';
 
 export default class KnowledgeAcceleratorPlugin extends Plugin {
 	private indexManager!: IndexManager;
