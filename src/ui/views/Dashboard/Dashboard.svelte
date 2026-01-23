@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Button, Icon, ProgressBar } from '../../components/common';
   import { errorState, isLoading } from '../../stores/UIStore';
+  import NestedComponentExample from './NestedComponentExample.svelte';
   import type { DashboardConfig, DashboardStats } from './types';
 
   export let stats: DashboardStats;
@@ -214,6 +215,9 @@
         {/if}
       </Button>
     </div>
+
+    <!-- Nested Component Example demonstrating context access -->
+    <NestedComponentExample />
   {/if}
 </div>
 
