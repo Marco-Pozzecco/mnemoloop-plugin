@@ -1,5 +1,5 @@
-import { FlashcardMetadataSchema } from '../../../core/indexer';
-import z from 'zod';
+import { FlashcardMetadataSchema } from '../../indexer/schema/IndexerSchema';
+import { z } from 'zod';
 
 export const FlashcardSchema = FlashcardMetadataSchema.extend({
 	front: z.string().min(0),
