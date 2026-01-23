@@ -10,7 +10,7 @@ import { SettingsManager } from './obsidian/SettingsManager';
 import { KnowledgeAcceleratorSettingsTab } from './obsidian/SettingsTab';
 import { VaultWatcher } from './obsidian/VaultWatcher';
 import { IVaultWatcherConfig } from './obsidian/contracts';
-import { SessionStore } from './ui/stores/SessionStore';
+import { SessionStore } from './ui/stores/session/SessionStore';
 import { AppView, APP_VIEW } from './ui/views/App/AppView';
 import { NavigationManager } from './ui/views/App/NavigationManager';
 import { Logger } from './utils/Logger';
@@ -23,7 +23,6 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	private commandRegistry!: CommandRegistry;
 	private vaultWatcher!: VaultWatcher;
 	private dueQueueManager!: DueQueueManager;
-	private sessionStore!: SessionStore;
 	settings!: PluginSettings;
 	notificationManager!: NotificationManager;
 	private navigationManager!: NavigationManager;
@@ -62,16 +61,11 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 		await this.statisticsManager.load();
 		this.dueQueueManager = DueQueueManager.getInstance(this.app, this.settings);
 		this.dueQueueManager.generate();
-		this.sessionStore = new SessionStore(
-			this.indexManager,
-			this.statisticsManager,
-			this.dueQueueManager,
-		);
 		this.navigationManager = new NavigationManager(this.app);
 	}
 
 	private async initializeViews() {
-		// Register the unified AppView
+		// Register unified AppView
 		this.registerView(
 			APP_VIEW,
 			(leaf) =>
@@ -81,7 +75,6 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 					this.navigationManager,
 					this.indexManager,
 					this.statisticsManager,
-					this.sessionStore,
 					this.dueQueueManager,
 				),
 		);
@@ -118,14 +111,13 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 			id: 'ka-start-review',
 			name: 'Knowledge Accelerator: Start Review',
 			callback: async () => {
-				Logger.debug('Starting review session');
+				Logger.debug('Opening review view');
 				try {
-					await this.sessionStore.startSession();
 					await this.navigationManager.openUnifiedView();
 					await this.navigationManager.navigateTo('review');
 				} catch (error) {
-					Logger.error('Failed to start review session:', error);
-					new Notice('No cards due for review!');
+					Logger.error('Failed to open review view:', error);
+					new Notice('Failed to open review view');
 				}
 			},
 		});
