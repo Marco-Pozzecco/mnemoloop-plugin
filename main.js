@@ -14025,9 +14025,6 @@ function date4(params) {
 // node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// node_modules/zod/index.js
-var zod_default = external_exports;
-
 // node_modules/ts-fsrs/dist/index.mjs
 var State = /* @__PURE__ */ ((State2) => {
   State2[State2["New"] = 0] = "New";
@@ -14181,310 +14178,7 @@ var Grades = Object.freeze([
   Rating.Good,
   Rating.Easy
 ]);
-var FUZZ_RANGES = [
-  {
-    start: 2.5,
-    end: 7,
-    factor: 0.15
-  },
-  {
-    start: 7,
-    end: 20,
-    factor: 0.1
-  },
-  {
-    start: 20,
-    end: Infinity,
-    factor: 0.05
-  }
-];
-function get_fuzz_range(interval, elapsed_days, maximum_interval) {
-  let delta = 1;
-  for (const range of FUZZ_RANGES) {
-    delta += range.factor * Math.max(Math.min(interval, range.end) - range.start, 0);
-  }
-  interval = Math.min(interval, maximum_interval);
-  let min_ivl = Math.max(2, Math.round(interval - delta));
-  const max_ivl = Math.min(Math.round(interval + delta), maximum_interval);
-  if (interval > elapsed_days) {
-    min_ivl = Math.max(min_ivl, elapsed_days + 1);
-  }
-  min_ivl = Math.min(min_ivl, max_ivl);
-  return { min_ivl, max_ivl };
-}
-function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max);
-}
-function dateDiffInDays(last, cur) {
-  const utc1 = Date.UTC(
-    last.getUTCFullYear(),
-    last.getUTCMonth(),
-    last.getUTCDate()
-  );
-  const utc2 = Date.UTC(
-    cur.getUTCFullYear(),
-    cur.getUTCMonth(),
-    cur.getUTCDate()
-  );
-  return Math.floor(
-    (utc2 - utc1) / 864e5
-    /** 1000 * 60 * 60 * 24*/
-  );
-}
-var ConvertStepUnitToMinutes = (step) => {
-  const unit = step.slice(-1);
-  const value = parseInt(step.slice(0, -1), 10);
-  if (Number.isNaN(value) || !Number.isFinite(value) || value < 0) {
-    throw new Error(`Invalid step value: ${step}`);
-  }
-  switch (unit) {
-    case "m":
-      return value;
-    case "h":
-      return value * 60;
-    case "d":
-      return value * 1440;
-    default:
-      throw new Error(`Invalid step unit: ${step}, expected m/h/d`);
-  }
-};
-var BasicLearningStepsStrategy = (params, state, cur_step) => {
-  const learning_steps = state === State.Relearning || state === State.Review ? params.relearning_steps : params.learning_steps;
-  const steps_length = learning_steps.length;
-  if (steps_length === 0 || cur_step >= steps_length)
-    return {};
-  const firstStep = learning_steps[0];
-  const toMinutes = ConvertStepUnitToMinutes;
-  const getAgainInterval = () => {
-    return toMinutes(firstStep);
-  };
-  const getHardInterval = () => {
-    if (steps_length === 1)
-      return Math.round(toMinutes(firstStep) * 1.5);
-    const nextStep = learning_steps[1];
-    return Math.round((toMinutes(firstStep) + toMinutes(nextStep)) / 2);
-  };
-  const getStepInfo = (index) => {
-    if (index < 0 || index >= steps_length) {
-      return null;
-    } else {
-      return learning_steps[index];
-    }
-  };
-  const getGoodMinutes = (step) => {
-    return toMinutes(step);
-  };
-  const result = {};
-  const step_info = getStepInfo(Math.max(0, cur_step));
-  if (state === State.Review) {
-    result[Rating.Again] = {
-      scheduled_minutes: toMinutes(step_info),
-      next_step: 0
-    };
-    return result;
-  } else {
-    result[Rating.Again] = {
-      scheduled_minutes: getAgainInterval(),
-      next_step: 0
-    };
-    result[Rating.Hard] = {
-      scheduled_minutes: getHardInterval(),
-      next_step: cur_step
-    };
-    const next_info = getStepInfo(cur_step + 1);
-    if (next_info) {
-      const nextMin = getGoodMinutes(next_info);
-      if (nextMin) {
-        result[Rating.Good] = {
-          scheduled_minutes: Math.round(nextMin),
-          next_step: cur_step + 1
-        };
-      }
-    }
-  }
-  return result;
-};
-function DefaultInitSeedStrategy() {
-  const time3 = this.review_time.getTime();
-  const reps = this.current.reps;
-  const mul = this.current.difficulty * this.current.stability;
-  return `${time3}_${reps}_${mul}`;
-}
-var StrategyMode = /* @__PURE__ */ ((StrategyMode2) => {
-  StrategyMode2["SCHEDULER"] = "Scheduler";
-  StrategyMode2["LEARNING_STEPS"] = "LearningSteps";
-  StrategyMode2["SEED"] = "Seed";
-  return StrategyMode2;
-})(StrategyMode || {});
-var AbstractScheduler = class {
-  // init
-  constructor(card, now2, algorithm, strategies) {
-    __publicField(this, "last");
-    __publicField(this, "current");
-    __publicField(this, "review_time");
-    __publicField(this, "next", /* @__PURE__ */ new Map());
-    __publicField(this, "algorithm");
-    __publicField(this, "strategies");
-    __publicField(this, "elapsed_days", 0);
-    this.algorithm = algorithm;
-    this.last = TypeConvert.card(card);
-    this.current = TypeConvert.card(card);
-    this.review_time = TypeConvert.time(now2);
-    this.strategies = strategies;
-    this.init();
-  }
-  checkGrade(grade) {
-    if (!Number.isFinite(grade) || grade < 0 || grade > 4) {
-      throw new Error(`Invalid grade "${grade}",expected 1-4`);
-    }
-  }
-  init() {
-    const { state, last_review } = this.current;
-    let interval = 0;
-    if (state !== State.New && last_review) {
-      interval = dateDiffInDays(last_review, this.review_time);
-    }
-    this.current.last_review = this.review_time;
-    this.elapsed_days = interval;
-    this.current.elapsed_days = interval;
-    this.current.reps += 1;
-    let seed_strategy = DefaultInitSeedStrategy;
-    if (this.strategies) {
-      const custom_strategy = this.strategies.get(StrategyMode.SEED);
-      if (custom_strategy) {
-        seed_strategy = custom_strategy;
-      }
-    }
-    this.algorithm.seed = seed_strategy.call(this);
-  }
-  preview() {
-    return {
-      [Rating.Again]: this.review(Rating.Again),
-      [Rating.Hard]: this.review(Rating.Hard),
-      [Rating.Good]: this.review(Rating.Good),
-      [Rating.Easy]: this.review(Rating.Easy),
-      [Symbol.iterator]: this.previewIterator.bind(this)
-    };
-  }
-  *previewIterator() {
-    for (const grade of Grades) {
-      yield this.review(grade);
-    }
-  }
-  review(grade) {
-    const { state } = this.last;
-    let item;
-    this.checkGrade(grade);
-    switch (state) {
-      case State.New:
-        item = this.newState(grade);
-        break;
-      case State.Learning:
-      case State.Relearning:
-        item = this.learningState(grade);
-        break;
-      case State.Review:
-        item = this.reviewState(grade);
-        break;
-    }
-    return item;
-  }
-  buildLog(rating) {
-    const { last_review, due, elapsed_days } = this.last;
-    return {
-      rating,
-      state: this.current.state,
-      due: last_review || due,
-      stability: this.current.stability,
-      difficulty: this.current.difficulty,
-      elapsed_days: this.elapsed_days,
-      last_elapsed_days: elapsed_days,
-      scheduled_days: this.current.scheduled_days,
-      learning_steps: this.current.learning_steps,
-      review: this.review_time
-    };
-  }
-};
-var Alea = class {
-  constructor(seed) {
-    __publicField(this, "c");
-    __publicField(this, "s0");
-    __publicField(this, "s1");
-    __publicField(this, "s2");
-    const mash = Mash();
-    this.c = 1;
-    this.s0 = mash(" ");
-    this.s1 = mash(" ");
-    this.s2 = mash(" ");
-    if (seed == null)
-      seed = Date.now();
-    this.s0 -= mash(seed);
-    if (this.s0 < 0)
-      this.s0 += 1;
-    this.s1 -= mash(seed);
-    if (this.s1 < 0)
-      this.s1 += 1;
-    this.s2 -= mash(seed);
-    if (this.s2 < 0)
-      this.s2 += 1;
-  }
-  next() {
-    const t = 2091639 * this.s0 + this.c * 23283064365386963e-26;
-    this.s0 = this.s1;
-    this.s1 = this.s2;
-    this.c = t | 0;
-    this.s2 = t - this.c;
-    return this.s2;
-  }
-  set state(state) {
-    this.c = state.c;
-    this.s0 = state.s0;
-    this.s1 = state.s1;
-    this.s2 = state.s2;
-  }
-  get state() {
-    return {
-      c: this.c,
-      s0: this.s0,
-      s1: this.s1,
-      s2: this.s2
-    };
-  }
-};
-function Mash() {
-  let n = 4022871197;
-  return function mash(data) {
-    data = String(data);
-    for (let i = 0; i < data.length; i++) {
-      n += data.charCodeAt(i);
-      let h = 0.02519603282416938 * n;
-      n = h >>> 0;
-      h -= n;
-      h *= n;
-      n = h >>> 0;
-      h -= n;
-      n += h * 4294967296;
-    }
-    return (n >>> 0) * 23283064365386963e-26;
-  };
-}
-function alea(seed) {
-  const xg = new Alea(seed);
-  const prng = () => xg.next();
-  prng.int32 = () => xg.next() * 4294967296 | 0;
-  prng.double = () => prng() + (prng() * 2097152 | 0) * 11102230246251565e-32;
-  prng.state = () => xg.state;
-  prng.importState = (state) => {
-    xg.state = state;
-    return prng;
-  };
-  return prng;
-}
 var version2 = "5.2.3";
-var default_request_retention = 0.9;
-var default_maximum_interval = 36500;
-var default_enable_fuzz = false;
-var default_enable_short_term = true;
 var default_learning_steps = Object.freeze([
   "1m",
   "10m"
@@ -14493,9 +14187,6 @@ var default_relearning_steps = Object.freeze([
   "10m"
 ]);
 var FSRSVersion = `v${version2} using FSRS-6.0`;
-var S_MIN = 1e-3;
-var INIT_S_MAX = 100;
-var FSRS5_DEFAULT_DECAY = 0.5;
 var FSRS6_DEFAULT_DECAY = 0.1542;
 var default_w = Object.freeze([
   0.212,
@@ -14520,1414 +14211,6 @@ var default_w = Object.freeze([
   0.0658,
   FSRS6_DEFAULT_DECAY
 ]);
-var W17_W18_Ceiling = 2;
-var CLAMP_PARAMETERS = (w17_w18_ceiling, enable_short_term = default_enable_short_term) => [
-  [S_MIN, INIT_S_MAX],
-  [S_MIN, INIT_S_MAX],
-  [S_MIN, INIT_S_MAX],
-  [S_MIN, INIT_S_MAX],
-  [1, 10],
-  [1e-3, 4],
-  [1e-3, 4],
-  [1e-3, 0.75],
-  [0, 4.5],
-  [0, 0.8],
-  [1e-3, 3.5],
-  [1e-3, 5],
-  [1e-3, 0.25],
-  [1e-3, 0.9],
-  [0, 4],
-  [0, 1],
-  [1, 6],
-  [0, w17_w18_ceiling],
-  [0, w17_w18_ceiling],
-  [
-    enable_short_term ? 0.01 : 0,
-    0.8
-  ],
-  [0.1, 0.8]
-];
-var clipParameters = (parameters, numRelearningSteps, enableShortTerm = default_enable_short_term) => {
-  let w17_w18_ceiling = W17_W18_Ceiling;
-  if (Math.max(0, numRelearningSteps) > 1) {
-    const value = -(Math.log(parameters[11]) + Math.log(Math.pow(2, parameters[13]) - 1) + parameters[14] * 0.3) / numRelearningSteps;
-    w17_w18_ceiling = clamp(+value.toFixed(8), 0.01, 2);
-  }
-  const clip = CLAMP_PARAMETERS(w17_w18_ceiling, enableShortTerm).slice(
-    0,
-    parameters.length
-  );
-  return clip.map(
-    ([min, max], index) => clamp(parameters[index] || 0, min, max)
-  );
-};
-var migrateParameters = (parameters, numRelearningSteps = 0, enableShortTerm = default_enable_short_term) => {
-  if (parameters === void 0) {
-    return [...default_w];
-  }
-  switch (parameters.length) {
-    case 21:
-      return clipParameters(
-        Array.from(parameters),
-        numRelearningSteps,
-        enableShortTerm
-      );
-    case 19:
-      console.debug("[FSRS-6]auto fill w from 19 to 21 length");
-      return clipParameters(
-        Array.from(parameters),
-        numRelearningSteps,
-        enableShortTerm
-      ).concat([0, FSRS5_DEFAULT_DECAY]);
-    case 17: {
-      const w = clipParameters(
-        Array.from(parameters),
-        numRelearningSteps,
-        enableShortTerm
-      );
-      w[4] = +(w[5] * 2 + w[4]).toFixed(8);
-      w[5] = +(Math.log(w[5] * 3 + 1) / 3).toFixed(8);
-      w[6] = +(w[6] + 0.5).toFixed(8);
-      console.debug("[FSRS-6]auto fill w from 17 to 21 length");
-      return w.concat([0, 0, 0, FSRS5_DEFAULT_DECAY]);
-    }
-    default:
-      console.warn("[FSRS]Invalid parameters length, using default parameters");
-      return [...default_w];
-  }
-};
-var generatorParameters = (props) => {
-  var _a3, _b;
-  const learning_steps = Array.isArray(props == null ? void 0 : props.learning_steps) ? props.learning_steps : default_learning_steps;
-  const relearning_steps = Array.isArray(props == null ? void 0 : props.relearning_steps) ? props.relearning_steps : default_relearning_steps;
-  const enable_short_term = (_a3 = props == null ? void 0 : props.enable_short_term) != null ? _a3 : default_enable_short_term;
-  const w = migrateParameters(
-    props == null ? void 0 : props.w,
-    relearning_steps.length,
-    enable_short_term
-  );
-  return {
-    request_retention: (props == null ? void 0 : props.request_retention) || default_request_retention,
-    maximum_interval: (props == null ? void 0 : props.maximum_interval) || default_maximum_interval,
-    w,
-    enable_fuzz: (_b = props == null ? void 0 : props.enable_fuzz) != null ? _b : default_enable_fuzz,
-    enable_short_term,
-    learning_steps,
-    relearning_steps
-  };
-};
-function createEmptyCard(now2, afterHandler) {
-  const emptyCard = {
-    due: now2 ? TypeConvert.time(now2) : /* @__PURE__ */ new Date(),
-    stability: 0,
-    difficulty: 0,
-    elapsed_days: 0,
-    scheduled_days: 0,
-    reps: 0,
-    lapses: 0,
-    learning_steps: 0,
-    state: State.New,
-    last_review: void 0
-  };
-  if (afterHandler && typeof afterHandler === "function") {
-    return afterHandler(emptyCard);
-  } else {
-    return emptyCard;
-  }
-}
-var computeDecayFactor = (decayOrParams) => {
-  const decay = typeof decayOrParams === "number" ? -decayOrParams : -decayOrParams[20];
-  const factor = Math.exp(Math.pow(decay, -1) * Math.log(0.9)) - 1;
-  return { decay, factor: +factor.toFixed(8) };
-};
-function forgetting_curve(decayOrParams, elapsed_days, stability) {
-  const { decay, factor } = computeDecayFactor(decayOrParams);
-  return +Math.pow(1 + factor * elapsed_days / stability, decay).toFixed(8);
-}
-var FSRSAlgorithm = class {
-  constructor(params) {
-    __publicField(this, "param");
-    __publicField(this, "intervalModifier");
-    __publicField(this, "_seed");
-    /**
-     * The formula used is :
-     * $$R(t,S) = (1 + \text{FACTOR} \times \frac{t}{9 \cdot S})^{\text{DECAY}}$$
-     * @param {number} elapsed_days t days since the last review
-     * @param {number} stability Stability (interval when R=90%)
-     * @return {number} r Retrievability (probability of recall)
-     */
-    __publicField(this, "forgetting_curve");
-    this.param = new Proxy(
-      generatorParameters(params),
-      this.params_handler_proxy()
-    );
-    this.intervalModifier = this.calculate_interval_modifier(
-      this.param.request_retention
-    );
-    this.forgetting_curve = forgetting_curve.bind(this, this.param.w);
-  }
-  get interval_modifier() {
-    return this.intervalModifier;
-  }
-  set seed(seed) {
-    this._seed = seed;
-  }
-  /**
-   * @see https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-5
-   *
-   * The formula used is: $$I(r,s) = (r^{\frac{1}{DECAY}} - 1) / FACTOR \times s$$
-   * @param request_retention 0<request_retention<=1,Requested retention rate
-   * @throws {Error} Requested retention rate should be in the range (0,1]
-   */
-  calculate_interval_modifier(request_retention) {
-    if (request_retention <= 0 || request_retention > 1) {
-      throw new Error("Requested retention rate should be in the range (0,1]");
-    }
-    const { decay, factor } = computeDecayFactor(this.param.w);
-    return +((Math.pow(request_retention, 1 / decay) - 1) / factor).toFixed(8);
-  }
-  /**
-   * Get the parameters of the algorithm.
-   */
-  get parameters() {
-    return this.param;
-  }
-  /**
-   * Set the parameters of the algorithm.
-   * @param params Partial<FSRSParameters>
-   */
-  set parameters(params) {
-    this.update_parameters(params);
-  }
-  params_handler_proxy() {
-    const _this = this;
-    return {
-      set: function(target, prop, value) {
-        if (prop === "request_retention" && Number.isFinite(value)) {
-          _this.intervalModifier = _this.calculate_interval_modifier(
-            Number(value)
-          );
-        } else if (prop === "w") {
-          value = migrateParameters(
-            value,
-            target.relearning_steps.length,
-            target.enable_short_term
-          );
-          _this.forgetting_curve = forgetting_curve.bind(this, value);
-          _this.intervalModifier = _this.calculate_interval_modifier(
-            Number(target.request_retention)
-          );
-        }
-        Reflect.set(target, prop, value);
-        return true;
-      }
-    };
-  }
-  update_parameters(params) {
-    const _params = generatorParameters(params);
-    for (const key in _params) {
-      const paramKey = key;
-      this.param[paramKey] = _params[paramKey];
-    }
-  }
-  /**
-     * The formula used is :
-     * $$ S_0(G) = w_{G-1}$$
-     * $$S_0 = \max \lbrace S_0,0.1\rbrace $$
-  
-     * @param g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
-     * @return Stability (interval when R=90%)
-     */
-  init_stability(g) {
-    return Math.max(this.param.w[g - 1], 0.1);
-  }
-  /**
-   * The formula used is :
-   * $$D_0(G) = w_4 - e^{(G-1) \cdot w_5} + 1 $$
-   * $$D_0 = \min \lbrace \max \lbrace D_0(G),1 \rbrace,10 \rbrace$$
-   * where the $$D_0(1)=w_4$$ when the first rating is good.
-   *
-   * @param {Grade} g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
-   * @return {number} Difficulty $$D \in [1,10]$$
-   */
-  init_difficulty(g) {
-    const d = this.param.w[4] - Math.exp((g - 1) * this.param.w[5]) + 1;
-    return +d.toFixed(8);
-  }
-  /**
-   * If fuzzing is disabled or ivl is less than 2.5, it returns the original interval.
-   * @param {number} ivl - The interval to be fuzzed.
-   * @param {number} elapsed_days t days since the last review
-   * @return {number} - The fuzzed interval.
-   **/
-  apply_fuzz(ivl, elapsed_days) {
-    if (!this.param.enable_fuzz || ivl < 2.5)
-      return Math.round(ivl);
-    const generator = alea(this._seed);
-    const fuzz_factor = generator();
-    const { min_ivl, max_ivl } = get_fuzz_range(
-      ivl,
-      elapsed_days,
-      this.param.maximum_interval
-    );
-    return Math.floor(fuzz_factor * (max_ivl - min_ivl + 1) + min_ivl);
-  }
-  /**
-   *   @see The formula used is : {@link FSRSAlgorithm.calculate_interval_modifier}
-   *   @param {number} s - Stability (interval when R=90%)
-   *   @param {number} elapsed_days t days since the last review
-   */
-  next_interval(s, elapsed_days) {
-    const newInterval = Math.min(
-      Math.max(1, Math.round(s * this.intervalModifier)),
-      this.param.maximum_interval
-    );
-    return this.apply_fuzz(newInterval, elapsed_days);
-  }
-  /**
-   * @see https://github.com/open-spaced-repetition/fsrs4anki/issues/697
-   */
-  linear_damping(delta_d, old_d) {
-    return +(delta_d * (10 - old_d) / 9).toFixed(8);
-  }
-  /**
-   * The formula used is :
-   * $$\text{delta}_d = -w_6 \cdot (g - 3)$$
-   * $$\text{next}_d = D + \text{linear damping}(\text{delta}_d , D)$$
-   * $$D^\prime(D,R) = w_7 \cdot D_0(4) +(1 - w_7) \cdot \text{next}_d$$
-   * @param {number} d Difficulty $$D \in [1,10]$$
-   * @param {Grade} g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
-   * @return {number} $$\text{next}_D$$
-   */
-  next_difficulty(d, g) {
-    const delta_d = -this.param.w[6] * (g - 3);
-    const next_d = d + this.linear_damping(delta_d, d);
-    return clamp(
-      this.mean_reversion(this.init_difficulty(Rating.Easy), next_d),
-      1,
-      10
-    );
-  }
-  /**
-   * The formula used is :
-   * $$w_7 \cdot \text{init} +(1 - w_7) \cdot \text{current}$$
-   * @param {number} init $$w_2 : D_0(3) = w_2 + (R-2) \cdot w_3= w_2$$
-   * @param {number} current $$D - w_6 \cdot (R - 2)$$
-   * @return {number} difficulty
-   */
-  mean_reversion(init2, current) {
-    return +(this.param.w[7] * init2 + (1 - this.param.w[7]) * current).toFixed(
-      8
-    );
-  }
-  /**
-   * The formula used is :
-   * $$S^\prime_r(D,S,R,G) = S\cdot(e^{w_8}\cdot (11-D)\cdot S^{-w_9}\cdot(e^{w_{10}\cdot(1-R)}-1)\cdot w_{15}(\text{if} G=2) \cdot w_{16}(\text{if} G=4)+1)$$
-   * @param {number} d Difficulty D \in [1,10]
-   * @param {number} s Stability (interval when R=90%)
-   * @param {number} r Retrievability (probability of recall)
-   * @param {Grade} g Grade (Rating[0.again,1.hard,2.good,3.easy])
-   * @return {number} S^\prime_r new stability after recall
-   */
-  next_recall_stability(d, s, r, g) {
-    const hard_penalty = Rating.Hard === g ? this.param.w[15] : 1;
-    const easy_bound = Rating.Easy === g ? this.param.w[16] : 1;
-    return +clamp(
-      s * (1 + Math.exp(this.param.w[8]) * (11 - d) * Math.pow(s, -this.param.w[9]) * (Math.exp((1 - r) * this.param.w[10]) - 1) * hard_penalty * easy_bound),
-      S_MIN,
-      36500
-    ).toFixed(8);
-  }
-  /**
-   * The formula used is :
-   * $$S^\prime_f(D,S,R) = w_{11}\cdot D^{-w_{12}}\cdot ((S+1)^{w_{13}}-1) \cdot e^{w_{14}\cdot(1-R)}$$
-   * enable_short_term = true : $$S^\prime_f \in \min \lbrace \max \lbrace S^\prime_f,0.01\rbrace, \frac{S}{e^{w_{17} \cdot w_{18}}} \rbrace$$
-   * enable_short_term = false : $$S^\prime_f \in \min \lbrace \max \lbrace S^\prime_f,0.01\rbrace, S \rbrace$$
-   * @param {number} d Difficulty D \in [1,10]
-   * @param {number} s Stability (interval when R=90%)
-   * @param {number} r Retrievability (probability of recall)
-   * @return {number} S^\prime_f new stability after forgetting
-   */
-  next_forget_stability(d, s, r) {
-    return +clamp(
-      this.param.w[11] * Math.pow(d, -this.param.w[12]) * (Math.pow(s + 1, this.param.w[13]) - 1) * Math.exp((1 - r) * this.param.w[14]),
-      S_MIN,
-      36500
-    ).toFixed(8);
-  }
-  /**
-   * The formula used is :
-   * $$S^\prime_s(S,G) = S \cdot e^{w_{17} \cdot (G-3+w_{18})}$$
-   * @param {number} s Stability (interval when R=90%)
-   * @param {Grade} g Grade (Rating[0.again,1.hard,2.good,3.easy])
-   */
-  next_short_term_stability(s, g) {
-    const sinc = Math.pow(s, -this.param.w[19]) * Math.exp(this.param.w[17] * (g - 3 + this.param.w[18]));
-    const maskedSinc = g >= 3 ? Math.max(sinc, 1) : sinc;
-    return +clamp(s * maskedSinc, S_MIN, 36500).toFixed(8);
-  }
-  /**
-   * Calculates the next state of memory based on the current state, time elapsed, and grade.
-   *
-   * @param memory_state - The current state of memory, which can be null.
-   * @param t - The time elapsed since the last review.
-   * @param {Rating} g Grade (Rating[0.Manual,1.Again,2.Hard,3.Good,4.Easy])
-   * @returns The next state of memory with updated difficulty and stability.
-   */
-  next_state(memory_state, t, g) {
-    const { difficulty: d, stability: s } = memory_state != null ? memory_state : {
-      difficulty: 0,
-      stability: 0
-    };
-    if (t < 0) {
-      throw new Error(`Invalid delta_t "${t}"`);
-    }
-    if (g < 0 || g > 4) {
-      throw new Error(`Invalid grade "${g}"`);
-    }
-    if (d === 0 && s === 0) {
-      return {
-        difficulty: clamp(this.init_difficulty(g), 1, 10),
-        stability: this.init_stability(g)
-      };
-    }
-    if (g === 0) {
-      return {
-        difficulty: d,
-        stability: s
-      };
-    }
-    if (d < 1 || s < S_MIN) {
-      throw new Error(
-        `Invalid memory state { difficulty: ${d}, stability: ${s} }`
-      );
-    }
-    const r = this.forgetting_curve(t, s);
-    const s_after_success = this.next_recall_stability(d, s, r, g);
-    const s_after_fail = this.next_forget_stability(d, s, r);
-    const s_after_short_term = this.next_short_term_stability(s, g);
-    let new_s = s_after_success;
-    if (g === 1) {
-      let [w_17, w_18] = [0, 0];
-      if (this.param.enable_short_term) {
-        w_17 = this.param.w[17];
-        w_18 = this.param.w[18];
-      }
-      const next_s_min = s / Math.exp(w_17 * w_18);
-      new_s = clamp(+next_s_min.toFixed(8), S_MIN, s_after_fail);
-    }
-    if (t === 0 && this.param.enable_short_term) {
-      new_s = s_after_short_term;
-    }
-    const new_d = this.next_difficulty(d, g);
-    return { difficulty: new_d, stability: new_s };
-  }
-};
-var BasicScheduler = class extends AbstractScheduler {
-  constructor(card, now2, algorithm, strategies) {
-    super(card, now2, algorithm, strategies);
-    __publicField(this, "learningStepsStrategy");
-    let learningStepStrategy = BasicLearningStepsStrategy;
-    if (this.strategies) {
-      const custom_strategy = this.strategies.get(StrategyMode.LEARNING_STEPS);
-      if (custom_strategy) {
-        learningStepStrategy = custom_strategy;
-      }
-    }
-    this.learningStepsStrategy = learningStepStrategy;
-  }
-  getLearningInfo(card, grade) {
-    var _a3, _b, _c, _d;
-    const parameters = this.algorithm.parameters;
-    card.learning_steps = card.learning_steps || 0;
-    const steps_strategy = this.learningStepsStrategy(
-      parameters,
-      card.state,
-      // In the original learning steps setup (Again = 5m, Hard = 10m, Good = FSRS),
-      // not adding 1 can cause slight variations in the memory state’s ds.
-      this.current.state === State.Learning && grade !== Rating.Again && grade !== Rating.Hard ? card.learning_steps + 1 : card.learning_steps
-    );
-    const scheduled_minutes = Math.max(
-      0,
-      (_b = (_a3 = steps_strategy[grade]) == null ? void 0 : _a3.scheduled_minutes) != null ? _b : 0
-    );
-    const next_steps = Math.max(0, (_d = (_c = steps_strategy[grade]) == null ? void 0 : _c.next_step) != null ? _d : 0);
-    return {
-      scheduled_minutes,
-      next_steps
-    };
-  }
-  /**
-   * @description This function applies the learning steps based on the current card's state and grade.
-   */
-  applyLearningSteps(nextCard, grade, to_state) {
-    const { scheduled_minutes, next_steps } = this.getLearningInfo(
-      this.current,
-      grade
-    );
-    if (scheduled_minutes > 0 && scheduled_minutes < 1440) {
-      nextCard.learning_steps = next_steps;
-      nextCard.scheduled_days = 0;
-      nextCard.state = to_state;
-      nextCard.due = date_scheduler(
-        this.review_time,
-        Math.round(scheduled_minutes),
-        false
-        /** true:days false: minute */
-      );
-    } else {
-      nextCard.state = State.Review;
-      if (scheduled_minutes >= 1440) {
-        nextCard.learning_steps = next_steps;
-        nextCard.due = date_scheduler(
-          this.review_time,
-          Math.round(scheduled_minutes),
-          false
-          /** true:days false: minute */
-        );
-        nextCard.scheduled_days = Math.floor(scheduled_minutes / 1440);
-      } else {
-        nextCard.learning_steps = 0;
-        const interval = this.algorithm.next_interval(
-          nextCard.stability,
-          this.elapsed_days
-        );
-        nextCard.scheduled_days = interval;
-        nextCard.due = date_scheduler(this.review_time, interval, true);
-      }
-    }
-  }
-  newState(grade) {
-    const exist = this.next.get(grade);
-    if (exist) {
-      return exist;
-    }
-    const next = TypeConvert.card(this.current);
-    next.difficulty = clamp(this.algorithm.init_difficulty(grade), 1, 10);
-    next.stability = this.algorithm.init_stability(grade);
-    this.applyLearningSteps(next, grade, State.Learning);
-    const item = {
-      card: next,
-      log: this.buildLog(grade)
-    };
-    this.next.set(grade, item);
-    return item;
-  }
-  learningState(grade) {
-    const exist = this.next.get(grade);
-    if (exist) {
-      return exist;
-    }
-    const { state, difficulty, stability } = this.last;
-    const next = TypeConvert.card(this.current);
-    next.difficulty = this.algorithm.next_difficulty(difficulty, grade);
-    next.stability = this.algorithm.next_short_term_stability(stability, grade);
-    this.applyLearningSteps(
-      next,
-      grade,
-      state
-      /** Learning or Relearning */
-    );
-    const item = {
-      card: next,
-      log: this.buildLog(grade)
-    };
-    this.next.set(grade, item);
-    return item;
-  }
-  reviewState(grade) {
-    const exist = this.next.get(grade);
-    if (exist) {
-      return exist;
-    }
-    const interval = this.elapsed_days;
-    const { difficulty, stability } = this.last;
-    const retrievability = this.algorithm.forgetting_curve(interval, stability);
-    const next_again = TypeConvert.card(this.current);
-    const next_hard = TypeConvert.card(this.current);
-    const next_good = TypeConvert.card(this.current);
-    const next_easy = TypeConvert.card(this.current);
-    this.next_ds(
-      next_again,
-      next_hard,
-      next_good,
-      next_easy,
-      difficulty,
-      stability,
-      retrievability
-    );
-    this.next_interval(next_hard, next_good, next_easy, interval);
-    this.next_state(next_hard, next_good, next_easy);
-    this.applyLearningSteps(next_again, Rating.Again, State.Relearning);
-    next_again.lapses += 1;
-    const item_again = {
-      card: next_again,
-      log: this.buildLog(Rating.Again)
-    };
-    const item_hard = {
-      card: next_hard,
-      log: super.buildLog(Rating.Hard)
-    };
-    const item_good = {
-      card: next_good,
-      log: super.buildLog(Rating.Good)
-    };
-    const item_easy = {
-      card: next_easy,
-      log: super.buildLog(Rating.Easy)
-    };
-    this.next.set(Rating.Again, item_again);
-    this.next.set(Rating.Hard, item_hard);
-    this.next.set(Rating.Good, item_good);
-    this.next.set(Rating.Easy, item_easy);
-    return this.next.get(grade);
-  }
-  /**
-   * Review next_ds
-   */
-  next_ds(next_again, next_hard, next_good, next_easy, difficulty, stability, retrievability) {
-    next_again.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Again
-    );
-    const nextSMin = stability / Math.exp(
-      this.algorithm.parameters.w[17] * this.algorithm.parameters.w[18]
-    );
-    const s_after_fail = this.algorithm.next_forget_stability(
-      difficulty,
-      stability,
-      retrievability
-    );
-    next_again.stability = clamp(+nextSMin.toFixed(8), S_MIN, s_after_fail);
-    next_hard.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Hard
-    );
-    next_hard.stability = this.algorithm.next_recall_stability(
-      difficulty,
-      stability,
-      retrievability,
-      Rating.Hard
-    );
-    next_good.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Good
-    );
-    next_good.stability = this.algorithm.next_recall_stability(
-      difficulty,
-      stability,
-      retrievability,
-      Rating.Good
-    );
-    next_easy.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Easy
-    );
-    next_easy.stability = this.algorithm.next_recall_stability(
-      difficulty,
-      stability,
-      retrievability,
-      Rating.Easy
-    );
-  }
-  /**
-   * Review next_interval
-   */
-  next_interval(next_hard, next_good, next_easy, interval) {
-    let hard_interval, good_interval;
-    hard_interval = this.algorithm.next_interval(next_hard.stability, interval);
-    good_interval = this.algorithm.next_interval(next_good.stability, interval);
-    hard_interval = Math.min(hard_interval, good_interval);
-    good_interval = Math.max(good_interval, hard_interval + 1);
-    const easy_interval = Math.max(
-      this.algorithm.next_interval(next_easy.stability, interval),
-      good_interval + 1
-    );
-    next_hard.scheduled_days = hard_interval;
-    next_hard.due = date_scheduler(this.review_time, hard_interval, true);
-    next_good.scheduled_days = good_interval;
-    next_good.due = date_scheduler(this.review_time, good_interval, true);
-    next_easy.scheduled_days = easy_interval;
-    next_easy.due = date_scheduler(this.review_time, easy_interval, true);
-  }
-  /**
-   * Review next_state
-   */
-  next_state(next_hard, next_good, next_easy) {
-    next_hard.state = State.Review;
-    next_hard.learning_steps = 0;
-    next_good.state = State.Review;
-    next_good.learning_steps = 0;
-    next_easy.state = State.Review;
-    next_easy.learning_steps = 0;
-  }
-};
-var LongTermScheduler = class extends AbstractScheduler {
-  newState(grade) {
-    const exist = this.next.get(grade);
-    if (exist) {
-      return exist;
-    }
-    this.current.scheduled_days = 0;
-    this.current.elapsed_days = 0;
-    const next_again = TypeConvert.card(this.current);
-    const next_hard = TypeConvert.card(this.current);
-    const next_good = TypeConvert.card(this.current);
-    const next_easy = TypeConvert.card(this.current);
-    this.init_ds(next_again, next_hard, next_good, next_easy);
-    const first_interval = 0;
-    this.next_interval(
-      next_again,
-      next_hard,
-      next_good,
-      next_easy,
-      first_interval
-    );
-    this.next_state(next_again, next_hard, next_good, next_easy);
-    this.update_next(next_again, next_hard, next_good, next_easy);
-    return this.next.get(grade);
-  }
-  init_ds(next_again, next_hard, next_good, next_easy) {
-    next_again.difficulty = clamp(
-      this.algorithm.init_difficulty(Rating.Again),
-      1,
-      10
-    );
-    next_again.stability = this.algorithm.init_stability(Rating.Again);
-    next_hard.difficulty = clamp(
-      this.algorithm.init_difficulty(Rating.Hard),
-      1,
-      10
-    );
-    next_hard.stability = this.algorithm.init_stability(Rating.Hard);
-    next_good.difficulty = clamp(
-      this.algorithm.init_difficulty(Rating.Good),
-      1,
-      10
-    );
-    next_good.stability = this.algorithm.init_stability(Rating.Good);
-    next_easy.difficulty = clamp(
-      this.algorithm.init_difficulty(Rating.Easy),
-      1,
-      10
-    );
-    next_easy.stability = this.algorithm.init_stability(Rating.Easy);
-  }
-  /**
-   * @see https://github.com/open-spaced-repetition/ts-fsrs/issues/98#issuecomment-2241923194
-   */
-  learningState(grade) {
-    return this.reviewState(grade);
-  }
-  reviewState(grade) {
-    const exist = this.next.get(grade);
-    if (exist) {
-      return exist;
-    }
-    const interval = this.elapsed_days;
-    const { difficulty, stability } = this.last;
-    const retrievability = this.algorithm.forgetting_curve(interval, stability);
-    const next_again = TypeConvert.card(this.current);
-    const next_hard = TypeConvert.card(this.current);
-    const next_good = TypeConvert.card(this.current);
-    const next_easy = TypeConvert.card(this.current);
-    this.next_ds(
-      next_again,
-      next_hard,
-      next_good,
-      next_easy,
-      difficulty,
-      stability,
-      retrievability
-    );
-    this.next_interval(next_again, next_hard, next_good, next_easy, interval);
-    this.next_state(next_again, next_hard, next_good, next_easy);
-    next_again.lapses += 1;
-    this.update_next(next_again, next_hard, next_good, next_easy);
-    return this.next.get(grade);
-  }
-  /**
-   * Review next_ds
-   */
-  next_ds(next_again, next_hard, next_good, next_easy, difficulty, stability, retrievability) {
-    next_again.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Again
-    );
-    const s_after_fail = this.algorithm.next_forget_stability(
-      difficulty,
-      stability,
-      retrievability
-    );
-    next_again.stability = clamp(stability, S_MIN, s_after_fail);
-    next_hard.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Hard
-    );
-    next_hard.stability = this.algorithm.next_recall_stability(
-      difficulty,
-      stability,
-      retrievability,
-      Rating.Hard
-    );
-    next_good.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Good
-    );
-    next_good.stability = this.algorithm.next_recall_stability(
-      difficulty,
-      stability,
-      retrievability,
-      Rating.Good
-    );
-    next_easy.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Easy
-    );
-    next_easy.stability = this.algorithm.next_recall_stability(
-      difficulty,
-      stability,
-      retrievability,
-      Rating.Easy
-    );
-  }
-  /**
-   * Review/New next_interval
-   */
-  next_interval(next_again, next_hard, next_good, next_easy, interval) {
-    let again_interval, hard_interval, good_interval, easy_interval;
-    again_interval = this.algorithm.next_interval(
-      next_again.stability,
-      interval
-    );
-    hard_interval = this.algorithm.next_interval(next_hard.stability, interval);
-    good_interval = this.algorithm.next_interval(next_good.stability, interval);
-    easy_interval = this.algorithm.next_interval(next_easy.stability, interval);
-    again_interval = Math.min(again_interval, hard_interval);
-    hard_interval = Math.max(hard_interval, again_interval + 1);
-    good_interval = Math.max(good_interval, hard_interval + 1);
-    easy_interval = Math.max(easy_interval, good_interval + 1);
-    next_again.scheduled_days = again_interval;
-    next_again.due = date_scheduler(this.review_time, again_interval, true);
-    next_hard.scheduled_days = hard_interval;
-    next_hard.due = date_scheduler(this.review_time, hard_interval, true);
-    next_good.scheduled_days = good_interval;
-    next_good.due = date_scheduler(this.review_time, good_interval, true);
-    next_easy.scheduled_days = easy_interval;
-    next_easy.due = date_scheduler(this.review_time, easy_interval, true);
-  }
-  /**
-   * Review/New next_state
-   */
-  next_state(next_again, next_hard, next_good, next_easy) {
-    next_again.state = State.Review;
-    next_again.learning_steps = 0;
-    next_hard.state = State.Review;
-    next_hard.learning_steps = 0;
-    next_good.state = State.Review;
-    next_good.learning_steps = 0;
-    next_easy.state = State.Review;
-    next_easy.learning_steps = 0;
-  }
-  update_next(next_again, next_hard, next_good, next_easy) {
-    const item_again = {
-      card: next_again,
-      log: this.buildLog(Rating.Again)
-    };
-    const item_hard = {
-      card: next_hard,
-      log: super.buildLog(Rating.Hard)
-    };
-    const item_good = {
-      card: next_good,
-      log: super.buildLog(Rating.Good)
-    };
-    const item_easy = {
-      card: next_easy,
-      log: super.buildLog(Rating.Easy)
-    };
-    this.next.set(Rating.Again, item_again);
-    this.next.set(Rating.Hard, item_hard);
-    this.next.set(Rating.Good, item_good);
-    this.next.set(Rating.Easy, item_easy);
-  }
-};
-var Reschedule = class {
-  /**
-   * Creates an instance of the `Reschedule` class.
-   * @param fsrs - An instance of the FSRS class used for scheduling.
-   */
-  constructor(fsrs) {
-    __publicField(this, "fsrs");
-    this.fsrs = fsrs;
-  }
-  /**
-   * Replays a review for a card and determines the next review date based on the given rating.
-   * @param card - The card being reviewed.
-   * @param reviewed - The date the card was reviewed.
-   * @param rating - The grade given to the card during the review.
-   * @returns A `RecordLogItem` containing the updated card and review log.
-   */
-  replay(card, reviewed, rating) {
-    return this.fsrs.next(card, reviewed, rating);
-  }
-  /**
-   * Processes a manual review for a card, allowing for custom state, stability, difficulty, and due date.
-   * @param card - The card being reviewed.
-   * @param state - The state of the card after the review.
-   * @param reviewed - The date the card was reviewed.
-   * @param elapsed_days - The number of days since the last review.
-   * @param stability - (Optional) The stability of the card.
-   * @param difficulty - (Optional) The difficulty of the card.
-   * @param due - (Optional) The due date for the next review.
-   * @returns A `RecordLogItem` containing the updated card and review log.
-   * @throws Will throw an error if the state or due date is not provided when required.
-   */
-  handleManualRating(card, state, reviewed, elapsed_days, stability, difficulty, due) {
-    if (typeof state === "undefined") {
-      throw new Error("reschedule: state is required for manual rating");
-    }
-    let log;
-    let next_card;
-    if (state === State.New) {
-      log = {
-        rating: Rating.Manual,
-        state,
-        due: due != null ? due : reviewed,
-        stability: card.stability,
-        difficulty: card.difficulty,
-        elapsed_days,
-        last_elapsed_days: card.elapsed_days,
-        scheduled_days: card.scheduled_days,
-        learning_steps: card.learning_steps,
-        review: reviewed
-      };
-      next_card = createEmptyCard(reviewed);
-      next_card.last_review = reviewed;
-    } else {
-      if (typeof due === "undefined") {
-        throw new Error("reschedule: due is required for manual rating");
-      }
-      const scheduled_days = date_diff(due, reviewed, "days");
-      log = {
-        rating: Rating.Manual,
-        state: card.state,
-        due: card.last_review || card.due,
-        stability: card.stability,
-        difficulty: card.difficulty,
-        elapsed_days,
-        last_elapsed_days: card.elapsed_days,
-        scheduled_days: card.scheduled_days,
-        learning_steps: card.learning_steps,
-        review: reviewed
-      };
-      next_card = {
-        ...card,
-        state,
-        due,
-        last_review: reviewed,
-        stability: stability || card.stability,
-        difficulty: difficulty || card.difficulty,
-        elapsed_days,
-        scheduled_days,
-        reps: card.reps + 1
-      };
-    }
-    return { card: next_card, log };
-  }
-  /**
-   * Reschedules a card based on its review history.
-   *
-   * @param current_card - The card to be rescheduled.
-   * @param reviews - An array of review history objects.
-   * @returns An array of record log items representing the rescheduling process.
-   */
-  reschedule(current_card, reviews) {
-    const collections = [];
-    let cur_card = createEmptyCard(current_card.due);
-    for (const review of reviews) {
-      let item;
-      review.review = TypeConvert.time(review.review);
-      if (review.rating === Rating.Manual) {
-        let interval = 0;
-        if (cur_card.state !== State.New && cur_card.last_review) {
-          interval = date_diff(review.review, cur_card.last_review, "days");
-        }
-        item = this.handleManualRating(
-          cur_card,
-          review.state,
-          review.review,
-          interval,
-          review.stability,
-          review.difficulty,
-          review.due ? TypeConvert.time(review.due) : void 0
-        );
-      } else {
-        item = this.replay(cur_card, review.review, review.rating);
-      }
-      collections.push(item);
-      cur_card = item.card;
-    }
-    return collections;
-  }
-  calculateManualRecord(current_card, now2, record_log_item, update_memory) {
-    if (!record_log_item) {
-      return null;
-    }
-    const { card: reschedule_card, log } = record_log_item;
-    const cur_card = TypeConvert.card(current_card);
-    if (cur_card.due.getTime() === reschedule_card.due.getTime()) {
-      return null;
-    }
-    cur_card.scheduled_days = date_diff(
-      reschedule_card.due,
-      cur_card.due,
-      "days"
-    );
-    return this.handleManualRating(
-      cur_card,
-      reschedule_card.state,
-      TypeConvert.time(now2),
-      log.elapsed_days,
-      update_memory ? reschedule_card.stability : void 0,
-      update_memory ? reschedule_card.difficulty : void 0,
-      reschedule_card.due
-    );
-  }
-};
-var FSRS = class extends FSRSAlgorithm {
-  constructor(param) {
-    super(param);
-    __publicField(this, "strategyHandler", /* @__PURE__ */ new Map());
-    __publicField(this, "Scheduler");
-    const { enable_short_term } = this.parameters;
-    this.Scheduler = enable_short_term ? BasicScheduler : LongTermScheduler;
-  }
-  params_handler_proxy() {
-    const _this = this;
-    return {
-      set: function(target, prop, value) {
-        if (prop === "request_retention" && Number.isFinite(value)) {
-          _this.intervalModifier = _this.calculate_interval_modifier(
-            Number(value)
-          );
-        } else if (prop === "enable_short_term") {
-          _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler;
-        } else if (prop === "w") {
-          value = migrateParameters(
-            value,
-            target.relearning_steps.length,
-            target.enable_short_term
-          );
-          _this.forgetting_curve = forgetting_curve.bind(this, value);
-          _this.intervalModifier = _this.calculate_interval_modifier(
-            Number(target.request_retention)
-          );
-        }
-        Reflect.set(target, prop, value);
-        return true;
-      }
-    };
-  }
-  useStrategy(mode, handler) {
-    this.strategyHandler.set(mode, handler);
-    return this;
-  }
-  clearStrategy(mode) {
-    if (mode) {
-      this.strategyHandler.delete(mode);
-    } else {
-      this.strategyHandler.clear();
-    }
-    return this;
-  }
-  getScheduler(card, now2) {
-    const schedulerStrategy = this.strategyHandler.get(
-      StrategyMode.SCHEDULER
-    );
-    const Scheduler = schedulerStrategy || this.Scheduler;
-    const instance18 = new Scheduler(card, now2, this, this.strategyHandler);
-    return instance18;
-  }
-  /**
-   * Display the collection of cards and logs for the four scenarios after scheduling the card at the current time.
-   * @param card Card to be processed
-   * @param now Current time or scheduled time
-   * @param afterHandler Convert the result to another type. (Optional)
-   * @example
-   * ```typescript
-   * const card: Card = createEmptyCard(new Date());
-   * const f = fsrs();
-   * const recordLog = f.repeat(card, new Date());
-   * ```
-   * @example
-   * ```typescript
-   * interface RevLogUnchecked
-   *   extends Omit<ReviewLog, "due" | "review" | "state" | "rating"> {
-   *   cid: string;
-   *   due: Date | number;
-   *   state: StateType;
-   *   review: Date | number;
-   *   rating: RatingType;
-   * }
-   *
-   * interface RepeatRecordLog {
-   *   card: CardUnChecked; //see method: createEmptyCard
-   *   log: RevLogUnchecked;
-   * }
-   *
-   * function repeatAfterHandler(recordLog: RecordLog) {
-   *     const record: { [key in Grade]: RepeatRecordLog } = {} as {
-   *       [key in Grade]: RepeatRecordLog;
-   *     };
-   *     for (const grade of Grades) {
-   *       record[grade] = {
-   *         card: {
-   *           ...(recordLog[grade].card as Card & { cid: string }),
-   *           due: recordLog[grade].card.due.getTime(),
-   *           state: State[recordLog[grade].card.state] as StateType,
-   *           last_review: recordLog[grade].card.last_review
-   *             ? recordLog[grade].card.last_review!.getTime()
-   *             : null,
-   *         },
-   *         log: {
-   *           ...recordLog[grade].log,
-   *           cid: (recordLog[grade].card as Card & { cid: string }).cid,
-   *           due: recordLog[grade].log.due.getTime(),
-   *           review: recordLog[grade].log.review.getTime(),
-   *           state: State[recordLog[grade].log.state] as StateType,
-   *           rating: Rating[recordLog[grade].log.rating] as RatingType,
-   *         },
-   *       };
-   *     }
-   *     return record;
-   * }
-   * const card: Card = createEmptyCard(new Date(), cardAfterHandler); //see method:  createEmptyCard
-   * const f = fsrs();
-   * const recordLog = f.repeat(card, new Date(), repeatAfterHandler);
-   * ```
-   */
-  repeat(card, now2, afterHandler) {
-    const instance18 = this.getScheduler(card, now2);
-    const recordLog = instance18.preview();
-    if (afterHandler && typeof afterHandler === "function") {
-      return afterHandler(recordLog);
-    } else {
-      return recordLog;
-    }
-  }
-  /**
-   * Display the collection of cards and logs for the card scheduled at the current time, after applying a specific grade rating.
-   * @param card Card to be processed
-   * @param now Current time or scheduled time
-   * @param grade Rating of the review (Again, Hard, Good, Easy)
-   * @param afterHandler Convert the result to another type. (Optional)
-   * @example
-   * ```typescript
-   * const card: Card = createEmptyCard(new Date());
-   * const f = fsrs();
-   * const recordLogItem = f.next(card, new Date(), Rating.Again);
-   * ```
-   * @example
-   * ```typescript
-   * interface RevLogUnchecked
-   *   extends Omit<ReviewLog, "due" | "review" | "state" | "rating"> {
-   *   cid: string;
-   *   due: Date | number;
-   *   state: StateType;
-   *   review: Date | number;
-   *   rating: RatingType;
-   * }
-   *
-   * interface NextRecordLog {
-   *   card: CardUnChecked; //see method: createEmptyCard
-   *   log: RevLogUnchecked;
-   * }
-   *
-  function nextAfterHandler(recordLogItem: RecordLogItem) {
-    const recordItem = {
-      card: {
-        ...(recordLogItem.card as Card & { cid: string }),
-        due: recordLogItem.card.due.getTime(),
-        state: State[recordLogItem.card.state] as StateType,
-        last_review: recordLogItem.card.last_review
-          ? recordLogItem.card.last_review!.getTime()
-          : null,
-      },
-      log: {
-        ...recordLogItem.log,
-        cid: (recordLogItem.card as Card & { cid: string }).cid,
-        due: recordLogItem.log.due.getTime(),
-        review: recordLogItem.log.review.getTime(),
-        state: State[recordLogItem.log.state] as StateType,
-        rating: Rating[recordLogItem.log.rating] as RatingType,
-      },
-    };
-    return recordItem
-  }
-   * const card: Card = createEmptyCard(new Date(), cardAfterHandler); //see method:  createEmptyCard
-   * const f = fsrs();
-   * const recordLogItem = f.repeat(card, new Date(), Rating.Again, nextAfterHandler);
-   * ```
-   */
-  next(card, now2, grade, afterHandler) {
-    const instance18 = this.getScheduler(card, now2);
-    const g = TypeConvert.rating(grade);
-    if (g === Rating.Manual) {
-      throw new Error("Cannot review a manual rating");
-    }
-    const recordLogItem = instance18.review(g);
-    if (afterHandler && typeof afterHandler === "function") {
-      return afterHandler(recordLogItem);
-    } else {
-      return recordLogItem;
-    }
-  }
-  /**
-   * Get the retrievability of the card
-   * @param card  Card to be processed
-   * @param now  Current time or scheduled time
-   * @param format  default:true , Convert the result to another type. (Optional)
-   * @returns  The retrievability of the card,if format is true, the result is a string, otherwise it is a number
-   */
-  get_retrievability(card, now2, format = true) {
-    const processedCard = TypeConvert.card(card);
-    now2 = now2 ? TypeConvert.time(now2) : /* @__PURE__ */ new Date();
-    const t = processedCard.state !== State.New ? Math.max(date_diff(now2, processedCard.last_review, "days"), 0) : 0;
-    const r = processedCard.state !== State.New ? this.forgetting_curve(t, +processedCard.stability.toFixed(8)) : 0;
-    return format ? `${(r * 100).toFixed(2)}%` : r;
-  }
-  /**
-   *
-   * @param card Card to be processed
-   * @param log last review log
-   * @param afterHandler Convert the result to another type. (Optional)
-   * @example
-   * ```typescript
-   * const now = new Date();
-   * const f = fsrs();
-   * const emptyCardFormAfterHandler = createEmptyCard(now);
-   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now);
-   * const { card, log } = repeatFormAfterHandler[Rating.Hard];
-   * const rollbackFromAfterHandler = f.rollback(card, log);
-   * ```
-   *
-   * @example
-   * ```typescript
-   * const now = new Date();
-   * const f = fsrs();
-   * const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler);  //see method: createEmptyCard
-   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now, repeatAfterHandler); //see method: fsrs.repeat()
-   * const { card, log } = repeatFormAfterHandler[Rating.Hard];
-   * const rollbackFromAfterHandler = f.rollback(card, log, cardAfterHandler);
-   * ```
-   */
-  rollback(card, log, afterHandler) {
-    const processedCard = TypeConvert.card(card);
-    const processedLog = TypeConvert.review_log(log);
-    if (processedLog.rating === Rating.Manual) {
-      throw new Error("Cannot rollback a manual rating");
-    }
-    let last_due;
-    let last_review;
-    let last_lapses;
-    switch (processedLog.state) {
-      case State.New:
-        last_due = processedLog.due;
-        last_review = void 0;
-        last_lapses = 0;
-        break;
-      case State.Learning:
-      case State.Relearning:
-      case State.Review:
-        last_due = processedLog.review;
-        last_review = processedLog.due;
-        last_lapses = processedCard.lapses - (processedLog.rating === Rating.Again && processedLog.state === State.Review ? 1 : 0);
-        break;
-    }
-    const prevCard = {
-      ...processedCard,
-      due: last_due,
-      stability: processedLog.stability,
-      difficulty: processedLog.difficulty,
-      elapsed_days: processedLog.last_elapsed_days,
-      scheduled_days: processedLog.scheduled_days,
-      reps: Math.max(0, processedCard.reps - 1),
-      lapses: Math.max(0, last_lapses),
-      learning_steps: processedLog.learning_steps,
-      state: processedLog.state,
-      last_review
-    };
-    if (afterHandler && typeof afterHandler === "function") {
-      return afterHandler(prevCard);
-    } else {
-      return prevCard;
-    }
-  }
-  /**
-   *
-   * @param card Card to be processed
-   * @param now Current time or scheduled time
-   * @param reset_count Should the review count information(reps,lapses) be reset. (Optional)
-   * @param afterHandler Convert the result to another type. (Optional)
-   * @example
-   * ```typescript
-   * const now = new Date();
-   * const f = fsrs();
-   * const emptyCard = createEmptyCard(now);
-   * const scheduling_cards = f.repeat(emptyCard, now);
-   * const { card, log } = scheduling_cards[Rating.Hard];
-   * const forgetCard = f.forget(card, new Date(), true);
-   * ```
-   *
-   * @example
-   * ```typescript
-   * interface RepeatRecordLog {
-   *   card: CardUnChecked; //see method: createEmptyCard
-   *   log: RevLogUnchecked; //see method: fsrs.repeat()
-   * }
-   *
-   * function forgetAfterHandler(recordLogItem: RecordLogItem): RepeatRecordLog {
-   *     return {
-   *       card: {
-   *         ...(recordLogItem.card as Card & { cid: string }),
-   *         due: recordLogItem.card.due.getTime(),
-   *         state: State[recordLogItem.card.state] as StateType,
-   *         last_review: recordLogItem.card.last_review
-   *           ? recordLogItem.card.last_review!.getTime()
-   *           : null,
-   *       },
-   *       log: {
-   *         ...recordLogItem.log,
-   *         cid: (recordLogItem.card as Card & { cid: string }).cid,
-   *         due: recordLogItem.log.due.getTime(),
-   *         review: recordLogItem.log.review.getTime(),
-   *         state: State[recordLogItem.log.state] as StateType,
-   *         rating: Rating[recordLogItem.log.rating] as RatingType,
-   *       },
-   *     };
-   * }
-   * const now = new Date();
-   * const f = fsrs();
-   * const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler); //see method:  createEmptyCard
-   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now, repeatAfterHandler); //see method: fsrs.repeat()
-   * const { card } = repeatFormAfterHandler[Rating.Hard];
-   * const forgetFromAfterHandler = f.forget(card, date_scheduler(now, 1, true), false, forgetAfterHandler);
-   * ```
-   */
-  forget(card, now2, reset_count = false, afterHandler) {
-    const processedCard = TypeConvert.card(card);
-    now2 = TypeConvert.time(now2);
-    const scheduled_days = processedCard.state === State.New ? 0 : date_diff(now2, processedCard.due, "days");
-    const forget_log = {
-      rating: Rating.Manual,
-      state: processedCard.state,
-      due: processedCard.due,
-      stability: processedCard.stability,
-      difficulty: processedCard.difficulty,
-      elapsed_days: 0,
-      last_elapsed_days: processedCard.elapsed_days,
-      scheduled_days,
-      learning_steps: processedCard.learning_steps,
-      review: now2
-    };
-    const forget_card = {
-      ...processedCard,
-      due: now2,
-      stability: 0,
-      difficulty: 0,
-      elapsed_days: 0,
-      scheduled_days: 0,
-      reps: reset_count ? 0 : processedCard.reps,
-      lapses: reset_count ? 0 : processedCard.lapses,
-      learning_steps: 0,
-      state: State.New,
-      last_review: processedCard.last_review
-    };
-    const recordLogItem = { card: forget_card, log: forget_log };
-    if (afterHandler && typeof afterHandler === "function") {
-      return afterHandler(recordLogItem);
-    } else {
-      return recordLogItem;
-    }
-  }
-  /**
-   * Reschedules the current card and returns the rescheduled collections and reschedule item.
-   *
-   * @template T - The type of the record log item.
-   * @param {CardInput | Card} current_card - The current card to be rescheduled.
-   * @param {Array<FSRSHistory>} reviews - The array of FSRSHistory objects representing the reviews.
-   * @param {Partial<RescheduleOptions<T>>} options - The optional reschedule options.
-   * @returns {IReschedule<T>} - The rescheduled collections and reschedule item.
-   *
-   * @example
-   * ```typescript
-   * const f = fsrs()
-   * const grades: Grade[] = [Rating.Good, Rating.Good, Rating.Good, Rating.Good]
-   * const reviews_at = [
-   *   new Date(2024, 8, 13),
-   *   new Date(2024, 8, 13),
-   *   new Date(2024, 8, 17),
-   *   new Date(2024, 8, 28),
-   * ]
-   *
-   * const reviews: FSRSHistory[] = []
-   * for (let i = 0; i < grades.length; i++) {
-   *   reviews.push({
-   *     rating: grades[i],
-   *     review: reviews_at[i],
-   *   })
-   * }
-   *
-   * const results_short = scheduler.reschedule(
-   *   createEmptyCard(),
-   *   reviews,
-   *   {
-   *     skipManual: false,
-   *   }
-   * )
-   * console.log(results_short)
-   * ```
-   */
-  reschedule(current_card, reviews = [], options = {}) {
-    const {
-      recordLogHandler,
-      reviewsOrderBy,
-      skipManual = true,
-      now: now2 = /* @__PURE__ */ new Date(),
-      update_memory_state: updateMemoryState = false
-    } = options;
-    if (reviewsOrderBy && typeof reviewsOrderBy === "function") {
-      reviews.sort(reviewsOrderBy);
-    }
-    if (skipManual) {
-      reviews = reviews.filter((review) => review.rating !== Rating.Manual);
-    }
-    const rescheduleSvc = new Reschedule(this);
-    const collections = rescheduleSvc.reschedule(
-      options.first_card || createEmptyCard(),
-      reviews
-    );
-    const len = collections.length;
-    const cur_card = TypeConvert.card(current_card);
-    const manual_item = rescheduleSvc.calculateManualRecord(
-      cur_card,
-      now2,
-      len ? collections[len - 1] : void 0,
-      updateMemoryState
-    );
-    if (recordLogHandler && typeof recordLogHandler === "function") {
-      return {
-        collections: collections.map(recordLogHandler),
-        reschedule_item: manual_item ? recordLogHandler(manual_item) : null
-      };
-    }
-    return {
-      collections,
-      reschedule_item: manual_item
-    };
-  }
-};
 
 // src/core/srs/schema/FSRSSchema.ts
 var FSRSParams = external_exports.object({
@@ -16013,96 +14296,6 @@ var DEFAULT_STATISTICS = {
   progress: []
 };
 
-// src/core/srs/FsrsEngine.ts
-var FsrsEngine = class {
-  constructor() {
-    __publicField(this, "fsrs");
-    this.fsrs = new FSRS(generatorParameters());
-  }
-  /**
-   * Calculates updated FSRS parameters based on a user rating.
-   *
-   * @param input FSRS calculation input (current params, rating, review time)
-   * @returns Updated FSRS parameters and interval in days
-   */
-  calculate(input) {
-    try {
-      const { current_params, rating, review_time } = input;
-      const reviewDate = review_time ? new Date(review_time) : /* @__PURE__ */ new Date();
-      const fsrsCard = this.mapToFsrsCard(current_params);
-      const recordLog = this.fsrs.repeat(fsrsCard, reviewDate);
-      const updatedCard = recordLog[rating].card;
-      const updatedParams = this.mapFromFsrsCard(updatedCard);
-      const intervalDays = this.calculateIntervalDays(updatedParams.next_review, reviewDate);
-      return {
-        updated_params: updatedParams,
-        interval_days: intervalDays
-      };
-    } catch (error48) {
-      console.error(`${ERROR_MESSAGES.CALCULATION_ERROR}:`, error48);
-      return {
-        updated_params: this.getInitialState(),
-        interval_days: 1
-      };
-    }
-  }
-  /**
-   * Returns default FSRS parameters for a new card.
-   */
-  getInitialState() {
-    return { ...DEFAULT_FSRS };
-  }
-  /**
-   * Maps internal FSRSStats to ts-fsrs Card object.
-   */
-  mapToFsrsCard(params) {
-    return {
-      due: new Date(params.next_review),
-      stability: params.stability,
-      difficulty: params.difficulty,
-      elapsed_days: params.elapsed_days,
-      scheduled_days: params.scheduled_days,
-      learning_steps: params.learning_steps,
-      reps: params.reps,
-      lapses: params.lapses,
-      state: params.state,
-      last_review: params.last_review ? new Date(params.last_review) : void 0
-    };
-  }
-  /**
-   * Maps ts-fsrs Card object back to internal FSRSStats.
-   */
-  mapFromFsrsCard(card) {
-    return {
-      stability: card.stability,
-      difficulty: card.difficulty,
-      elapsed_days: card.elapsed_days,
-      scheduled_days: card.scheduled_days,
-      learning_steps: card.learning_steps,
-      reps: card.reps,
-      lapses: card.lapses,
-      state: card.state,
-      last_review: card.last_review ? card.last_review.toISOString() : null,
-      next_review: card.due.toISOString()
-    };
-  }
-  /**
-   * Calculates the number of days between review and next review.
-   */
-  calculateIntervalDays(nextReviewStr, reviewDate) {
-    const nextReview = new Date(nextReviewStr);
-    const diffMs = nextReview.getTime() - reviewDate.getTime();
-    const diffDays = Math.ceil(diffMs / (1e3 * 60 * 60 * 24));
-    return Math.max(1, diffDays);
-  }
-  /**
-   * Updates the underlying FSRS algorithm parameters.
-   */
-  updateParameters(params) {
-    this.fsrs.parameters = params;
-  }
-};
-
 // src/obsidian/VaultAdapter.ts
 var import_obsidian = require("obsidian");
 var VaultAdapter = class {
@@ -16162,6 +14355,11 @@ var VaultAdapter = class {
 
 // src/utils/Logger.ts
 var Logger = class {
+  constructor(correlationId) {
+    __publicField(this, "prefix", "[Knowledge Accelerator]");
+    __publicField(this, "correlationId");
+    this.correlationId = correlationId || this.generateCorrelationId();
+  }
   static info(message, ...args) {
     console.info(`${this.prefix} INFO: ${message}`, ...args);
   }
@@ -16173,6 +14371,24 @@ var Logger = class {
   }
   static debug(message, ...args) {
     console.debug(`${this.prefix} DEBUG: ${message}`, ...args);
+  }
+  info(message, ...args) {
+    console.info(`${this.prefix} INFO: ${message}`, ...args);
+  }
+  warn(message, ...args) {
+    console.warn(`${this.prefix} WARN: ${message}`, ...args);
+  }
+  error(message, ...args) {
+    console.error(`${this.prefix} ERROR: ${message}`, ...args);
+  }
+  debug(message, ...args) {
+    console.debug(`${this.prefix} DEBUG: ${message}`, ...args);
+  }
+  generateCorrelationId() {
+    return Math.random().toString(36).substring(2, 9);
+  }
+  getCorrelationId() {
+    return this.correlationId;
   }
 };
 __publicField(Logger, "prefix", "[Knowledge Accelerator]");
@@ -16321,8 +14537,8 @@ var IndexSchema = external_exports.object({
 
 // src/core/parser/schema/FlashcardSchema.ts
 var FlashcardSchema = FlashcardMetadataSchema.extend({
-  front: zod_default.string().min(0),
-  back: zod_default.string().min(0)
+  front: external_exports.string().min(0),
+  back: external_exports.string().min(0)
 }).refine(
   (data) => {
     const created = new Date(data.created_at).getTime();
@@ -17768,6 +15984,13 @@ function createEventDispatcher() {
     return true;
   };
 }
+function setContext(key, context) {
+  get_current_component().$$.context.set(key, context);
+  return context;
+}
+function getContext(key) {
+  return get_current_component().$$.context.get(key);
+}
 
 // node_modules/svelte/src/runtime/internal/scheduler.js
 var dirty_components = [];
@@ -17960,7 +16183,7 @@ function make_dirty(component, i) {
   }
   component.$$.dirty[i / 31 | 0] |= 1 << i % 31;
 }
-function init(component, options, instance18, create_fragment18, not_equal, props, append_styles = null, dirty = [-1]) {
+function init(component, options, instance19, create_fragment19, not_equal, props, append_styles = null, dirty = [-1]) {
   const parent_component = current_component;
   set_current_component(component);
   const $$ = component.$$ = {
@@ -17986,7 +16209,7 @@ function init(component, options, instance18, create_fragment18, not_equal, prop
   };
   append_styles && append_styles($$.root);
   let ready = false;
-  $$.ctx = instance18 ? instance18(component, options.props || {}, (i, ret, ...rest) => {
+  $$.ctx = instance19 ? instance19(component, options.props || {}, (i, ret, ...rest) => {
     const value = rest.length ? rest[0] : ret;
     if ($$.ctx && not_equal($$.ctx[i], $$.ctx[i] = value)) {
       if (!$$.skip_bound && $$.bound[i])
@@ -17999,7 +16222,7 @@ function init(component, options, instance18, create_fragment18, not_equal, prop
   $$.update();
   ready = true;
   run_all($$.before_update);
-  $$.fragment = create_fragment18 ? create_fragment18($$.ctx) : false;
+  $$.fragment = create_fragment19 ? create_fragment19($$.ctx) : false;
   if (options.target) {
     if (options.hydrate) {
       start_hydrating();
@@ -23502,19 +21725,19 @@ function create_fragment12(ctx) {
             button0,
             "click",
             /*click_handler*/
-            ctx[15]
+            ctx[13]
           ),
           listen(
             button1,
             "click",
             /*click_handler_1*/
-            ctx[16]
+            ctx[14]
           ),
           listen(
             button2,
             "click",
             /*click_handler_2*/
-            ctx[17]
+            ctx[15]
           )
         ];
         mounted = true;
@@ -23625,7 +21848,7 @@ function create_fragment12(ctx) {
         ctx2[2] || /*isLoading*/
         ctx2[4];
       if (dirty & /*$$scope*/
-      1048576) {
+      262144) {
         button3_changes.$$scope = { dirty, ctx: ctx2 };
       }
       button3.$set(button3_changes);
@@ -23636,7 +21859,7 @@ function create_fragment12(ctx) {
         ctx2[2] || /*isLoading*/
         ctx2[4];
       if (dirty & /*$$scope*/
-      1048576) {
+      262144) {
         button4_changes.$$scope = { dirty, ctx: ctx2 };
       }
       button4.$set(button4_changes);
@@ -23648,7 +21871,7 @@ function create_fragment12(ctx) {
         ctx2[2] || /*isLoading*/
         ctx2[4];
       if (dirty & /*$$scope, isSaving*/
-      1048580) {
+      262148) {
         button5_changes.$$scope = { dirty, ctx: ctx2 };
       }
       button5.$set(button5_changes);
@@ -23702,10 +21925,8 @@ function instance12($$self, $$props, $$invalidate) {
   let hasChanges;
   let isLoading2;
   let validationErrors;
-  let $store, $$unsubscribe_store = noop, $$subscribe_store = () => ($$unsubscribe_store(), $$unsubscribe_store = subscribe(store, ($$value) => $$invalidate(14, $store = $$value)), store);
+  let $store, $$unsubscribe_store = noop, $$subscribe_store = () => ($$unsubscribe_store(), $$unsubscribe_store = subscribe(store, ($$value) => $$invalidate(12, $store = $$value)), store);
   $$self.$$.on_destroy.push(() => $$unsubscribe_store());
-  let { app } = $$props;
-  let { plugin } = $$props;
   let { settingsManager } = $$props;
   let { initialSettings } = $$props;
   let store;
@@ -23757,33 +21978,29 @@ function instance12($$self, $$props, $$invalidate) {
   const click_handler_1 = () => handleSectionChange("REVIEW");
   const click_handler_2 = () => handleSectionChange("ADVANCED");
   $$self.$$set = ($$props2) => {
-    if ("app" in $$props2)
-      $$invalidate(10, app = $$props2.app);
-    if ("plugin" in $$props2)
-      $$invalidate(11, plugin = $$props2.plugin);
     if ("settingsManager" in $$props2)
-      $$invalidate(12, settingsManager = $$props2.settingsManager);
+      $$invalidate(10, settingsManager = $$props2.settingsManager);
     if ("initialSettings" in $$props2)
-      $$invalidate(13, initialSettings = $$props2.initialSettings);
+      $$invalidate(11, initialSettings = $$props2.initialSettings);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*$store, initialSettings*/
-    24576) {
+    6144) {
       $:
         currentSettings = ($store == null ? void 0 : $store.settings) || initialSettings;
     }
     if ($$self.$$.dirty & /*$store*/
-    16384) {
+    4096) {
       $:
         $$invalidate(5, hasChanges = ($store == null ? void 0 : $store.hasChanges) || false);
     }
     if ($$self.$$.dirty & /*$store*/
-    16384) {
+    4096) {
       $:
         $$invalidate(4, isLoading2 = ($store == null ? void 0 : $store.isLoading) || false);
     }
     if ($$self.$$.dirty & /*$store*/
-    16384) {
+    4096) {
       $:
         validationErrors = ($store == null ? void 0 : $store.validationErrors) || {};
     }
@@ -23799,8 +22016,6 @@ function instance12($$self, $$props, $$invalidate) {
     handleReset,
     handleDiscard,
     handleSectionChange,
-    app,
-    plugin,
     settingsManager,
     initialSettings,
     $store,
@@ -23812,12 +22027,7 @@ function instance12($$self, $$props, $$invalidate) {
 var Settings = class extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance12, create_fragment12, safe_not_equal, {
-      app: 10,
-      plugin: 11,
-      settingsManager: 12,
-      initialSettings: 13
-    });
+    init(this, options, instance12, create_fragment12, safe_not_equal, { settingsManager: 10, initialSettings: 11 });
   }
 };
 var Settings_default = Settings;
@@ -24167,559 +22377,432 @@ var VaultWatcher = class {
   }
 };
 
-// src/ui/schemas.ts
-var ReviewRatingSchema = external_exports.union([external_exports.literal(1), external_exports.literal(2), external_exports.literal(3), external_exports.literal(4)]);
-var DashboardConfigSchema = external_exports.object({
-  dailyGoal: external_exports.number().int().positive().default(20),
-  showProgressChart: external_exports.boolean().default(true),
-  showRetentionRate: external_exports.boolean().default(true),
-  chartTimeframe: external_exports.enum(["week", "month", "year"]).default("week")
-});
-var GestureSchema = external_exports.object({
-  type: external_exports.enum(["swipe", "tap", "hold"]),
-  direction: external_exports.enum(["left", "right", "up", "down"]).optional(),
-  distance: external_exports.number().nonnegative().optional(),
-  velocity: external_exports.number().nonnegative().optional()
-});
-var DashboardStateSchema = external_exports.object({
-  totalCards: external_exports.number().int().nonnegative(),
-  retentionRate: external_exports.number().min(0).max(1),
-  dueCount: external_exports.number().int().nonnegative(),
-  dailyGoal: external_exports.number().int().positive(),
-  progressData: external_exports.array(
-    external_exports.object({
-      date: external_exports.string(),
-      completed: external_exports.number().int().nonnegative(),
-      target: external_exports.number().int().nonnegative()
-    })
-  )
-});
-var NotificationSchema = external_exports.object({
-  id: external_exports.string().uuid(),
-  type: external_exports.enum(["info", "success", "warning", "error"]),
-  message: external_exports.string().min(1),
-  duration: external_exports.number().positive().optional()
-});
-var ReviewSessionSchema2 = external_exports.object({
-  sessionId: external_exports.string().uuid(),
-  queue: external_exports.array(external_exports.any()),
-  currentIndex: external_exports.number().int().nonnegative(),
-  startTime: external_exports.string().datetime(),
-  isComplete: external_exports.boolean(),
-  stats: external_exports.object({
-    correct: external_exports.number().int().nonnegative(),
-    incorrect: external_exports.number().int().nonnegative(),
-    total: external_exports.number().int().nonnegative()
-  })
-});
-
-// src/ui/stores/SessionStore.ts
-var DEFAULT_STATE2 = {
-  activeSession: null,
-  currentCard: null,
-  isAnswerShowing: false,
-  sessionStats: {
-    totalReviewed: 0,
-    correctAnswers: 0,
-    incorrectAnswers: 0,
-    sessionDuration: 0
-  }
-};
-var SessionStore = class {
-  constructor(indexManager, statsManager, dueQueueManager) {
-    __publicField(this, "_state");
-    __publicField(this, "fsrsController");
-    __publicField(this, "indexManager");
-    __publicField(this, "statsManager");
-    __publicField(this, "sessionTimer");
-    __publicField(this, "dueQueueManager");
-    this._state = writable(DEFAULT_STATE2);
-    this.fsrsController = new FsrsEngine();
-    this.indexManager = indexManager;
-    this.statsManager = statsManager;
-    this.dueQueueManager = dueQueueManager;
-  }
-  /**
-   * Subscribe to session state changes
-   */
-  subscribe(run2) {
-    return this._state.subscribe(run2);
-  }
-  /**
-   * Starts a new review session
-   *
-   * @param deckId - Optional deck ID to filter cards by
-   * @param limit - Optional limit on number of cards to review
-   * @returns Promise that resolves when session is initialized
-   */
-  async startSession() {
-    try {
-      await this.endSession();
-      const queue = await this.dueQueueManager.generate();
-      const sessionId = v4_default();
-      const newSession = {
-        sessionId,
-        queue: queue.cards,
-        currentIndex: 0,
-        startTime: (/* @__PURE__ */ new Date()).toISOString(),
-        isComplete: false,
-        stats: {
-          correct: 0,
-          incorrect: 0,
-          total: queue.totalDue
-        }
-      };
-      this._state.update((state) => ({
-        ...state,
-        activeSession: newSession,
-        currentCard: queue.cards[0],
-        isAnswerShowing: false,
-        sessionStats: {
-          totalReviewed: 0,
-          correctAnswers: 0,
-          incorrectAnswers: 0,
-          sessionDuration: 0
-        }
-      }));
-      this.startSessionTimer();
-    } catch (error48) {
-      console.error("Failed to start review session:", error48);
-      throw error48;
-    }
-  }
-  /**
-   * Shows the answer for the current card
-   */
-  showAnswer() {
-    this._state.update((state) => ({
-      ...state,
-      isAnswerShowing: true
-    }));
-  }
-  /**
-   * Hides the answer for the current card
-   */
-  hideAnswer() {
-    this._state.update((state) => ({
-      ...state,
-      isAnswerShowing: false
-    }));
-  }
-  /**
-   * Submits a rating for the current card and advances to the next card
-   *
-   * @param rating - The FSRS rating (1-4: Again, Hard, Good, Easy)
-   * @returns Promise that resolves when rating is processed
-   */
-  async submitRating(rating) {
-    try {
-      const validatedRating = ReviewRatingSchema.parse(rating);
-      const { activeSession, currentCard } = get_store_value(this._state);
-      if (!activeSession || !currentCard) {
-        throw new Error("No active session or current card");
-      }
-      this.fsrsController.calculate({
-        current_params: currentCard.srs,
-        rating: validatedRating,
-        review_time: (/* @__PURE__ */ new Date()).toISOString()
-      });
-      const isCorrect = validatedRating >= 3;
-      this._state.update((state) => ({
-        ...state,
-        sessionStats: {
-          ...state.sessionStats,
-          totalReviewed: state.sessionStats.totalReviewed + 1,
-          correctAnswers: isCorrect ? state.sessionStats.correctAnswers + 1 : state.sessionStats.correctAnswers,
-          incorrectAnswers: !isCorrect ? state.sessionStats.incorrectAnswers + 1 : state.sessionStats.incorrectAnswers
-        }
-      }));
-      await this.nextCard();
-    } catch (error48) {
-      console.error("Failed to submit rating:", error48);
-      throw error48;
-    }
-  }
-  /**
-   * Navigates to the next card in the queue
-   * Ends session if no more cards are available
-   */
-  async nextCard() {
-    const { activeSession } = get_store_value(this._state);
-    if (!activeSession)
-      return;
-    const nextIndex = activeSession.currentIndex + 1;
-    if (nextIndex >= activeSession.queue.length) {
-      await this.endSession();
-    } else {
-      this._state.update((state) => {
-        var _a3;
-        return {
-          ...state,
-          activeSession: state.activeSession ? {
-            ...state.activeSession,
-            currentIndex: nextIndex
-          } : null,
-          currentCard: ((_a3 = state.activeSession) == null ? void 0 : _a3.queue[nextIndex]) || null,
-          isAnswerShowing: false
-        };
-      });
-    }
-  }
-  /**
-   * Navigates to the previous card in the queue
-   */
-  previousCard() {
-    const { activeSession } = get_store_value(this._state);
-    if (!activeSession || activeSession.currentIndex <= 0)
-      return;
-    const prevIndex = activeSession.currentIndex - 1;
-    this._state.update((state) => {
-      var _a3;
-      return {
-        ...state,
-        activeSession: state.activeSession ? {
-          ...state.activeSession,
-          currentIndex: prevIndex
-        } : null,
-        currentCard: ((_a3 = state.activeSession) == null ? void 0 : _a3.queue[prevIndex]) || null,
-        isAnswerShowing: false
-      };
-    });
-  }
-  /**
-   * Ends the current review session and performs cleanup
-   */
-  async endSession() {
-    this.stopSessionTimer();
-    const { activeSession } = get_store_value(this._state);
-    if (activeSession) {
-      try {
-        this._state.update((state) => ({
-          ...state,
-          activeSession: state.activeSession ? {
-            ...state.activeSession,
-            isComplete: true
-          } : null
-        }));
-        await this.saveSessionStats(activeSession);
-      } catch (error48) {
-        console.error("Failed to save session statistics:", error48);
-      }
-    }
-    this._state.update((state) => ({
-      ...state,
-      activeSession: null,
-      currentCard: null,
-      isAnswerShowing: false
-    }));
-  }
-  /**
-   * Pauses the current session (stops timer but preserves state)
-   */
-  pauseSession() {
-    this.stopSessionTimer();
-  }
-  /**
-   * Resumes a paused session
-   */
-  resumeSession() {
-    if (get_store_value(this._state).activeSession) {
-      this.startSessionTimer();
-    }
-  }
-  /**
-   * Gets the current progress percentage
-   * @returns Progress as a number between 0-100
-   */
-  getProgress() {
-    const { activeSession } = get_store_value(this._state);
-    if (!activeSession)
-      return 0;
-    return Math.round((activeSession.currentIndex + 1) / activeSession.queue.length * 100);
-  }
-  /**
-   * Gets the remaining card count
-   * @returns Number of cards remaining in the session
-   */
-  getRemainingCount() {
-    const { activeSession } = get_store_value(this._state);
-    if (!activeSession)
-      return 0;
-    return activeSession.queue.length - activeSession.currentIndex - 1;
-  }
-  /**
-   * Resets the entire store to its default state
-   */
-  reset() {
-    this.stopSessionTimer();
-    this._state.set(DEFAULT_STATE2);
-  }
-  get activeSession() {
-    return get_store_value(this._state).activeSession;
-  }
-  get currentCard() {
-    return get_store_value(this._state).currentCard;
-  }
-  get isAnswerShowing() {
-    return get_store_value(this._state).isAnswerShowing;
-  }
-  get sessionStats() {
-    return get_store_value(this._state).sessionStats;
-  }
-  get sessionProgress() {
-    const session = this.activeSession;
-    if (!session)
-      return 0;
-    return Math.round((session.currentIndex + 1) / session.queue.length * 100);
-  }
-  get remainingCards() {
-    const session = this.activeSession;
-    if (!session)
-      return 0;
-    return session.queue.length - session.currentIndex - 1;
-  }
-  /**
-   * Starts the session timer
-   */
-  startSessionTimer() {
-    this.stopSessionTimer();
-    this.sessionTimer = setInterval(() => {
-      this._state.update((state) => ({
-        ...state,
-        sessionStats: {
-          ...state.sessionStats,
-          sessionDuration: state.sessionStats.sessionDuration + 1
-        }
-      }));
-    }, 1e3);
-  }
-  /**
-   * Stops the session timer
-   */
-  stopSessionTimer() {
-    if (this.sessionTimer) {
-      clearInterval(this.sessionTimer);
-      this.sessionTimer = void 0;
-    }
-  }
-  /**
-   * Saves session statistics to the index for persistence
-   * @param session - The completed session to save
-   */
-  async saveSessionStats(session) {
-    try {
-      Logger.info("Saving session statistics (to be implemented)");
-    } catch (error48) {
-      console.error("Failed to save session statistics:", error48);
-      throw error48;
-    }
-  }
-};
-
 // src/ui/views/App/AppView.ts
 var import_obsidian10 = require("obsidian");
 
-// src/ui/stores/types.ts
-var NavigationStateSchema2 = external_exports.object({
-  currentView: external_exports.enum(["dashboard", "review"]),
-  reviewContext: external_exports.object({
-    currentSessionId: external_exports.string().uuid(),
-    currentCardIndex: external_exports.number().int().min(0),
-    queueSize: external_exports.number().int().min(0),
-    sessionStartTime: external_exports.number().int().positive()
-  }).nullable(),
-  dashboardContext: external_exports.object({
-    selectedPeriod: external_exports.enum(["today", "7days", "30days"]),
-    showDetails: external_exports.boolean()
-  }).nullable()
-});
-
-// src/ui/views/App/NavigationManager.ts
-var navigationState = writable({
-  currentView: "dashboard",
-  reviewContext: null,
-  dashboardContext: {
-    selectedPeriod: "7days",
-    showDetails: false
+// src/ui/infrastructure/ManagersContext.ts
+var MANAGERS_CONTEXT_KEY = Symbol("managers-context");
+function setManagersContext(container) {
+  setContext(MANAGERS_CONTEXT_KEY, container);
+}
+function getManagersContext() {
+  const container = getContext(MANAGERS_CONTEXT_KEY);
+  if (!container) {
+    throw new Error(
+      "ManagersContext not found. Did you forget to call setManagersContext in a parent component?"
+    );
   }
-});
-var NavigationManager = class {
-  constructor(app) {
-    __publicField(this, "app");
-    __publicField(this, "leaf", null);
-    __publicField(this, "UNIFIED_VIEW_TYPE", "knowledge-accelerator-home");
-    this.app = app;
+  return container;
+}
+function resolveDependency(token) {
+  const container = getManagersContext();
+  return container.resolve(token);
+}
+function useManager(token) {
+  return resolveDependency(token);
+}
+function useService(token) {
+  return resolveDependency(token);
+}
+
+// src/ui/infrastructure/EventBus.ts
+var AppEvents = {
+  // Session events
+  SESSION_STARTED: "session:started",
+  SESSION_COMPLETED: "session:completed",
+  SESSION_PAUSED: "session:paused",
+  SESSION_RESUMED: "session:resumed",
+  // Settings events
+  SETTINGS_UPDATED: "settings:updated",
+  SETTINGS_RESET: "settings:reset",
+  // Card events
+  CARD_RATED: "card:rated",
+  CARD_CREATED: "card:created",
+  CARD_UPDATED: "card:updated",
+  CARD_DELETED: "card:deleted",
+  // UI events
+  THEME_CHANGED: "ui:theme-changed",
+  VIEW_CHANGED: "ui:view-changed",
+  // Queue events
+  QUEUE_UPDATED: "queue:updated",
+  QUEUE_CLEARED: "queue:cleared",
+  // Statistics events
+  STATISTICS_UPDATED: "statistics:updated"
+};
+var EventBus = class {
+  constructor() {
+    __publicField(this, "listeners", /* @__PURE__ */ new Map());
   }
   /**
-   * Initializes the navigation state to dashboard view.
-   * Loads persisted state if available.
+   * Subscribe to an event
+   *
+   * @param event - Event name to listen to
+   * @param handler - Function to call when event is emitted
+   * @returns Unsubscribe function to remove the listener
+   *
+   * @example
+   * ```typescript
+   * const unsubscribe = eventBus.on(AppEvents.SESSION_STARTED, (data) => {
+   *   console.log('Session started:', data);
+   * });
+   *
+   * // Later, when done listening
+   * unsubscribe();
+   * ```
+   */
+  on(event, handler) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, /* @__PURE__ */ new Set());
+    }
+    this.listeners.get(event).add(handler);
+    return () => this.off(event, handler);
+  }
+  /**
+   * Unsubscribe from an event
+   *
+   * @param event - Event name to stop listening to
+   * @param handler - Handler function to remove
+   *
+   * @example
+   * ```typescript
+   * const handler = (data) => console.log(data);
+   * eventBus.on('my-event', handler);
+   * // ... later
+   * eventBus.off('my-event', handler);
+   * ```
+   */
+  off(event, handler) {
+    var _a3, _b;
+    (_a3 = this.listeners.get(event)) == null ? void 0 : _a3.delete(handler);
+    if (((_b = this.listeners.get(event)) == null ? void 0 : _b.size) === 0) {
+      this.listeners.delete(event);
+    }
+  }
+  /**
+   * Emit an event to all listeners
+   *
+   * @param event - Event name to emit
+   * @param data - Optional data to pass to listeners
+   *
+   * @example
+   * ```typescript
+   * eventBus.emit(AppEvents.SESSION_STARTED, { id: '123', startTime: Date.now() });
+   * ```
+   */
+  emit(event, data) {
+    const handlers = this.listeners.get(event);
+    if (!handlers || handlers.size === 0) {
+      return;
+    }
+    const handlersArray = Array.from(handlers);
+    for (const handler of handlersArray) {
+      try {
+        handler(data);
+      } catch (error48) {
+        console.error(`Error in event handler for '${event}':`, error48);
+      }
+    }
+  }
+  /**
+   * Clear all event listeners
+   *
+   * This is typically called during application shutdown or testing cleanup.
+   *
+   * @example
+   * ```typescript
+   * eventBus.clear(); // Remove all listeners
+   * ```
+   */
+  clear() {
+    this.listeners.clear();
+  }
+  /**
+   * Get the number of listeners for an event
+   *
+   * @param event - Event name
+   * @returns Number of listeners
+   */
+  getListenerCount(event) {
+    var _a3, _b;
+    return (_b = (_a3 = this.listeners.get(event)) == null ? void 0 : _a3.size) != null ? _b : 0;
+  }
+  /**
+   * Check if an event has any listeners
+   *
+   * @param event - Event name
+   * @returns true if there are listeners for the event
+   */
+  hasListeners(event) {
+    return this.getListenerCount(event) > 0;
+  }
+  /**
+   * Get all registered event names
+   *
+   * @returns Array of event names with listeners
+   */
+  getRegisteredEvents() {
+    return Array.from(this.listeners.keys());
+  }
+  /**
+   * Subscribe to an event once (auto-unsubscribe after first emission)
+   *
+   * @param event - Event name to listen to
+   * @param handler - Function to call once when event is emitted
+   * @returns Unsubscribe function (though it will auto-unsubscribe)
+   *
+   * @example
+   * ```typescript
+   * eventBus.once(AppEvents.SESSION_STARTED, (data) => {
+   *   console.log('First session started:', data);
+   * });
+   * ```
+   */
+  once(event, handler) {
+    const wrappedHandler = (data) => {
+      handler(data);
+      this.off(event, wrappedHandler);
+    };
+    return this.on(event, wrappedHandler);
+  }
+};
+
+// src/ui/controllers/BaseController.ts
+var BaseController = class {
+  /**
+   * Create a new BaseController
+   *
+   * @param logger - Logger instance for this controller
+   * @param eventBus - EventBus instance for cross-component communication
+   */
+  constructor(logger, eventBus) {
+    /**
+     * Logger instance for the controller
+     */
+    __publicField(this, "logger");
+    /**
+     * EventBus instance for cross-component communication
+     */
+    __publicField(this, "eventBus");
+    this.logger = logger;
+    this.eventBus = eventBus;
+  }
+  /**
+   * Execute an operation with error handling and logging
+   *
+   * This is a convenience wrapper that:
+   * 1. Executes the provided function
+   * 2. Catches any errors that occur
+   * 3. Logs the error with the provided operation name
+   * 4. Returns null on error (callers should check for null)
+   *
+   * @param operation - Description of the operation (for error messages)
+   * @param fn - Async function to execute
+   * @returns The result of the function, or null if an error occurred
+   *
+   * @example
+   * ```typescript
+   * async loadDashboard() {
+   *   const stats = await this.executeWithErrorHandling(
+   *     'Loading dashboard statistics',
+   *     async () => {
+   *       return await this.statisticsManager.getDashboardStats();
+   *     }
+   *   );
+   *
+   *   if (stats === null) {
+   *     // Handle error case
+   *     return;
+   *   }
+   *
+   *   // Use stats
+   *   this.updateDashboard(stats);
+   * }
+   * ```
+   */
+  async executeWithErrorHandling(operation, fn) {
+    try {
+      return await fn();
+    } catch (error48) {
+      this.logger.error(`${operation} failed:`, error48);
+      return null;
+    }
+  }
+  /**
+   * Execute a synchronous operation with error handling and logging
+   *
+   * Similar to executeWithErrorHandling but for synchronous operations.
+   *
+   * @param operation - Description of the operation (for error messages)
+   * @param fn - Synchronous function to execute
+   * @returns The result of the function, or null if an error occurred
+   *
+   * @example
+   * ```typescript
+   * getDueCardCount() {
+   *   return this.executeSyncWithErrorHandling(
+   *     'Getting due card count',
+   *     () => {
+   *       return this.queueManager.getDueCount();
+   *     }
+   *   );
+   * }
+   * ```
+   */
+  executeSyncWithErrorHandling(operation, fn) {
+    try {
+      return fn();
+    } catch (error48) {
+      this.logger.error(`${operation} failed:`, error48);
+      return null;
+    }
+  }
+  /**
+   * Log the correlation ID for the current controller instance
+   *
+   * Useful for tracing requests and operations across the application.
+   * The correlation ID is maintained by the logger instance.
+   *
+   * @returns The correlation ID string
+   *
+   * @example
+   * ```typescript
+   * async processRequest() {
+   *   const cid = this.logCorrelationId();
+   *   console.log(`Processing request with correlation ID: ${cid}`);
+   *   // ... process request
+   * }
+   * ```
+   */
+  logCorrelationId() {
+    const cid = this.logger.getCorrelationId();
+    this.logger.debug(`Correlation ID: ${cid}`);
+    return cid;
+  }
+};
+
+// src/ui/controllers/DashboardController.ts
+var DashboardController = class extends BaseController {
+  constructor(logger, eventBus, indexManager, statisticsManager) {
+    super(logger, eventBus);
+    __publicField(this, "indexManager");
+    __publicField(this, "statisticsManager");
+    __publicField(this, "unsubscribeSessionCompleted");
+    __publicField(this, "statsCache", null);
+    this.indexManager = indexManager;
+    this.statisticsManager = statisticsManager;
+  }
+  /**
+   * Initialize the dashboard controller
+   *
+   * Sets up event subscriptions to refresh statistics when sessions complete.
    */
   async initialize() {
-    try {
-      await this.load();
-      if (!this.leaf) {
-        await this.openUnifiedView();
-      }
-    } catch (error48) {
-      console.error("Failed to initialize NavigationManager:", error48);
-      navigationState.set({
-        currentView: "dashboard",
-        reviewContext: null,
-        dashboardContext: {
-          selectedPeriod: "7days",
-          showDetails: false
-        }
-      });
-    }
+    this.logger.info("DashboardController initializing");
+    this.unsubscribeSessionCompleted = this.eventBus.on(
+      AppEvents.SESSION_COMPLETED,
+      this.handleSessionCompleted.bind(this)
+    );
+    this.logger.info("DashboardController initialized");
   }
   /**
-   * Initializes the navigation manager with a specific workspace leaf.
-   * @param leaf - The workspace leaf to use for the unified view
+   * Get dashboard statistics
+   *
+   * Loads and returns the current dashboard statistics.
+   * Uses error handling wrapper to gracefully handle failures.
+   *
+   * @returns Dashboard statistics or null if loading fails
    */
-  initializeWithLeaf(leaf) {
-    this.leaf = leaf;
-    void this.initialize();
+  async getStats() {
+    return this.executeWithErrorHandling("Loading dashboard statistics", async () => {
+      if (this.statsCache) {
+        return this.statsCache;
+      }
+      const stats = await this.refreshDashboard();
+      return stats;
+    });
   }
   /**
-   * Navigates to the specified view.
-   * @param view - Target view ("dashboard" or "review")
-   * @param context - Optional context data for the target view
+   * Refresh dashboard statistics
+   *
+   * Forces a refresh of dashboard statistics from the managers.
+   *
+   * @returns Fresh dashboard statistics or null if refresh fails
    */
-  async navigateTo(view, context) {
-    try {
-      const currentState = this.getState();
-      if (currentState.currentView === view) {
-        throw new Error(`Invalid navigation: already in ${view} view`);
-      }
-      const newState = {
-        currentView: view,
-        reviewContext: view === "review" ? context : null,
-        dashboardContext: view === "dashboard" ? context != null ? context : currentState.dashboardContext : null
+  async refreshDashboard() {
+    return this.executeWithErrorHandling("Refreshing dashboard statistics", async () => {
+      const statistics = this.statisticsManager.statistics;
+      const index = this.indexManager.index;
+      const allCards = Object.values(index.cards);
+      const now2 = /* @__PURE__ */ new Date();
+      const dueCards = allCards.filter((card) => {
+        const dueDate = new Date(card.srs.next_review);
+        return dueDate <= now2;
+      }).length;
+      const today = /* @__PURE__ */ new Date();
+      today.setHours(0, 0, 0, 0);
+      const reviewedToday = statistics.history.filter((session) => {
+        const sessionDate = new Date(session.date);
+        return sessionDate >= today;
+      }).reduce((total, session) => total + session.cardsReviewed, 0);
+      const totalReviewed = statistics.history.reduce(
+        (total, session) => total + session.cardsReviewed,
+        0
+      );
+      const totalCorrect = statistics.history.reduce(
+        (total, session) => total + session.correctCount,
+        0
+      );
+      const averageRetention = totalReviewed > 0 ? totalCorrect / totalReviewed * 100 : 0;
+      const dashboardStats = {
+        totalCards: allCards.length,
+        dueCards,
+        reviewedToday,
+        averageRetention: Math.round(averageRetention)
       };
-      navigationState.set(newState);
-      await this.save();
-    } catch (error48) {
-      console.error("Navigation failed:", error48);
-      throw error48;
+      this.statsCache = dashboardStats;
+      this.logCorrelationId();
+      return dashboardStats;
+    });
+  }
+  /**
+   * Handle session completed event
+   *
+   * Called automatically when a review session completes.
+   * Refreshes dashboard statistics to show updated data.
+   */
+  handleSessionCompleted() {
+    this.logger.info("Session completed, refreshing dashboard statistics");
+    this.refreshDashboard().catch((error48) => {
+      this.logger.error("Failed to refresh dashboard after session completed:", error48);
+    });
+  }
+  /**
+   * Clear the statistics cache
+   *
+   * Forces the next getStats() call to reload data.
+   */
+  clearStatsCache() {
+    this.statsCache = null;
+    this.logger.debug("Dashboard statistics cache cleared");
+  }
+  /**
+   * Dispose of the dashboard controller
+   *
+   * Cleans up event subscriptions and resources.
+   */
+  async dispose() {
+    this.logger.info("DashboardController disposing");
+    if (this.unsubscribeSessionCompleted) {
+      this.unsubscribeSessionCompleted();
+      this.unsubscribeSessionCompleted = void 0;
     }
-  }
-  /**
-   * Returns the current navigation state.
-   */
-  getState() {
-    let state;
-    navigationState.subscribe((s) => {
-      state = s;
-    })();
-    return state;
-  }
-  /**
-   * Updates the review context (e.g., during session).
-   * @param context - New review context
-   */
-  updateReviewContext(context) {
-    navigationState.update((state) => ({
-      ...state,
-      reviewContext: context
-    }));
-    void this.save();
-  }
-  /**
-   * Updates the dashboard context (e.g., period selection).
-   * @param context - New dashboard context
-   */
-  updateDashboardContext(context) {
-    navigationState.update((state) => ({
-      ...state,
-      reviewContext: null,
-      dashboardContext: context
-    }));
-    void this.save();
-  }
-  /**
-   * Opens the unified view in a new ribbon-icon leaf.
-   * @returns Promise that resolves when view is opened
-   */
-  async openUnifiedView() {
-    try {
-      if (this.leaf) {
-        this.app.workspace.revealLeaf(this.leaf);
-        return;
-      }
-      this.leaf = this.app.workspace.getRightLeaf(false);
-      if (!this.leaf) {
-        throw new Error("Failed to create workspace leaf");
-      }
-      this.leaf.setViewState({
-        type: this.UNIFIED_VIEW_TYPE,
-        active: true
-      });
-      this.app.workspace.revealLeaf(this.leaf);
-    } catch (error48) {
-      console.error("Failed to open unified view:", error48);
-      throw error48;
-    }
-  }
-  /**
-   * Closes the unified view.
-   */
-  closeUnifiedView() {
-    try {
-      if (this.leaf) {
-        this.leaf.detach();
-        this.leaf = null;
-      }
-    } catch (error48) {
-      console.error("Failed to close unified view:", error48);
-    }
-  }
-  /**
-   * Persists the current navigation state to plugin settings.
-   * Called on state changes.
-   */
-  async save() {
-    var _a3;
-    try {
-      const state = this.getState();
-      const plugin = (_a3 = this.app.plugins) == null ? void 0 : _a3.getPlugin("obs-knowledge-accelerator");
-      if (plugin && plugin.settings) {
-        plugin.settings.navigationState = state;
-        await plugin.saveSettings();
-      }
-    } catch (error48) {
-      console.error("Failed to save navigation state:", error48);
-    }
-  }
-  /**
-   * Loads navigation state from plugin settings.
-   */
-  async load() {
-    var _a3, _b;
-    try {
-      const plugin = (_a3 = this.app.plugins) == null ? void 0 : _a3.getPlugin("obs-knowledge-accelerator");
-      if ((_b = plugin == null ? void 0 : plugin.settings) == null ? void 0 : _b.navigationState) {
-        const validState = NavigationStateSchema2.parse(plugin.settings.navigationState);
-        navigationState.set(validState);
-        console.log("[NavigationManager] Loaded navigation state:", validState);
-      } else {
-        console.log("[NavigationManager] No saved state, using defaults");
-      }
-    } catch (error48) {
-      console.error("[NavigationManager] Failed to load navigation state:", error48);
-      navigationState.set({
-        currentView: "dashboard",
-        reviewContext: null,
-        dashboardContext: {
-          selectedPeriod: "7days",
-          showDetails: false
-        }
-      });
-    }
+    this.statsCache = null;
+    this.logger.info("DashboardController disposed");
   }
 };
 
 // src/ui/stores/UIStore.ts
-var DEFAULT_STATE3 = {
+var DEFAULT_STATE2 = {
   currentView: "dashboard",
   loading: { isLoading: false },
   error: { hasError: false, message: "" },
@@ -24728,7 +22811,7 @@ var DEFAULT_STATE3 = {
 var UIStore = class {
   constructor() {
     __publicField(this, "_state");
-    this._state = writable(DEFAULT_STATE3);
+    this._state = writable(DEFAULT_STATE2);
   }
   /**
    * Subscribe to state changes.
@@ -24821,7 +22904,7 @@ var UIStore = class {
    * Resets the entire store to its default initial state.
    */
   reset() {
-    this._state.set(DEFAULT_STATE3);
+    this._state.set(DEFAULT_STATE2);
   }
 };
 var uiStore = new UIStore();
@@ -24831,326 +22914,218 @@ var loadingMessage = derived(uiStore, ($s) => $s.loading.message);
 var errorState = derived(uiStore, ($s) => $s.error);
 var notifications = derived(uiStore, ($s) => $s.notifications);
 
-// src/ui/views/Dashboard/schemas.ts
-var ProgressEntrySchema = external_exports.object({
-  date: external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
-  completed: external_exports.number().int().nonnegative(),
-  target: external_exports.number().int().nonnegative(),
-  newCards: external_exports.number().int().nonnegative(),
-  retention: external_exports.number().min(0).max(1)
-});
-var DashboardStatsSchema = external_exports.object({
-  totalCards: external_exports.number().int().nonnegative(),
-  retentionRate: external_exports.number().min(0).max(1),
-  dueCount: external_exports.number().int().nonnegative(),
-  dailyGoal: external_exports.number().int(),
-  streakDays: external_exports.number().int().nonnegative(),
-  cardsLearnedToday: external_exports.number().int().nonnegative(),
-  estimatedTimeMinutes: external_exports.number().int().nonnegative(),
-  progressData: external_exports.array(ProgressEntrySchema)
-});
-var DashboardConfigSchema2 = external_exports.object({
-  dailyGoal: external_exports.number().int().positive().default(20),
-  showProgressChart: external_exports.boolean().default(true),
-  showRetentionRate: external_exports.boolean().default(true),
-  chartTimeframe: external_exports.enum(["week", "month", "year"]).default("week"),
-  preferredChartType: external_exports.enum(["bar", "line"]).default("bar")
-});
-var StatsTrendSchema = external_exports.object({
-  value: external_exports.number(),
-  isPositive: external_exports.boolean()
-});
-var StatsCardPropsSchema = external_exports.object({
-  label: external_exports.string().min(1),
-  value: external_exports.union([external_exports.string(), external_exports.number()]),
-  icon: external_exports.string().optional(),
-  trend: StatsTrendSchema.optional(),
-  description: external_exports.string().optional()
-});
-
-// src/ui/views/Dashboard/DashboardController.ts
-var DashboardController = class {
-  constructor(indexManager, statisticsManager, dueQueueManager, sessionStore) {
-    __publicField(this, "indexManager");
-    __publicField(this, "sessionStore");
-    __publicField(this, "statisticsManager");
-    __publicField(this, "dueQueueManager");
-    this.indexManager = indexManager;
-    this.sessionStore = sessionStore;
-    this.statisticsManager = statisticsManager;
-    this.dueQueueManager = dueQueueManager;
-  }
-  /**
-   * Fetches aggregated statistics for the dashboard
-   *
-   * @returns Promise resolving to dashboard statistics
-   */
-  async getStats() {
-    try {
-      uiStore.setLoading(true, "Loading statistics...");
-      const cards = this.indexManager.getAllCards();
-      if (!cards) {
-        throw new Error("No cards data available");
+// src/ui/views/Dashboard/NestedComponentExample.svelte
+function create_else_block4(ctx) {
+  let div1;
+  return {
+    c() {
+      div1 = element("div");
+      div1.innerHTML = `<div class="ka-spinner svelte-1jje9dy"></div> <span>Loading from context...</span>`;
+      attr(div1, "class", "ka-loading-state svelte-1jje9dy");
+    },
+    m(target, anchor) {
+      insert(target, div1, anchor);
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div1);
       }
-      const totalCards = cards.length;
-      const dueCount = await this.calculateDueCount();
-      const retentionRate = this.statisticsManager.engine.calculateRetention(cards);
-      const dailyGoal = await this.getDailyGoal();
-      const cardsLearnedToday = await this.getCardsReviewedToday();
-      const streakDays = await this.calculateStreak();
-      const estimatedTime = await this.estimateReviewTime(dueCount);
-      const progressData = await this.getProgressData();
-      const stats = {
-        totalCards,
-        retentionRate,
-        dueCount,
-        dailyGoal,
-        streakDays,
-        cardsLearnedToday,
-        estimatedTimeMinutes: estimatedTime,
-        progressData
-      };
-      const validatedStats = DashboardStatsSchema.parse(stats);
-      uiStore.setLoading(false);
-      return validatedStats;
-    } catch (error48) {
-      uiStore.setLoading(false);
-      console.error("Failed to fetch dashboard statistics:", error48);
-      throw error48;
     }
-  }
-  /**
-   * Refreshes all dashboard data from the index
-   * Forces a complete recalculation of statistics
-   */
-  async refreshStats() {
-    try {
-      uiStore.setLoading(true, "Refreshing dashboard...");
-      uiStore.notify({
-        type: "success",
-        message: "Dashboard refreshed successfully",
-        duration: 3e3
-      });
-      uiStore.setLoading(false);
-    } catch (error48) {
-      uiStore.setLoading(false);
-      console.error("Failed to refresh dashboard:", error48);
-      uiStore.notify({
-        type: "error",
-        message: "Failed to refresh dashboard data",
-        duration: 5e3
-      });
-      throw error48;
-    }
-  }
-  /**
-   * Starts a review session with optional deck filter
-   *
-   * @param deckId - Optional deck ID to filter cards by
-   */
-  async startReviewSession() {
-    try {
-      uiStore.setLoading(true, "Starting review session...");
-      const dueCount = await this.calculateDueCount();
-      if (dueCount === 0) {
-        uiStore.setLoading(false);
-        uiStore.notify({
-          type: "info",
-          message: "No cards are due for review. Great job!",
-          duration: 4e3
-        });
-        return;
-      }
-      await this.sessionStore.startSession();
-      uiStore.navigate("review");
-      uiStore.setLoading(false);
-    } catch (error48) {
-      uiStore.setLoading(false);
-      console.error("Failed to start review session:", error48);
-      uiStore.notify({
-        type: "error",
-        message: "Failed to start review session",
-        duration: 5e3
-      });
-      throw error48;
-    }
-  }
-  /**
-   * Updates dashboard configuration
-   *
-   * @param config - New configuration to save
-   */
-  async updateConfig(config2) {
-    try {
-      const validatedConfig = DashboardConfigSchema2.partial().parse(config2);
-      console.log("Dashboard configuration updated:", validatedConfig);
-      uiStore.notify({
-        type: "success",
-        message: "Settings saved successfully",
-        duration: 3e3
-      });
-    } catch (error48) {
-      console.error("Failed to update dashboard configuration:", error48);
-      uiStore.notify({
-        type: "error",
-        message: "Failed to save settings",
-        duration: 4e3
-      });
-      throw error48;
-    }
-  }
-  /**
-   * Calculates the number of cards currently due for review
-   *
-   * @returns Promise resolving to due card count
-   */
-  async calculateDueCount() {
-    try {
-      const dueQueue = await this.dueQueueManager.generate();
-      return dueQueue.totalDue;
-    } catch (error48) {
-      console.error("Failed to calculate due count:", error48);
-      return 0;
-    }
-  }
-  /**
-   * Gets the user's daily review goal
-   *
-   * @returns Promise resolving to daily goal
-   */
-  async getDailyGoal() {
-    try {
-      return this.statisticsManager.statistics.daily_goal;
-    } catch (error48) {
-      console.error("Failed to get daily goal:", error48);
-      return 0;
-    }
-  }
-  /**
-   * Gets the number of cards reviewed today
-   *
-   * @returns Promise resolving to today's review count
-   */
-  async getCardsReviewedToday() {
-    var _a3;
-    try {
-      const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
-      const todayProgress = this.statisticsManager.statistics.progress.find(
-        (progress) => progress.date === today
+  };
+}
+function create_if_block9(ctx) {
+  let div2;
+  let div0;
+  let span0;
+  let t1;
+  let span1;
+  let t2;
+  let t3;
+  let div1;
+  return {
+    c() {
+      div2 = element("div");
+      div0 = element("div");
+      span0 = element("span");
+      span0.textContent = "Total Cards in Vault";
+      t1 = space();
+      span1 = element("span");
+      t2 = text(
+        /*totalCards*/
+        ctx[0]
       );
-      return (_a3 = todayProgress == null ? void 0 : todayProgress.cardsReviewed) != null ? _a3 : 0;
-    } catch (error48) {
-      console.error("Failed to get today's review count:", error48);
-      return 0;
-    }
-  }
-  /**
-   * Calculates the current streak of consecutive days meeting daily goal
-   *
-   * @returns Promise resolving to current streak
-   */
-  async calculateStreak() {
-    try {
-      return this.statisticsManager.statistics.current_streak;
-    } catch (error48) {
-      console.error("Failed to calculate streak:", error48);
-      return 0;
-    }
-  }
-  /**
-   * Estimates the time required to complete due reviews
-   *
-   * @param dueCount - Number of cards due
-   * @returns Estimated time in minutes
-   */
-  async estimateReviewTime(dueCount) {
-    const averageSecondsPerCard = 30;
-    return Math.round(dueCount * averageSecondsPerCard / 60);
-  }
-  /**
-   * Gets historical progress data for the last 7 days
-   *
-   * @returns Promise resolving to progress data array
-   */
-  async getProgressData() {
-    var _a3, _b;
-    try {
-      const today = /* @__PURE__ */ new Date();
-      const dailyGoal = this.statisticsManager.statistics.daily_goal;
-      const progressArray = this.statisticsManager.statistics.progress;
-      const progressMap = /* @__PURE__ */ new Map();
-      for (const entry of progressArray) {
-        progressMap.set(entry.date, entry);
+      t3 = space();
+      div1 = element("div");
+      div1.textContent = "\u2705 Successfully accessed managers via context!";
+      attr(span0, "class", "ka-stat-label svelte-1jje9dy");
+      attr(span1, "class", "ka-stat-value svelte-1jje9dy");
+      attr(div0, "class", "ka-stat-item svelte-1jje9dy");
+      attr(div1, "class", "ka-success-message svelte-1jje9dy");
+      attr(div2, "class", "ka-stats-display svelte-1jje9dy");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, div0);
+      append(div0, span0);
+      append(div0, t1);
+      append(div0, span1);
+      append(span1, t2);
+      append(div2, t3);
+      append(div2, div1);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*totalCards*/
+      1)
+        set_data(
+          t2,
+          /*totalCards*/
+          ctx2[0]
+        );
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
       }
-      const progressData = [];
-      for (let i = 6; i >= 0; i--) {
-        const date5 = new Date(today);
-        date5.setDate(today.getDate() - i);
-        const dateStr = date5.toISOString().split("T")[0];
-        const dailyProgress = progressMap.get(dateStr);
-        progressData.push({
-          date: dateStr,
-          completed: (_a3 = dailyProgress == null ? void 0 : dailyProgress.cardsReviewed) != null ? _a3 : 0,
-          target: dailyGoal,
-          newCards: 0,
-          // Not directly available in DailyProgress, may be derived from session data
-          retention: (_b = dailyProgress == null ? void 0 : dailyProgress.retentionRate) != null ? _b : 0
-        });
-      }
-      return progressData;
-    } catch (error48) {
-      console.error("Failed to get progress data:", error48);
-      return [];
     }
+  };
+}
+function create_fragment13(ctx) {
+  let div6;
+  let div1;
+  let t3;
+  let div4;
+  let div2;
+  let t26;
+  let t27;
+  let div3;
+  let button;
+  let t29;
+  let div5;
+  let mounted;
+  let dispose;
+  function select_block_type(ctx2, dirty) {
+    if (
+      /*indexReady*/
+      ctx2[1]
+    )
+      return create_if_block9;
+    return create_else_block4;
+  }
+  let current_block_type = select_block_type(ctx, -1);
+  let if_block = current_block_type(ctx);
+  return {
+    c() {
+      div6 = element("div");
+      div1 = element("div");
+      div1.innerHTML = `<h3 class="ka-example-title svelte-1jje9dy">Deeply Nested Component</h3> <div class="ka-example-badge svelte-1jje9dy">Context Access Demo</div>`;
+      t3 = space();
+      div4 = element("div");
+      div2 = element("div");
+      div2.innerHTML = `<h4 class="svelte-1jje9dy">Component Demonstration</h4> <p class="svelte-1jje9dy">This component demonstrates accessing managers and services via Svelte context without prop drilling.</p> <ul class="ka-feature-list svelte-1jje9dy"><li class="svelte-1jje9dy">\u2713 Accesses <strong class="svelte-1jje9dy">IndexManager</strong> via <code class="svelte-1jje9dy">useManager()</code></li> <li class="svelte-1jje9dy">\u2713 Accesses <strong class="svelte-1jje9dy">StatisticsManager</strong> via <code class="svelte-1jje9dy">useManager()</code></li> <li class="svelte-1jje9dy">\u2713 Accesses <strong class="svelte-1jje9dy">EventBus</strong> via <code class="svelte-1jje9dy">useService()</code></li> <li class="svelte-1jje9dy">\u2713 No props passed from parent component</li> <li class="svelte-1jje9dy">\u2713 Receives current context value (not stale snapshot)</li></ul>`;
+      t26 = space();
+      if_block.c();
+      t27 = space();
+      div3 = element("div");
+      button = element("button");
+      button.innerHTML = `<svg class="ka-button-icon svelte-1jje9dy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 12 15 3 22 12"></polyline></svg>
+				Emit Test Event`;
+      t29 = space();
+      div5 = element("div");
+      div5.innerHTML = `<p class="ka-footer-text svelte-1jje9dy"><strong class="svelte-1jje9dy">Key Insight:</strong> This component can be moved anywhere in the component tree
+			and will continue working without modifying parent prop chains.</p>`;
+      attr(div1, "class", "ka-example-header svelte-1jje9dy");
+      attr(div2, "class", "ka-info-box svelte-1jje9dy");
+      attr(button, "class", "ka-test-button svelte-1jje9dy");
+      attr(button, "aria-label", "Emit test event");
+      attr(div3, "class", "ka-actions svelte-1jje9dy");
+      attr(div4, "class", "ka-example-content svelte-1jje9dy");
+      attr(div5, "class", "ka-example-footer svelte-1jje9dy");
+      attr(div6, "class", "ka-nested-component-example svelte-1jje9dy");
+    },
+    m(target, anchor) {
+      insert(target, div6, anchor);
+      append(div6, div1);
+      append(div6, t3);
+      append(div6, div4);
+      append(div4, div2);
+      append(div4, t26);
+      if_block.m(div4, null);
+      append(div4, t27);
+      append(div4, div3);
+      append(div3, button);
+      append(div6, t29);
+      append(div6, div5);
+      if (!mounted) {
+        dispose = listen(
+          button,
+          "click",
+          /*emitTestEvent*/
+          ctx[2]
+        );
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block) {
+        if_block.p(ctx2, dirty);
+      } else {
+        if_block.d(1);
+        if_block = current_block_type(ctx2);
+        if (if_block) {
+          if_block.c();
+          if_block.m(div4, t27);
+        }
+      }
+    },
+    i: noop,
+    o: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div6);
+      }
+      if_block.d();
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function instance13($$self, $$props, $$invalidate) {
+  const indexManager = useManager("IndexManager");
+  const statisticsManager = useManager("StatisticsManager");
+  const eventBus = useService("EventBus");
+  let totalCards = 0;
+  let indexReady = false;
+  onMount(async () => {
+    try {
+      Logger.info("NestedComponentExample: Accessing IndexManager via context");
+      const cards = indexManager.getAllCards();
+      $$invalidate(0, totalCards = cards.length);
+      Logger.info("NestedComponentExample: Accessing StatisticsManager via context");
+      eventBus.on("test:context", (data) => {
+        Logger.info("NestedComponentExample received event:", data);
+      });
+      $$invalidate(1, indexReady = true);
+      Logger.info(`NestedComponentExample: Successfully accessed context. Total cards: ${totalCards}`);
+    } catch (error48) {
+      Logger.error("NestedComponentExample: Failed to access managers via context:", error48);
+    }
+  });
+  function emitTestEvent() {
+    eventBus.emit("test:context", {
+      source: "NestedComponentExample",
+      timestamp: Date.now()
+    });
+  }
+  return [totalCards, indexReady, emitTestEvent];
+}
+var NestedComponentExample = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance13, create_fragment13, safe_not_equal, {});
   }
 };
-
-// src/ui/views/Review/ReviewController.ts
-var import_obsidian8 = require("obsidian");
-var ReviewController = class {
-  constructor(app, indexManager, sessionStore) {
-    this.app = app;
-    __publicField(this, "indexManager");
-    __publicField(this, "sessionStore");
-    this.indexManager = indexManager;
-    this.sessionStore = sessionStore;
-  }
-  async getNextCard() {
-    let card = null;
-    this.sessionStore.subscribe((state) => {
-      card = state.currentCard;
-    })();
-    return card;
-  }
-  async submitRating(cardId, rating) {
-    await this.sessionStore.submitRating(rating);
-  }
-  async editSource(cardId) {
-    try {
-      const cardMetadata = this.indexManager.getCard(cardId);
-      if (!cardMetadata) {
-        throw new Error(`Card with ID '${cardId}' not found in index`);
-      }
-      const sourcePath = cardMetadata.source;
-      if (!sourcePath) {
-        throw new Error(`No source path found for card '${cardId}'`);
-      }
-      const file2 = this.app.vault.getAbstractFileByPath(sourcePath);
-      if (!(file2 instanceof import_obsidian8.TFile)) {
-        throw new Error(`Source file '${sourcePath}' not found or is not a file`);
-      }
-      const leaf = this.app.workspace.getLeaf("split");
-      await leaf.openFile(file2);
-      console.log(`Opened source file '${sourcePath}' for card '${cardId}'`);
-    } catch (error48) {
-      console.error("Failed to edit source:", error48);
-      throw error48;
-    }
-  }
-  async verifyAndReset(cardId) {
-    console.log("Verifying and resetting card:", cardId);
-  }
-};
+var NestedComponentExample_default = NestedComponentExample;
 
 // src/ui/views/Dashboard/Dashboard.svelte
 function get_each_context4(ctx, list, i) {
@@ -25240,7 +23215,7 @@ function create_default_slot_22(ctx) {
     }
   };
 }
-function create_else_block4(ctx) {
+function create_else_block5(ctx) {
   let div3;
   let div0;
   let span0;
@@ -25303,6 +23278,8 @@ function create_else_block4(ctx) {
   let t28;
   let div5;
   let button;
+  let t29;
+  let nestedcomponentexample;
   let current;
   let if_block0 = (
     /*config*/
@@ -25349,6 +23326,7 @@ function create_else_block4(ctx) {
     /*handleStartReview*/
     ctx[10]
   );
+  nestedcomponentexample = new NestedComponentExample_default({});
   return {
     c() {
       div3 = element("div");
@@ -25406,6 +23384,8 @@ function create_else_block4(ctx) {
       t28 = space();
       div5 = element("div");
       create_component(button.$$.fragment);
+      t29 = space();
+      create_component(nestedcomponentexample.$$.fragment);
       attr(span0, "class", "ka-stat-card__label svelte-bt0spb");
       attr(span1, "class", "ka-stat-card__value svelte-bt0spb");
       attr(span2, "class", "ka-stat-card__description svelte-bt0spb");
@@ -25477,6 +23457,8 @@ function create_else_block4(ctx) {
       insert(target, t28, anchor);
       insert(target, div5, anchor);
       mount_component(button, div5, null);
+      insert(target, t29, anchor);
+      mount_component(nestedcomponentexample, target, anchor);
       current = true;
     },
     p(ctx2, dirty) {
@@ -25572,11 +23554,13 @@ function create_else_block4(ctx) {
         return;
       transition_in(progressbar.$$.fragment, local);
       transition_in(button.$$.fragment, local);
+      transition_in(nestedcomponentexample.$$.fragment, local);
       current = true;
     },
     o(local) {
       transition_out(progressbar.$$.fragment, local);
       transition_out(button.$$.fragment, local);
+      transition_out(nestedcomponentexample.$$.fragment, local);
       current = false;
     },
     d(detaching) {
@@ -25587,6 +23571,7 @@ function create_else_block4(ctx) {
         detach(t27);
         detach(t28);
         detach(div5);
+        detach(t29);
       }
       if (if_block0)
         if_block0.d();
@@ -25596,10 +23581,11 @@ function create_else_block4(ctx) {
       if (if_block2)
         if_block2.d(detaching);
       destroy_component(button);
+      destroy_component(nestedcomponentexample, detaching);
     }
   };
 }
-function create_if_block9(ctx) {
+function create_if_block10(ctx) {
   let div;
   let icon;
   let t0;
@@ -26282,7 +24268,7 @@ function create_default_slot5(ctx) {
     }
   };
 }
-function create_fragment13(ctx) {
+function create_fragment14(ctx) {
   let div2;
   let header;
   let div0;
@@ -26328,7 +24314,7 @@ function create_fragment13(ctx) {
     /*handleOpenSettings*/
     ctx[12]
   );
-  const if_block_creators = [create_if_block9, create_else_block4];
+  const if_block_creators = [create_if_block10, create_else_block5];
   const if_blocks = [];
   function select_block_type(ctx2, dirty) {
     if (
@@ -26455,7 +24441,7 @@ function getDayName(dateStr) {
 function formatPercent(value) {
   return `${Math.round(value * 100)}%`;
 }
-function instance13($$self, $$props, $$invalidate) {
+function instance14($$self, $$props, $$invalidate) {
   let dailyProgress;
   let isReviewDisabled;
   let hasDueCards;
@@ -26556,7 +24542,7 @@ function instance13($$self, $$props, $$invalidate) {
 var Dashboard = class extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance13, create_fragment13, safe_not_equal, {
+    init(this, options, instance14, create_fragment14, safe_not_equal, {
       stats: 0,
       config: 1,
       onStartReview: 13,
@@ -26570,7 +24556,7 @@ var Dashboard = class extends SvelteComponent {
 var Dashboard_default = Dashboard;
 
 // src/ui/components/flashcards/CardFace.svelte
-var import_obsidian9 = require("obsidian");
+var import_obsidian8 = require("obsidian");
 function create_if_block_18(ctx) {
   let div;
   let button;
@@ -26654,7 +24640,7 @@ function create_default_slot6(ctx) {
     }
   };
 }
-function create_if_block10(ctx) {
+function create_if_block11(ctx) {
   let div0;
   let t;
   let div1;
@@ -26683,7 +24669,7 @@ function create_if_block10(ctx) {
     }
   };
 }
-function create_fragment14(ctx) {
+function create_fragment15(ctx) {
   let div2;
   let t0;
   let div1;
@@ -26702,7 +24688,7 @@ function create_fragment14(ctx) {
   );
   let if_block1 = (
     /*mode*/
-    ctx[0] !== "front" && create_if_block10(ctx)
+    ctx[0] !== "front" && create_if_block11(ctx)
   );
   return {
     c() {
@@ -26811,7 +24797,7 @@ function create_fragment14(ctx) {
         if (if_block1) {
           if_block1.p(ctx2, dirty);
         } else {
-          if_block1 = create_if_block10(ctx2);
+          if_block1 = create_if_block11(ctx2);
           if_block1.c();
           if_block1.m(div1, null);
         }
@@ -26876,7 +24862,7 @@ function create_fragment14(ctx) {
     }
   };
 }
-function instance14($$self, $$props, $$invalidate) {
+function instance15($$self, $$props, $$invalidate) {
   let { front } = $$props;
   let { back = "" } = $$props;
   let { mode = "front" } = $$props;
@@ -26886,12 +24872,12 @@ function instance14($$self, $$props, $$invalidate) {
   let { app } = $$props;
   let frontEl;
   let backEl;
-  const component = new import_obsidian9.Component();
+  const component = new import_obsidian8.Component();
   async function renderMarkdown(el, content) {
     if (!el || !content)
       return;
     el.empty();
-    await import_obsidian9.MarkdownRenderer.render(app, content, el, "", component);
+    await import_obsidian8.MarkdownRenderer.render(app, content, el, "", component);
   }
   onMount(() => {
     component.load();
@@ -26965,7 +24951,7 @@ function instance14($$self, $$props, $$invalidate) {
 var CardFace = class extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance14, create_fragment14, safe_not_equal, {
+    init(this, options, instance15, create_fragment15, safe_not_equal, {
       front: 7,
       back: 8,
       mode: 0,
@@ -27120,7 +25106,7 @@ function create_each_block5(ctx) {
     }
   };
 }
-function create_fragment15(ctx) {
+function create_fragment16(ctx) {
   let div;
   let current;
   let each_value = ensure_array_like(
@@ -27216,7 +25202,7 @@ function create_fragment15(ctx) {
     }
   };
 }
-function instance15($$self, $$props, $$invalidate) {
+function instance16($$self, $$props, $$invalidate) {
   let { onSubmitRating } = $$props;
   let { disabled = false } = $$props;
   const ratings = [
@@ -27261,7 +25247,7 @@ function instance15($$self, $$props, $$invalidate) {
 var RatingControls = class extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance15, create_fragment15, safe_not_equal, { onSubmitRating: 0, disabled: 1 });
+    init(this, options, instance16, create_fragment16, safe_not_equal, { onSubmitRating: 0, disabled: 1 });
   }
 };
 var RatingControls_default = RatingControls;
@@ -27362,6 +25348,52 @@ function gesture(node, options = {}) {
   };
 }
 
+// src/ui/schemas.ts
+var ReviewRatingSchema = external_exports.union([external_exports.literal(1), external_exports.literal(2), external_exports.literal(3), external_exports.literal(4)]);
+var DashboardConfigSchema = external_exports.object({
+  dailyGoal: external_exports.number().int().positive().default(20),
+  showProgressChart: external_exports.boolean().default(true),
+  showRetentionRate: external_exports.boolean().default(true),
+  chartTimeframe: external_exports.enum(["week", "month", "year"]).default("week")
+});
+var GestureSchema = external_exports.object({
+  type: external_exports.enum(["swipe", "tap", "hold"]),
+  direction: external_exports.enum(["left", "right", "up", "down"]).optional(),
+  distance: external_exports.number().nonnegative().optional(),
+  velocity: external_exports.number().nonnegative().optional()
+});
+var DashboardStateSchema = external_exports.object({
+  totalCards: external_exports.number().int().nonnegative(),
+  retentionRate: external_exports.number().min(0).max(1),
+  dueCount: external_exports.number().int().nonnegative(),
+  dailyGoal: external_exports.number().int().positive(),
+  progressData: external_exports.array(
+    external_exports.object({
+      date: external_exports.string(),
+      completed: external_exports.number().int().nonnegative(),
+      target: external_exports.number().int().nonnegative()
+    })
+  )
+});
+var NotificationSchema = external_exports.object({
+  id: external_exports.string().uuid(),
+  type: external_exports.enum(["info", "success", "warning", "error"]),
+  message: external_exports.string().min(1),
+  duration: external_exports.number().positive().optional()
+});
+var ReviewSessionSchema2 = external_exports.object({
+  sessionId: external_exports.string().uuid(),
+  queue: external_exports.array(external_exports.any()),
+  currentIndex: external_exports.number().int().nonnegative(),
+  startTime: external_exports.string().datetime(),
+  isComplete: external_exports.boolean(),
+  stats: external_exports.object({
+    correct: external_exports.number().int().nonnegative(),
+    incorrect: external_exports.number().int().nonnegative(),
+    total: external_exports.number().int().nonnegative()
+  })
+});
+
 // src/ui/views/Review/Review.svelte
 function create_default_slot_4(ctx) {
   let icon;
@@ -27406,16 +25438,18 @@ function create_else_block_13(ctx) {
   });
   button = new Button_default({
     props: {
-      variant: "primary",
+      variant: "accent",
       $$slots: { default: [create_default_slot_32] },
       $$scope: { ctx }
     }
   });
-  button.$on(
-    "click",
-    /*handleEndSession*/
-    ctx[12]
-  );
+  button.$on("click", function() {
+    if (is_function(
+      /*onEndSession*/
+      ctx[5]
+    ))
+      ctx[5].apply(this, arguments);
+  });
   return {
     c() {
       div = element("div");
@@ -27443,11 +25477,12 @@ function create_else_block_13(ctx) {
       mount_component(button, div, null);
       current = true;
     },
-    p(ctx2, dirty) {
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
       const button_changes = {};
       if (dirty & /*$$scope*/
-      33554432) {
-        button_changes.$$scope = { dirty, ctx: ctx2 };
+      2097152) {
+        button_changes.$$scope = { dirty, ctx };
       }
       button.$set(button_changes);
     },
@@ -27472,7 +25507,7 @@ function create_else_block_13(ctx) {
     }
   };
 }
-function create_if_block11(ctx) {
+function create_if_block12(ctx) {
   let div0;
   let cardface;
   let gesture_action;
@@ -27491,31 +25526,31 @@ function create_if_block11(ctx) {
       ),
       front: (
         /*card*/
-        ctx[8].front
+        ctx[13].front
       ),
       back: (
         /*card*/
-        ctx[8].back
+        ctx[13].back
       ),
       mode: (
         /*showingAnswer*/
-        ctx[3] ? "both" : "front"
+        ctx[8] ? "both" : "front"
       ),
       onFlip: (
-        /*func*/
-        ctx[18]
+        /*onShowAnswer*/
+        ctx[1]
       ),
       onEdit: (
-        /*func_1*/
-        ctx[19]
+        /*onEditCard*/
+        ctx[6]
       )
     }
   });
-  const if_block_creators = [create_if_block_19, create_else_block5];
+  const if_block_creators = [create_if_block_19, create_else_block6];
   const if_blocks = [];
   function select_block_type_1(ctx2, dirty) {
     if (!/*showingAnswer*/
-    ctx2[3])
+    ctx2[8])
       return 0;
     return 1;
   }
@@ -27534,7 +25569,7 @@ function create_if_block11(ctx) {
     m(target, anchor) {
       insert(target, div0, anchor);
       mount_component(cardface, div0, null);
-      ctx[20](div0);
+      ctx[19](div0);
       insert(target, t, anchor);
       insert(target, div1, anchor);
       if_blocks[current_block_type_index].m(div1, null);
@@ -27543,15 +25578,15 @@ function create_if_block11(ctx) {
         dispose = action_destroyer(gesture_action = gesture.call(null, div0, {
           onSwipeLeft: (
             /*handleSwipeLeft*/
-            ctx[9]
+            ctx[14]
           ),
           onSwipeRight: (
             /*handleSwipeRight*/
-            ctx[10]
+            ctx[15]
           ),
           onTap: (
             /*handleTap*/
-            ctx[11]
+            ctx[16]
           ),
           swipeThreshold: 50,
           tapMaxDuration: 200,
@@ -27567,21 +25602,25 @@ function create_if_block11(ctx) {
         cardface_changes.app = /*app*/
         ctx2[0];
       if (dirty & /*card*/
-      256)
+      8192)
         cardface_changes.front = /*card*/
-        ctx2[8].front;
+        ctx2[13].front;
       if (dirty & /*card*/
-      256)
+      8192)
         cardface_changes.back = /*card*/
-        ctx2[8].back;
+        ctx2[13].back;
       if (dirty & /*showingAnswer*/
-      8)
+      256)
         cardface_changes.mode = /*showingAnswer*/
-        ctx2[3] ? "both" : "front";
-      if (dirty & /*sessionStore*/
+        ctx2[8] ? "both" : "front";
+      if (dirty & /*onShowAnswer*/
       2)
-        cardface_changes.onFlip = /*func*/
-        ctx2[18];
+        cardface_changes.onFlip = /*onShowAnswer*/
+        ctx2[1];
+      if (dirty & /*onEditCard*/
+      64)
+        cardface_changes.onEdit = /*onEditCard*/
+        ctx2[6];
       cardface.$set(cardface_changes);
       let previous_block_index = current_block_type_index;
       current_block_type_index = select_block_type_1(ctx2, dirty);
@@ -27623,7 +25662,7 @@ function create_if_block11(ctx) {
         detach(div1);
       }
       destroy_component(cardface);
-      ctx[20](null);
+      ctx[19](null);
       if_blocks[current_block_type_index].d();
       mounted = false;
       dispose();
@@ -27646,14 +25685,14 @@ function create_default_slot_32(ctx) {
     }
   };
 }
-function create_else_block5(ctx) {
+function create_else_block6(ctx) {
   let ratingcontrols;
   let current;
   ratingcontrols = new RatingControls_default({
     props: {
       onSubmitRating: (
-        /*handleSubmitRating*/
-        ctx[13]
+        /*onSubmitRating*/
+        ctx[2]
       )
     }
   });
@@ -27665,7 +25704,14 @@ function create_else_block5(ctx) {
       mount_component(ratingcontrols, target, anchor);
       current = true;
     },
-    p: noop,
+    p(ctx2, dirty) {
+      const ratingcontrols_changes = {};
+      if (dirty & /*onSubmitRating*/
+      4)
+        ratingcontrols_changes.onSubmitRating = /*onSubmitRating*/
+        ctx2[2];
+      ratingcontrols.$set(ratingcontrols_changes);
+    },
     i(local) {
       if (current)
         return;
@@ -27686,18 +25732,20 @@ function create_if_block_19(ctx) {
   let current;
   button = new Button_default({
     props: {
-      variant: "primary",
-      class: "ka-show-answer-button",
+      variant: "accent",
+      className: "ka-show-answer-button",
       ariaLabel: "Show answer",
       $$slots: { default: [create_default_slot_23] },
       $$scope: { ctx }
     }
   });
-  button.$on(
-    "click",
-    /*click_handler*/
-    ctx[21]
-  );
+  button.$on("click", function() {
+    if (is_function(
+      /*onShowAnswer*/
+      ctx[1]
+    ))
+      ctx[1].apply(this, arguments);
+  });
   return {
     c() {
       create_component(button.$$.fragment);
@@ -27706,11 +25754,12 @@ function create_if_block_19(ctx) {
       mount_component(button, target, anchor);
       current = true;
     },
-    p(ctx2, dirty) {
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
       const button_changes = {};
       if (dirty & /*$$scope*/
-      33554432) {
-        button_changes.$$scope = { dirty, ctx: ctx2 };
+      2097152) {
+        button_changes.$$scope = { dirty, ctx };
       }
       button.$set(button_changes);
     },
@@ -27834,7 +25883,7 @@ function create_default_slot8(ctx) {
     }
   };
 }
-function create_fragment16(ctx) {
+function create_fragment17(ctx) {
   let div3;
   let header;
   let div0;
@@ -27869,10 +25918,13 @@ function create_fragment16(ctx) {
   icon0 = new Icon_default({ props: { name: "layers", size: 14 } });
   icon1 = new Icon_default({ props: { name: "clock", size: 14 } });
   progressbar = new ProgressBar_default({
-    props: { value: (
-      /*progress*/
-      ctx[7]
-    ), height: 4 }
+    props: {
+      progress: (
+        /*progress*/
+        ctx[12]
+      ),
+      height: 4
+    }
   });
   button0 = new Button_default({
     props: {
@@ -27883,17 +25935,19 @@ function create_fragment16(ctx) {
       $$scope: { ctx }
     }
   });
-  button0.$on(
-    "click",
-    /*handleEndSession*/
-    ctx[12]
-  );
-  const if_block_creators = [create_if_block11, create_else_block_13];
+  button0.$on("click", function() {
+    if (is_function(
+      /*onEndSession*/
+      ctx[5]
+    ))
+      ctx[5].apply(this, arguments);
+  });
+  const if_block_creators = [create_if_block12, create_else_block_13];
   const if_blocks = [];
   function select_block_type(ctx2, dirty) {
     if (
       /*card*/
-      ctx2[8]
+      ctx2[13]
     )
       return 0;
     return 1;
@@ -27902,41 +25956,45 @@ function create_fragment16(ctx) {
   if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
   button1 = new Button_default({
     props: {
-      variant: "secondary",
+      variant: "ghost",
       size: "sm",
       disabled: (
         /*currentIndex*/
-        ctx[5] <= 1
+        ctx[10] <= 1
       ),
       ariaLabel: "Previous card",
       $$slots: { default: [create_default_slot_14] },
       $$scope: { ctx }
     }
   });
-  button1.$on(
-    "click",
-    /*handlePreviousCard*/
-    ctx[14]
-  );
+  button1.$on("click", function() {
+    if (is_function(
+      /*onPreviousCard*/
+      ctx[4]
+    ))
+      ctx[4].apply(this, arguments);
+  });
   button2 = new Button_default({
     props: {
-      variant: "secondary",
+      variant: "ghost",
       size: "sm",
       disabled: (
         /*currentIndex*/
-        ctx[5] >= /*totalCards*/
-        ctx[4]
+        ctx[10] >= /*totalCards*/
+        ctx[9]
       ),
       ariaLabel: "Next card",
       $$slots: { default: [create_default_slot8] },
       $$scope: { ctx }
     }
   });
-  button2.$on(
-    "click",
-    /*handleNextCard*/
-    ctx[15]
-  );
+  button2.$on("click", function() {
+    if (is_function(
+      /*onNextCard*/
+      ctx[3]
+    ))
+      ctx[3].apply(this, arguments);
+  });
   return {
     c() {
       div3 = element("div");
@@ -27947,12 +26005,12 @@ function create_fragment16(ctx) {
       t0 = space();
       t1 = text(
         /*currentIndex*/
-        ctx[5]
+        ctx[10]
       );
       t2 = text(" / ");
       t3 = text(
         /*totalCards*/
-        ctx[4]
+        ctx[9]
       );
       t4 = space();
       span1 = element("span");
@@ -27960,7 +26018,7 @@ function create_fragment16(ctx) {
       t5 = space();
       t6 = text(
         /*remaining*/
-        ctx[6]
+        ctx[11]
       );
       t7 = text(" remaining");
       t8 = space();
@@ -28019,44 +26077,45 @@ function create_fragment16(ctx) {
       mount_component(button2, div2, null);
       current = true;
     },
-    p(ctx2, [dirty]) {
+    p(new_ctx, [dirty]) {
+      ctx = new_ctx;
       if (!current || dirty & /*currentIndex*/
-      32)
+      1024)
         set_data(
           t1,
           /*currentIndex*/
-          ctx2[5]
+          ctx[10]
         );
       if (!current || dirty & /*totalCards*/
-      16)
+      512)
         set_data(
           t3,
           /*totalCards*/
-          ctx2[4]
+          ctx[9]
         );
       if (!current || dirty & /*remaining*/
-      64)
+      2048)
         set_data(
           t6,
           /*remaining*/
-          ctx2[6]
+          ctx[11]
         );
       const progressbar_changes = {};
       if (dirty & /*progress*/
-      128)
-        progressbar_changes.value = /*progress*/
-        ctx2[7];
+      4096)
+        progressbar_changes.progress = /*progress*/
+        ctx[12];
       progressbar.$set(progressbar_changes);
       const button0_changes = {};
       if (dirty & /*$$scope*/
-      33554432) {
-        button0_changes.$$scope = { dirty, ctx: ctx2 };
+      2097152) {
+        button0_changes.$$scope = { dirty, ctx };
       }
       button0.$set(button0_changes);
       let previous_block_index = current_block_type_index;
-      current_block_type_index = select_block_type(ctx2, dirty);
+      current_block_type_index = select_block_type(ctx, dirty);
       if (current_block_type_index === previous_block_index) {
-        if_blocks[current_block_type_index].p(ctx2, dirty);
+        if_blocks[current_block_type_index].p(ctx, dirty);
       } else {
         group_outros();
         transition_out(if_blocks[previous_block_index], 1, 1, () => {
@@ -28065,33 +26124,33 @@ function create_fragment16(ctx) {
         check_outros();
         if_block = if_blocks[current_block_type_index];
         if (!if_block) {
-          if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx2);
+          if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
           if_block.c();
         } else {
-          if_block.p(ctx2, dirty);
+          if_block.p(ctx, dirty);
         }
         transition_in(if_block, 1);
         if_block.m(main, null);
       }
       const button1_changes = {};
       if (dirty & /*currentIndex*/
-      32)
+      1024)
         button1_changes.disabled = /*currentIndex*/
-        ctx2[5] <= 1;
+        ctx[10] <= 1;
       if (dirty & /*$$scope*/
-      33554432) {
-        button1_changes.$$scope = { dirty, ctx: ctx2 };
+      2097152) {
+        button1_changes.$$scope = { dirty, ctx };
       }
       button1.$set(button1_changes);
       const button2_changes = {};
       if (dirty & /*currentIndex, totalCards*/
-      48)
+      1536)
         button2_changes.disabled = /*currentIndex*/
-        ctx2[5] >= /*totalCards*/
-        ctx2[4];
+        ctx[10] >= /*totalCards*/
+        ctx[9];
       if (dirty & /*$$scope*/
-      33554432) {
-        button2_changes.$$scope = { dirty, ctx: ctx2 };
+      2097152) {
+        button2_changes.$$scope = { dirty, ctx };
       }
       button2.$set(button2_changes);
     },
@@ -28132,7 +26191,7 @@ function create_fragment16(ctx) {
   };
 }
 var isGesturing = false;
-function instance16($$self, $$props, $$invalidate) {
+function instance17($$self, $$props, $$invalidate) {
   let card;
   let showingAnswer;
   let progress;
@@ -28141,8 +26200,13 @@ function instance16($$self, $$props, $$invalidate) {
   let currentIndex;
   let totalCards;
   let { app } = $$props;
+  let { onShowAnswer } = $$props;
+  let { onSubmitRating } = $$props;
+  let { onNextCard } = $$props;
+  let { onPreviousCard } = $$props;
+  let { onEndSession } = $$props;
+  let { onEditCard } = $$props;
   let { sessionStore } = $$props;
-  let { navigationManager } = $$props;
   let cardContainer;
   function handleKeyDown(event) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -28151,24 +26215,24 @@ function instance16($$self, $$props, $$invalidate) {
     if (event.code === "Space") {
       event.preventDefault();
       if (!showingAnswer) {
-        sessionStore.showAnswer();
+        onShowAnswer();
       }
     } else if (event.key === "1") {
       if (showingAnswer)
-        sessionStore.submitRating(1);
+        onSubmitRating(1);
     } else if (event.key === "2") {
       if (showingAnswer)
-        sessionStore.submitRating(2);
+        onSubmitRating(2);
     } else if (event.key === "3") {
       if (showingAnswer)
-        sessionStore.submitRating(3);
+        onSubmitRating(3);
     } else if (event.key === "4") {
       if (showingAnswer)
-        sessionStore.submitRating(4);
+        onSubmitRating(4);
     } else if (event.key.toLowerCase() === "n") {
-      sessionStore.nextCard();
+      onNextCard();
     } else if (event.key.toLowerCase() === "p") {
-      sessionStore.previousCard();
+      onPreviousCard();
     }
   }
   onMount(() => {
@@ -28179,98 +26243,92 @@ function instance16($$self, $$props, $$invalidate) {
   });
   function handleSwipeLeft() {
     if (showingAnswer) {
-      sessionStore.submitRating(1);
+      onSubmitRating(1);
     } else {
-      sessionStore.previousCard();
+      onPreviousCard();
     }
   }
   function handleSwipeRight() {
     if (showingAnswer) {
-      sessionStore.submitRating(3);
+      onSubmitRating(3);
     } else {
-      sessionStore.showAnswer();
+      onShowAnswer();
     }
   }
   function handleTap() {
     if (!showingAnswer && !isGesturing) {
-      sessionStore.showAnswer();
+      onShowAnswer();
     }
   }
-  function handleEndSession() {
-    navigationManager.navigateTo("dashboard");
-  }
-  function handleStartSession() {
-    sessionStore.startSession();
-  }
-  function handleShowAnswer() {
-    sessionStore.showAnswer();
-  }
-  function handleSubmitRating(rating) {
-    sessionStore.submitRating(rating);
-  }
-  function handlePreviousCard() {
-    sessionStore.previousCard();
-  }
-  function handleNextCard() {
-    sessionStore.nextCard();
-  }
-  const func = () => sessionStore.showAnswer();
-  const func_1 = () => console.log("Edit card");
   function div0_binding($$value) {
     binding_callbacks[$$value ? "unshift" : "push"](() => {
       cardContainer = $$value;
-      $$invalidate(2, cardContainer);
+      $$invalidate(7, cardContainer);
     });
   }
-  const click_handler = () => sessionStore.showAnswer();
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
       $$invalidate(0, app = $$props2.app);
+    if ("onShowAnswer" in $$props2)
+      $$invalidate(1, onShowAnswer = $$props2.onShowAnswer);
+    if ("onSubmitRating" in $$props2)
+      $$invalidate(2, onSubmitRating = $$props2.onSubmitRating);
+    if ("onNextCard" in $$props2)
+      $$invalidate(3, onNextCard = $$props2.onNextCard);
+    if ("onPreviousCard" in $$props2)
+      $$invalidate(4, onPreviousCard = $$props2.onPreviousCard);
+    if ("onEndSession" in $$props2)
+      $$invalidate(5, onEndSession = $$props2.onEndSession);
+    if ("onEditCard" in $$props2)
+      $$invalidate(6, onEditCard = $$props2.onEditCard);
     if ("sessionStore" in $$props2)
-      $$invalidate(1, sessionStore = $$props2.sessionStore);
-    if ("navigationManager" in $$props2)
-      $$invalidate(16, navigationManager = $$props2.navigationManager);
+      $$invalidate(17, sessionStore = $$props2.sessionStore);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*sessionStore*/
-    2) {
-      $:
-        $$invalidate(8, card = sessionStore.currentCard);
-    }
-    if ($$self.$$.dirty & /*sessionStore*/
-    2) {
-      $:
-        $$invalidate(3, showingAnswer = sessionStore.isAnswerShowing);
-    }
-    if ($$self.$$.dirty & /*sessionStore*/
-    2) {
-      $:
-        $$invalidate(7, progress = sessionStore.sessionProgress);
-    }
-    if ($$self.$$.dirty & /*sessionStore*/
-    2) {
-      $:
-        $$invalidate(6, remaining = sessionStore.remainingCards);
-    }
-    if ($$self.$$.dirty & /*sessionStore*/
-    2) {
-      $:
-        $$invalidate(17, session = sessionStore.activeSession);
-    }
-    if ($$self.$$.dirty & /*session*/
     131072) {
       $:
-        $$invalidate(5, currentIndex = session ? session.currentIndex + 1 : 0);
+        $$invalidate(13, card = sessionStore.currentCard);
     }
-    if ($$self.$$.dirty & /*session*/
+    if ($$self.$$.dirty & /*sessionStore*/
     131072) {
       $:
-        $$invalidate(4, totalCards = session ? session.queue.length : 0);
+        $$invalidate(8, showingAnswer = sessionStore.isAnswerShowing);
+    }
+    if ($$self.$$.dirty & /*sessionStore*/
+    131072) {
+      $:
+        $$invalidate(12, progress = sessionStore.sessionProgress);
+    }
+    if ($$self.$$.dirty & /*sessionStore*/
+    131072) {
+      $:
+        $$invalidate(11, remaining = sessionStore.remainingCards);
+    }
+    if ($$self.$$.dirty & /*sessionStore*/
+    131072) {
+      $:
+        $$invalidate(18, session = sessionStore.activeSession);
+    }
+    if ($$self.$$.dirty & /*session*/
+    262144) {
+      $:
+        $$invalidate(10, currentIndex = session ? session.currentIndex + 1 : 0);
+    }
+    if ($$self.$$.dirty & /*session*/
+    262144) {
+      $:
+        $$invalidate(9, totalCards = session ? session.queue.length : 0);
     }
   };
   return [
     app,
-    sessionStore,
+    onShowAnswer,
+    onSubmitRating,
+    onNextCard,
+    onPreviousCard,
+    onEndSession,
+    onEditCard,
     cardContainer,
     showingAnswer,
     totalCards,
@@ -28281,32 +26339,219 @@ function instance16($$self, $$props, $$invalidate) {
     handleSwipeLeft,
     handleSwipeRight,
     handleTap,
-    handleEndSession,
-    handleSubmitRating,
-    handlePreviousCard,
-    handleNextCard,
-    navigationManager,
+    sessionStore,
     session,
-    func,
-    func_1,
-    div0_binding,
-    click_handler
+    div0_binding
   ];
 }
 var Review = class extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance16, create_fragment16, safe_not_equal, {
+    init(this, options, instance17, create_fragment17, safe_not_equal, {
       app: 0,
-      sessionStore: 1,
-      navigationManager: 16
+      onShowAnswer: 1,
+      onSubmitRating: 2,
+      onNextCard: 3,
+      onPreviousCard: 4,
+      onEndSession: 5,
+      onEditCard: 6,
+      sessionStore: 17
     });
   }
 };
 var Review_default = Review;
 
+// src/ui/controllers/ReviewController.ts
+var import_obsidian9 = require("obsidian");
+var ReviewController = class extends BaseController {
+  constructor(logger, eventBus, app, indexManager, sessionStore) {
+    super(logger, eventBus);
+    this.app = app;
+    __publicField(this, "indexManager");
+    __publicField(this, "sessionStore");
+    __publicField(this, "isPaused", false);
+    this.indexManager = indexManager;
+    this.sessionStore = sessionStore;
+  }
+  /**
+   * Initialize the controller
+   */
+  async initialize() {
+    this.logger.info("ReviewController initialized");
+  }
+  /**
+   * Dispose of the controller
+   */
+  async dispose() {
+    this.logger.info("ReviewController disposed");
+  }
+  /**
+   * Get the next card in the review queue
+   *
+   * @returns The next flashcard or null if no cards available
+   */
+  async getNextCard() {
+    if (this.isPaused) {
+      this.logger.warn("Cannot get next card: session is paused due to error");
+      return null;
+    }
+    let card = null;
+    this.sessionStore.subscribe((state) => {
+      card = state.currentCard;
+    })();
+    return card;
+  }
+  /**
+   * Submit a rating for the current card
+   *
+   * Handles errors during rating submission by:
+   * 1. Logging the error with correlation ID
+   * 2. Pausing the session to prevent further issues
+   * 3. Emitting an error event for UI to display
+   * 4. Returning structured result for error recovery
+   *
+   * @param cardId - The ID of card being rated
+   * @param rating - The FSRS rating (1-4: Again, Hard, Good, Easy)
+   * @returns Result with success status and error details if failed
+   *
+   * @example
+   * ```typescript
+   * const result = await reviewController.submitRating(card.id, 3);
+   * if (!result.success) {
+   *   // Show error dialog to user
+   *   showErrorDialog(result.error, () => {
+   *     // Retry logic
+   *   });
+   * }
+   * ```
+   */
+  async submitRating(cardId, rating) {
+    if (!cardId) {
+      throw new Error("Card ID is required");
+    }
+    if (this.isPaused) {
+      throw new Error("Cannot submit rating: session is paused due to previous error");
+    }
+    await this.sessionStore.rateCard(rating);
+    this.eventBus.emit(AppEvents.CARD_RATED, {
+      cardId,
+      rating,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    });
+    this.logger.debug(`Rating submitted successfully for card ${cardId}: ${rating}`);
+    return { success: true };
+  }
+  /**
+   * Edit the source file for a card
+   *
+   * Opens the card's source file in a split view for editing.
+   * Handles errors such as missing metadata or file not found.
+   *
+   * @param cardId - The ID of the card whose source to edit
+   * @returns Promise that resolves when file is opened or rejects on error
+   *
+   * @example
+   * ```typescript
+   * try {
+   *   await reviewController.editSource(card.id);
+   * } catch (error) {
+   *   showNotification('Failed to open source file', 'error');
+   * }
+   * ```
+   */
+  async editSource(cardId) {
+    if (!cardId) {
+      throw new Error("Card ID is required");
+    }
+    const cardMetadata = this.indexManager.getCard(cardId);
+    if (!cardMetadata) {
+      throw new Error(`Card with ID '${cardId}' not found in index. It may have been deleted.`);
+    }
+    const sourcePath = cardMetadata.source;
+    if (!sourcePath) {
+      throw new Error(`No source path found for card '${cardId}'. The card data may be corrupted.`);
+    }
+    const abstractFile = this.app.vault.getAbstractFileByPath(sourcePath);
+    if (!abstractFile || !(abstractFile instanceof import_obsidian9.TFile)) {
+      throw new Error(
+        `Source file '${sourcePath}' not found or is not a file. It may have been moved or deleted.`
+      );
+    }
+    const file2 = abstractFile;
+    const leaf = this.app.workspace.getLeaf("split");
+    await leaf.openFile(file2);
+    this.logger.debug(`Opened source file '${sourcePath}' for card '${cardId}'`);
+  }
+  /**
+   * Verify and reset a card (for STALE cards)
+   *
+   * Currently a placeholder for future implementation.
+   *
+   * @param cardId - The ID of the card to verify and reset
+   */
+  async verifyAndReset(cardId) {
+    this.logger.debug(`Verifying and resetting card: ${cardId}`);
+  }
+  /**
+   * Handle errors during review session
+   *
+   * Pauses the session and emits error event for UI to display
+   * error dialog with retry/end options.
+   *
+   * @param error - The error that occurred
+   */
+  async handleError(error48) {
+    this.pauseSession();
+    const errorMessage = error48 instanceof Error ? error48.message : String(error48);
+    this.eventBus.emit(AppEvents.CARD_RATED, {
+      error: errorMessage,
+      cardId: null,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    });
+    this.logger.error("Review session paused due to error:", error48);
+  }
+  /**
+   * Pause the current review session
+   *
+   * Sets paused state to prevent further operations until resumed.
+   */
+  pauseSession() {
+    this.isPaused = true;
+    this.sessionStore.pauseSession();
+    this.logger.info("Review session paused");
+  }
+  /**
+   * Resume a paused review session
+   *
+   * Clears paused state to allow operations to continue.
+   */
+  resumeSession() {
+    this.isPaused = false;
+    this.sessionStore.resumeSession();
+    this.logger.info("Review session resumed");
+  }
+  /**
+   * Check if the session is paused
+   *
+   * @returns true if session is paused
+   */
+  isSessionPaused() {
+    return this.isPaused;
+  }
+  /**
+   * End the current review session
+   *
+   * Cleans up and ends the session, clearing paused state.
+   */
+  async endSession() {
+    this.isPaused = false;
+    await this.sessionStore.endSession();
+    this.logger.info("Review session ended");
+  }
+};
+
 // src/ui/views/App/App.svelte
-function create_if_block_110(ctx) {
+function create_if_block_24(ctx) {
   let review;
   let current;
   review = new Review_default({
@@ -28316,8 +26561,8 @@ function create_if_block_110(ctx) {
         ctx[0]
       ),
       sessionStore: (
-        /*sessionStore*/
-        ctx[2]
+        /*applicationStore*/
+        ctx[2].session
       ),
       navigationManager: (
         /*navigationManager*/
@@ -28339,10 +26584,10 @@ function create_if_block_110(ctx) {
       1)
         review_changes.app = /*app*/
         ctx2[0];
-      if (dirty & /*sessionStore*/
+      if (dirty & /*applicationStore*/
       4)
-        review_changes.sessionStore = /*sessionStore*/
-        ctx2[2];
+        review_changes.sessionStore = /*applicationStore*/
+        ctx2[2].session;
       if (dirty & /*navigationManager*/
       2)
         review_changes.navigationManager = /*navigationManager*/
@@ -28364,7 +26609,7 @@ function create_if_block_110(ctx) {
     }
   };
 }
-function create_if_block12(ctx) {
+function create_if_block_110(ctx) {
   let dashboard;
   let current;
   dashboard = new Dashboard_default({
@@ -28375,15 +26620,15 @@ function create_if_block12(ctx) {
       ),
       config: (
         /*dashboardConfig*/
-        ctx[5]
+        ctx[7]
       ),
       onStartReview: (
         /*handleStartReview*/
-        ctx[7]
+        ctx[9]
       ),
       onRefresh: (
         /*loadDashboardData*/
-        ctx[6]
+        ctx[8]
       )
     }
   });
@@ -28418,25 +26663,135 @@ function create_if_block12(ctx) {
     }
   };
 }
-function create_fragment17(ctx) {
+function create_if_block13(ctx) {
+  let div1;
+  let div0;
+  let svg0;
+  let circle;
+  let line0;
+  let line1;
+  let t0;
+  let h2;
+  let t2;
+  let p;
+  let t3;
+  let t4;
+  let button;
+  let mounted;
+  let dispose;
+  return {
+    c() {
+      div1 = element("div");
+      div0 = element("div");
+      svg0 = svg_element("svg");
+      circle = svg_element("circle");
+      line0 = svg_element("line");
+      line1 = svg_element("line");
+      t0 = space();
+      h2 = element("h2");
+      h2.textContent = "Something went wrong";
+      t2 = space();
+      p = element("p");
+      t3 = text(
+        /*errorMessage*/
+        ctx[5]
+      );
+      t4 = space();
+      button = element("button");
+      button.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="retry-icon svelte-10s3gf1"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            Retry`;
+      attr(circle, "cx", "12");
+      attr(circle, "cy", "12");
+      attr(circle, "r", "10");
+      attr(line0, "x1", "12");
+      attr(line0, "y1", "8");
+      attr(line0, "x2", "12");
+      attr(line0, "y2", "12");
+      attr(line1, "x1", "12");
+      attr(line1, "y1", "16");
+      attr(line1, "x2", "12.01");
+      attr(line1, "y2", "16");
+      attr(svg0, "class", "error-icon svelte-10s3gf1");
+      attr(svg0, "viewBox", "0 0 24 24");
+      attr(svg0, "fill", "none");
+      attr(svg0, "stroke", "currentColor");
+      attr(svg0, "stroke-width", "2");
+      attr(h2, "class", "error-title svelte-10s3gf1");
+      attr(p, "class", "error-message svelte-10s3gf1");
+      attr(button, "class", "retry-button svelte-10s3gf1");
+      attr(button, "aria-label", "Retry");
+      attr(div0, "class", "error-content svelte-10s3gf1");
+      attr(div1, "class", "error-boundary svelte-10s3gf1");
+      attr(div1, "role", "alert");
+    },
+    m(target, anchor) {
+      insert(target, div1, anchor);
+      append(div1, div0);
+      append(div0, svg0);
+      append(svg0, circle);
+      append(svg0, line0);
+      append(svg0, line1);
+      append(div0, t0);
+      append(div0, h2);
+      append(div0, t2);
+      append(div0, p);
+      append(p, t3);
+      append(div0, t4);
+      append(div0, button);
+      if (!mounted) {
+        dispose = listen(
+          button,
+          "click",
+          /*loadDashboardData*/
+          ctx[8]
+        );
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*errorMessage*/
+      32)
+        set_data(
+          t3,
+          /*errorMessage*/
+          ctx2[5]
+        );
+    },
+    i: noop,
+    o: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div1);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_fragment18(ctx) {
   let div;
   let current_block_type_index;
   let if_block;
   let current;
-  const if_block_creators = [create_if_block12, create_if_block_110];
+  const if_block_creators = [create_if_block13, create_if_block_110, create_if_block_24];
   const if_blocks = [];
   function select_block_type(ctx2, dirty) {
     if (
-      /*$navigationState*/
-      ctx2[4].currentView === "dashboard" && /*dashboardStats*/
-      ctx2[3]
+      /*hasError*/
+      ctx2[4]
     )
       return 0;
     if (
-      /*$navigationState*/
-      ctx2[4].currentView === "review"
+      /*currentView*/
+      ctx2[6] === "dashboard" && /*dashboardStats*/
+      ctx2[3]
     )
       return 1;
+    if (
+      /*currentView*/
+      ctx2[6] === "review"
+    )
+      return 2;
     return -1;
   }
   if (~(current_block_type_index = select_block_type(ctx, -1))) {
@@ -28447,7 +26802,7 @@ function create_fragment17(ctx) {
       div = element("div");
       if (if_block)
         if_block.c();
-      attr(div, "class", "app-container svelte-bpb9rl");
+      attr(div, "class", "app-container svelte-10s3gf1");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -28506,15 +26861,15 @@ function create_fragment17(ctx) {
     }
   };
 }
-function instance17($$self, $$props, $$invalidate) {
-  let $navigationState;
-  component_subscribe($$self, navigationState, ($$value) => $$invalidate(4, $navigationState = $$value));
+function instance18($$self, $$props, $$invalidate) {
+  let currentView2;
   let { app } = $$props;
   let { navigationManager } = $$props;
   let { indexManager } = $$props;
   let { statisticsManager } = $$props;
-  let { sessionStore } = $$props;
   let { dueQueueManager } = $$props;
+  let { applicationStore } = $$props;
+  let { dependencyContainer } = $$props;
   let dashboardStats = null;
   let dashboardConfig = {
     dailyGoal: 20,
@@ -28525,30 +26880,35 @@ function instance17($$self, $$props, $$invalidate) {
   };
   let dashboardController;
   let reviewController;
+  let hasError = false;
+  let errorMessage = "";
+  setManagersContext(dependencyContainer);
   onMount(async () => {
-    dashboardController = new DashboardController(indexManager, statisticsManager, dueQueueManager, sessionStore);
-    reviewController = new ReviewController(app, indexManager, sessionStore);
-    if ($navigationState.currentView === "dashboard") {
+    const sessionStore = applicationStore.session;
+    dashboardController = dependencyContainer.resolve("DashboardController");
+    reviewController = dependencyContainer.resolve("ReviewController");
+    if (currentView2 === "dashboard") {
       await loadDashboardData();
     }
   });
   async function loadDashboardData() {
     try {
       $$invalidate(3, dashboardStats = await dashboardController.getStats());
+      $$invalidate(4, hasError = false);
     } catch (error48) {
-      console.error("Failed to load dashboard data:", error48);
+      Logger.error("Failed to load dashboard data:", error48);
+      $$invalidate(4, hasError = true);
+      $$invalidate(5, errorMessage = "Failed to load dashboard data. Please try again.");
     }
   }
   async function handleStartReview() {
-    await sessionStore.startSession();
+    await applicationStore.session.startSession();
     navigationManager.navigateTo("review");
   }
   function navigateTo(view) {
-    if ($navigationState.currentView !== view) {
-      navigationManager.navigateTo(view);
-      if (view === "dashboard") {
-        loadDashboardData();
-      }
+    applicationStore.ui.navigate(view);
+    if (view === "dashboard") {
+      loadDashboardData();
     }
   }
   $$self.$$set = ($$props2) => {
@@ -28557,60 +26917,852 @@ function instance17($$self, $$props, $$invalidate) {
     if ("navigationManager" in $$props2)
       $$invalidate(1, navigationManager = $$props2.navigationManager);
     if ("indexManager" in $$props2)
-      $$invalidate(8, indexManager = $$props2.indexManager);
+      $$invalidate(10, indexManager = $$props2.indexManager);
     if ("statisticsManager" in $$props2)
-      $$invalidate(9, statisticsManager = $$props2.statisticsManager);
-    if ("sessionStore" in $$props2)
-      $$invalidate(2, sessionStore = $$props2.sessionStore);
+      $$invalidate(11, statisticsManager = $$props2.statisticsManager);
     if ("dueQueueManager" in $$props2)
-      $$invalidate(10, dueQueueManager = $$props2.dueQueueManager);
+      $$invalidate(12, dueQueueManager = $$props2.dueQueueManager);
+    if ("applicationStore" in $$props2)
+      $$invalidate(2, applicationStore = $$props2.applicationStore);
+    if ("dependencyContainer" in $$props2)
+      $$invalidate(13, dependencyContainer = $$props2.dependencyContainer);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*applicationStore*/
+    4) {
+      $:
+        $$invalidate(6, currentView2 = applicationStore == null ? void 0 : applicationStore.ui.state.currentView);
+    }
   };
   return [
     app,
     navigationManager,
-    sessionStore,
+    applicationStore,
     dashboardStats,
-    $navigationState,
+    hasError,
+    errorMessage,
+    currentView2,
     dashboardConfig,
     loadDashboardData,
     handleStartReview,
     indexManager,
     statisticsManager,
-    dueQueueManager
+    dueQueueManager,
+    dependencyContainer
   ];
 }
-var App4 = class extends SvelteComponent {
+var App3 = class extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance17, create_fragment17, safe_not_equal, {
+    init(this, options, instance18, create_fragment18, safe_not_equal, {
       app: 0,
       navigationManager: 1,
-      indexManager: 8,
-      statisticsManager: 9,
-      sessionStore: 2,
-      dueQueueManager: 10
+      indexManager: 10,
+      statisticsManager: 11,
+      dueQueueManager: 12,
+      applicationStore: 2,
+      dependencyContainer: 13
     });
   }
 };
-var App_default = App4;
+var App_default = App3;
+
+// src/ui/stores/session/SessionStore.ts
+var DEFAULT_STATE3 = {
+  activeSession: null,
+  currentCard: null,
+  queue: [],
+  isAnswerShowing: false,
+  progress: {
+    currentIndex: 0,
+    total: 0,
+    percentage: 0
+  }
+};
+var SessionStore2 = class {
+  constructor(dependencies) {
+    __publicField(this, "_state");
+    __publicField(this, "eventBus");
+    __publicField(this, "indexManager");
+    __publicField(this, "statsManager");
+    __publicField(this, "dueQueueManager");
+    __publicField(this, "sessionTimer");
+    this._state = writable(DEFAULT_STATE3);
+    this.eventBus = dependencies.eventBus;
+    this.indexManager = dependencies.indexManager;
+    this.statsManager = dependencies.statsManager;
+    this.dueQueueManager = dependencies.dueQueueManager;
+    Logger.debug("SessionStore initialized");
+  }
+  /**
+   * Subscribe to session state changes
+   */
+  subscribe(run2) {
+    return this._state.subscribe(run2);
+  }
+  /**
+   * Gets the current state snapshot
+   */
+  get state() {
+    let currentState = null;
+    this._state.subscribe((state) => {
+      currentState = state;
+    })();
+    return currentState;
+  }
+  /**
+   * Starts a new review session
+   *
+   * @returns Promise that resolves when session is initialized
+   */
+  async startSession() {
+    try {
+      Logger.info("Starting new review session");
+      await this.endSession();
+      const queue = await this.dueQueueManager.generate();
+      if (queue.cards.length === 0) {
+        Logger.warn("No cards due for review");
+        return;
+      }
+      const sessionId = crypto.randomUUID();
+      this._state.set({
+        activeSession: {
+          sessionId,
+          startTime: (/* @__PURE__ */ new Date()).toISOString(),
+          isComplete: false
+        },
+        currentCard: queue.cards[0],
+        queue: queue.cards,
+        isAnswerShowing: false,
+        progress: {
+          currentIndex: 0,
+          total: queue.cards.length,
+          percentage: 0
+        }
+      });
+      this.startSessionTimer();
+      this.eventBus.emit(AppEvents.SESSION_STARTED, {
+        sessionId,
+        queueSize: queue.cards.length,
+        startTime: Date.now()
+      });
+      Logger.info(`Session started with ${queue.cards.length} cards`);
+    } catch (error48) {
+      Logger.error("Failed to start review session:", error48);
+      throw error48;
+    }
+  }
+  /**
+   * Submits a rating for the current card and advances to the next card
+   *
+   * @param rating - The FSRS rating (1-4: Again, Hard, Good, Easy)
+   * @returns Promise that resolves when rating is processed
+   */
+  async rateCard(rating) {
+    try {
+      const currentState = this.state;
+      if (!currentState.activeSession || !currentState.currentCard) {
+        throw new Error("No active session or current card");
+      }
+      Logger.debug(`Rating card ${currentState.currentCard.id} with rating ${rating}`);
+      this.eventBus.emit(AppEvents.CARD_RATED, {
+        cardId: currentState.currentCard.id,
+        rating
+      });
+      await this.nextCard();
+    } catch (error48) {
+      Logger.error("Failed to rate card:", error48);
+      throw error48;
+    }
+  }
+  /**
+   * Navigates to the next card in the queue
+   * Ends session if no more cards are available
+   */
+  async nextCard() {
+    const currentState = this.state;
+    if (!currentState.activeSession) {
+      return;
+    }
+    const nextIndex = currentState.progress.currentIndex + 1;
+    if (nextIndex >= currentState.queue.length) {
+      await this.endSession();
+    } else {
+      this._state.update((state) => ({
+        ...state,
+        currentCard: state.queue[nextIndex],
+        isAnswerShowing: false,
+        progress: {
+          ...state.progress,
+          currentIndex: nextIndex,
+          percentage: Math.round((nextIndex + 1) / state.progress.total * 100)
+        }
+      }));
+    }
+  }
+  /**
+   * Pauses the current session (stops timer but preserves state)
+   */
+  pauseSession() {
+    var _a3;
+    this.stopSessionTimer();
+    this.eventBus.emit(AppEvents.SESSION_PAUSED, {
+      sessionId: (_a3 = this.state.activeSession) == null ? void 0 : _a3.sessionId
+    });
+    Logger.debug("Session paused");
+  }
+  /**
+   * Resumes a paused session
+   */
+  resumeSession() {
+    if (this.state.activeSession) {
+      this.startSessionTimer();
+      this.eventBus.emit(AppEvents.SESSION_RESUMED, {
+        sessionId: this.state.activeSession.sessionId
+      });
+      Logger.debug("Session resumed");
+    }
+  }
+  /**
+   * Ends the current review session and performs cleanup
+   */
+  async endSession() {
+    Logger.info("Ending review session");
+    this.stopSessionTimer();
+    const currentState = this.state;
+    if (currentState.activeSession) {
+      this.eventBus.emit(AppEvents.SESSION_COMPLETED, {
+        sessionId: currentState.activeSession.sessionId,
+        cardsReviewed: currentState.progress.currentIndex + 1,
+        totalCards: currentState.progress.total
+      });
+    }
+    this._state.set(DEFAULT_STATE3);
+  }
+  /**
+   * Shows the answer for the current card
+   */
+  showAnswer() {
+    this._state.update((state) => ({
+      ...state,
+      isAnswerShowing: true
+    }));
+  }
+  /**
+   * Hides the answer for the current card
+   */
+  hideAnswer() {
+    this._state.update((state) => ({
+      ...state,
+      isAnswerShowing: false
+    }));
+  }
+  /**
+   * Resets the entire store to its default state
+   */
+  reset() {
+    this.stopSessionTimer();
+    this._state.set(DEFAULT_STATE3);
+    Logger.debug("SessionStore reset");
+  }
+  /**
+   * Starts the session timer
+   */
+  startSessionTimer() {
+    this.stopSessionTimer();
+    this.sessionTimer = setInterval(() => {
+    }, 1e3);
+  }
+  /**
+   * Stops the session timer
+   */
+  stopSessionTimer() {
+    if (this.sessionTimer) {
+      clearInterval(this.sessionTimer);
+      this.sessionTimer = void 0;
+    }
+  }
+};
+
+// src/ui/stores/settings/SettingsStore.ts
+var DEFAULT_SETTINGS = {
+  theme: "system",
+  dailyGoal: 20,
+  reviewOptions: {
+    maxCardsPerSession: 50,
+    showAnswerTimer: 3,
+    autoAdvance: true,
+    showStatsAfterSession: true
+  },
+  interface: {
+    showShortcuts: true,
+    showProgressBar: true
+  }
+};
+var SettingsStore2 = class {
+  constructor(dependencies) {
+    __publicField(this, "_settings");
+    __publicField(this, "eventBus");
+    this._settings = writable(DEFAULT_SETTINGS);
+    this.eventBus = dependencies.eventBus;
+    Logger.debug("SettingsStore initialized");
+  }
+  /**
+   * Subscribe to settings changes
+   */
+  subscribe(run2) {
+    return this._settings.subscribe(run2);
+  }
+  /**
+   * Gets the current settings snapshot
+   */
+  get settings() {
+    let currentSettings = null;
+    this._settings.subscribe((settings) => {
+      currentSettings = settings;
+    })();
+    return currentSettings;
+  }
+  /**
+   * Updates a specific setting
+   *
+   * @param key - Path to the setting (e.g., 'theme', 'reviewOptions.maxCardsPerSession')
+   * @param value - New value for the setting
+   */
+  updateSetting(key, value) {
+    Logger.debug(`Updating setting: ${key} = ${JSON.stringify(value)}`);
+    this._settings.update((settings) => {
+      const keys = key.split(".");
+      const newSettings = { ...settings };
+      if (keys.length === 1) {
+        newSettings[keys[0]] = value;
+      } else if (keys.length === 2) {
+        if (!newSettings[keys[0]]) {
+          newSettings[keys[0]] = {};
+        }
+        newSettings[keys[0]] = {
+          ...newSettings[keys[0]],
+          [keys[1]]: value
+        };
+      }
+      return newSettings;
+    });
+    this.eventBus.emit(AppEvents.SETTINGS_UPDATED, { key, value });
+    if (key === "theme") {
+      this.eventBus.emit(AppEvents.THEME_CHANGED, { theme: value });
+    }
+  }
+  /**
+   * Gets a specific setting value
+   *
+   * @param key - Path to the setting (e.g., 'theme', 'reviewOptions.maxCardsPerSession')
+   * @returns The setting value or undefined if not found
+   */
+  getSetting(key) {
+    var _a3;
+    const settings = this.settings;
+    const keys = key.split(".");
+    if (keys.length === 1) {
+      return settings[keys[0]];
+    } else if (keys.length === 2) {
+      return (_a3 = settings[keys[0]]) == null ? void 0 : _a3[keys[1]];
+    }
+    return void 0;
+  }
+  /**
+   * Resets all settings to defaults
+   */
+  resetToDefaults() {
+    Logger.info("Resetting settings to defaults");
+    this._settings.set(DEFAULT_SETTINGS);
+    this.eventBus.emit(AppEvents.SETTINGS_RESET, {});
+  }
+  /**
+   * Resets the entire store to its default state
+   */
+  reset() {
+    this.resetToDefaults();
+    Logger.debug("SettingsStore reset");
+  }
+};
+
+// src/ui/stores/ui/UIStore.ts
+var DEFAULT_UI_STATE = {
+  currentView: "dashboard",
+  theme: "dark",
+  modal: {
+    isOpen: false,
+    type: null,
+    data: null
+  },
+  isLoading: false,
+  error: {
+    hasError: false,
+    message: null
+  }
+};
+var UIStore2 = class {
+  constructor(dependencies) {
+    __publicField(this, "_ui");
+    __publicField(this, "eventBus");
+    this._ui = writable(DEFAULT_UI_STATE);
+    this.eventBus = dependencies.eventBus;
+    Logger.debug("UIStore initialized");
+  }
+  /**
+   * Subscribe to UI state changes
+   */
+  subscribe(run2) {
+    return this._ui.subscribe(run2);
+  }
+  /**
+   * Gets the current UI state snapshot
+   */
+  get state() {
+    let currentState = null;
+    this._ui.subscribe((state) => {
+      currentState = state;
+    })();
+    return currentState;
+  }
+  /**
+   * Navigates to the specified view
+   *
+   * @param view - Target view to navigate to
+   */
+  navigate(view) {
+    Logger.debug(`Navigating to view: ${view}`);
+    this._ui.update((state) => ({
+      ...state,
+      currentView: view
+    }));
+    this.eventBus.emit(AppEvents.VIEW_CHANGED, { view });
+  }
+  /**
+   * Opens a modal
+   *
+   * @param type - Type of modal to open
+   * @param data - Optional data to pass to the modal
+   */
+  openModal(type, data) {
+    Logger.debug(`Opening modal: ${type}`);
+    this._ui.update((state) => ({
+      ...state,
+      modal: {
+        isOpen: true,
+        type,
+        data: data != null ? data : null
+      }
+    }));
+  }
+  /**
+   * Closes the current modal
+   */
+  closeModal() {
+    Logger.debug("Closing modal");
+    this._ui.update((state) => ({
+      ...state,
+      modal: {
+        isOpen: false,
+        type: null,
+        data: null
+      }
+    }));
+  }
+  /**
+   * Sets the theme
+   *
+   * @param theme - Theme to set ('light' or 'dark')
+   */
+  setTheme(theme) {
+    Logger.debug(`Setting theme: ${theme}`);
+    this._ui.update((state) => ({
+      ...state,
+      theme
+    }));
+    this.eventBus.emit(AppEvents.THEME_CHANGED, { theme });
+  }
+  /**
+   * Sets the loading state
+   *
+   * @param isLoading - Whether the app is loading
+   */
+  setLoading(isLoading2) {
+    this._ui.update((state) => ({
+      ...state,
+      isLoading: isLoading2
+    }));
+  }
+  /**
+   * Sets an error state
+   *
+   * @param message - Error message to display
+   */
+  setError(message) {
+    Logger.error(`UI error: ${message}`);
+    this._ui.update((state) => ({
+      ...state,
+      error: {
+        hasError: true,
+        message
+      }
+    }));
+  }
+  /**
+   * Clears the error state
+   */
+  clearError() {
+    this._ui.update((state) => ({
+      ...state,
+      error: {
+        hasError: false,
+        message: null
+      }
+    }));
+  }
+  /**
+   * Resets the entire store to its default state
+   */
+  reset() {
+    this._ui.set(DEFAULT_UI_STATE);
+    Logger.debug("UIStore reset");
+  }
+};
+
+// src/ui/stores/ApplicationStore.ts
+var ApplicationStore = class {
+  constructor(dependencies) {
+    __publicField(this, "session");
+    __publicField(this, "settings");
+    __publicField(this, "ui");
+    __publicField(this, "eventBus");
+    __publicField(this, "unsubscribeFunctions", []);
+    __publicField(this, "isInitialized", false);
+    this.eventBus = dependencies.eventBus;
+    this.session = new SessionStore2({
+      eventBus: this.eventBus,
+      indexManager: dependencies.indexManager,
+      statsManager: dependencies.statsManager,
+      dueQueueManager: dependencies.dueQueueManager
+    });
+    this.settings = new SettingsStore2({
+      eventBus: this.eventBus
+    });
+    this.ui = new UIStore2({
+      eventBus: this.eventBus
+    });
+    Logger.debug("ApplicationStore created");
+  }
+  /**
+   * Initializes the application store and sets up cross-store listeners
+   */
+  async initialize() {
+    if (this.isInitialized) {
+      Logger.warn("ApplicationStore already initialized");
+      return;
+    }
+    Logger.info("Initializing ApplicationStore");
+    try {
+      this.setupCrossStoreListeners();
+      this.isInitialized = true;
+      Logger.info("ApplicationStore initialized successfully");
+    } catch (error48) {
+      Logger.error("Failed to initialize ApplicationStore:", error48);
+      throw error48;
+    }
+  }
+  /**
+   * Sets up cross-store event listeners for inter-store communication
+   */
+  setupCrossStoreListeners() {
+    const unsubscribeThemeChange = this.eventBus.on(
+      AppEvents.SETTINGS_UPDATED,
+      (data) => {
+        const payload = data;
+        if (payload.key === "theme") {
+          const themeValue = payload.value;
+          if (themeValue !== "system") {
+            this.ui.setTheme(themeValue);
+          }
+        }
+      }
+    );
+    this.unsubscribeFunctions.push(unsubscribeThemeChange);
+    const unsubscribeSessionCompleted = this.eventBus.on(
+      AppEvents.SESSION_COMPLETED,
+      (data) => {
+        Logger.info(`Session completed: ${JSON.stringify(data)}`);
+      }
+    );
+    this.unsubscribeFunctions.push(unsubscribeSessionCompleted);
+    const unsubscribeSessionStarted = this.eventBus.on(
+      AppEvents.SESSION_STARTED,
+      (data) => {
+        Logger.info(`Session started: ${JSON.stringify(data)}`);
+        if (this.ui.state.currentView !== "review") {
+          this.ui.navigate("review");
+        }
+      }
+    );
+    this.unsubscribeFunctions.push(unsubscribeSessionStarted);
+    const unsubscribeCardRated = this.eventBus.on(
+      AppEvents.CARD_RATED,
+      (data) => {
+        Logger.debug(`Card rated: ${JSON.stringify(data)}`);
+      }
+    );
+    this.unsubscribeFunctions.push(unsubscribeCardRated);
+    Logger.debug(
+      `Set up ${this.unsubscribeFunctions.length} cross-store event listeners`
+    );
+  }
+  /**
+   * Disposes the application store and cleans up resources
+   */
+  async dispose() {
+    if (!this.isInitialized) {
+      Logger.warn("ApplicationStore not initialized, nothing to dispose");
+      return;
+    }
+    Logger.info("Disposing ApplicationStore");
+    try {
+      for (const unsubscribe of this.unsubscribeFunctions) {
+        unsubscribe();
+      }
+      this.unsubscribeFunctions = [];
+      this.session.reset();
+      this.settings.reset();
+      this.ui.reset();
+      this.isInitialized = false;
+      Logger.info("ApplicationStore disposed successfully");
+    } catch (error48) {
+      Logger.error("Failed to dispose ApplicationStore:", error48);
+      throw error48;
+    }
+  }
+  /**
+   * Gets the initialization status
+   */
+  get initialized() {
+    return this.isInitialized;
+  }
+};
+
+// src/ui/infrastructure/DependencyContainer.ts
+var DependencyContainer = class {
+  /**
+   * Create a new DependencyContainer
+   *
+   * @param options - Container configuration options
+   */
+  constructor(options = {}) {
+    __publicField(this, "registrations", /* @__PURE__ */ new Map());
+    __publicField(this, "enableCircularDependencyDetection");
+    var _a3;
+    this.enableCircularDependencyDetection = (_a3 = options.enableCircularDependencyDetection) != null ? _a3 : true;
+  }
+  /**
+   * Register a service with transient lifecycle
+   *
+   * A new instance will be created each time resolve is called.
+   *
+   * @param token - Unique identifier for the service
+   * @param factory - Factory function to create the service instance
+   * @param options - Registration options (default: transient lifecycle)
+   *
+   * @throws {DuplicateRegistrationError} If a service with the same token is already registered
+   *
+   * @example
+   * ```typescript
+   * container.register('DashboardController', () => new DashboardController(
+   *   container.resolve('IndexManager')
+   * ));
+   * ```
+   */
+  register(token, factory, options) {
+    var _a3;
+    this.validateRegistration(token);
+    const registration = {
+      factory,
+      lifecycle: (_a3 = options == null ? void 0 : options.lifecycle) != null ? _a3 : "transient",
+      description: options == null ? void 0 : options.description
+    };
+    this.registrations.set(token, registration);
+  }
+  /**
+   * Register a service with singleton lifecycle
+   *
+   * The same instance will be returned for all resolve calls.
+   *
+   * @param token - Unique identifier for the service
+   * @param factory - Factory function to create the singleton instance
+   * @param description - Optional human-readable description
+   *
+   * @throws {DuplicateRegistrationError} If a service with the same token is already registered
+   *
+   * @example
+   * ```typescript
+   * container.registerSingleton('IndexManager', () => new IndexManager());
+   * ```
+   */
+  registerSingleton(token, factory, description) {
+    this.register(token, factory, {
+      lifecycle: "singleton",
+      description
+    });
+  }
+  /**
+   * Resolve a registered service
+   *
+   * For transient services: Creates a new instance on each call.
+   * For singleton services: Returns the cached instance.
+   *
+   * @param token - The token used during registration
+   * @returns An instance of the requested service
+   *
+   * @throws {DependencyResolutionError} If no service is registered with the given token
+   * @throws {CircularDependencyError} If circular dependencies are detected during resolution
+   *
+   * @example
+   * ```typescript
+   * const indexManager = container.resolve<IndexManager>('IndexManager');
+   * ```
+   */
+  resolve(token) {
+    const registration = this.registrations.get(token);
+    if (!registration) {
+      throw new Error(
+        `Dependency not found: ${this.formatToken(token)}. Ensure the dependency is registered with the container.`
+      );
+    }
+    if (this.enableCircularDependencyDetection && registration.resolving) {
+      const path = this.buildCircularDependencyPath(token);
+      throw new Error(`Circular dependency detected: ${path.join(" -> ")}`);
+    }
+    if (registration.lifecycle === "singleton" && registration.instance !== void 0) {
+      return registration.instance;
+    }
+    if (this.enableCircularDependencyDetection) {
+      registration.resolving = true;
+    }
+    try {
+      const instance19 = registration.factory();
+      if (registration.lifecycle === "singleton") {
+        registration.instance = instance19;
+      }
+      return instance19;
+    } finally {
+      if (this.enableCircularDependencyDetection && registration.resolving !== void 0) {
+        registration.resolving = false;
+      }
+    }
+  }
+  /**
+   * Check if a service is registered
+   *
+   * @param token - The token to check
+   * @returns true if the service is registered, false otherwise
+   *
+   * @example
+   * ```typescript
+   * if (container.has('IndexManager')) {
+   *   const manager = container.resolve('IndexManager');
+   * }
+   * ```
+   */
+  has(token) {
+    return this.registrations.has(token);
+  }
+  /**
+   * Clear all registered services and cached singleton instances
+   *
+   * This is typically used during application shutdown or testing.
+   *
+   * @example
+   * ```typescript
+   * container.clear(); // Remove all registrations
+   * ```
+   */
+  clear() {
+    this.registrations.clear();
+  }
+  /**
+   * Get the number of registered services
+   *
+   * @returns Number of registered services
+   */
+  getRegistrationCount() {
+    return this.registrations.size;
+  }
+  /**
+   * Get all registered service tokens
+   *
+   * @returns Array of registered service tokens
+   */
+  getRegisteredTokens() {
+    return Array.from(this.registrations.keys());
+  }
+  /**
+   * Validate that a service is not already registered
+   *
+   * @param token - Service token to validate
+   *
+   * @throws {DuplicateRegistrationError} If the token is already registered
+   */
+  validateRegistration(token) {
+    if (this.registrations.has(token)) {
+      throw new Error(
+        `Service already registered: ${this.formatToken(token)}. Use a unique token or clear the container first.`
+      );
+    }
+  }
+  /**
+   * Build the circular dependency path for error messages
+   *
+   * @param token - The token that caused the circular dependency
+   * @returns Array of tokens in the circular dependency path
+   */
+  buildCircularDependencyPath(token) {
+    const path = [];
+    for (const [key, registration] of this.registrations.entries()) {
+      if (registration.resolving) {
+        path.push(key);
+      }
+    }
+    path.push(token);
+    return path.map((t) => this.formatToken(t));
+  }
+  /**
+   * Format a token for display in error messages
+   *
+   * @param token - Token to format
+   * @returns Formatted token string
+   */
+  formatToken(token) {
+    return typeof token === "symbol" ? token.toString() : token;
+  }
+};
 
 // src/ui/views/App/AppView.ts
 var APP_VIEW = "knowledge-accelerator-home";
 var AppView = class extends import_obsidian10.ItemView {
-  constructor(leaf, app, navigationManager, indexManager, statisticsManager, sessionStore, dueQueueManager) {
+  constructor(leaf, app, navigationManager, indexManager, statisticsManager, dueQueueManager) {
     super(leaf);
     __publicField(this, "navigationManager");
     __publicField(this, "indexManager");
     __publicField(this, "statisticsManager");
-    __publicField(this, "sessionStore");
     __publicField(this, "dueQueueManager");
     __publicField(this, "homeComponent", null);
+    __publicField(this, "applicationStore", null);
+    __publicField(this, "eventBus");
+    __publicField(this, "dependencyContainer");
     __publicField(this, "viewType", APP_VIEW);
     this.navigationManager = navigationManager;
     this.indexManager = indexManager;
     this.statisticsManager = statisticsManager;
-    this.sessionStore = sessionStore;
     this.dueQueueManager = dueQueueManager;
+    this.eventBus = new EventBus();
+    this.dependencyContainer = new DependencyContainer();
   }
   /**
    * Returns the view type identifier
@@ -28634,8 +27786,12 @@ var AppView = class extends import_obsidian10.ItemView {
    * Called when the view is opened in the workspace
    */
   async onOpen() {
+    var _a3;
     try {
+      Logger.info("Opening Knowledge Accelerator view");
       this.navigationManager.initializeWithLeaf(this.leaf);
+      this.setupDependencyContainer();
+      await this.initializeApplicationStore();
       const homeComponent = new App_default({
         target: this.contentEl,
         props: {
@@ -28643,14 +27799,85 @@ var AppView = class extends import_obsidian10.ItemView {
           navigationManager: this.navigationManager,
           indexManager: this.indexManager,
           statisticsManager: this.statisticsManager,
-          sessionStore: this.sessionStore,
-          dueQueueManager: this.dueQueueManager
+          sessionStore: (_a3 = this.applicationStore) == null ? void 0 : _a3.session,
+          dueQueueManager: this.dueQueueManager,
+          applicationStore: this.applicationStore,
+          dependencyContainer: this.dependencyContainer
         }
       });
       this.homeComponent = homeComponent;
+      Logger.info("Knowledge Accelerator view opened successfully");
     } catch (error48) {
-      console.error("Failed to open Home view:", error48);
+      Logger.error("Failed to open Home view:", error48);
       this.containerEl.createEl("div", { text: "Failed to load Knowledge Accelerator" });
+    }
+  }
+  /**
+   * Sets up dependency container with registered services
+   */
+  setupDependencyContainer() {
+    this.dependencyContainer.registerSingleton(
+      "EventBus",
+      () => this.eventBus
+    );
+    this.dependencyContainer.registerSingleton(
+      "IndexManager",
+      () => this.indexManager
+    );
+    this.dependencyContainer.registerSingleton(
+      "StatisticsManager",
+      () => this.statisticsManager
+    );
+    this.dependencyContainer.registerSingleton(
+      "DueQueueManager",
+      () => this.dueQueueManager
+    );
+    this.dependencyContainer.registerSingleton(
+      "NavigationManager",
+      () => this.navigationManager
+    );
+    this.dependencyContainer.registerSingleton(
+      "ApplicationStore",
+      () => this.applicationStore
+    );
+    this.dependencyContainer.register("DashboardController", () => {
+      return new DashboardController(
+        this.dependencyContainer.resolve("Logger"),
+        this.dependencyContainer.resolve("EventBus"),
+        this.indexManager,
+        this.statisticsManager
+      );
+    });
+    this.dependencyContainer.register("ReviewController", () => {
+      var _a3;
+      return new ReviewController(
+        this.dependencyContainer.resolve("Logger"),
+        this.dependencyContainer.resolve("EventBus"),
+        this.app,
+        this.indexManager,
+        (_a3 = this.applicationStore) == null ? void 0 : _a3.session
+      );
+    });
+    Logger.debug("Dependency container set up with services");
+  }
+  /**
+   * Initializes the ApplicationStore and sets up ManagersContext
+   */
+  async initializeApplicationStore() {
+    try {
+      this.applicationStore = new ApplicationStore({
+        eventBus: this.eventBus,
+        indexManager: this.indexManager,
+        statsManager: this.statisticsManager,
+        dueQueueManager: this.dueQueueManager
+      });
+      await this.applicationStore.initialize();
+      Logger.info("ApplicationStore initialized");
+      setManagersContext(this.dependencyContainer);
+      Logger.debug("ManagersContext set up");
+    } catch (error48) {
+      Logger.error("Failed to initialize ApplicationStore:", error48);
+      throw error48;
     }
   }
   /**
@@ -28658,13 +27885,221 @@ var AppView = class extends import_obsidian10.ItemView {
    */
   async onClose() {
     try {
+      Logger.info("Closing Knowledge Accelerator view");
+      if (this.applicationStore) {
+        await this.applicationStore.dispose();
+        this.applicationStore = null;
+        Logger.debug("ApplicationStore disposed");
+      }
+      this.dependencyContainer.clear();
+      this.eventBus.clear();
       if (this.homeComponent) {
         this.homeComponent.$destroy();
         this.homeComponent = null;
       }
       this.navigationManager.closeUnifiedView();
+      Logger.info("Knowledge Accelerator view closed successfully");
     } catch (error48) {
-      console.error("Failed to close Home view:", error48);
+      Logger.error("Failed to close Home view:", error48);
+    }
+  }
+};
+
+// src/ui/stores/types.ts
+var NavigationStateSchema2 = external_exports.object({
+  currentView: external_exports.enum(["dashboard", "review"]),
+  reviewContext: external_exports.object({
+    currentSessionId: external_exports.string().uuid(),
+    currentCardIndex: external_exports.number().int().min(0),
+    queueSize: external_exports.number().int().min(0),
+    sessionStartTime: external_exports.number().int().positive()
+  }).nullable(),
+  dashboardContext: external_exports.object({
+    selectedPeriod: external_exports.enum(["today", "7days", "30days"]),
+    showDetails: external_exports.boolean()
+  }).nullable()
+});
+
+// src/ui/views/App/NavigationManager.ts
+var navigationState = writable({
+  currentView: "dashboard",
+  reviewContext: null,
+  dashboardContext: {
+    selectedPeriod: "7days",
+    showDetails: false
+  }
+});
+var NavigationManager = class {
+  constructor(app) {
+    __publicField(this, "app");
+    __publicField(this, "leaf", null);
+    __publicField(this, "UNIFIED_VIEW_TYPE", "knowledge-accelerator-home");
+    this.app = app;
+  }
+  /**
+   * Initializes the navigation state to dashboard view.
+   * Loads persisted state if available.
+   */
+  async initialize() {
+    try {
+      await this.load();
+      if (!this.leaf) {
+        await this.openUnifiedView();
+      }
+    } catch (error48) {
+      console.error("Failed to initialize NavigationManager:", error48);
+      navigationState.set({
+        currentView: "dashboard",
+        reviewContext: null,
+        dashboardContext: {
+          selectedPeriod: "7days",
+          showDetails: false
+        }
+      });
+    }
+  }
+  /**
+   * Initializes the navigation manager with a specific workspace leaf.
+   * @param leaf - The workspace leaf to use for the unified view
+   */
+  initializeWithLeaf(leaf) {
+    this.leaf = leaf;
+    void this.initialize();
+  }
+  /**
+   * Navigates to the specified view.
+   * @param view - Target view ("dashboard" or "review")
+   * @param context - Optional context data for the target view
+   */
+  async navigateTo(view, context) {
+    try {
+      const currentState = this.getState();
+      if (currentState.currentView === view) {
+        throw new Error(`Invalid navigation: already in ${view} view`);
+      }
+      const newState = {
+        currentView: view,
+        reviewContext: view === "review" ? context : null,
+        dashboardContext: view === "dashboard" ? context != null ? context : currentState.dashboardContext : null
+      };
+      navigationState.set(newState);
+      await this.save();
+    } catch (error48) {
+      console.error("Navigation failed:", error48);
+      throw error48;
+    }
+  }
+  /**
+   * Returns the current navigation state.
+   */
+  getState() {
+    let state;
+    navigationState.subscribe((s) => {
+      state = s;
+    })();
+    return state;
+  }
+  /**
+   * Updates the review context (e.g., during session).
+   * @param context - New review context
+   */
+  updateReviewContext(context) {
+    navigationState.update((state) => ({
+      ...state,
+      reviewContext: context
+    }));
+    void this.save();
+  }
+  /**
+   * Updates the dashboard context (e.g., period selection).
+   * @param context - New dashboard context
+   */
+  updateDashboardContext(context) {
+    navigationState.update((state) => ({
+      ...state,
+      reviewContext: null,
+      dashboardContext: context
+    }));
+    void this.save();
+  }
+  /**
+   * Opens the unified view in a new ribbon-icon leaf.
+   * @returns Promise that resolves when view is opened
+   */
+  async openUnifiedView() {
+    try {
+      if (this.leaf) {
+        this.app.workspace.revealLeaf(this.leaf);
+        return;
+      }
+      this.leaf = this.app.workspace.getRightLeaf(false);
+      if (!this.leaf) {
+        throw new Error("Failed to create workspace leaf");
+      }
+      this.leaf.setViewState({
+        type: this.UNIFIED_VIEW_TYPE,
+        active: true
+      });
+      this.app.workspace.revealLeaf(this.leaf);
+    } catch (error48) {
+      console.error("Failed to open unified view:", error48);
+      throw error48;
+    }
+  }
+  /**
+   * Closes the unified view.
+   */
+  closeUnifiedView() {
+    try {
+      if (this.leaf) {
+        this.leaf.detach();
+        this.leaf = null;
+      }
+    } catch (error48) {
+      console.error("Failed to close unified view:", error48);
+    }
+  }
+  /**
+   * Persists the current navigation state to plugin settings.
+   * Called on state changes.
+   */
+  async save() {
+    var _a3;
+    try {
+      const state = this.getState();
+      const plugin = (_a3 = this.app.plugins) == null ? void 0 : _a3.getPlugin("obs-knowledge-accelerator");
+      if (plugin && plugin.settings) {
+        plugin.settings.navigationState = state;
+        await plugin.saveSettings();
+      }
+    } catch (error48) {
+      console.error("Failed to save navigation state:", error48);
+    }
+  }
+  /**
+   * Loads navigation state from plugin settings.
+   */
+  async load() {
+    var _a3, _b;
+    try {
+      const plugin = (_a3 = this.app.plugins) == null ? void 0 : _a3.getPlugin("obs-knowledge-accelerator");
+      if ((_b = plugin == null ? void 0 : plugin.settings) == null ? void 0 : _b.navigationState) {
+        const validState = NavigationStateSchema2.parse(plugin.settings.navigationState);
+        navigationState.set(validState);
+        console.log("[NavigationManager] Loaded navigation state:", validState);
+      } else {
+        console.log("[NavigationManager] No saved state, using defaults");
+      }
+    } catch (error48) {
+      console.error("[NavigationManager] Failed to load navigation state:", error48);
+      navigationState.set({
+        currentView: "dashboard",
+        reviewContext: null,
+        dashboardContext: {
+          selectedPeriod: "7days",
+          showDetails: false
+        }
+      });
     }
   }
 };
@@ -28679,7 +28114,6 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian11.Plugin {
     __publicField(this, "commandRegistry");
     __publicField(this, "vaultWatcher");
     __publicField(this, "dueQueueManager");
-    __publicField(this, "sessionStore");
     __publicField(this, "settings");
     __publicField(this, "notificationManager");
     __publicField(this, "navigationManager");
@@ -28714,11 +28148,6 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian11.Plugin {
     await this.statisticsManager.load();
     this.dueQueueManager = DueQueueManager.getInstance(this.app, this.settings);
     this.dueQueueManager.generate();
-    this.sessionStore = new SessionStore(
-      this.indexManager,
-      this.statisticsManager,
-      this.dueQueueManager
-    );
     this.navigationManager = new NavigationManager(this.app);
   }
   async initializeViews() {
@@ -28730,7 +28159,6 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian11.Plugin {
         this.navigationManager,
         this.indexManager,
         this.statisticsManager,
-        this.sessionStore,
         this.dueQueueManager
       )
     );
@@ -28763,14 +28191,13 @@ var KnowledgeAcceleratorPlugin = class extends import_obsidian11.Plugin {
       id: "ka-start-review",
       name: "Knowledge Accelerator: Start Review",
       callback: async () => {
-        Logger.debug("Starting review session");
+        Logger.debug("Opening review view");
         try {
-          await this.sessionStore.startSession();
           await this.navigationManager.openUnifiedView();
           await this.navigationManager.navigateTo("review");
         } catch (error48) {
-          Logger.error("Failed to start review session:", error48);
-          new import_obsidian11.Notice("No cards due for review!");
+          Logger.error("Failed to open review view:", error48);
+          new import_obsidian11.Notice("Failed to open review view");
         }
       }
     });
