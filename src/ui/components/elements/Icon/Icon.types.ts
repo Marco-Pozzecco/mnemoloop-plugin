@@ -1,39 +1,16 @@
-/**
- * Props for the Icon component
- */
 export interface IconProps {
-	/**
-	 * The name of the Obsidian icon to display
-	 */
-	name: string;
 
-	/**
-	 * Optional size in pixels
-	 */
-	size?: number;
+  name: string;
 
-	/**
-	 * Optional color (CSS color value)
-	 */
-	color?: string;
+  size?: number;
 
-	/**
-	 * Additional CSS classes
-	 */
-	className?: string;
+  color?: string;
 
-	/**
-	 * Whether to flip the icon horizontally
-	 */
-	flipHorizontal?: boolean;
+  className?: string;
 
-	/**
-	 * Whether to flip the icon vertically
-	 */
-	flipVertical?: boolean;
+  flipHorizontal?: boolean;
 
-	/**
-	 * Rotation in degrees
-	 */
-	rotation?: number;
+  flipVertical?: boolean;
+
+  rotation?: number;
 }

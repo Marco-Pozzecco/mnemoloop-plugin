@@ -1,91 +1,50 @@
 <script lang="ts">
 	import type { InputProps } from './Input.types';
 
-	/**
-	 * Unique identifier for the input
-	 */
-	export let id: InputProps['id'] = `ka-input-${Math.random().toString(36).substr(2, 9)}`;
-
-	/**
-	 * Input type
-	 */
-	export let type: InputProps['type'] = 'text';
-
-	/**
-	 * Label text for the input
-	 */
-	export let label: InputProps['label'] = undefined;
-
-	/**
-	 * Placeholder text
-	 */
-	export let placeholder: InputProps['placeholder'] = '';
-
-	/**
-	 * Current value of the input
-	 */
-	export let value: InputProps['value'] = '';
-
-	/**
-	 * Whether the input is disabled
-	 */
-	export let disabled: InputProps['disabled'] = false;
-
-	/**
-	 * Whether the input is required
-	 */
-	export let required: InputProps['required'] = false;
-
-	/**
-	 * Whether the input has a validation error
-	 */
-	export let hasError: InputProps['hasError'] = false;
-
-	/**
-	 * Error message to display
-	 */
-	export let errorMessage: InputProps['errorMessage'] = '';
-
-	/**
-	 * Additional helper text
-	 */
-	export let helperText: InputProps['helperText'] = undefined;
-
-	/**
-	 * Optional max length for text inputs
-	 */
-	export let maxLength: InputProps['maxLength'] = undefined;
-
-	/**
-	 * Optional min value for number inputs
-	 */
-	export let min: InputProps['min'] = undefined;
-
-	/**
-	 * Optional max value for number inputs
-	 */
-	export let max: InputProps['max'] = undefined;
-
-	/**
-	 * Additional CSS classes
-	 */
-	let className: string = '';
-	export { className as class };
+	let {
+		id = `ka-input-${Math.random().toString(36).substr(2, 9)}`,
+		type = 'text',
+		label,
+		placeholder = '',
+		value = '',
+		disabled = false,
+		required = false,
+		hasError = false,
+		errorMessage = '',
+		helperText,
+		maxLength,
+		min,
+		max,
+		className = '',
+		onchange,
+		onfocus,
+		onblur,
+		onkeydown,
+	}: InputProps = $props();
 
 	let inputElement: HTMLInputElement;
 
 	function handleChange(event: Event) {
 		const target = event.target as HTMLInputElement;
-		value = type === 'number' ? Number(target.value) : target.value;
+		const newValue = type === 'number' ? Number(target.value) : target.value;
+		value = newValue;
+		if (onchange) {
+			onchange(newValue as string);
+		}
 	}
 
 	function handleFocus() {
-		inputElement?.focus();
+		if (onfocus) {
+			onfocus();
+		}
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.key === 'Enter') {
 			inputElement?.blur();
+		}
+		if (onkeydown) {
+			onkeydown(event);
 		}
 	}
 </script>
@@ -108,16 +67,16 @@
 		{value}
 		{disabled}
 		{required}
-		{maxLength}
+		maxlength={maxLength}
 		{min}
 		{max}
 		aria-invalid={hasError}
 		aria-describedby={hasError ? `${id}-error` : helperText ? `${id}-helper` : undefined}
 		class="ka-input"
-		on:change={handleChange}
-		on:focus={handleFocus}
-		on:blur
-		on:keydown={handleKeydown}
+		onchange={handleChange}
+		onfocus={handleFocus}
+		onblur={onblur}
+		onkeydown={handleKeydown}
 	/>
 
 	{#if hasError && errorMessage}

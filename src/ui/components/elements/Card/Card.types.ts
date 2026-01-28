@@ -1,4 +1,4 @@
-import { MouseEventHandler } from "svelte/elements";
+import type { Snippet } from 'svelte';
 
 export interface CardProps {
   title?: string;
@@ -7,5 +7,7 @@ export interface CardProps {
   icon?: string;
   clickable?: boolean;
   className?: string;
-  onClick?: () => void;
+  onclick?: () => void;
+  children?: Snippet;
+  footer?: Snippet;
 }

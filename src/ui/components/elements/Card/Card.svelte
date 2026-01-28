@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { unsafeStringify } from 'uuid/dist/stringify';
-	import { Icon } from '../../atoms/';
+	import { Icon } from '@/ui/components';
 	import type { CardProps } from './Card.types';
 
 	const {
@@ -10,11 +9,13 @@
 		hasBorder = true,
 		icon,
 		padding = 'medium',
-		onClick,
+		onclick,
+		children,
+		footer,
 	}: CardProps = $props();
 
 	function handleClick() {
-		if (onClick) onClick();
+		if (onclick) onclick();
 	}
 </script>
 
@@ -45,14 +46,14 @@
 	{/if}
 
 	<div class="ka-card-content">
-		<slot name="content">
-			<slot />
-		</slot>
+		{#if children}
+			{@render children()}
+		{/if}
 	</div>
 
-	{#if $$slots.footer}
+	{#if footer}
 		<footer class="ka-card-footer">
-			<slot name="footer" />
+			{@render footer()}
 		</footer>
 	{/if}
 </article>
