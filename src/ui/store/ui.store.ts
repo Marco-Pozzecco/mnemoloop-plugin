@@ -1,6 +1,6 @@
 import { AppViews } from "@/ui/views/App/types";
 import { writable } from "svelte/store";
-import { BaseStoreManager } from "./base";
+import { BaseStoreManager } from "./base.store";
 
 interface UIState {
   currentView: AppViews,

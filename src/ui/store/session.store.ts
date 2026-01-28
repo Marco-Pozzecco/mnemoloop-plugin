@@ -1,5 +1,5 @@
 import { Unsubscriber, writable } from "svelte/store"
-import { BaseStoreManager } from "./base";
+import { BaseStoreManager } from "./base.store";
 
 export interface Session { };
 
