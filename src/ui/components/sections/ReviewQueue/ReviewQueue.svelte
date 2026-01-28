@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
-    import { Card, Icon, Button } from "@/ui/design-system"
+	import { Card, Icon, Button } from '@/ui/components';
 	/**
 	 * Review queue data
 	 */
@@ -84,7 +83,11 @@
 							{#if card.difficulty}
 								<div class="ka-difficulty-badge">
 									<Icon
-										name={card.difficulty === 'easy' ? 'zap' : card.difficulty === 'hard' ? 'flame' : 'minus'}
+										name={card.difficulty === 'easy'
+											? 'zap'
+											: card.difficulty === 'hard'
+												? 'flame'
+												: 'minus'}
 										size={14}
 									/>
 									<span>{card.difficulty}</span>
