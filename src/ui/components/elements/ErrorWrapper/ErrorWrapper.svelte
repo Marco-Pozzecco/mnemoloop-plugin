@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { createEventDispatcher, onError } from 'svelte';
+	import { onError } from 'svelte';
 	import { Logger } from '@/utils/Logger';
-	import Button from './Button.svelte';
-	import Icon from './Icon.svelte';
-	import { ErrorWrapperProps } from './ErrorWrapper.types';
+	import Button from '../Button/Button.svelte';
+	import Icon from '../Icon/Icon.svelte';
+	import type { ErrorWrapperProps } from './ErrorWrapper.types';
 
 	let {
 		fallback,
@@ -12,10 +12,9 @@
 		maxRetries = 3,
 		className = '',
 		errorContext = 'ErrorWrapper',
-		children
-	}: ErrorWrapperProps & { children?: any } = $props();
+		children,
+	}: ErrorWrapperProps = $props();
 
-	const dispatch = createEventDispatcher();
 	const logger = new Logger('ErrorWrapper');
 
 	let hasError = $state(false);
@@ -37,9 +36,6 @@
 			`[${errorContext}] Component error occurred (attempt ${retryCount + 1}/${maxRetries + 1}):`,
 			error
 		);
-
-		// Emit error event for parent components
-		dispatch('error', { error, errorMessage });
 
 		// Check if we've exceeded max retries
 		if (retryCount >= maxRetries) {
@@ -107,7 +103,7 @@
 				{#if retryCount > 0}
 					<span class="ka-error-wrapper__retry-info">Retry attempt {retryCount} of {maxRetries}</span>
 				{/if}
-				<Button variant="primary" on:click={handleRetry}>
+				<Button variant="primary" onclick={handleRetry}>
 					<Icon name="refresh-cw" size={16} />
 					Retry
 				</Button>
@@ -119,7 +115,7 @@
 				<span class="ka-error-wrapper__retry-info ka-error-wrapper__retry-info--exceeded">
 					Maximum retries exceeded
 				</span>
-				<Button variant="secondary" on:click={() => window.location.reload()}>
+				<Button variant="secondary" onclick={() => window.location.reload()}>
 					<Icon name="rotate-ccw" size={16} />
 					Reload Page
 				</Button>
@@ -127,7 +123,9 @@
 		{/if}
 	</div>
 {:else}
-	{@render children?.()}
+	{#if children}
+		{@render children()}
+	{/if}
 {/if}
 
 <style>

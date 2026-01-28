@@ -5,11 +5,12 @@
 		ariaLabel,
 		className,
 		disabled = false,
-		onClick,
+		onclick,
 		size = 'medium',
 		title,
 		type = 'button',
 		variant = 'secondary',
+		children,
 	}: ButtonProps = $props();
 </script>
 
@@ -19,9 +20,11 @@
 	{disabled}
 	{title}
 	aria-label={ariaLabel || title}
-	on:click={onClick}
+	{onclick}
 >
-	<slot />
+	{#if children}
+		{@render children()}
+	{/if}
 </button>
 
 <style>

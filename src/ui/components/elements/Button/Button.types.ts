@@ -1,44 +1,13 @@
-/**
- * Props for the Button component
- */
+import type { Snippet } from 'svelte';
+
 export interface ButtonProps {
-	/**
-	 * Visual style variant of the button
-	 */
-	variant?: 'primary' | 'secondary' | 'danger';
-
-	/**
-	 * Size of the button
-	 */
-	size?: 'small' | 'medium' | 'large';
-
-	/**
-	 * Whether the button is disabled
-	 */
-	disabled?: boolean;
-
-	/**
-	 * Optional ARIA label for accessibility
-	 */
-	ariaLabel?: string;
-
-	/**
-	 * Button type attribute
-	 */
-	type?: 'button' | 'submit' | 'reset';
-
-	/**
-	 * Optional title attribute for tooltips
-	 */
-	title?: string;
-
-	/**
-	 * Additional CSS classes
-	 */
-	className?: string;
-
-	/**
-	 * Click event handler
-	 */
-	onClick?: (event: MouseEvent) => void;
+  variant?: 'primary' | 'secondary' | 'danger';
+  size?: 'small' | 'medium' | 'large';
+  disabled?: boolean;
+  ariaLabel?: string;
+  type?: 'button' | 'submit' | 'reset';
+  title?: string;
+  className?: string;
+  onclick?: (event: MouseEvent) => void;
+  children?: Snippet;
 }

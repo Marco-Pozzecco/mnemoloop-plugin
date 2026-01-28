@@ -1,47 +1,25 @@
 <script lang="ts">
 	import type { ToggleProps } from './Toggle.types';
 
-	/**
-	 * Unique identifier for the toggle
-	 */
-	export let id: ToggleProps['id'] = `ka-toggle-${Math.random().toString(36).substr(2, 9)}`;
-
-	/**
-	 * Label text for the toggle
-	 */
-	export let label: ToggleProps['label'] = undefined;
-
-	/**
-	 * Whether the toggle is checked
-	 */
-	export let checked: ToggleProps['checked'] = false;
-
-	/**
-	 * Whether the toggle is disabled
-	 */
-	export let disabled: ToggleProps['disabled'] = false;
-
-	/**
-	 * Optional helper text
-	 */
-	export let helperText: ToggleProps['helperText'] = undefined;
-
-	/**
-	 * Size of the toggle switch
-	 */
-	export let size: ToggleProps['size'] = 'medium';
-
-	/**
-	 * Additional CSS classes
-	 */
-	let className: string = '';
-	export { className as class };
+	let {
+		id = `ka-toggle-${Math.random().toString(36).substr(2, 9)}`,
+		label,
+		checked = false,
+		disabled = false,
+		helperText,
+		size = 'medium',
+		className = '',
+		onchange,
+	}: ToggleProps = $props();
 
 	let toggleElement: HTMLInputElement;
 
 	function handleChange(event: Event) {
 		const target = event.target as HTMLInputElement;
 		checked = target.checked;
+		if (onchange) {
+			onchange(checked);
+		}
 	}
 </script>
 
@@ -54,7 +32,7 @@
 			{checked}
 			{disabled}
 			class="ka-toggle-input"
-			on:change={handleChange}
+			onchange={handleChange}
 			aria-describedby={helperText ? `${id}-helper` : undefined}
 		/>
 		<span class="ka-toggle-switch" class:checked={checked} class:disabled={disabled}></span>

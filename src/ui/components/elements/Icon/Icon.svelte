@@ -2,41 +2,15 @@
 	import { setIcon } from 'obsidian';
 	import type { IconProps } from './Icon.types';
 
-	/**
-	 * The name of the Obsidian icon to display
-	 */
-	export let name: IconProps['name'];
-
-	/**
-	 * Optional size in pixels
-	 */
-	export let size: IconProps['size'] = 16;
-
-	/**
-	 * Optional color (CSS color value)
-	 */
-	export let color: IconProps['color'] = undefined;
-
-	/**
-	 * Additional CSS classes
-	 */
-	let className: string = '';
-	export { className as class };
-
-	/**
-	 * Whether to flip the icon horizontally
-	 */
-	export let flipHorizontal: IconProps['flipHorizontal'] = false;
-
-	/**
-	 * Whether to flip the icon vertically
-	 */
-	export let flipVertical: IconProps['flipVertical'] = false;
-
-	/**
-	 * Rotation in degrees
-	 */
-	export let rotation: IconProps['rotation'] = 0;
+	let {
+		name,
+		size = 16,
+		color,
+		className = '',
+		flipHorizontal = false,
+		flipVertical = false,
+		rotation = 0,
+	}: IconProps = $props();
 
 	function iconAction(node: HTMLElement, iconName: string) {
 		setIcon(node, iconName);
@@ -59,11 +33,11 @@
 		};
 	}
 
-	$: transformStyle = `
+	const transformStyle = $derived(`
 		${flipHorizontal ? 'scaleX(-1)' : ''}
 		${flipVertical ? 'scaleY(-1)' : ''}
 		rotate(${rotation}deg)
-	`.trim();
+	`.trim());
 </script>
 
 <span
