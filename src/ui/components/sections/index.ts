@@ -1,8 +1,16 @@
-export { default as Card } from './Card/Card.svelte';
-export type { CardProps } from './Card/Card.types';
-
-export { default as Modal } from './Modal/Modal.svelte';
-export type { ModalProps } from './Modal/Modal.types';
-
-export { default as Toast } from './Toast/Toast.svelte';
-export type { ToastProps } from './Toast/Toast.types';
+export { default as DashboardChart } from './DashboardChart/DashboardChart.svelte';
+export type { DashboardChartProps } from './DashboardChart/DashboardChart.types';
+export { default as DashboardFooter } from './DashboardFooter/DashboardFooter.svelte';
+export type { DashboardFooterProps } from './DashboardFooter/DashboardFooter.types';
+export { default as DashboardHeader } from './DashboardHeader/DashboardHeader.svelte';
+export type { DashboardHeaderProps } from './DashboardHeader/DashboardHeader.types';
+export { default as DashboardProgress } from './DashboardProgress/DashboardProgress.svelte';
+export type { DashboardProgressProps } from './DashboardProgress/DashboardProgress.types';
+export { default as DashboardStatsGrid } from './DashboardStatsGrid/DashboardStatsGrid.svelte';
+export type { DashboardStatsGridProps } from './DashboardStatsGrid/DashboardStatsGrid.types';
+export { default as RatingControls } from './RatingControls/RatingControls.svelte';
+export type { RatingControlsProps } from './RatingControls/RatingControls.types';
+export { default as ReviewQueue } from './ReviewQueue/ReviewQueue.svelte';
+export type { ReviewQueueProps } from './ReviewQueue/ReviewQueue.types';
+export { default as StatsPanel } from './StatsPanel/StatsPanel.svelte';
+export type { StatsPanelProps } from './StatsPanel/StatsPanel.types';
