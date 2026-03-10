@@ -1,7 +1,4 @@
-import { Cache } from "@/utils/Cache";
-
 export interface IParser<Entity extends EntityYaml, EntityYaml> {
-  cache: Cache<Entity>;
   parse: (filepath: string, forceRefresh: boolean) => Promise<ParseResult<Entity>>
   parseAll: (dirPath: string, forceRefresh: boolean) => Promise<ParseResult<Entity>[]>
 }

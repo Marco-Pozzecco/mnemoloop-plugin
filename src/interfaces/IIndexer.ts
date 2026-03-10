@@ -1,5 +1,3 @@
-import { Cache } from "@/utils/Cache";
-
 export interface IIndexer<Entity> {
   readonly index: Record<string, Entity>;
 
