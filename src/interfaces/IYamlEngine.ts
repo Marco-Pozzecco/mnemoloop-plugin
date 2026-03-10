@@ -1,9 +1,4 @@
-import { VaultAdapter } from "@/modules/obsidian";
-import { ZodType } from "zod";
-
 export interface IYamlEngine<Entity> {
-  schema: ZodType<Entity>
-  vaultAdapter: VaultAdapter;
   // methods
   extractFromFile: (filepath: string) => Promise<YamlParseResult<Entity>>;
   extractFromContent: (content: string) => YamlParseResult<Entity> & { content: string }
