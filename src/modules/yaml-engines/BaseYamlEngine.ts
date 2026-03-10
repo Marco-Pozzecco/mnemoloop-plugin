@@ -1,23 +1,33 @@
 import { IYamlEngine, YamlParseResult } from "@/interfaces/IYamlEngine";
-import { VaultAdapter } from "../obsidian";
 import { $ZodTypeInternals } from "zod/v4/core";
 import { ERROR_MESSAGES } from "@/utils/constants";
 import { ZodType } from "zod";
-import { parseYaml } from "obsidian";
+import { normalizePath, parseYaml, Plugin } from "obsidian";
 
 export class BaseYamlEngine<T extends Record<string, unknown>> implements IYamlEngine<T> {
-  vaultAdapter: VaultAdapter;
-  schema: ZodType<T, unknown, $ZodTypeInternals<T, unknown>>;
-  private yamlRegex = /^---\n[\s\S]*?\n---\n?/
+  private _plugin: Plugin;
+  private _schema: ZodType<T, unknown, $ZodTypeInternals<T, unknown>>;
+  private _yamlRegex = /^---\n[\s\S]*?\n---\n?/
 
-  constructor(vaultAdapter: VaultAdapter, schema: ZodType<T>) {
-    this.vaultAdapter = vaultAdapter;
-    this.schema = schema
+  constructor(plugin: Plugin, schema: ZodType<T>) {
+    this._plugin = plugin;
+    this._schema = schema
   }
 
   async extractFromFile(filepath: string): Promise<YamlParseResult<T>> {
     try {
-      const metadata = await this.vaultAdapter.getCachedMetadata(filepath);
+      const normalizedFilepath = normalizePath(filepath);
+      const file = this._plugin.app.vault.getFileByPath(normalizedFilepath);
+
+      if (!file) {
+        return {
+          error: "file not found",
+          metadata: undefined,
+          success: false
+        }
+      }
+
+      const metadata = this._plugin.app.metadataCache.getFileCache(file);
 
       if (!metadata || !metadata.frontmatter) {
         return {
@@ -46,7 +56,7 @@ export class BaseYamlEngine<T extends Record<string, unknown>> implements IYamlE
 
   extractFromContent: (content: string) => YamlParseResult<T> & { content: string; } = (content) => {
     try {
-      const match = content.match(this.yamlRegex)
+      const match = content.match(this._yamlRegex)
 
       if (!match) {
         return {
@@ -83,19 +93,20 @@ export class BaseYamlEngine<T extends Record<string, unknown>> implements IYamlE
   };
 
   async write(filepath: string, data: T): Promise<void> {
-    const fullContent = await this.vaultAdapter.readFile(filepath);
+    const normalizedFilepath = normalizePath(filepath);
+    const fullContent = await this._plugin.app.vault.adapter.read(normalizedFilepath);
     const bodyContent = this.removeFrontmatter(fullContent);
     const yamlFrontmatter = this.generateYamlString(data);
     const newContent = yamlFrontmatter + '\n' + bodyContent;
-    await this.vaultAdapter.writeFile(filepath, newContent);
+    await this._plugin.app.vault.adapter.write(normalizedFilepath, newContent);
   }
 
   validate(data: Record<string, unknown>) {
-    return this.schema.parse(data);
+    return this._schema.parse(data);
   };
 
   removeFrontmatter(content: string): string {
-    const match = content.match(this.yamlRegex);
+    const match = content.match(this._yamlRegex);
     return match ? content.slice(match[0].length) : content;
   }
 
