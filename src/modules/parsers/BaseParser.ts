@@ -1,18 +1,17 @@
 import { IParser, ParseResult } from "@/interfaces/IParser";
-import { VaultAdapter } from "../obsidian";
 import { IYamlEngine } from "@/interfaces/IYamlEngine";
-import { Cache } from "@/utils/Cache";
+import { Plugin } from "obsidian";
 
 export abstract class BaseParser<Entity extends EntityMetadata, EntityMetadata> implements IParser<Entity, EntityMetadata> {
-  cache: Cache<Entity> = new Cache();
-  protected vaultAdapter: VaultAdapter;
-  protected yaml: IYamlEngine<EntityMetadata>;
+  protected _plugin: Plugin;
+  protected _yaml: IYamlEngine<EntityMetadata>;
 
-  constructor(vaultAdapter: VaultAdapter, yamlEngine: IYamlEngine<EntityMetadata>) {
-    this.vaultAdapter = vaultAdapter;
-    this.yaml = yamlEngine;
+  constructor(plugin: Plugin, yamlEngine: IYamlEngine<EntityMetadata>) {
+    this._plugin = plugin;
+    this._yaml = yamlEngine;
   }
 
-
   abstract parse: (filepath: string, forceRefresh: boolean) => Promise<ParseResult<Entity>>;
+
+  abstract parseAll: (dirPath: string, forceRefresh: boolean) => Promise<ParseResult<Entity>[]>;
 }
