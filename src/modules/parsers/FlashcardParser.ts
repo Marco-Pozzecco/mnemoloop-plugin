@@ -20,8 +20,8 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardMetadata> {
   parse = async (filepath: string): Promise<ParseResult<Flashcard>> => {
     try {
       const normalizedPath = normalizePath(filepath);
-      const content = await this.plugin.app.vault.adapter.read(normalizedPath);
-      const result = this.yaml.extractFromContent(content);
+      const content = await this._plugin.app.vault.adapter.read(normalizedPath);
+      const result = this._yaml.extractFromContent(content);
 
       if (!result.success || !result.metadata) {
         const errorResult = {
@@ -57,13 +57,13 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardMetadata> {
   }
 
   parseAll = async (): Promise<ParseResult<Flashcard>[]> => {
-    const dirExists = await this.plugin.app.vault.adapter.exists(this._dirPath);
+    const dirExists = await this._plugin.app.vault.adapter.exists(this._dirPath);
 
     if (!dirExists) {
       return [];
     }
 
-    const { files } = await this.plugin.app.vault.adapter.list(this._dirPath);
+    const { files } = await this._plugin.app.vault.adapter.list(this._dirPath);
     const mdFiles = files.filter(f => f.endsWith(".md"));
 
     const results = [];
@@ -83,7 +83,7 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardMetadata> {
    * @returns A ContentSplitResult containing front and back content
    */
   private splitContent(content: string): { front: string, back: string } {
-    const bodyContent = this.yaml.removeFrontmatter(content);
+    const bodyContent = this._yaml.removeFrontmatter(content);
     const marker = this._settings.data.flashcardMarker;
 
     const markerIndex = bodyContent.indexOf(marker);
