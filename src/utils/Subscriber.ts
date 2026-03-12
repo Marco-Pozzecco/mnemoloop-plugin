@@ -1,5 +1,5 @@
-import { ISubscriber } from "@/interfaces/ISubscriber";
+import { EventData, ISubscriber } from "@/interfaces/ISubscriber";
 
-export abstract class Subscriber<EventType extends string, Data> implements ISubscriber<EventType, Data> {
-  abstract update: (event: EventType, data: Data) => void;
+export abstract class Subscriber<Entity extends Record<string, unknown>> implements ISubscriber<Entity> {
+  abstract update: (event: string, data: EventData<Entity>) => void;
 }
