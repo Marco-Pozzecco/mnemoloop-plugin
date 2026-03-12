@@ -3,13 +3,17 @@ import { $ZodTypeInternals } from "zod/v4/core";
 import { ERROR_MESSAGES } from "@/utils/constants";
 import { ZodType } from "zod";
 import { normalizePath, parseYaml, Plugin } from "obsidian";
+import { Subscriber } from "@/utils/Subscriber";
+import { EventData } from "@/interfaces/ISubscriber";
+import { QueueItemEvents } from "../queue-items/BaseQueueItem";
 
-export class BaseYamlEngine<T extends Record<string, unknown>> implements IYamlEngine<T> {
+export class BaseYamlEngine<T extends Record<string, unknown>> extends Subscriber<T> implements IYamlEngine<T> {
   private _plugin: Plugin;
   private _schema: ZodType<T, unknown, $ZodTypeInternals<T, unknown>>;
   private _yamlRegex = /^---\n[\s\S]*?\n---\n?/
 
   constructor(plugin: Plugin, schema: ZodType<T>) {
+    super();
     this._plugin = plugin;
     this._schema = schema
   }
@@ -110,7 +114,7 @@ export class BaseYamlEngine<T extends Record<string, unknown>> implements IYamlE
     return match ? content.slice(match[0].length) : content;
   }
 
-  private generateYamlString(data: T) {
+  generateYamlString(data: T) {
     const lines: string[] = [];
 
     const entries = Object.entries(data);
@@ -130,4 +134,13 @@ export class BaseYamlEngine<T extends Record<string, unknown>> implements IYamlE
     return lines.join('\n');
   }
 
+  update: (event: string, data: EventData<T>) => void = (event, data) => {
+    switch (event) {
+      case QueueItemEvents.REVIEW:
+        const { entity, filepath } = data;
+        if (!filepath) return; // do nothing
+        const frontmatter = this.validate(entity);
+        this.write(filepath, frontmatter)
+    }
+  };
 }
