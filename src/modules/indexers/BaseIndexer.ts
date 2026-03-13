@@ -69,6 +69,16 @@ export abstract class BaseIndexer<Entity extends EntityYaml, EntityYaml, Index> 
     return result;
   };
 
+  upsert: (id: string, data: Entity) => Entity = (id, data) => {
+    const entity = this._cache.get(id);
+
+    if (entity) {
+      return this.update(id, data);
+    } else {
+      return this.create(id, data);
+    }
+  };
+
   delete: (id: string) => void = (id) => {
     const has = this._cache.has(id);
     if (!has) throw new Error(IndexError.NOT_FOUND);
