@@ -5,6 +5,7 @@ import { IAdapter } from "@/interfaces/IAdapter";
 import { PluginSettings } from "@/schemas/settings";
 import { FlashcardAdapter } from "../adapters/FlashcardAdapter";
 import { Plugin } from "obsidian";
+import { Logger } from "@/utils/Logger";
 
 export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, FlashcardIndex> {
   private _dirPath = this._settings.data.flashcardsDirectory;
@@ -16,6 +17,7 @@ export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, F
   }
 
   initialize: () => Promise<void> = async () => {
+    Logger.info("initialize flashcards index...")
     await this._adapter.initialize();
 
     const { flashcards } = this._adapter.data;
@@ -27,6 +29,9 @@ export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, F
         this._cache.set(flashcard.uuid, flashcard);
       }
     }
+
+    await this.save();
+    Logger.info('flashcards index initialization complete')
   };
 
   save: () => Promise<void> = async () => {
@@ -40,13 +45,14 @@ export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, F
   };
 
   reindex: () => Promise<void> = async () => {
+    Logger.info("reindexing flashcards...")
     const flashcards = await this._parser.parseAll(this._dirPath, false);
 
     for (const flashcard of flashcards) {
       if (!flashcard.entity) {
         continue
       }
-      this.update(flashcard.entity.uuid, flashcard.entity);
+      this.upsert(flashcard.entity.uuid, flashcard.entity);
     }
   }
 } 
