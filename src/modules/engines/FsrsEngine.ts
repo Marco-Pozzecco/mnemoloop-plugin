@@ -28,11 +28,11 @@ export class FsrsEngine extends BaseEngine<Flashcard> implements IEngine<Flashca
   sort: (list: Flashcard[]) => Flashcard[] = (list) => {
     return list.sort((a, b) => {
       const dueDiff =
-        new Date(a.srs.due).getTime() - new Date(b.srs.due).getTime();
+        new Date(a.due).getTime() - new Date(b.due).getTime();
       if (dueDiff !== 0) return dueDiff;
 
-      const priorityA = this.STATE_PRIORITY[a.srs.state] ?? 99;
-      const priorityB = this.STATE_PRIORITY[b.srs.state] ?? 99;
+      const priorityA = this.STATE_PRIORITY[a.state] ?? 99;
+      const priorityB = this.STATE_PRIORITY[b.state] ?? 99;
       return priorityA - priorityB;
     });
   }
@@ -42,7 +42,7 @@ export class FsrsEngine extends BaseEngine<Flashcard> implements IEngine<Flashca
    * @returns Updated Flashcard entity
    */
   calculate: (item: Flashcard, score: Exclude<Rating, 0>) => Flashcard = (item, score) => {
-    const params = item.srs;
+    const params = item;
     const card: Card = this.mapToFsrsCard(params);
     const reviewTime = new Date();
 
