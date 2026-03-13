@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { FSRSParams } from './srs';
+import { v4 as uuidv4 } from "uuid";
+import { DEFAULT_FSRS } from '@/utils/constants';
 
 export enum CardStatus {
   ACTIVE = 'ACTIVE',
@@ -48,3 +50,12 @@ export type FlashcardIndex = z.infer<typeof FlashcardIndexSchema>;
 export type FlashcardMetadata = z.infer<typeof FlashcardMetadataSchema>;
 export type FlashcardBody = z.infer<typeof FlashcardBodySchema>;
 export type Flashcard = z.infer<typeof FlashcardSchema>;
+
+export const DEFAULT_FLASHCARD_METADATA: Omit<FlashcardMetadata, 'uuid' | "file"> = {
+  source: null,
+  status: CardStatus.ACTIVE,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  deleted_at: null,
+  ...DEFAULT_FSRS
+}
