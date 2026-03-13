@@ -9,5 +9,6 @@ export interface IIndexer<Entity> {
   query: (predicate: (entity: Entity) => boolean) => Entity[];
   create: (id: string, data: Entity) => Entity;
   update: (id: string, data: Partial<Entity>) => Entity;
+  upsert: (id: string, data: Entity) => Entity;
   delete: (id: string) => void;
 }
