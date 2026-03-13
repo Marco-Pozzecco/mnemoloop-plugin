@@ -34,9 +34,9 @@ export class FlashcardAdapter extends BaseAdapter<FlashcardIndex> {
   };
 
   save: () => Promise<void> = async () => {
-    const file = this.plugin.app.vault.getAbstractFileByPath(this._path);
-    if (file instanceof TFile) {
-      await this.plugin.app.vault.modify(file, JSON.stringify(this._data));
+    const file = await this.plugin.app.vault.adapter.exists(this._path);
+    if (file) {
+      await this.plugin.app.vault.adapter.write(this._path, JSON.stringify(this._data));
     } else {
       await this.plugin.app.vault.create(this._path, JSON.stringify(this._data));
     }
