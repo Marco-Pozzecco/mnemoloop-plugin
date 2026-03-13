@@ -1,9 +1,9 @@
 export interface IYamlEngine<Entity> {
-  // methods
   extractFromFile: (filepath: string) => Promise<YamlParseResult<Entity>>;
   extractFromContent: (content: string) => YamlParseResult<Entity> & { content: string };
   generateYamlString: (data: Entity) => string;
   write: (filepath: string, data: Entity) => Promise<void>;
+  recover: (filepath: string) => Promise<void>;
   validate: (data: Record<string, unknown>) => Entity;
   removeFrontmatter: (content: string) => string;
 }
