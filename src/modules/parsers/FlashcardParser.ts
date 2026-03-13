@@ -1,11 +1,12 @@
-import { ERROR_MESSAGES } from '@/utils/constants';
-import type { Flashcard, FlashcardMetadata } from '@/schemas';
+import { IAdapter } from '@/interfaces/IAdapter';
 import { ParseResult } from '@/interfaces/IParser';
+import type { Flashcard, FlashcardMetadata } from '@/schemas';
+import { PluginSettings } from '@/schemas/settings';
+import { ERROR_MESSAGES } from '@/utils/constants';
+import { Logger } from '@/utils/Logger';
+import { normalizePath, Plugin } from 'obsidian';
 import { FlashcardYamlEngine } from '../yaml-engines/FlashcardYamlEngine';
 import { BaseParser } from './BaseParser';
-import { normalizePath, Plugin } from 'obsidian';
-import { IAdapter } from '@/interfaces/IAdapter';
-import { PluginSettings } from '@/schemas/settings';
 
 export class FlashcardParser extends BaseParser<Flashcard, FlashcardMetadata> {
   private _settings: IAdapter<PluginSettings>;
@@ -20,15 +21,17 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardMetadata> {
   parse = async (filepath: string): Promise<ParseResult<Flashcard>> => {
     try {
       const normalizedPath = normalizePath(filepath);
-      const content = await this._plugin.app.vault.adapter.read(normalizedPath);
-      const result = this._yaml.extractFromContent(content);
+      let content = await this._plugin.app.vault.adapter.read(normalizedPath);
+      let result = this._yaml.extractFromContent(content);
 
       if (!result.success || !result.metadata) {
-        const errorResult = {
-          success: false,
-          error: result.error || ERROR_MESSAGES.INVALID_YAML,
-        } as ParseResult<Flashcard>;
-        return errorResult;
+        await this._yaml.recover(filepath);
+        Logger.warn("Recovered flashcard with default metadata:", filepath);
+
+        content = await this._plugin.app.vault.adapter.read(normalizedPath);
+        result = this._yaml.extractFromContent(content);
+
+        if (!result.success) throw new Error("impossible to recover metadata")
       }
 
       const bodyContent = result.content;
