@@ -7,16 +7,18 @@ import { Subscriber } from "@/utils/Subscriber";
 import { EventData } from "@/interfaces/ISubscriber";
 import { QueueItemEvents } from "../queue-items/BaseQueueItem";
 
-export class BaseYamlEngine<T extends Record<string, unknown>> extends Subscriber<T> implements IYamlEngine<T> {
-  private _plugin: Plugin;
-  private _schema: ZodType<T, unknown, $ZodTypeInternals<T, unknown>>;
-  private _yamlRegex = /^---\n[\s\S]*?\n---\n?/
+export abstract class BaseYamlEngine<T extends Record<string, unknown>> extends Subscriber<T> implements IYamlEngine<T> {
+  protected _plugin: Plugin;
+  protected _schema: ZodType<T, unknown, $ZodTypeInternals<T, unknown>>;
+  protected _yamlRegex = /^---\n[\s\S]*?\n---\n?/;
 
   constructor(plugin: Plugin, schema: ZodType<T>) {
     super();
     this._plugin = plugin;
-    this._schema = schema
+    this._schema = schema;
   }
+
+  abstract recover: (filepath: string) => Promise<void>;
 
   async extractFromFile(filepath: string): Promise<YamlParseResult<T>> {
     try {
