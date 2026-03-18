@@ -19,7 +19,7 @@
 	}
 </script>
 
-<article
+<button
 	class="ka-card {className}"
 	class:has-border={hasBorder}
 	class:clickable
@@ -28,7 +28,7 @@
 	class:padding-medium={padding === 'medium'}
 	class:padding-large={padding === 'large'}
 	role={clickable ? 'button' : undefined}
-	tabindex={clickable ? 0 : -1}
+	tabindex={clickable ? 0 : undefined}
 	onclick={handleClick}
 	onkeydown={clickable ? (e) => e.key === 'Enter' && handleClick() : undefined}
 >
@@ -56,7 +56,7 @@
 			{@render footer()}
 		</footer>
 	{/if}
-</article>
+</button>
 
 <style>
 	.ka-card {
