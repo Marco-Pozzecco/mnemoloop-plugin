@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onError } from 'svelte';
 	import { Logger } from '@/utils/Logger';
 	import Button from '../Button/Button.svelte';
 	import Icon from '../Icon/Icon.svelte';
@@ -15,26 +14,19 @@
 		children,
 	}: ErrorWrapperProps = $props();
 
-	const logger = new Logger('ErrorWrapper');
-
 	let hasError = $state(false);
 	let errorMessage = $state('');
 	let retryCount = $state(0);
 	let retryExceeded = $state(false);
-
-	// Svelte's onError lifecycle hook to catch errors from child components
-	onError((error) => {
-		handleError(error);
-	});
 
 	function handleError(error: unknown): void {
 		hasError = true;
 		errorMessage = error instanceof Error ? error.message : String(error);
 
 		// Log error with correlation ID
-		logger.error(
+		Logger.error(
 			`[${errorContext}] Component error occurred (attempt ${retryCount + 1}/${maxRetries + 1}):`,
-			error
+			error,
 		);
 
 		// Check if we've exceeded max retries
@@ -49,7 +41,7 @@
 			retryCount++;
 			hasError = false;
 			errorMessage = '';
-			logger.debug(`[${errorContext}] Retrying (attempt ${retryCount}/${maxRetries})`);
+			Logger.debug(`[${errorContext}] Retrying (attempt ${retryCount}/${maxRetries})`);
 
 			// Call parent's onRetry callback if provided
 			if (onRetry) {
@@ -59,7 +51,7 @@
 			// Component will re-render, child will try again
 		} else {
 			retryExceeded = true;
-			logger.warn(`[${errorContext}] Maximum retries (${maxRetries}) exceeded`);
+			Logger.warn(`[${errorContext}] Maximum retries (${maxRetries}) exceeded`);
 		}
 	}
 
@@ -78,55 +70,57 @@
 	const canRetry = $derived(onRetry !== null && !retryExceeded);
 </script>
 
-{#if hasError}
-	<div class="ka-error-wrapper {className}" role="alert" aria-live="polite">
-		<div class="ka-error-wrapper__content">
-			<div class="ka-error-wrapper__icon">
-				<Icon name="alert-triangle" size={32} />
+<svelte:boundary onerror={handleError}>
+	{#if hasError}
+		<div class="ka-error-wrapper {className}" role="alert" aria-live="polite">
+			<div class="ka-error-wrapper__content">
+				<div class="ka-error-wrapper__icon">
+					<Icon name="alert-triangle" size={32} />
+				</div>
+				<div class="ka-error-wrapper__message">
+					<h3 class="ka-error-wrapper__title">Something went wrong</h3>
+					<p class="ka-error-wrapper__description">{displayMessage}</p>
+					{#if showError && errorMessage && !retryExceeded}
+						<div class="ka-error-wrapper__details">
+							<details>
+								<summary>Error details</summary>
+								<code class="ka-error-wrapper__code">{errorMessage}</code>
+							</details>
+						</div>
+					{/if}
+				</div>
 			</div>
-			<div class="ka-error-wrapper__message">
-				<h3 class="ka-error-wrapper__title">Something went wrong</h3>
-				<p class="ka-error-wrapper__description">{displayMessage}</p>
-				{#if showError && errorMessage && !retryExceeded}
-					<div class="ka-error-wrapper__details">
-						<details>
-							<summary>Error details</summary>
-							<code class="ka-error-wrapper__code">{errorMessage}</code>
-						</details>
-					</div>
-				{/if}
-			</div>
+
+			{#if canRetry}
+				<div class="ka-error-wrapper__actions">
+					{#if retryCount > 0}
+						<span class="ka-error-wrapper__retry-info"
+							>Retry attempt {retryCount} of {maxRetries}</span
+						>
+					{/if}
+					<Button variant="primary" onclick={handleRetry}>
+						<Icon name="refresh-cw" size={16} />
+						Retry
+					</Button>
+				</div>
+			{/if}
+
+			{#if retryExceeded}
+				<div class="ka-error-wrapper__actions">
+					<span class="ka-error-wrapper__retry-info ka-error-wrapper__retry-info--exceeded">
+						Maximum retries exceeded
+					</span>
+					<Button variant="secondary" onclick={() => window.location.reload()}>
+						<Icon name="rotate-ccw" size={16} />
+						Reload Page
+					</Button>
+				</div>
+			{/if}
 		</div>
-
-		{#if canRetry}
-			<div class="ka-error-wrapper__actions">
-				{#if retryCount > 0}
-					<span class="ka-error-wrapper__retry-info">Retry attempt {retryCount} of {maxRetries}</span>
-				{/if}
-				<Button variant="primary" onclick={handleRetry}>
-					<Icon name="refresh-cw" size={16} />
-					Retry
-				</Button>
-			</div>
-		{/if}
-
-		{#if retryExceeded}
-			<div class="ka-error-wrapper__actions">
-				<span class="ka-error-wrapper__retry-info ka-error-wrapper__retry-info--exceeded">
-					Maximum retries exceeded
-				</span>
-				<Button variant="secondary" onclick={() => window.location.reload()}>
-					<Icon name="rotate-ccw" size={16} />
-					Reload Page
-				</Button>
-			</div>
-		{/if}
-	</div>
-{:else}
-	{#if children}
+	{:else if children}
 		{@render children()}
 	{/if}
-{/if}
+</svelte:boundary>
 
 <style>
 	.ka-error-wrapper {

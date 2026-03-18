@@ -2,7 +2,7 @@
 	import type { InputProps } from './Input.types';
 
 	let {
-		id = `ka-input-${Math.random().toString(36).substr(2, 9)}`,
+		id = `ka-input-${Math.random().toString(36).substring(2, 9)}`,
 		type = 'text',
 		label,
 		placeholder = '',
@@ -75,7 +75,7 @@
 		class="ka-input"
 		onchange={handleChange}
 		onfocus={handleFocus}
-		onblur={onblur}
+		{onblur}
 		onkeydown={handleKeydown}
 	/>
 
@@ -117,7 +117,9 @@
 		background-color: var(--background-primary);
 		border: 1px solid var(--background-modifier-border);
 		border-radius: var(--input-radius, 4px);
-		transition: border-color 0.15s ease, box-shadow 0.15s ease;
+		transition:
+			border-color 0.15s ease,
+			box-shadow 0.15s ease;
 		min-height: 44px;
 	}
 

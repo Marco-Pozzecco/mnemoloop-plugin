@@ -2,7 +2,7 @@
 	import type { ToggleProps } from './Toggle.types';
 
 	let {
-		id = `ka-toggle-${Math.random().toString(36).substr(2, 9)}`,
+		id = `ka-toggle-${Math.random().toString(36).substring(2, 9)}`,
 		label,
 		checked = false,
 		disabled = false,
@@ -35,7 +35,7 @@
 			onchange={handleChange}
 			aria-describedby={helperText ? `${id}-helper` : undefined}
 		/>
-		<span class="ka-toggle-switch" class:checked={checked} class:disabled={disabled}></span>
+		<span class="ka-toggle-switch" class:checked class:disabled></span>
 		{#if label}
 			<span class="ka-toggle-text">{label}</span>
 		{/if}
@@ -72,7 +72,9 @@
 		display: block;
 		background-color: var(--background-modifier-border);
 		border-radius: 100px;
-		transition: background-color 0.2s ease, transform 0.2s ease;
+		transition:
+			background-color 0.2s ease,
+			transform 0.2s ease;
 		flex-shrink: 0;
 	}
 
