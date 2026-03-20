@@ -51,7 +51,7 @@ export class FsrsEngine extends BaseEngine<Flashcard> implements IEngine<Flashca
 
     return {
       ...item,
-      srs: this.mapFromFsrsCard(updatedCard)
+      ...this.mapFromFsrsCard(updatedCard)
     }
   }
 
