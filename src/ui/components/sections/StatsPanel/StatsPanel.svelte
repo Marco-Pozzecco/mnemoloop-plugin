@@ -1,44 +1,24 @@
 <script lang="ts">
-	import Card from '../molecules/Card.svelte';
-	import Icon from '../atoms/Icon.svelte';
-	import Button from '../atoms/Button.svelte';
+	import { Card, Icon, Button } from '@/ui/components';
+	import type { StatsPanelProps } from './StatsPanel.types';
 
-	/**
-	 * Statistics data to display
-	 */
-	export let stats: {
-		totalCards: number;
-		cardsDueToday: number;
-		newCards: number;
-		cardsLearned: number;
-		masteryLevel: number;
-	} = {
-		totalCards: 0,
-		cardsDueToday: 0,
-		newCards: 0,
-		cardsLearned: 0,
-		masteryLevel: 0
-	};
-
-	/**
-	 * Whether to show action buttons
-	 */
-	export let showActions: boolean = true;
-
-	/**
-	 * Start review button click handler
-	 */
-	export let onStartReview?: () => void;
-
-	/**
-	 * View all cards button click handler
-	 */
-	export let onViewCards?: () => void;
+	let {
+		stats = {
+			totalCards: 0,
+			cardsDueToday: 0,
+			newCards: 0,
+			cardsLearned: 0,
+			masteryLevel: 0,
+		},
+		showActions = true,
+		onStartReview,
+		onViewCards,
+	}: StatsPanelProps = $props();
 </script>
 
 <div class="ka-stats-panel">
 	<Card title="Statistics" icon="bar-chart">
-		<div slot="content" class="ka-stats-grid">
+		<div class="ka-stats-grid">
 			<div class="ka-stat-item">
 				<div class="ka-stat-icon">
 					<Icon name="layers" size={20} />
@@ -91,14 +71,12 @@
 		</div>
 
 		{#if showActions}
-			<div slot="footer" class="ka-stats-actions">
-				<Button variant="primary" on:click={onStartReview}>
-					<Icon name="play" size={16} style="margin-right: 0.5rem" />
+			<div class="ka-stats-actions">
+				<Button variant="primary" onclick={onStartReview}>
+					<Icon name="play" size={16} />
 					Start Review
 				</Button>
-				<Button variant="secondary" on:click={onViewCards}>
-					View All Cards
-				</Button>
+				<Button variant="secondary" onclick={onViewCards}>View All Cards</Button>
 			</div>
 		{/if}
 	</Card>
@@ -124,7 +102,9 @@
 		background-color: var(--background-primary);
 		border-radius: 6px;
 		border: 1px solid var(--background-modifier-border);
-		transition: transform 0.2s ease, box-shadow 0.2s ease;
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
 	}
 
 	.ka-stat-item:hover {
