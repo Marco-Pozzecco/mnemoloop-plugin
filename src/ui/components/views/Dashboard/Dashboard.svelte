@@ -7,7 +7,7 @@
 		DashboardProgress,
 		DashboardStatsGrid,
 	} from '@/ui/components/sections';
-	import { uiStoreManager } from '@/ui/store/ui.store';
+	import { uiStore } from '@/ui/store/ui.store';
 	import type { DashboardProps } from './Dashboard.types';
 
 	let {
@@ -19,8 +19,11 @@
 		onConfigChange = () => {},
 	}: DashboardProps = $props();
 
-	// Reactive state from store
-	let isLoading = $derived(uiStoreManager.state.isLoading);
+	let isLoading = $state(uiStore.isLoading);
+
+	uiStore.store.subscribe((state) => {
+		isLoading = state.isLoading;
+	});
 
 	let isReviewDisabled = $derived(stats.dueCount === 0 || isLoading);
 	let showChart = $derived(config.showProgressChart && stats.progressData.length > 0);
@@ -34,13 +37,13 @@
 	errorContext="DashboardView"
 >
 	<div class="ka-dashboard" role="main" aria-label="Learning Dashboard">
-		<DashboardHeader {onRefresh} {onOpenSettings} {isLoading} />
+		<DashboardHeader {isLoading} {onRefresh} />
 		<DashboardStatsGrid {stats} {config} />
 		<DashboardProgress {stats} />
 		{#if showChart}
 			<DashboardChart {stats} />
-			<DashboardFooter {stats} {onStartReview} isDisabled={isReviewDisabled} {isLoading} />
 		{/if}
+		<DashboardFooter {stats} {onStartReview} isDisabled={isReviewDisabled} {isLoading} />
 	</div>
 </ErrorWrapper>
 
