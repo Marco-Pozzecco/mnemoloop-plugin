@@ -8,4 +8,5 @@ export interface ErrorWrapperProps {
   className?: string;
   errorContext?: string;
   children?: Snippet;
+  error?: Error | string | null;
 }

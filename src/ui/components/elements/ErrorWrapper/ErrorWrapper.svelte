@@ -12,12 +12,29 @@
 		className = '',
 		errorContext = 'ErrorWrapper',
 		children,
+		error = null,
 	}: ErrorWrapperProps = $props();
 
 	let hasError = $state(false);
 	let errorMessage = $state('');
 	let retryCount = $state(0);
 	let retryExceeded = $state(false);
+	let isExternalError = $state(false);
+
+	$effect(() => {
+		if (error !== undefined) {
+			if (error) {
+				hasError = true;
+				isExternalError = true;
+				errorMessage = error instanceof Error ? error.message : String(error);
+				Logger.error(`[${errorContext}] External error injected:`, error);
+			} else if (isExternalError) {
+				hasError = false;
+				errorMessage = '';
+				isExternalError = false;
+			}
+		}
+	});
 
 	function handleError(error: unknown): void {
 		hasError = true;
@@ -41,14 +58,12 @@
 			retryCount++;
 			hasError = false;
 			errorMessage = '';
+			isExternalError = false;
 			Logger.debug(`[${errorContext}] Retrying (attempt ${retryCount}/${maxRetries})`);
 
-			// Call parent's onRetry callback if provided
 			if (onRetry) {
 				onRetry();
 			}
-
-			// Component will re-render, child will try again
 		} else {
 			retryExceeded = true;
 			Logger.warn(`[${errorContext}] Maximum retries (${maxRetries}) exceeded`);
