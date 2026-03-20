@@ -2,18 +2,10 @@
 	import { Button, Icon } from '@/ui/components';
 	import type { DashboardHeaderProps } from './DashboardHeader.types';
 
-	export let onRefresh: DashboardHeaderProps['onRefresh'];
-	export let onOpenSettings: DashboardHeaderProps['onOpenSettings'];
-	export let isLoading: DashboardHeaderProps['isLoading'] = false;
-	let className: string = '';
-	export { className as class };
+	export const { className, onRefresh, isLoading } = $props() as DashboardHeaderProps;
 
 	function handleRefresh() {
 		onRefresh();
-	}
-
-	function handleOpenSettings() {
-		onOpenSettings();
 	}
 </script>
 
@@ -31,9 +23,6 @@
 			title="Refresh statistics"
 		>
 			<Icon name="refresh-cw" size={16} />
-		</Button>
-		<Button variant="secondary" size="small" onclick={handleOpenSettings} title="Open settings">
-			<Icon name="settings" size={16} />
 		</Button>
 	</div>
 </header>
