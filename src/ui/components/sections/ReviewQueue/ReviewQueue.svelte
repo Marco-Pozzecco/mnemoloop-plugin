@@ -32,32 +32,32 @@
 	 */
 	export let showTags: boolean = true;
 
-	const dispatch = createEventDispatcher<{
-		cardSelect: string;
-		cardView: string;
-	}>();
+	// const dispatch = createEventDispatcher<{
+	// 	cardSelect: string;
+	// 	cardView: string;
+	// }>();
 
 	$: displayQueue = queue.slice(0, maxDisplay);
 	$: hasOverflow = queue.length > maxDisplay;
 
 	function handleCardSelect(cardId: string) {
-		dispatch('cardSelect', cardId);
+		// dispatch('cardSelect', cardId);
 	}
 
 	function handleCardView(cardId: string) {
-		dispatch('cardView', cardId);
+		// dispatch('cardView', cardId);
 	}
 </script>
 
 <div class="ka-review-queue">
 	<Card title="Review Queue" icon="list">
 		{#if isEmpty || displayQueue.length === 0}
-			<div slot="content" class="ka-empty-state">
+			<div class="ka-empty-state">
 				<Icon name="inbox" size={48} color="var(--text-muted)" />
 				<p class="ka-empty-message">{emptyMessage}</p>
 			</div>
 		{:else}
-			<div slot="content" class="ka-queue-list">
+			<div class="ka-queue-list">
 				{#each displayQueue as card (card.id)}
 					<div
 						class="ka-queue-card"
@@ -93,11 +93,7 @@
 									<span>{card.difficulty}</span>
 								</div>
 							{/if}
-							<Button
-								variant="secondary"
-								size="small"
-								on:click|stopPropagation={() => handleCardView(card.id)}
-							>
+							<Button variant="secondary" size="small" onclick={() => handleCardView(card.id)}>
 								<Icon name="eye" size={14} />
 							</Button>
 						</div>
@@ -113,7 +109,7 @@
 		{/if}
 
 		{#if !isEmpty && queue.length > 0}
-			<div slot="footer" class="ka-queue-footer">
+			<div class="ka-queue-footer">
 				<div class="ka-queue-stats">
 					<span class="ka-stat-badge">
 						<Icon name="layers" size={14} />
