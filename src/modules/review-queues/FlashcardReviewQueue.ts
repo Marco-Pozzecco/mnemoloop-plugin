@@ -1,10 +1,10 @@
 import { Flashcard } from '@/schemas';
-import { BaseReviewQueue } from './BaseReviewQueue';
 import { IIndexer } from '@/interfaces/IIndexer';
-import { FsrsEngine } from '@/modules/engines/FsrsEngine';
-import { FlashcardReviewItem } from '../review-items/FlashcardReviewItem';
 import { FlashcardYamlEngine } from '../yaml-engines/FlashcardYamlEngine';
 import { Plugin } from 'obsidian';
+import { BaseReviewQueue } from './BaseReviewQueue';
+import { FsrsEngine } from '../review-engines/FsrsEngine';
+import { FlashcardReviewItem } from '../review-items/FlashcardReviewItem';
 
 export class FlashcardReviewQueue extends BaseReviewQueue<Flashcard> {
   constructor(plugin: Plugin, index: IIndexer<Flashcard>, predicate?: (entity: Flashcard) => boolean) {
