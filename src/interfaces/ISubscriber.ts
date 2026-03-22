@@ -1,8 +1,5 @@
-export type EventData<T> = {
-  filepath: string | undefined;
-  entity: T
-}
+import { EventData } from "@/types/events";
 
 export interface ISubscriber<Entity extends Record<string, unknown>> {
-  update: (event: string, data: EventData<Entity>) => void;
+  dispatch: (event: string, data: EventData<Entity>) => void;
 }

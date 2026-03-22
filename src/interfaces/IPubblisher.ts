@@ -1,4 +1,5 @@
-import { EventData, ISubscriber } from "./ISubscriber";
+import { EventData } from "@/types/events";
+import { ISubscriber } from "./ISubscriber";
 
 export interface IPubblisher<Data extends Record<string, unknown>> {
   subscribe: (subscriber: ISubscriber<Data>) => void;

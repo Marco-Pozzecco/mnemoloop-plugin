@@ -4,8 +4,8 @@ import { ERROR_MESSAGES } from "@/utils/constants";
 import { ZodType } from "zod";
 import { normalizePath, parseYaml, Plugin } from "obsidian";
 import { Subscriber } from "@/utils/Subscriber";
-import { EventData } from "@/interfaces/ISubscriber";
-import { QueueItemEvents } from "../queue-items/BaseQueueItem";
+import { EventData, EventType } from "@/types/events";
+import { Flashcard } from "@/schemas";
 
 export abstract class BaseYamlEngine<T extends Record<string, unknown>> extends Subscriber<T> implements IYamlEngine<T> {
   protected _plugin: Plugin;
@@ -136,13 +136,14 @@ export abstract class BaseYamlEngine<T extends Record<string, unknown>> extends 
     return lines.join('\n');
   }
 
-  update: (event: string, data: EventData<T>) => void = (event, data) => {
+  dispatch: (event: string, data: EventData<T>) => void = (event, data) => {
     switch (event) {
-      case QueueItemEvents.REVIEW:
-        const { entity, filepath } = data;
-        if (!filepath) return; // do nothing
+      case EventType.Review:
+        const { entity } = data as unknown as EventData<Flashcard>;
+        const hasFile = new Object(entity).hasOwnProperty("file");
+        if (!hasFile) return; // do nothing
         const frontmatter = this.validate(entity);
-        this.write(filepath, frontmatter)
+        this.write(entity.file, frontmatter)
     }
   };
 }
