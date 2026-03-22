@@ -1,11 +1,10 @@
-import { BaseEngine } from '@/modules/engines/BaseEngine';
 import type { Flashcard } from '@/schemas/flashcard';
 import type { FSRSParams } from '@/schemas/srs';
 import { Card, FSRS, FSRSParameters, generatorParameters, Rating, State } from 'ts-fsrs';
-import { DEFAULT_FSRS } from '@/utils/constants';
-import { IEngine } from '@/interfaces/IEngine';
+import { EventData } from '@/types/events';
+import { BaseReviewEngine } from './BaseReviewEngine';
 
-export class FsrsEngine extends BaseEngine<Flashcard> implements IEngine<Flashcard> {
+export class FsrsEngine extends BaseReviewEngine<Flashcard> {
   private readonly STATE_PRIORITY: Record<number, number> = {
     [State.Learning]: 0,
     [State.Relearning]: 1,
@@ -56,11 +55,15 @@ export class FsrsEngine extends BaseEngine<Flashcard> implements IEngine<Flashca
   }
 
   /**
-   * Returns default FSRS parameters for a new card.
+   * Updates the underlying FSRS algorithm parameters.
    */
-  getInitialState(): FSRSParams {
-    return { ...DEFAULT_FSRS };
+  updateParameters(params: Partial<FSRSParameters>): void {
+    this.fsrs.parameters = params;
   }
+
+  dispatch: (event: string, data: EventData<Flashcard>) => void = () => {
+    // do nothing
+  };
 
   /**
    * Maps internal FSRSStats to ts-fsrs Card object.
@@ -96,12 +99,5 @@ export class FsrsEngine extends BaseEngine<Flashcard> implements IEngine<Flashca
       last_review: card.last_review ? card.last_review.toISOString() : null,
       due: card.due.toISOString(),
     };
-  }
-
-  /**
-   * Updates the underlying FSRS algorithm parameters.
-   */
-  updateParameters(params: Partial<FSRSParameters>): void {
-    this.fsrs.parameters = params;
   }
 }
