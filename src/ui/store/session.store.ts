@@ -1,17 +1,47 @@
-import { Unsubscriber, writable } from "svelte/store"
+import { Writable, writable } from "svelte/store"
 import { BaseStoreManager } from "./base.store";
+import { IReviewQueue } from "@/interfaces/IReviewQueue";
 
-export interface Session { };
+export interface SessionState<T = unknown> {
+  queue: IReviewQueue<T> | null;
+  isAnswerShowing: boolean;
+};
 
-export const DefaultSessionState: Session = {};
+export const DefaultSessionState: SessionState = {
+  queue: null,
+  isAnswerShowing: false,
+};
 
-export const SessionStore = writable(DefaultSessionState);
+const store = writable(DefaultSessionState);
 
-class SessionStoreManager extends BaseStoreManager<Session> {
+export class SessionStore<T = unknown> extends BaseStoreManager<SessionState<T>> {
   constructor() {
-    super(DefaultSessionState, SessionStore)
+    super(DefaultSessionState as SessionState<T>, store as Writable<SessionState<T>>)
+  }
+
+  set queue(list: IReviewQueue<T>) {
+    this.state.queue = list;
+  }
+
+  get queue(): IReviewQueue<T> | null {
+    return this.state.queue;
+  }
+
+  get isAnswerShowing(): boolean {
+    return this.state.isAnswerShowing;
+  }
+
+  showAnswer(): void {
+    this.store.update((state) => ({ ...state, isAnswerShowing: true }));
+  }
+
+  hideAnswer(): void {
+    this.store.update((state) => ({ ...state, isAnswerShowing: false }));
+  }
+
+  reset(): void {
+    this.store.set(DefaultSessionState as SessionState<T>);
   }
 }
 
-export type ISessionStoreManager = typeof SessionStoreManager;
-export const sessionStoreManager = new SessionStoreManager();
+export const sessionStore = new SessionStore();

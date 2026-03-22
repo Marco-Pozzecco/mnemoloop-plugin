@@ -12,22 +12,28 @@ const initialUIState: UIState = {
   isLoading: false,
 };
 
-export const UIStore = writable(initialUIState);
+const store = writable(initialUIState);
 
-class UIStoreManager extends BaseStoreManager<UIState> {
+export class UIStore extends BaseStoreManager<UIState> {
   constructor() {
-    super(initialUIState, UIStore);
+    super(initialUIState, store)
   }
 
-  setView(view: AppViews) {
-    this.store.update((state) => ({ ...state, currentView: view }))
+  get currentView() {
+    return this.state.currentView;
   }
 
-  setLoading(loading: boolean) {
-    this.store.update((state) => ({ ...state, isLoading: loading }))
+  set currentView(view: AppViews) {
+    this.store.update((state) => ({ ...state, currentView: view }));
   }
 
+  get isLoading() {
+    return this.state.isLoading;
+  }
+
+  set isLoading(loading: boolean) {
+    this.store.update((state) => ({ ...state, isLoading: loading }));
+  }
 }
 
-export type IUIStoreManager = typeof UIStoreManager;
-export const uiStoreManager = new UIStoreManager();
+export const uiStore = new UIStore();
