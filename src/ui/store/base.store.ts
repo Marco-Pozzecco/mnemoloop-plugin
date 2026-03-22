@@ -1,10 +1,9 @@
 import { Unsubscriber, Writable } from "svelte/store";
 
 export class BaseStoreManager<T> {
-  protected store: Writable<T>;
+  store: Writable<T>;
   state: T;
   unsubscriber: Unsubscriber;
-
 
   constructor(initialState: T, store: Writable<T>) {
     this.state = initialState;
