@@ -1,18 +1,15 @@
-import { IEngine } from "@/interfaces/IEngine";
+import { IReviewEngine } from "@/interfaces/IReviewEngine";
 import { IReviewItem } from "@/interfaces/IReviewItem";
 import { ISubscriber } from "@/interfaces/ISubscriber";
+import { EventType } from "@/types/events";
 import { Pubblisher } from "@/utils/Pubblisher";
-
-export enum ReviewItemEvents {
-  REVIEW = "REVIEW"
-}
 
 export abstract class BaseReviewItem<Entity extends Record<string, unknown>> extends Pubblisher<Entity> implements IReviewItem<Entity> {
   private _data: Entity;
   private _filepath: string;
-  private _engine: IEngine<Entity>
+  private _engine: IReviewEngine<Entity>
 
-  constructor(data: Entity, filepath: string, engine: IEngine<Entity>, subscribers: ISubscriber<Entity>[]) {
+  constructor(data: Entity, filepath: string, engine: IReviewEngine<Entity>, subscribers: ISubscriber<Entity>[]) {
     super(subscribers);
     this._data = data;
     this._filepath = filepath;
@@ -25,6 +22,6 @@ export abstract class BaseReviewItem<Entity extends Record<string, unknown>> ext
 
   review: <Score extends number>(score: Score) => void = (score) => {
     this._data = this._engine.calculate(this._data, score);
-    this.notify(ReviewItemEvents.REVIEW, { entity: this._data, filepath: this._filepath })
+    this.notify(EventType.Review, { entity: this._data, entity_id: this._filepath, created_at: new Date() })
   };
 }

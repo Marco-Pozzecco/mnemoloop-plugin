@@ -1,15 +1,15 @@
-import { IEngine } from "@/interfaces/IEngine";
 import { IIndexer } from "@/interfaces/IIndexer";
 import { IReviewQueue } from "@/interfaces/IReviewQueue";
 import { IReviewItem } from "@/interfaces/IReviewItem";
+import { IReviewEngine } from "@/interfaces/IReviewEngine";
 
 export abstract class BaseReviewQueue<Entity> implements IReviewQueue<Entity> {
-  protected _engine: IEngine<Entity>;
+  protected _engine: IReviewEngine<Entity>;
   protected _index: IIndexer<Entity>;
   protected _items: IReviewItem<Entity>[] = [];
   protected _position: number = 0;
 
-  constructor(engine: IEngine<Entity>, indexer: IIndexer<Entity>) {
+  constructor(engine: IReviewEngine<Entity>, indexer: IIndexer<Entity>) {
     this._engine = engine;
     this._index = indexer;
   }
