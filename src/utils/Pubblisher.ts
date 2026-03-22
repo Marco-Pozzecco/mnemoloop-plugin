@@ -1,5 +1,6 @@
 import { IPubblisher } from "@/interfaces/IPubblisher";
-import { EventData, ISubscriber } from "@/interfaces/ISubscriber";
+import { ISubscriber } from "@/interfaces/ISubscriber";
+import { EventData } from "@/types/events";
 
 export abstract class Pubblisher<Entity extends Record<string, unknown>> implements IPubblisher<Entity> {
   protected _subscribers: ISubscriber<Entity>[] = [];
@@ -17,6 +18,6 @@ export abstract class Pubblisher<Entity extends Record<string, unknown>> impleme
   };
 
   notify: (event: string, data: EventData<Entity>) => void = (event, data) => {
-    this._subscribers.forEach(subscriber => subscriber.update(event, data))
+    this._subscribers.forEach(subscriber => subscriber.dispatch(event, data))
   };
 }
