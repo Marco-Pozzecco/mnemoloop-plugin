@@ -1,191 +1,135 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
-  import { setManagersContext } from '@/ui/infrastructure/ManagersContext';
-  import type { DependencyContainer } from '@/ui/infrastructure/DependencyContainer';
-  import { Logger } from '@/utils/Logger';
-  import type { NavigationManager } from './NavigationManager';
-  import type { IndexManager } from '@/core/indexer/IndexerManager';
-  import type { StatisticsManager } from '@/core/statistics';
-  import type { DueQueueManager } from '@/core/srs';
-  import type { ApplicationStore } from '@/ui/stores/ApplicationStore';
-  import type { DashboardStats, DashboardConfig } from '../Dashboard/types';
-  import { DashboardController } from '@/ui/controllers/DashboardController';
-  import Dashboard from '../Dashboard/Dashboard.svelte';
-  import Review from '../Review/Review.svelte';
-	import { ReviewController } from '@/ui/controllers/ReviewController';
+	import { Logger } from '@/utils/Logger';
+	import { onMount } from 'svelte';
+	import type { AppProps, AppViews } from './types';
+	import { DashboardController } from '@/ui/controllers/DashboardController';
+	import { Dashboard, Review } from '@/ui/components';
+	import type {
+		DashboardConfig,
+		DashboardStats,
+	} from '@/ui/components/views/Dashboard/Dashboard.types';
+	import ErrorWrapper from '@/ui/components/elements/ErrorWrapper/ErrorWrapper.svelte';
+	import { uiStore } from '@/ui/store/ui.store';
+	import { IndexKey } from '@/types/indexes';
 
-  export let app: any;
-  export let navigationManager: NavigationManager;
-  export let indexManager: IndexManager;
-  export let statisticsManager: StatisticsManager;
-  export let dueQueueManager: DueQueueManager;
-  export let applicationStore: ApplicationStore;
-  export let dependencyContainer: DependencyContainer;
+	const { plugin, indexes }: AppProps = $props();
 
-  let dashboardStats: DashboardStats | null = null;
-  let dashboardConfig: DashboardConfig = {
-    dailyGoal: 20,
-    showProgressChart: true,
-    showRetentionRate: true,
-    chartTimeframe: 'week',
-    preferredChartType: 'bar'
-  };
+	const dashboardController = $derived(new DashboardController(plugin, indexes));
 
-  let dashboardController: DashboardController;
-  let reviewController: ReviewController;
-  let hasError = false;
-  let errorMessage = '';
+	let dashboardStats: DashboardStats | null = $state(null);
+	let dashboardConfig: DashboardConfig = $state({
+		dailyGoal: 20,
+		showProgressChart: true,
+		showRetentionRate: true,
+		chartTimeframe: 'week',
+		preferredChartType: 'bar',
+	});
 
-  // Set ManagersContext for Svelte component tree
-  // This makes the dependency container available to all child components
-  setManagersContext(dependencyContainer);
+	let currentView = $state(uiStore.currentView);
 
-  // Subscribe to UI store for view changes
-  $: currentView = applicationStore?.ui.state.currentView;
+	uiStore.store.subscribe((state) => {
+		currentView = state.currentView;
+	});
 
-  onMount(async () => {
-    const sessionStore = applicationStore.session;
+	let hasError: boolean = $state(false);
+	let errorMessage: string = $state('');
+	let isLoadingDashboard: boolean = $state(true);
 
-    // Resolve controllers from dependency container via context
-    // This demonstrates T097-T099: using context instead of passing managers
-    dashboardController = dependencyContainer.resolve<DashboardController>('DashboardController');
-    reviewController = dependencyContainer.resolve<ReviewController>('ReviewController');
+	onMount(async () => {
+		if (currentView === 'dashboard') {
+			await loadDashboardData();
+		}
+	});
 
-    // Load initial dashboard data
-    if (currentView === 'dashboard') {
-      await loadDashboardData();
-    }
-  });
+	async function loadDashboardData() {
+		try {
+			hasError = false;
+			errorMessage = '';
+			dashboardStats = dashboardController.stats as DashboardStats;
+			isLoadingDashboard = false;
+		} catch (error) {
+			Logger.error('Failed to load dashboard data:', error);
+			hasError = true;
+			isLoadingDashboard = false;
+			errorMessage = 'Failed to load dashboard data. Please try again.';
+		}
+	}
 
-  async function loadDashboardData() {
-    try {
-      dashboardStats = await dashboardController.getStats();
-      hasError = false;
-    } catch (error) {
-      Logger.error('Failed to load dashboard data:', error);
-      hasError = true;
-      errorMessage = 'Failed to load dashboard data. Please try again.';
-    }
-  }
+	async function handleStartReview() {
+		await dashboardController.startReview(IndexKey.flashcard);
+		navigateTo('review');
+	}
 
-  async function handleStartReview() {
-    await applicationStore.session.startSession();
-    navigationManager.navigateTo('review');
-  }
-
-  function navigateTo(view: 'dashboard' | 'review' | 'settings') {
-    applicationStore.ui.navigate(view);
-    if (view === 'dashboard') {
-      loadDashboardData();
-    }
-  }
+	function navigateTo(view: AppViews) {
+		if (view === 'dashboard') {
+			loadDashboardData();
+		}
+		uiStore.currentView = view;
+		Logger.info(uiStore.currentView);
+		Logger.info(currentView);
+	}
 </script>
 
 <div class="app-container">
-    {#if hasError}
-      <div class="error-boundary" role="alert">
-        <div class="error-content">
-          <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-          <h2 class="error-title">Something went wrong</h2>
-          <p class="error-message">{errorMessage}</p>
-          <button class="retry-button" on:click={loadDashboardData} aria-label="Retry">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="retry-icon">
-              <path d="M23 4v6h-6"></path>
-              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-            </svg>
-            Retry
-          </button>
-        </div>
-      </div>
-    {:else if currentView === 'dashboard' && dashboardStats}
-      <Dashboard
-        stats={dashboardStats}
-        config={dashboardConfig}
-        onStartReview={handleStartReview}
-        onRefresh={loadDashboardData}
-      />
-    {:else if currentView === 'review'}
-      <Review
-        app={app}
-        sessionStore={applicationStore.session}
-        navigationManager={navigationManager}
-      />
-    {/if}
+	{#if currentView === 'dashboard'}
+		<ErrorWrapper
+			fallback="Unable to load the dashboard."
+			error={hasError ? new Error(errorMessage) : null}
+			onRetry={loadDashboardData}
+			errorContext="App"
+			showError={true}
+		>
+			{#snippet children()}
+				{#if isLoadingDashboard && !dashboardStats}
+					<div class="loading-container">
+						<div class="loading-spinner"></div>
+						<p>Loading dashboard...</p>
+					</div>
+				{:else if !isLoadingDashboard && dashboardStats}
+					<Dashboard
+						stats={dashboardStats}
+						config={dashboardConfig}
+						onStartReview={handleStartReview}
+						onRefresh={loadDashboardData}
+					/>
+				{/if}
+			{/snippet}
+		</ErrorWrapper>
+	{:else if currentView === 'review'}
+		<Review />
+	{/if}
 </div>
 
 <style>
-  .app-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
-  }
+	.app-container {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		overflow: hidden;
+	}
 
-  .error-boundary {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    padding: 2rem;
-    background-color: var(--background-secondary);
-    border-radius: 12px;
-    border: 1px solid var(--text-error);
-  }
+	.loading-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		height: 100%;
+		gap: 1rem;
+		color: var(--text-muted);
+	}
 
-  .error-content {
-    text-align: center;
-    max-width: 400px;
-  }
+	.loading-spinner {
+		width: 40px;
+		height: 40px;
+		border: 3px solid var(--background-modifier-border);
+		border-top-color: var(--interactive-accent);
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+	}
 
-  .error-icon {
-    width: 64px;
-    height: 64px;
-    color: var(--text-error);
-    margin-bottom: 1rem;
-  }
-
-  .error-title {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.5rem;
-    font-weight: var(--font-bold);
-    color: var(--text-error);
-  }
-
-  .error-message {
-    margin: 0 0 1.5rem 0;
-    color: var(--text-muted);
-    font-size: var(--font-ui-small);
-  }
-
-  .retry-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    border: none;
-    border-radius: 6px;
-    font-size: var(--font-ui-medium);
-    font-weight: var(--font-semibold);
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
-
-  .retry-button:hover {
-    background-color: var(--interactive-accent-hover);
-  }
-
-  .retry-button:active {
-    transform: translateY(1px);
-  }
-
-  .retry-icon {
-    width: 16px;
-    height: 16px;
-  }
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
 </style>
