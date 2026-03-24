@@ -4,7 +4,7 @@ import { uiStore, UIStore } from '@/ui/store/ui.store';
 import { sessionStore, SessionStore } from '../store/session.store';
 import { Plugin } from 'obsidian';
 import { IReviewQueue } from '@/interfaces/IReviewQueue';
-import { Indexes, IndexKey } from '@/main';
+import { Indexes, IndexKey } from "@/types/indexes";
 import { DashboardStats } from '../components/views/Dashboard/Dashboard.types';
 
 interface IDashboardController {
@@ -34,7 +34,7 @@ export class DashboardController implements IDashboardController {
 
   startReview: (type: IndexKey) => Promise<void> = async (type) => {
     switch (type) {
-      case IndexKey.FLASHCARD:
+      case IndexKey.flashcard:
         return await this.startFlashcardReview();
     }
   };
@@ -42,10 +42,10 @@ export class DashboardController implements IDashboardController {
   private async startFlashcardReview() {
     this._uiStore.isLoading = true;
 
-    const index = this._indexes.get(IndexKey.FLASHCARD);
+    const index = this._indexes.get(IndexKey.flashcard);
 
     if (!index) {
-      throw new Error(`index of kind::${IndexKey.FLASHCARD} not initialized`)
+      throw new Error(`index of kind::${IndexKey.flashcard} not initialized`)
     }
 
     const predicate = (entity: Flashcard) => entity.status === CardStatus.ACTIVE && new Date(entity.due) <= new Date();
