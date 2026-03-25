@@ -1,20 +1,23 @@
 import './ui/styles/main.css';
 
 import { Notice, Plugin } from 'obsidian';
-import { Logger } from './utils/Logger';
-import { FlascardIndexer } from './modules/indexers/FlashcardIndexer';
-import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
-import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from './schemas/settings';
-import { APP_VIEW, AppView } from './ui/views/App/AppView';
-import { AdapterKey, Adapters } from './types/adapters';
-import { StatisticsAdapter } from './modules/adapters/StatisticsAdapter';
-import { Indexes, IndexKey } from './types/indexes';
 import { IAdapter } from './interfaces/IAdapter';
+import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
+import { StatisticsAdapter } from './modules/adapters/StatisticsAdapter';
+import { StatisticsListener } from './modules/event-listeners/StatisticsListener';
+import { FlascardIndexer } from './modules/indexers/FlashcardIndexer';
+import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from './schemas/settings';
+import { AdapterKey, Adapters } from './types/adapters';
+import { Indexes, IndexKey } from './types/indexes';
+import { ListenerKey, Listeners } from './types/listeners';
+import { APP_VIEW, AppView } from './ui/views/App/AppView';
+import { Logger } from './utils/Logger';
 
 
 export default class KnowledgeAcceleratorPlugin extends Plugin {
   private _indexes: Indexes = new Map();
   private _adapter: Adapters = new Map();
+  private _listeners: Listeners = new Map();
   settings!: PluginSettings;
   private ribbonIcon?: HTMLElement;
 
@@ -25,11 +28,13 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
     await this.initializeCommands();
     await this.loadAdapters();
     await this.loadIndexes();
+    await this.loadListeners();
     await this.initializeViews();
   }
 
   onunload() {
     Logger.info('Unloading plugin');
+    this._listeners.forEach(listener => listener.dispose());
     this.ribbonIcon?.remove();
   }
 
@@ -58,6 +63,10 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
     this._indexes.set(IndexKey.flashcard, new FlascardIndexer(this, settingsAdapter));
 
     this._indexes.forEach(async (index) => await index.initialize());
+  }
+
+  private async loadListeners() {
+    this._listeners.set(ListenerKey.statistics, new StatisticsListener(this._adapter.get(AdapterKey.statistics) as StatisticsAdapter));
   }
 
   private async initializeViews() {
