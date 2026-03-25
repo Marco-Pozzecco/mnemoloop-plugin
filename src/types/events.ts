@@ -11,7 +11,8 @@ export enum EventType {
 }
 
 export type EventData<Entity> = {
-  entity_id: string,
-  created_at: Date,
-  entity: Entity,
+  event_type: EventType
+  entity_id: string
+  created_at: Date
+  entity: Entity
 }

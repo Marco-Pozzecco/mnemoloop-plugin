@@ -1,6 +1,5 @@
 import { Flashcard } from '@/schemas';
 import { IIndexer } from '@/interfaces/IIndexer';
-import { FlashcardYamlEngine } from '../yaml-engines/FlashcardYamlEngine';
 import { Plugin } from 'obsidian';
 import { BaseReviewQueue } from './BaseReviewQueue';
 import { FsrsEngine } from '../review-engines/FsrsEngine';
@@ -19,6 +18,6 @@ export class FlashcardReviewQueue extends BaseReviewQueue<Flashcard> {
     }
 
     const sortedEntities = this._engine.sort(entities);
-    this._items = sortedEntities.map(item => new FlashcardReviewItem(item, item.file, engine, [new FlashcardYamlEngine(plugin)]));
+    this._items = sortedEntities.map(item => new FlashcardReviewItem(item, item.file, engine));
   }
 }

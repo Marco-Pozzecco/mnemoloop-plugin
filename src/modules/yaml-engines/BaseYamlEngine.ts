@@ -3,19 +3,18 @@ import { $ZodTypeInternals } from "zod/v4/core";
 import { ERROR_MESSAGES } from "@/utils/constants";
 import { ZodType } from "zod";
 import { normalizePath, parseYaml, Plugin } from "obsidian";
-import { Subscriber } from "@/utils/Subscriber";
-import { EventData, EventType } from "@/types/events";
-import { Flashcard } from "@/schemas";
+import { EventBus } from '@/modules/event-bus/EventBus'
+import { EventType, EventData } from '@/types/events'
 
-export abstract class BaseYamlEngine<T extends Record<string, unknown>> extends Subscriber<T> implements IYamlEngine<T> {
+export abstract class BaseYamlEngine<T extends Record<string, unknown>> implements IYamlEngine<T> {
   protected _plugin: Plugin;
   protected _schema: ZodType<T, unknown, $ZodTypeInternals<T, unknown>>;
   protected _yamlRegex = /^---\n[\s\S]*?\n---\n?/;
 
   constructor(plugin: Plugin, schema: ZodType<T>) {
-    super();
     this._plugin = plugin;
     this._schema = schema;
+    EventBus.instance.subscribe(this.handleEvent.bind(this))
   }
 
   abstract recover: (filepath: string) => Promise<void>;
@@ -136,14 +135,14 @@ export abstract class BaseYamlEngine<T extends Record<string, unknown>> extends 
     return lines.join('\n');
   }
 
-  dispatch: (event: string, data: EventData<T>) => void = (event, data) => {
-    switch (event) {
-      case EventType.Review:
-        const { entity } = data as unknown as EventData<Flashcard>;
-        const hasFile = new Object(entity).hasOwnProperty("file");
-        if (!hasFile) return; // do nothing
-        const frontmatter = this.validate(entity);
-        this.write(entity.file, frontmatter)
+  private handleEvent(event: EventData<unknown>): void {
+    if (event.event_type === EventType.Review) {
+      const typedData = event as EventData<T>
+      const entity = typedData.entity as Record<string, unknown>
+      const hasFile = Object.prototype.hasOwnProperty.call(entity, "file")
+      if (!hasFile) return
+      const frontmatter = this.validate(entity)
+      this.write(entity.file as string, frontmatter)
     }
-  };
+  }
 }
