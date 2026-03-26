@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { FSRSParams } from './srs';
-import { v4 as uuidv4 } from "uuid";
 import { DEFAULT_FSRS } from '@/utils/constants';
 
 export enum CardStatus {
