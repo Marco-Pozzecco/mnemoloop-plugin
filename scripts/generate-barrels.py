@@ -10,63 +10,82 @@ Usage:
     python scripts/generate-barrels.py | npm run generate-barrels
 """
 
-import os
-import re
 from pathlib import Path
-from typing import List, Tuple
 
 # Configuration
 COMPONENTS_DIR = Path(__file__).parent.parent / "src" / "ui" / "components"
 SUPPORTED_DIRECTORIES = ["elements", "layouts", "sections", "views"]
 
 
-def find_svelte_components(directory: Path) -> List[Tuple[str, bool]]:
+def find_svelte_components(category_dir: Path) -> list[tuple[str, str, bool]]:
     """
-    Find all Svelte components in a directory following the pattern.
+    Recursively find all Svelte components following the pattern {Name}/{Name}.svelte.
 
-    Returns list of tuples: (component_name, has_types_file)
+    Returns list of tuples: (export_name, relative_path, has_types_file)
+    - export_name: joined directory names (e.g., "DashboardFooter" for Dashboard/Footer/Footer.svelte)
+    - relative_path: path from category root (e.g., "Dashboard/Footer/Footer.svelte")
     """
-    components = []
+    components: list[tuple[str, str, bool]] = []
 
-    for item in sorted(directory.iterdir()):
-        if not item.is_dir():
+    for svelte_file in sorted(category_dir.rglob("*.svelte")):
+        parent_dir = svelte_file.parent
+        component_name = parent_dir.name
+
+        if (
+            svelte_file.name != f"{component_name}.svelte"
+            and svelte_file.name != "component.svelte"
+        ):
             continue
 
-        component_name = item.name
-        svelte_file = item / f"{component_name}.svelte"
-        types_file = item / f"{component_name}.types.ts"
+        relative_path = svelte_file.relative_to(category_dir)
+        dir_parts = list(relative_path.parts)[:-1]
 
-        if svelte_file.exists():
-            has_types = types_file.exists()
-            components.append((component_name, has_types))
+        if len(dir_parts) < 1:
+            continue
+
+        export_name = "".join(dir_parts)
+
+        types_file = parent_dir / f"{component_name}.types.ts"
+        types_file_fallback = parent_dir / "types.ts"
+        has_types = types_file.exists()
+
+        if not has_types:
+            has_types = types_file_fallback.exists()
+
+        components.append((export_name, str(relative_path), has_types))
 
     return components
 
 
-def generate_barrel_content(components: List[Tuple[str, bool]]) -> str:
+def generate_barrel_content(components: list[tuple[str, str, bool]]) -> str:
     """
     Generate the content for an index.ts barrel file.
 
     Pattern:
-        export { default as ComponentName } from './ComponentName/ComponentName.svelte';
-        export type { ComponentNameProps } from './ComponentName/ComponentName.types';
+        export { default as ComponentName } from './Path/To/Component.svelte';
+        export type { ComponentNameProps } from './Path/To/Component.types';
     """
     if not components:
         return ""
 
-    lines = []
+    lines: list[str] = []
 
-    for component_name, has_types in components:
-        # Component export
-        lines.append(
-            f"export {{ default as {component_name} }} from './{component_name}/{component_name}.svelte';"
-        )
+    for export_name, relative_path, has_types in components:
+        lines.append(f"export {{ default as {export_name} }} from './{relative_path}';")
 
-        # Types export (if types file exists)
         if has_types:
-            lines.append(
-                f"export type {{ {component_name}Props }} from './{component_name}/{component_name}.types';"
-            )
+            types_path = ""
+
+            if "component.svelte" in relative_path:
+                types_path = relative_path.replace("component.svelte", "types")
+                lines.append(
+                    f"export type {{ default as {export_name}Props }} from './{types_path}';"
+                )
+            else:
+                types_path = relative_path.replace(".svelte", ".types")
+                lines.append(
+                    f"export type {{ {export_name}Props }} from './{types_path}';"
+                )
 
     return "\n".join(lines) + "\n"
 
@@ -120,7 +139,6 @@ def main():
         if process_directory(dir_name):
             generated_count += 1
 
-    print()
     print(f"Done! Generated/updated {generated_count} barrel file(s).")
 
 
