@@ -4,7 +4,7 @@ import { Flashcard, Stats, PluginSettings } from "@/schemas";
 export enum AdapterKey {
   statistics = "statistics",
   settings = "settings",
-  flashcard = "flashcard"
+  flashcard = "flashcard",
 }
 
 interface AdapterMap {
