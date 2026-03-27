@@ -2,6 +2,7 @@ import { Plugin, TFile } from 'obsidian';
 import { BaseAdapter } from './BaseAdapter';
 import { StatsSchema, Stats } from '@/schemas/statistics';
 import { DEFAULT_STATISTICS } from '@/utils/constants';
+import { Logger } from '@/utils/Logger';
 
 export class StatisticsAdapter extends BaseAdapter<Stats> {
   private _path: string;
@@ -13,22 +14,18 @@ export class StatisticsAdapter extends BaseAdapter<Stats> {
   }
 
   initialize: () => Promise<void> = async () => {
-    const { vault } = this.plugin.app;
-    const exists = await vault.adapter.exists(this._path);
-
-    if (!exists) {
-      await this.save();
-      return;
+    const file = await this.plugin.app.vault.adapter.read(this._path);
+    if (file) {
+      const json = JSON.parse(file);
+      try {
+        const index = this.validate(json);
+        this.set(index);
+      } catch (error) {
+        Logger.warn("Statistics file is corrupted. Resetting...")
+        this.save();
+      }
     }
-
-    try {
-      const file = vault.getAbstractFileByPath(this._path) as TFile;
-      const content = await vault.read(file);
-      const data = JSON.parse(content);
-      this.set(data);
-    } catch {
-      await this.reset();
-    }
+    await this.save();
   };
 
   save: () => Promise<void> = async () => {
