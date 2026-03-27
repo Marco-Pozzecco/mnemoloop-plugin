@@ -37,16 +37,17 @@ export const ERROR_MESSAGES = {
 } as const;
 
 export const DEFAULT_STATISTICS: Stats = {
+  progress: {},
+  sessions: [],
   updated_at: new Date().toISOString(),
-  summary: {
-    retention_rate: 0,
-    difficulty_dist: {},
-    due_today: 0,
-    total_learned: 0,
-  },
+  retention_rate: 0,
+  difficulty_dist: {},
+  total_learned: 0,
+  due_today: 0,
+  expected_review_time: 0,
   current_streak: 0,
-  daily_goal: 0,
   longest_streak: 0,
+  daily_goal: 0,
   total_cards: 0,
-  progress: [],
+  total_reviews: 0,
 };
