@@ -41,5 +41,3 @@ export class StatisticsAdapter extends BaseAdapter<Stats> {
     return StatsSchema.parse(data);
   }
 }
-
-
