@@ -1,15 +1,21 @@
 <script lang="ts">
 	import type DashboardChartProps from './types';
 
-	let { stats, history, className }: DashboardChartProps = $props();
+	let { stats, className }: DashboardChartProps = $props();
 
 	// Chart calculations
 	const chartHeight = 120;
 	const chartWidth = 400;
 	const barPadding = 8;
-	let barWidth = $derived(chartWidth / Math.max(history.daily_progress.length, 1) - barPadding);
+	let barWidth = $derived(
+		chartWidth / Math.max(Object.keys(stats.progress).length, 1) - barPadding,
+	);
 	let maxCompleted = $derived(
-		Math.max(...history.daily_progress.map((d) => d.sessions_completed), stats.daily_goal, 1),
+		Math.max(
+			...Object.values(stats.progress).map((d) => d.sessions_completed),
+			stats.daily_goal,
+			1,
+		),
 	);
 	let goalY = $derived(chartHeight - (stats.daily_goal / maxCompleted) * chartHeight);
 
@@ -48,7 +54,7 @@
 				opacity="0.5"
 			/>
 
-			{#each history.daily_progress as entry, i}
+			{#each Object.entries(stats.progress) as [date, entry], i}
 				{@const x = i * (barWidth + barPadding)}
 				{@const h = getBarHeight(entry.sessions_completed)}
 				{@const y = chartHeight - h}
@@ -65,7 +71,7 @@
 						: 'var(--background-modifier-border-focus)'}
 					class="ka-chart-bar"
 				>
-					<title>{entry.date}: {entry.sessions_completed} cards</title>
+					<title>{date}: {entry.sessions_completed} cards</title>
 				</rect>
 
 				<!-- Label -->
@@ -76,7 +82,7 @@
 					font-size="10"
 					fill="var(--text-muted)"
 				>
-					{getDayName(entry.date)}
+					{getDayName(date)}
 				</text>
 			{/each}
 		</svg>

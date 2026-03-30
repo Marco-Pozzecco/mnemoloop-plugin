@@ -1,30 +1,14 @@
-import { Stats } from "@/schemas";
-import { ReviewHistory } from "@/schemas/history";
+import { DashboardController } from '@/ui/controllers/DashboardController';
 
 export type ChartTimeframe = 'week' | 'month' | 'year';
 
-export interface ProgressEntry {
-  date: string;
-  completed: number;
-  target: number;
-  newCards: number;
-  retention: number;
-}
-
 export interface DashboardConfig {
-  dailyGoal: number;
-  showProgressChart: boolean;
-  showRetentionRate: boolean;
-  chartTimeframe: ChartTimeframe;
-  preferredChartType: 'bar' | 'line';
+	showProgressChart: boolean;
+	showRetentionRate: boolean;
+	chartTimeframe: ChartTimeframe;
+	chartType: 'bar' | 'line';
 }
 
 export default interface DashboardProps {
-  stats: Stats;
-  history: ReviewHistory;
-  config: DashboardConfig;
-  onStartReview?: () => void;
-  onConfigChange?: (config: Partial<DashboardConfig>) => void;
-  onRefresh?: () => void;
-  onOpenSettings?: () => void;
+	controller: DashboardController;
 }

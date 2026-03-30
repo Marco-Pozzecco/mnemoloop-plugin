@@ -10,15 +10,15 @@
 
 <div class="ka-dashboard__stats-grid {className}">
 	<div class="ka-stat-card">
-		<span class="ka-stat-card__label">Due Today</span>
-		<span class="ka-stat-card__value">{stats.summary.due_today}</span>
+		<span class="ka-stat-card__label">Due</span>
+		<span class="ka-stat-card__value">{stats.due_today}</span>
 		<span class="ka-stat-card__description">cards to review</span>
 	</div>
 
 	{#if config.showRetentionRate}
 		<div class="ka-stat-card">
 			<span class="ka-stat-card__label">Retention</span>
-			<span class="ka-stat-card__value">{formatPercent(stats.summary.retention_rate)}</span>
+			<span class="ka-stat-card__value">{formatPercent(stats.retention_rate)}</span>
 			<span class="ka-stat-card__description">average accuracy</span>
 		</div>
 	{/if}
