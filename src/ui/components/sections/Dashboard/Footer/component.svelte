@@ -10,7 +10,7 @@
 		className,
 	}: DashboardFooterProps = $props();
 
-	let hasDueCards = $derived(stats.summary.due_today > 0);
+	let hasDueCards = $derived(stats.due_today > 0);
 </script>
 
 <div class="ka-dashboard__footer-actions {className}">

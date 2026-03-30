@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Stats } from '@/schemas';
+	import { IndexKey } from '@/types/indexes';
 	import { ErrorWrapper } from '@/ui/components';
 	import {
 		DashboardChart,
@@ -7,32 +9,52 @@
 		DashboardProgress,
 		DashboardStatsGrid,
 	} from '@/ui/components/sections';
+	import { sessionStore } from '@/ui/store/session.store';
+	import { statsStore } from '@/ui/store/stats.store';
 	import { uiStore } from '@/ui/store/ui.store';
 	import type DashboardProps from './types';
+	import type { DashboardConfig } from './types';
 
-	let {
-		stats,
-		history,
-		config,
-		onStartReview = () => {},
-		onRefresh = () => {},
-		onOpenSettings = () => {},
-		onConfigChange = () => {},
-	}: DashboardProps = $props();
+	// props
+	const { controller }: DashboardProps = $props();
 
+	// state
+	let stats: Stats = $state(statsStore.stats);
+	let config: DashboardConfig = $state({
+		chartTimeframe: 'week',
+		chartType: 'bar',
+		showProgressChart: true,
+		showRetentionRate: true,
+	});
 	let isLoading = $state(uiStore.isLoading);
+	let session = $state(sessionStore.state);
+	let isReviewDisabled = $derived(session.queue?.size === 0 || isLoading);
+	let showChart = $derived(config.showProgressChart && stats.total_learned > 0);
+
+	// subscribtions
+	statsStore.store.subscribe((state) => {
+		stats = state;
+	});
 
 	uiStore.store.subscribe((state) => {
 		isLoading = state.isLoading;
 	});
 
-	let isReviewDisabled = $derived(stats.summary.due_today === 0 || isLoading);
-	let showChart = $derived(config.showProgressChart && stats.summary.total_learned > 0);
+	sessionStore.store.subscribe((state) => {
+		session = state;
+	});
+
+	function onStartReview() {
+		controller.startReview(IndexKey.flashcard);
+	}
+
+	function onRefresh() {
+		//
+	}
 </script>
 
 <ErrorWrapper
 	fallback="Unable to load dashboard statistics"
-	onRetry={onRefresh}
 	showError={true}
 	maxRetries={3}
 	errorContext="DashboardView"
@@ -42,7 +64,7 @@
 		<DashboardStatsGrid {stats} {config} />
 		<DashboardProgress {stats} />
 		{#if showChart}
-			<DashboardChart {stats} {history} />
+			<DashboardChart {stats} />
 		{/if}
 		<DashboardFooter {stats} {onStartReview} isDisabled={isReviewDisabled} {isLoading} />
 	</div>

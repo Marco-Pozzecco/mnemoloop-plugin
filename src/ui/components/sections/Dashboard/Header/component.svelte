@@ -1,12 +1,8 @@
 <script lang="ts">
 	import { Button, Icon } from '@/ui/components';
-	import type { DashboardHeaderProps } from './types';
+	import type DashboardHeaderProps from './types';
 
 	export const { className, onRefresh, isLoading } = $props() as DashboardHeaderProps;
-
-	function handleRefresh() {
-		onRefresh();
-	}
 </script>
 
 <header class="ka-dashboard__header {className}">
@@ -18,7 +14,7 @@
 		<Button
 			variant="secondary"
 			size="small"
-			onclick={handleRefresh}
+			onclick={onRefresh}
 			disabled={isLoading}
 			title="Refresh statistics"
 		>

@@ -1,59 +1,61 @@
 import { FlashcardReviewQueue } from '@/modules/review-queues/FlashcardReviewQueue';
-import { CardStatus, Flashcard } from '@/schemas';
+import { CardStatus, Flashcard, Stats } from '@/schemas';
 import { uiStore, UIStore } from '@/ui/store/ui.store';
 import { sessionStore, SessionStore } from '../store/session.store';
-import { Plugin } from 'obsidian';
 import { IReviewQueue } from '@/interfaces/IReviewQueue';
-import { Indexes, IndexKey } from "@/types/indexes";
-import { DashboardStats } from '../components/views/Dashboard/Dashboard.types';
+import { Indexes, IndexKey } from '@/types/indexes';
+import { EventBus } from '@/modules/event-bus/EventBus';
+import { EventType, SessionStartEvent } from '@/types/events';
 
 interface IDashboardController {
-  stats: DashboardStats;
-  history: Record<string, unknown>;
-  startReview: (type: IndexKey) => Promise<void>;
+	startReview: (type: IndexKey) => Promise<void>;
 }
 
 export class DashboardController implements IDashboardController {
-  private _plugin: Plugin;
-  private _uiStore: UIStore = uiStore;
-  private _sessionStore: SessionStore = sessionStore;
-  private _indexes: Indexes;
+	private _uiStore: UIStore = uiStore;
+	private _sessionStore: SessionStore = sessionStore;
+	private _indexes: Indexes;
 
-  constructor(plugin: Plugin, indexes: Indexes) {
-    this._plugin = plugin;
-    this._indexes = indexes;
-  }
+	constructor(indexes: Indexes) {
+		this._indexes = indexes;
+	}
 
-  get stats(): DashboardStats {
-    return { cardsLearnedToday: 0, dailyGoal: 20, dueCount: 1, estimatedTimeMinutes: 0, progressData: [], retentionRate: 0, streakDays: 0, totalCards: 20 }; // TODO: implement
-  };
+	startReview: (type: IndexKey) => Promise<void> = async (type) => {
+		switch (type) {
+			case IndexKey.flashcard:
+				return await this.startFlashcardReview();
+		}
+	};
 
-  get history(): Record<string, unknown> {
-    return {}; // TODO: implement
-  }
+	private async startFlashcardReview() {
+		this._uiStore.isLoading = true;
 
-  startReview: (type: IndexKey) => Promise<void> = async (type) => {
-    switch (type) {
-      case IndexKey.flashcard:
-        return await this.startFlashcardReview();
-    }
-  };
+		const index = this._indexes.get(IndexKey.flashcard);
 
-  private async startFlashcardReview() {
-    this._uiStore.isLoading = true;
+		if (!index) {
+			throw new Error(`index of kind::${IndexKey.flashcard} not initialized`);
+		}
 
-    const index = this._indexes.get(IndexKey.flashcard);
+		const predicate = (entity: Flashcard) =>
+			entity.status === CardStatus.ACTIVE && new Date(entity.due) <= new Date();
+		const list = new FlashcardReviewQueue(index, predicate);
 
-    if (!index) {
-      throw new Error(`index of kind::${IndexKey.flashcard} not initialized`)
-    }
+		this._sessionStore.queue = list as IReviewQueue<unknown>;
 
-    const predicate = (entity: Flashcard) => entity.status === CardStatus.ACTIVE && new Date(entity.due) <= new Date();
-    const list = new FlashcardReviewQueue(this._plugin, index, predicate);
+		this._sessionStore.startSession('flashcard');
 
-    this._sessionStore.queue = list as IReviewQueue<unknown>;
+		const sessionEvent: SessionStartEvent = {
+			event_type: EventType.SessionStart,
+			created_at: new Date(),
+			data: {
+				session_id: this._sessionStore.state.session_id!,
+				review_type: 'flashcard',
+				start_time: this._sessionStore.state.start_time!,
+			},
+		};
+		EventBus.instance.publish(sessionEvent);
 
-    this._uiStore.isLoading = false;
-    this._uiStore.currentView = "review";
-  };
+		this._uiStore.isLoading = false;
+		this._uiStore.currentView = 'review';
+	}
 }
