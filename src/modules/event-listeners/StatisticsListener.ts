@@ -1,13 +1,14 @@
 import { StatisticsAdapter } from '@/modules/adapters/StatisticsAdapter';
+import { CardStatus } from '@/schemas';
 import type { DailyProgress, ReviewSession, Stats } from '@/schemas/statistics';
 import {
 	EventData,
 	EventType,
-	FlashcardIndexInitEvent,
 	QueueInitEvent,
 	ReviewFlashcardEvent,
 	SessionEndEvent,
 } from '@/types/events';
+import { IndexFlashcardEvents } from '@/types/indexes';
 import { State } from 'ts-fsrs';
 import { EventListener } from './EventListener';
 
@@ -16,7 +17,7 @@ export class StatisticsListener extends EventListener {
 		EventType.ReviewFlashcard,
 		EventType.QueueInit,
 		EventType.SessionEnd,
-		EventType.IndexInit,
+		EventType.IndexFlashcardInitialize,
 	];
 
 	constructor(private _statsAdapter: StatisticsAdapter) {
@@ -34,16 +35,22 @@ export class StatisticsListener extends EventListener {
 			case EventType.SessionEnd:
 				this.handleSessionEnd(event as SessionEndEvent);
 				break;
-			case EventType.IndexInit:
-				this.handleIndexInit(event as FlashcardIndexInitEvent);
+			case EventType.IndexFlashcardInitialize:
+				this.handleIndexInit(event as IndexFlashcardEvents['initialize']);
 				break;
 		}
 	}
 
-	private handleIndexInit(event: FlashcardIndexInitEvent): void {
-		const { total_cards, due_today } = event.data;
+	private handleIndexInit(event: IndexFlashcardEvents['initialize']): void {
+		const { total, flashcards } = event.data;
+
+		const due_today = flashcards.filter(
+			(flashcard) =>
+				flashcard.status === CardStatus.ACTIVE && new Date(flashcard.due) <= new Date(),
+		).length;
+
 		this._statsAdapter.update({
-			total_cards,
+			total_cards: total,
 			due_today,
 		} as Partial<Stats>);
 		this._statsAdapter.save();
