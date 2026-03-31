@@ -1,21 +1,18 @@
 import { Flashcard } from '@/schemas';
 import { Rating } from 'ts-fsrs';
 import { AdapterEventType } from './adapters';
+import { IndexEventType } from './indexes';
 
 export const EventType = {
 	// review
 	ReviewFlashcard: 'REVIEW:FLASHCARD',
-	// index
-	IndexInit: 'INDEX:INIT',
-	IndexCreate: 'INDEX:CREATE',
-	IndexUpdate: 'INDEX:UPDATE',
-	IndexDelete: 'INDEX:DELETE',
 	// session
 	SessionStart: 'SESSION:START',
 	SessionEnd: 'SESSION:END',
 	// queue
 	QueueInit: 'QUEUE:INIT',
 	...AdapterEventType,
+	...IndexEventType,
 } as const;
 
 export type EventType = (typeof EventType)[keyof typeof EventType];
