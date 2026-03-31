@@ -7,4 +7,5 @@ export interface IReviewQueue<Entity> {
   readonly size: number;
   next(): IReviewItem<Entity> | null;
   previous(): IReviewItem<Entity> | null;
+  recalc(): void;
 }
