@@ -1,5 +1,5 @@
 import { StatisticsAdapter } from '@/modules/adapters/StatisticsAdapter';
-import { CardStatus } from '@/schemas';
+import { CardStatus, type Flashcard } from '@/schemas';
 import type { DailyProgress, ReviewSession, Stats } from '@/schemas/statistics';
 import {
 	EventData,
@@ -38,30 +38,61 @@ export class StatisticsListener extends EventListener {
 			case EventType.IndexFlashcardInitialize:
 				this.handleIndexInit(event as IndexFlashcardEvents['initialize']);
 				break;
+			case EventType.IndexFlashcardUpdate:
+				this.handleIndexUpdate(event as IndexFlashcardEvents['update']);
+				break;
 		}
 	}
 
 	private handleIndexInit(event: IndexFlashcardEvents['initialize']): void {
 		const { total, flashcards } = event.data;
+		const now = new Date();
 
 		const due_today = flashcards.filter(
 			(flashcard) =>
 				flashcard.status === CardStatus.ACTIVE && new Date(flashcard.due) <= new Date(),
 		).length;
 
+		const next_review_in = this.calculateNextReviewIn(now, flashcards);
+
 		this._statsAdapter.update({
 			total_cards: total,
 			due_today,
-		} as Partial<Stats>);
+			next_review_in,
+		});
+
+		this._statsAdapter.save();
+	}
+
+	private handleIndexUpdate(event: IndexFlashcardEvents['update']): void {
+		const { flashcards, total } = event.data;
+		const now = new Date();
+
+		const due_today = flashcards.filter(
+			(flashcard) =>
+				flashcard.status === CardStatus.ACTIVE && new Date(flashcard.due) <= new Date(),
+		).length;
+
+		const next_review_in = this.calculateNextReviewIn(now, flashcards);
+
+		this._statsAdapter.update({
+			total_cards: total,
+			due_today,
+			next_review_in,
+		});
+
 		this._statsAdapter.save();
 	}
 
 	private handleQueueInit(event: QueueInitEvent): void {
 		const entity = event.data;
+
 		this._statsAdapter.update({
 			total_cards: entity.total_cards,
 			due_today: entity.due_today,
-		} as Partial<Stats>);
+			next_review_in: 0,
+		});
+
 		this._statsAdapter.save();
 	}
 
@@ -86,7 +117,6 @@ export class StatisticsListener extends EventListener {
 		}
 
 		this.updateStreaks(stats);
-
 		this._statsAdapter.save();
 	}
 
@@ -137,7 +167,6 @@ export class StatisticsListener extends EventListener {
 		stats.due_today = due_today;
 
 		this.updateStreaks(stats);
-
 		this._statsAdapter.save();
 	}
 
@@ -195,5 +224,15 @@ export class StatisticsListener extends EventListener {
 			total_duration: 0,
 			goal_completed: false,
 		};
+	}
+
+	private calculateNextReviewIn(now: Date, flashcards: Flashcard[]): number {
+		const futureCards = flashcards
+			.filter((f) => f.status === CardStatus.ACTIVE && new Date(f.due) > now)
+			.sort((a, b) => new Date(a.due).getTime() - new Date(b.due).getTime());
+
+		if (futureCards.length === 0) return 0;
+
+		return Math.floor((new Date(futureCards[0].due).getTime() - now.getTime()) / 1000);
 	}
 }

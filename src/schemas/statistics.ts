@@ -45,6 +45,7 @@ export const StatsSchema = z.object({
   difficulty_dist: z.record(z.string(), z.number()),
   total_learned: z.number().int().min(0),
   due_today: z.number().int().min(0),
+  next_review_in: z.number().int().nonnegative(),
   expected_review_time: z.number().int().nonnegative(),
   current_streak: z.number().int().min(0),
   longest_streak: z.number().int().min(0),
