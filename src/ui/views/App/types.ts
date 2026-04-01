@@ -1,9 +1,7 @@
-import { Indexes } from "@/types/indexes";
-import { Plugin } from "obsidian";
+import { Indexes } from '@/types/indexes';
 
 export interface AppProps {
-  plugin: Plugin;
-  indexes: Indexes;
+	indexes: Indexes;
 }
 
-export type AppViews = "dashboard" | "review"
+export type AppViews = 'dashboard' | 'review';
