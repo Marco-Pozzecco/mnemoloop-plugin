@@ -1,11 +1,11 @@
+import { IReviewQueue } from '@/interfaces/IReviewQueue';
+import { EventBus } from '@/modules/event-bus/EventBus';
 import { FlashcardReviewQueue } from '@/modules/review-queues/FlashcardReviewQueue';
-import { CardStatus, Flashcard, Stats } from '@/schemas';
+import { CardStatus, Flashcard } from '@/schemas';
+import { EventType, SessionStartEvent } from '@/types/events';
+import { Indexes, IndexKey } from '@/types/indexes';
 import { uiStore, UIStore } from '@/ui/store/ui.store';
 import { sessionStore, SessionStore } from '../store/session.store';
-import { IReviewQueue } from '@/interfaces/IReviewQueue';
-import { Indexes, IndexKey } from '@/types/indexes';
-import { EventBus } from '@/modules/event-bus/EventBus';
-import { EventType, SessionStartEvent } from '@/types/events';
 
 interface IDashboardController {
 	startReview: (type: IndexKey) => Promise<void>;
