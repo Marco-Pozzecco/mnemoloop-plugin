@@ -1,5 +1,5 @@
+import type { FSRSParams, Stats } from '@/schemas';
 import { State } from 'ts-fsrs';
-import type { Stats, FSRSParams } from '@/schemas';
 
 export const DEFAULT_FSRS: FSRSParams = {
 	stability: 0,
@@ -50,5 +50,5 @@ export const DEFAULT_STATISTICS: Stats = {
 	daily_goal: 0,
 	total_cards: 0,
 	total_reviews: 0,
-	next_review_in: 0,
+	next_review: new Date().toISOString(),
 };
