@@ -10,7 +10,7 @@ import { FlashcardParser } from '../parsers/FlashcardParser';
 import { BaseIndexer } from './BaseIndexer';
 
 export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, FlashcardIndex> {
-	private _dirPath = this._settings.data.flashcardsDirectory;
+	private _dirPath = this._settings.data.flashcard.watch.directory;
 
 	constructor(plugin: Plugin, settings: IAdapter<PluginSettings>) {
 		const parser = new FlashcardParser(plugin, settings);

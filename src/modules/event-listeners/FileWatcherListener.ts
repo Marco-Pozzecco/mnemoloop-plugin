@@ -56,13 +56,8 @@ export class FileWatcherListener implements IEventListener {
 			return false;
 		}
 
-		// Check if file is in an ignored directory
-		if (this._isInIgnoredDirectory(file.path)) {
-			return false;
-		}
-
 		// Check if file is in watched directories (exact match)
-		if (this._isInWatchedDirectories(file.path, entity)) {
+		if (this._isInWatchedDirectory(file.path, entity)) {
 			return true;
 		}
 
@@ -75,39 +70,16 @@ export class FileWatcherListener implements IEventListener {
 	}
 
 	/**
-	 * Check if file is in an ignored directory
-	 */
-	private _isInIgnoredDirectory(filepath: string): boolean {
-		const ignoredDirs = this._settingsAdapter.data.ignoredDirectories;
-		const normalizedPath = normalizePath(filepath);
-		const pathParts = normalizedPath.split('/');
-
-		for (const ignoredDir of ignoredDirs) {
-			const normalizedIgnored = normalizePath(ignoredDir);
-			if (pathParts.includes(normalizedIgnored)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
 	 * Check if file is in watched directories (exact match, no subdirectories)
 	 */
-	private _isInWatchedDirectories(filepath: string, entity: WatcherEntity): boolean {
-		const watchedDirs = this._getWatchedDirectories(entity);
+	private _isInWatchedDirectory(filepath: string, entity: WatcherEntity): boolean {
 		const normalizedPath = normalizePath(filepath);
 		const parentDir = normalizedPath.substring(0, normalizedPath.lastIndexOf('/')) || '/';
 
-		for (const watchedDir of watchedDirs) {
-			const normalizedWatched = normalizePath(watchedDir);
-			if (parentDir === normalizedWatched) {
-				return true;
-			}
-		}
+		const watchedDir = this._getWatchedDirectory(entity);
+		const normalizedWatched = normalizePath(watchedDir);
 
-		return false;
+		return parentDir === normalizedWatched;
 	}
 
 	/**
@@ -143,7 +115,7 @@ export class FileWatcherListener implements IEventListener {
 	private _getWatchedTags(entity: WatcherEntity): string[] {
 		switch (entity) {
 			case WatcherEntity.FLASHCARD:
-				return this._settingsAdapter.data.watch.flashcard.tags;
+				return this._settingsAdapter.data.flashcard.watch.tags;
 			default:
 				return [];
 		}
@@ -152,12 +124,12 @@ export class FileWatcherListener implements IEventListener {
 	/**
 	 * Get watched directories for an entity from settings
 	 */
-	private _getWatchedDirectories(entity: WatcherEntity): string[] {
+	private _getWatchedDirectory(entity: WatcherEntity): string {
 		switch (entity) {
 			case WatcherEntity.FLASHCARD:
-				return this._settingsAdapter.data.watch.flashcard.directories;
+				return this._settingsAdapter.data.flashcard.watch.directory;
 			default:
-				return [];
+				return '';
 		}
 	}
 
@@ -165,7 +137,7 @@ export class FileWatcherListener implements IEventListener {
 	 * Get debounce timeout from settings
 	 */
 	private _getDebounceTimeout(): number {
-		return this._settingsAdapter.data.debounceTimeoutMs;
+		return this._settingsAdapter.data.debounce_timeout_ms;
 	}
 
 	/**
