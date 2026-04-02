@@ -10,7 +10,11 @@ export { default as DashboardStatsGrid } from './Dashboard/StatsGrid/component.s
 export type { default as DashboardStatsGridProps } from './Dashboard/StatsGrid/types';
 export { default as ReviewControls } from './Review/Controls/component.svelte';
 export type { default as ReviewControlsProps } from './Review/Controls/types';
-export { default as ReviewQueue } from './Review/Queue/component.svelte';
-export type { default as ReviewQueueProps } from './Review/Queue/types';
-export { default as ReviewStatsPanel } from './Review/StatsPanel/component.svelte';
-export type { default as ReviewStatsPanelProps } from './Review/StatsPanel/types';
+export { default as ReviewEmptyState } from './Review/EmptyState/component.svelte';
+export type { default as ReviewEmptyStateProps } from './Review/EmptyState/types';
+export { default as ReviewFlashCard } from './Review/FlashCard/component.svelte';
+export type { default as ReviewFlashCardProps } from './Review/FlashCard/types';
+export { default as ReviewFooter } from './Review/Footer/component.svelte';
+export type { default as ReviewFooterProps } from './Review/Footer/types';
+export { default as ReviewHeader } from './Review/Header/component.svelte';
+export type { default as ReviewHeaderProps } from './Review/Header/types';

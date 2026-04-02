@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { Button, Icon } from '@/ui/components';
-	import type { RatingButton } from '@/ui/components/views/Review/types';
-	import type { Rating } from 'ts-fsrs';
+	import type { RatingButton } from './types';
+	import type RatingControlsProps from './types';
 
-	export let onSubmitRating: (rating: Rating) => void;
-	export let disabled: boolean = false;
+	// props
+	let { onSubmitRating, disabled = false }: RatingControlsProps = $props();
 
 	const ratings: RatingButton[] = [
 		{ value: 1, label: 'Again', color: 'var(--text-error)', icon: 'refresh-ccw', shortcut: '1' },
