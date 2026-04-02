@@ -77,7 +77,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	}
 
 	private async initializeViews() {
-		this.registerView(APP_VIEW, (leaf) => new AppView(leaf, this._indexes));
+		this.registerView(APP_VIEW, (leaf) => new AppView(this.app, leaf, this._indexes));
 	}
 
 	private async initializeCommands() {
