@@ -1,19 +1,25 @@
 <script lang="ts">
 	import { Dashboard, Review } from '@/ui/components';
+	import { setAppContext } from '@/ui/context/AppContext';
 	import { DashboardController } from '@/ui/controllers/DashboardController';
 	import { uiStore } from '@/ui/store/ui.store';
 	import type { AppProps } from './types';
 
 	// props
-	const { indexes }: AppProps = $props();
+	const { indexes, app, component }: AppProps = $props();
 
 	// state
 	let currentView = $state(uiStore.currentView);
 	const dashboardController = $derived(new DashboardController(indexes));
 
-	// subscribtion
+	// subscription
 	uiStore.store.subscribe((state) => {
 		currentView = state.currentView;
+	});
+
+	// context
+	$effect(() => {
+		setAppContext({ app, component });
 	});
 </script>
 
