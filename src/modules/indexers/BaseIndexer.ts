@@ -6,17 +6,17 @@ import { IndexActions } from '@/types/indexes';
 import { Cache } from '@/utils/Cache';
 
 export abstract class BaseIndexer<
-	Entity extends EntityYaml,
-	EntityYaml,
+	Entity extends EntityMetadata,
+	EntityMetadata,
 	Index,
-> implements IIndexer<Entity> {
-	protected _cache: Cache<Entity> = new Cache();
-	protected _parser: IParser<Entity, EntityYaml>;
+> implements IIndexer<EntityMetadata> {
+	protected _cache: Cache<EntityMetadata> = new Cache();
+	protected _parser: IParser<Entity, EntityMetadata>;
 	protected _settings: IAdapter<PluginSettings>;
 	protected _adapter: IAdapter<Index>;
 
 	constructor(
-		parser: IParser<Entity, EntityYaml>,
+		parser: IParser<Entity, EntityMetadata>,
 		settings: IAdapter<PluginSettings>,
 		adapter: IAdapter<Index>,
 	) {
@@ -25,7 +25,7 @@ export abstract class BaseIndexer<
 		this._adapter = adapter;
 	}
 
-	get index(): Record<string, Entity> {
+	get index(): Record<string, EntityMetadata> {
 		return this._cache.dump();
 	}
 
@@ -35,19 +35,19 @@ export abstract class BaseIndexer<
 
 	protected abstract eventHandler: (eventType: IndexActions) => void;
 
-	get: (id: string) => Entity | undefined = (id) => {
+	get: (id: string) => EntityMetadata | undefined = (id) => {
 		return this._cache.get(id);
 	};
 
-	getAll: () => Entity[] = () => {
+	getAll: () => EntityMetadata[] = () => {
 		return this._cache.getAll();
 	};
 
-	query: (predicate: (entity: Entity) => boolean) => Entity[] = (predicate) => {
+	query: (predicate: (entity: EntityMetadata) => boolean) => EntityMetadata[] = (predicate) => {
 		return this._cache.query(predicate);
 	};
 
-	create: (id: string, data: Entity) => Entity = (id, data) => {
+	create: (id: string, data: EntityMetadata) => EntityMetadata = (id, data) => {
 		this._cache.set(id, data);
 		const entity = this._cache.get(id);
 		if (!entity) {
@@ -59,7 +59,7 @@ export abstract class BaseIndexer<
 		return entity;
 	};
 
-	update: (id: string, data: Partial<Entity>) => Entity = (id, data) => {
+	update: (id: string, data: Partial<EntityMetadata>) => EntityMetadata = (id, data) => {
 		const entity = this._cache.get(id);
 
 		if (!entity) {
@@ -84,7 +84,7 @@ export abstract class BaseIndexer<
 		return result;
 	};
 
-	upsert: (id: string, data: Entity) => Entity = (id, data) => {
+	upsert: (id: string, data: EntityMetadata) => EntityMetadata = (id, data) => {
 		const entity = this._cache.get(id);
 
 		if (entity) {
