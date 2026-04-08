@@ -22,12 +22,10 @@ export const FlashcardMetadataSchema = FSRSParams.extend({
 	deleted_at: z.iso.datetime().nullable(),
 });
 
-export const FlashcardBodySchema = z.object({
+export const FlashcardSchema = FlashcardMetadataSchema.extend({
 	front: z.string(),
 	back: z.string(),
-});
-
-export const FlashcardSchema = FlashcardMetadataSchema.extend(FlashcardBodySchema.shape).refine(
+}).refine(
 	(data) => {
 		const created = new Date(data.created_at).getTime();
 		const updated = new Date(data.updated_at).getTime();
@@ -39,13 +37,12 @@ export const FlashcardSchema = FlashcardMetadataSchema.extend(FlashcardBodySchem
 );
 
 export const FlashcardIndexSchema = z.object({
-	flashcards: FlashcardSchema.array(),
+	flashcards: z.array(FlashcardMetadataSchema),
 	updated_at: z.iso.datetime().nullable(),
 });
 
 export type FlashcardIndex = z.infer<typeof FlashcardIndexSchema>;
 export type FlashcardMetadata = z.infer<typeof FlashcardMetadataSchema>;
-export type FlashcardBody = z.infer<typeof FlashcardBodySchema>;
 export type Flashcard = z.infer<typeof FlashcardSchema>;
 
 export const DEFAULT_FLASHCARD_METADATA: Omit<FlashcardMetadata, 'uuid' | 'file'> = {
