@@ -6,11 +6,11 @@
 	import type { AppProps } from './types';
 
 	// props
-	const { indexes, app, component }: AppProps = $props();
+	const { indexes, parsers, app, component }: AppProps = $props();
 
 	// state
 	let currentView = $state(uiStore.currentView);
-	const dashboardController = $derived(new DashboardController(indexes));
+	const dashboardController = $derived(new DashboardController(indexes, parsers));
 
 	// subscription
 	uiStore.store.subscribe((state) => {
