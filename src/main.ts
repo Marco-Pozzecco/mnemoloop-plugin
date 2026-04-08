@@ -5,6 +5,7 @@ import { IAdapter } from './interfaces/IAdapter';
 import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
 import { StatisticsAdapter } from './modules/adapters/StatisticsAdapter';
 import { StatisticsListener } from './modules/event-listeners/StatisticsListener';
+import { FileWatcherListener } from './modules/event-listeners/FileWatcherListener';
 import { FlascardIndexer } from './modules/indexers/FlashcardIndexer';
 import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from './schemas/settings';
 import { AdapterKey, Adapters } from './types/adapters';
@@ -12,11 +13,16 @@ import { Indexes, IndexKey } from './types/indexes';
 import { ListenerKey, Listeners } from './types/listeners';
 import { APP_VIEW, AppView } from './ui/views/App/AppView';
 import { Logger } from './utils/Logger';
+import { ParserKey, Parsers } from './types/parsers';
+import { FlashcardParser } from './modules/parsers/FlashcardParser';
+import { FlashcardAdapter } from './modules/adapters/FlashcardAdapter';
 
 export default class KnowledgeAcceleratorPlugin extends Plugin {
 	private _indexes: Indexes = new Map();
 	private _adapter: Adapters = new Map();
+	private _parsers: Parsers = new Map();
 	private _listeners: Listeners = new Map();
+
 	settings!: PluginSettings;
 	private ribbonIcon?: HTMLElement;
 
@@ -26,6 +32,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 		this.initializeRibbonIcon();
 		await this.initializeCommands();
 		await this.loadAdapters();
+		await this.loadParsers();
 		await this.loadListeners();
 		await this.loadIndexes();
 		await this.initializeViews();
@@ -48,20 +55,27 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	private async loadAdapters() {
 		this._adapter.set(AdapterKey.settings, new SettingsAdapter(this));
 		this._adapter.set(AdapterKey.statistics, new StatisticsAdapter(this));
+		this._adapter.set(AdapterKey.flashcard, new FlashcardAdapter(this));
 		this._adapter.forEach(async (adapter) => await adapter.initialize());
 		Logger.info('adapters initialized');
 	}
 
+	private async loadParsers() {
+		const settings = this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>;
+		if (!settings) throw new Error('failed to initialize adapters');
+
+		this._parsers.set(ParserKey.flashcard, new FlashcardParser(this, settings));
+	}
+
 	private async loadIndexes() {
-		const settingsAdapter = this._adapter.get(AdapterKey.settings) as
-			| IAdapter<PluginSettings>
-			| undefined;
-
-		if (!settingsAdapter) {
-			throw new Error('failed to initialize adapters');
-		}
-
-		this._indexes.set(IndexKey.flashcard, new FlascardIndexer(this, settingsAdapter));
+		this._indexes.set(
+			IndexKey.flashcard,
+			new FlascardIndexer(
+				this._parsers.get(ParserKey.flashcard) as FlashcardParser,
+				this._adapter.get(AdapterKey.flashcard) as FlashcardAdapter,
+				this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>,
+			),
+		);
 
 		this._indexes.forEach(async (index) => await index.initialize());
 		Logger.info('indexes initialized');
@@ -73,11 +87,22 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 			new StatisticsListener(this._adapter.get(AdapterKey.statistics) as StatisticsAdapter),
 		);
 
+		this._listeners.set(
+			ListenerKey.fileWatcher,
+			new FileWatcherListener(
+				this,
+				this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>,
+			),
+		);
+
 		Logger.info('listeners initialized');
 	}
 
 	private async initializeViews() {
-		this.registerView(APP_VIEW, (leaf) => new AppView(this.app, leaf, this._indexes));
+		this.registerView(
+			APP_VIEW,
+			(leaf) => new AppView(this.app, leaf, this._indexes, this._parsers),
+		);
 	}
 
 	private async initializeCommands() {

@@ -4,19 +4,22 @@ import { App, ItemView, WorkspaceLeaf } from 'obsidian';
 import { mount, unmount } from 'svelte';
 import { default as Home } from './App.svelte';
 import { AppProps } from './types';
+import { Parsers } from '@/types/parsers';
 
 export const APP_VIEW = 'knowledge-accelerator-home';
 
 export class AppView extends ItemView {
 	private _app: App;
 	private _indexes: Indexes;
+	private _parsers: Parsers;
 	private _component: ReturnType<typeof mount> | null = null;
 	protected viewType: string = APP_VIEW;
 
-	constructor(app: App, leaf: WorkspaceLeaf, indexes: Indexes) {
+	constructor(app: App, leaf: WorkspaceLeaf, indexes: Indexes, parsers: Parsers) {
 		super(leaf);
 		this._app = app;
 		this._indexes = indexes;
+		this._parsers = parsers;
 	}
 
 	/**
@@ -54,6 +57,7 @@ export class AppView extends ItemView {
 					app: this._app,
 					component: this,
 					indexes: this._indexes,
+					parsers: this._parsers,
 				} as AppProps,
 			});
 
