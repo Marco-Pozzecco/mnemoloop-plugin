@@ -1,15 +1,20 @@
 import { IIndexer } from '@/interfaces/IIndexer';
-import { Flashcard } from '@/schemas';
+import { IParser } from '@/interfaces/IParser';
+import { Flashcard, FlashcardMetadata } from '@/schemas';
 import { EventType, QueueInitEvent } from '@/types/events';
 import { EventBus } from '../event-bus/EventBus';
 import { FsrsEngine } from '../review-engines/FsrsEngine';
 import { FlashcardReviewItem } from '../review-items/FlashcardReviewItem';
 import { BaseReviewQueue } from './BaseReviewQueue';
 
-export class FlashcardReviewQueue extends BaseReviewQueue<Flashcard> {
-	constructor(index: IIndexer<Flashcard>, predicate?: (entity: Flashcard) => boolean) {
+export class FlashcardReviewQueue extends BaseReviewQueue<Flashcard, FlashcardMetadata> {
+	constructor(
+		parser: IParser<Flashcard, FlashcardMetadata>,
+		index: IIndexer<FlashcardMetadata>,
+		predicate?: (entity: FlashcardMetadata) => boolean,
+	) {
 		const engine = new FsrsEngine();
-		super(engine, index, predicate);
+		super(parser, engine, index, predicate);
 		let entities = [];
 
 		if (predicate) {
@@ -19,7 +24,7 @@ export class FlashcardReviewQueue extends BaseReviewQueue<Flashcard> {
 		}
 
 		const sortedEntities = this._engine.sort(entities);
-		this._items = sortedEntities.map((item) => new FlashcardReviewItem(item, item.file, engine));
+		this._items = sortedEntities.map((item) => new FlashcardReviewItem(item.file, engine, parser));
 
 		const event: QueueInitEvent = {
 			event_type: EventType.QueueInit,
@@ -44,7 +49,7 @@ export class FlashcardReviewQueue extends BaseReviewQueue<Flashcard> {
 
 		const sortedEntities = this._engine.sort(entities);
 		this._items = sortedEntities.map(
-			(item) => new FlashcardReviewItem(item, item.file, this._engine),
+			(item) => new FlashcardReviewItem(item.file, this._engine, this._parser),
 		);
 		this._position = 0;
 	}
