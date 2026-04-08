@@ -1,14 +1,14 @@
-export interface IIndexer<Entity> {
-  readonly index: Record<string, Entity>;
+export interface IIndexer<EntityMetadata> {
+	readonly index: Record<string, EntityMetadata>;
 
-  initialize: () => Promise<void>;
-  save: () => Promise<void>;
+	initialize: () => Promise<void>;
+	save: () => Promise<void>;
 
-  get: (id: string) => Entity | undefined;
-  getAll: () => Entity[];
-  query: (predicate: (entity: Entity) => boolean) => Entity[];
-  create: (id: string, data: Entity) => Entity;
-  update: (id: string, data: Partial<Entity>) => Entity;
-  upsert: (id: string, data: Entity) => Entity;
-  delete: (id: string) => void;
+	get: (id: string) => EntityMetadata | undefined;
+	getAll: () => EntityMetadata[];
+	query: (predicate: (entity: EntityMetadata) => boolean) => EntityMetadata[];
+	create: (id: string, data: EntityMetadata) => EntityMetadata;
+	update: (id: string, data: Partial<EntityMetadata>) => EntityMetadata;
+	upsert: (id: string, data: EntityMetadata) => EntityMetadata;
+	delete: (id: string) => void;
 }

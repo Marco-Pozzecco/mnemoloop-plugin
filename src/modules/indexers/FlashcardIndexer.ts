@@ -3,7 +3,6 @@ import { Flashcard, FlashcardIndex, FlashcardMetadata } from '@/schemas';
 import { PluginSettings } from '@/schemas/settings';
 import { EventData, EventType, ReviewFlashcardEvent } from '@/types/events';
 import { IndexActions, IndexEventType, IndexFlashcardEvents } from '@/types/indexes';
-import { Plugin } from 'obsidian';
 import { FlashcardAdapter } from '../adapters/FlashcardAdapter';
 import { EventBus } from '../event-bus/EventBus';
 import { FlashcardParser } from '../parsers/FlashcardParser';
@@ -12,9 +11,11 @@ import { BaseIndexer } from './BaseIndexer';
 export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, FlashcardIndex> {
 	private _dirPath = this._settings.data.flashcard.watch.directory;
 
-	constructor(plugin: Plugin, settings: IAdapter<PluginSettings>) {
-		const parser = new FlashcardParser(plugin, settings);
-		const adapter = new FlashcardAdapter(plugin);
+	constructor(
+		parser: FlashcardParser,
+		adapter: FlashcardAdapter,
+		settings: IAdapter<PluginSettings>,
+	) {
 		super(parser, settings, adapter);
 
 		EventBus.instance.subscribe((event) => {
@@ -105,7 +106,7 @@ export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, F
 	};
 
 	reindex: () => Promise<void> = async () => {
-		const flashcards = await this._parser.parseAll(this._dirPath, false);
+		const flashcards = await this._parser.parseAll(this._dirPath);
 
 		for (const flashcard of flashcards) {
 			if (!flashcard.entity) {
