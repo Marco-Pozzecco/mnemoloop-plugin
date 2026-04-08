@@ -1,5 +1,5 @@
 import { IIndexer } from '@/interfaces/IIndexer';
-import { Flashcard } from '@/schemas';
+import { Flashcard, FlashcardMetadata } from '@/schemas';
 import { capitalize } from '@/utils/String';
 import { EventData } from './events';
 
@@ -8,7 +8,7 @@ export enum IndexKey {
 }
 
 interface IndexMap {
-	[IndexKey.flashcard]: IIndexer<Flashcard>;
+	[IndexKey.flashcard]: IIndexer<FlashcardMetadata>;
 }
 
 export type IndexType<K extends IndexKey = IndexKey> = IndexMap[K];
@@ -23,7 +23,7 @@ export type IndexActions = keyof Omit<IIndexer<unknown>, OmittedActions>;
 
 type IndexDataSchema = {
 	flashcard: {
-		flashcards: Flashcard[];
+		flashcards: FlashcardMetadata[];
 		total: number;
 	};
 };

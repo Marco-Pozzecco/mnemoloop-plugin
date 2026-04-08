@@ -1,4 +1,4 @@
-import { Flashcard } from '@/schemas';
+import { Flashcard, FlashcardMetadata } from '@/schemas';
 import { Rating } from 'ts-fsrs';
 import { AdapterEventType } from './adapters';
 import { IndexEventType } from './indexes';
@@ -43,7 +43,7 @@ export type IndexUpdateEvent<Entity> = EventData<Entity>;
 export type IndexDeleteEvent<Entity> = EventData<Entity>;
 
 export type QueueInitEvent = EventData<QueueInitEntity>;
-export type ReviewFlashcardEvent = EventData<Flashcard> & {
+export type ReviewFlashcardEvent = EventData<FlashcardMetadata> & {
 	filepath: string;
 	rating: Rating;
 };
