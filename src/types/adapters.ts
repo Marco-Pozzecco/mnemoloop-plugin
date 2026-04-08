@@ -1,5 +1,5 @@
 import { IAdapter } from '@/interfaces/IAdapter';
-import { Flashcard, Stats, PluginSettings, FlashcardIndex } from '@/schemas';
+import { FlashcardIndex, PluginSettings, Stats } from '@/schemas';
 import { EventData } from './events';
 
 export enum AdapterKey {
@@ -11,12 +11,10 @@ export enum AdapterKey {
 interface AdapterMap {
 	[AdapterKey.statistics]: IAdapter<Stats>;
 	[AdapterKey.settings]: IAdapter<PluginSettings>;
-	[AdapterKey.flashcard]: IAdapter<Flashcard>;
+	[AdapterKey.flashcard]: IAdapter<FlashcardIndex>;
 }
 
-type AdapterType<K extends AdapterKey = AdapterKey> = AdapterMap[K];
-
-export type Adapters = Map<AdapterKey, AdapterType>;
+export type Adapters = Map<AdapterKey, AdapterMap[AdapterKey]>;
 
 type AdapterActions = 'set' | 'update' | 'reset' | 'save' | 'init';
 
