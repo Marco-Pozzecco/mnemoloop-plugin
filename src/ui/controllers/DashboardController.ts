@@ -1,9 +1,10 @@
 import { IReviewQueue } from '@/interfaces/IReviewQueue';
 import { EventBus } from '@/modules/event-bus/EventBus';
 import { FlashcardReviewQueue } from '@/modules/review-queues/FlashcardReviewQueue';
-import { CardStatus, Flashcard } from '@/schemas';
+import { CardStatus, FlashcardMetadata } from '@/schemas';
 import { EventType, SessionStartEvent } from '@/types/events';
 import { Indexes, IndexKey } from '@/types/indexes';
+import { ParserKey, Parsers } from '@/types/parsers';
 import { uiStore, UIStore } from '@/ui/store/ui.store';
 import { sessionStore, SessionStore } from '../store/session.store';
 
@@ -15,9 +16,11 @@ export class DashboardController implements IDashboardController {
 	private _uiStore: UIStore = uiStore;
 	private _sessionStore: SessionStore = sessionStore;
 	private _indexes: Indexes;
+	private _parsers: Parsers;
 
-	constructor(indexes: Indexes) {
+	constructor(indexes: Indexes, parsers: Parsers) {
 		this._indexes = indexes;
+		this._parsers = parsers;
 	}
 
 	startReview: (type: IndexKey) => Promise<void> = async (type) => {
@@ -36,9 +39,15 @@ export class DashboardController implements IDashboardController {
 			throw new Error(`index of kind::${IndexKey.flashcard} not initialized`);
 		}
 
-		const predicate = (entity: Flashcard) =>
+		const parser = this._parsers.get(ParserKey.flashcard);
+
+		if (!parser) {
+			throw new Error(`parser of kind::${ParserKey.flashcard} not initialized`);
+		}
+
+		const predicate = (entity: FlashcardMetadata) =>
 			entity.status === CardStatus.ACTIVE && new Date(entity.due) <= new Date();
-		const list = new FlashcardReviewQueue(index, predicate);
+		const list = new FlashcardReviewQueue(parser, index, predicate);
 
 		this._sessionStore.queue = list as IReviewQueue<unknown>;
 
