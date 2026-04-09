@@ -2,66 +2,79 @@
 	import { gesture } from '@/ui/actions/gestures';
 	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
 	import { Button } from '@/ui/components';
-
 	import type FlashCardProps from './types';
+	import { type Flashcard } from '@/schemas';
 
 	let { item, showingAnswer, onShowAnswer, onSwipeLeft, onSwipeRight, onTap }: FlashCardProps =
 		$props();
 
 	let cardContainer: HTMLElement | undefined = $state();
 
+	let flashcard: Flashcard | null = $derived(item.data);
+
+	$effect(() => {
+		// Watch for data changes
+		const checkData = () => {
+			if (item.data !== flashcard) {
+				flashcard = item.data;
+			}
+			if (!flashcard) {
+				setTimeout(checkData, 25); // Poll until ready
+			}
+		};
+		checkData();
+	});
+
 	// Options no longer need app - it's retrieved from context internally
 	const frontOptions: MarkdownOptions = $derived({
-		content: item.data.front,
-		sourcePath: item.data.file,
+		content: flashcard?.front ?? '',
 	});
 
 	const backOptions: MarkdownOptions = $derived({
-		content: item.data.back,
-		sourcePath: item.data.file,
+		content: flashcard?.back ?? '',
 	});
 </script>
 
 <div class="ka-flashcard-wrapper">
-	{#if item}
-		<div
-			class="ka-card-wrapper"
-			bind:this={cardContainer}
-			use:gesture={{
-				onSwipeLeft,
-				onSwipeRight,
-				onTap,
-				swipeThreshold: 50,
-				tapMaxDuration: 200,
-				tapMaxDistance: 10,
-			}}
-		>
-			<div class="ka-card-content">
+	<div
+		class="ka-card-wrapper"
+		bind:this={cardContainer}
+		use:gesture={{
+			onSwipeLeft,
+			onSwipeRight,
+			onTap,
+			swipeThreshold: 50,
+			tapMaxDuration: 200,
+			tapMaxDistance: 10,
+		}}
+	>
+		<div class="ka-card-content">
+			{#if flashcard}
 				{#if showingAnswer}
 					<div class="ka-card-front" use:renderMarkdown={frontOptions}></div>
 					<div class="ka-card-back" use:renderMarkdown={backOptions}></div>
 				{:else}
 					<div class="ka-card-front" use:renderMarkdown={frontOptions}></div>
 				{/if}
-			</div>
+			{:else}
+				<div class="ka-loading-state">
+					<p>Loading card...</p>
+				</div>
+			{/if}
 		</div>
+	</div>
 
-		{#if !showingAnswer}
-			<div class="ka-show-answer-wrapper">
-				<Button
-					variant="primary"
-					className="ka-show-answer-button"
-					onclick={onShowAnswer}
-					ariaLabel="Show answer"
-				>
-					Show Answer
-					<span class="ka-key-hint">Space</span>
-				</Button>
-			</div>
-		{/if}
-	{:else}
-		<div class="ka-empty-state">
-			<p>No card to display</p>
+	{#if !showingAnswer}
+		<div class="ka-show-answer-wrapper">
+			<Button
+				variant="primary"
+				className="ka-show-answer-button"
+				onclick={onShowAnswer}
+				ariaLabel="Show answer"
+			>
+				Show Answer
+				<span class="ka-key-hint">Space</span>
+			</Button>
 		</div>
 	{/if}
 </div>
