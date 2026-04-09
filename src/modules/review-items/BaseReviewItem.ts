@@ -3,18 +3,18 @@ import { IReviewEngine } from '@/interfaces/IReviewEngine';
 import { IReviewItem } from '@/interfaces/IReviewItem';
 
 export abstract class BaseReviewItem<
-	Entity extends EntityMetadata,
-	EntityMetadata extends { file: string },
+	Entity extends EntityYaml,
+	EntityYaml,
 > implements IReviewItem<Entity> {
 	protected _data: Entity | null = null;
 	protected _filepath: string;
-	protected _engine: IReviewEngine<EntityMetadata>;
-	private _parser: IParser<Entity, EntityMetadata>;
+	protected _engine: IReviewEngine<EntityYaml>;
+	private _parser: IParser<Entity, EntityYaml>;
 
 	constructor(
 		filepath: string,
-		engine: IReviewEngine<EntityMetadata>,
-		parser: IParser<Entity, EntityMetadata>,
+		engine: IReviewEngine<EntityYaml>,
+		parser: IParser<Entity, EntityYaml>,
 	) {
 		this._parser = parser;
 		this._filepath = filepath;
@@ -30,11 +30,7 @@ export abstract class BaseReviewItem<
 	abstract review: <Score extends number>(score: Score) => void;
 
 	preload: (filepath: string) => Promise<void> = async (filepath) => {
-		const { entity, error, success } = await this._parser.parse(filepath);
-		if (!success) {
-			throw error;
-		}
-
+		const { entity } = await this._parser.parse(filepath);
 		this._data = entity;
 	};
 }

@@ -9,32 +9,28 @@ export enum CardStatus {
 	STALE = 'STALE',
 }
 
-export const FlashcardMetadataSchema = FSRSParams.extend({
+export const FlashcardYamlSchema = FSRSParams.extend({
 	uuid: z.uuid(),
-	file: z.string().min(1),
 	source: z
 		.string()
 		.regex(/^\[\[.*\]\]$/, 'Must be valid Obsidian link format')
 		.nullable(),
 	status: z.enum(CardStatus),
+});
+
+export const FlashcardMetadataSchema = FlashcardYamlSchema.extend({
+	file: z.string().min(1),
 	created_at: z.iso.datetime(),
 	updated_at: z.iso.datetime(),
 	deleted_at: z.iso.datetime().nullable(),
 });
 
-export const FlashcardSchema = FlashcardMetadataSchema.extend({
+export const FlashcardContentSchema = z.object({
 	front: z.string(),
 	back: z.string(),
-}).refine(
-	(data) => {
-		const created = new Date(data.created_at).getTime();
-		const updated = new Date(data.updated_at).getTime();
-		return updated >= created;
-	},
-	{
-		message: 'updated timestamp must be >= created timestamp',
-	},
-);
+});
+
+export const FlashcardSchema = FlashcardYamlSchema.extend(FlashcardContentSchema.shape);
 
 export const FlashcardIndexSchema = z.object({
 	flashcards: z.array(FlashcardMetadataSchema),
@@ -43,15 +39,22 @@ export const FlashcardIndexSchema = z.object({
 
 export type FlashcardIndex = z.infer<typeof FlashcardIndexSchema>;
 export type FlashcardMetadata = z.infer<typeof FlashcardMetadataSchema>;
+export type FlashcardYaml = z.infer<typeof FlashcardYamlSchema>;
+export type FlashcardContent = z.infer<typeof FlashcardContentSchema>;
 export type Flashcard = z.infer<typeof FlashcardSchema>;
 
-export const DEFAULT_FLASHCARD_METADATA: Omit<FlashcardMetadata, 'uuid' | 'file'> = {
+export const DEFAULT_FLASHCARD_YAML: Omit<FlashcardYaml, 'uuid'> = {
+	...DEFAULT_FSRS,
 	source: null,
 	status: CardStatus.ACTIVE,
+};
+
+export const DEFAULT_FLASHCARD_METADATA: Omit<FlashcardMetadata, 'uuid' | 'file'> = {
 	created_at: new Date().toISOString(),
 	updated_at: new Date().toISOString(),
 	deleted_at: null,
 	...DEFAULT_FSRS,
+	...DEFAULT_FLASHCARD_YAML,
 };
 
 export const DEFAULT_FLASHCARD_INDEX: FlashcardIndex = {

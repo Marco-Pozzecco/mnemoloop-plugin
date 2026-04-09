@@ -1,21 +1,25 @@
 import { IIndexer } from '@/interfaces/IIndexer';
 import { IParser } from '@/interfaces/IParser';
-import { Flashcard, FlashcardMetadata } from '@/schemas';
+import { Flashcard, FlashcardMetadata, FlashcardYaml } from '@/schemas';
 import { EventType, QueueInitEvent } from '@/types/events';
 import { EventBus } from '../event-bus/EventBus';
 import { FsrsEngine } from '../review-engines/FsrsEngine';
 import { FlashcardReviewItem } from '../review-items/FlashcardReviewItem';
 import { BaseReviewQueue } from './BaseReviewQueue';
 
-export class FlashcardReviewQueue extends BaseReviewQueue<Flashcard, FlashcardMetadata> {
+export class FlashcardReviewQueue extends BaseReviewQueue<
+	Flashcard,
+	FlashcardMetadata,
+	FlashcardYaml
+> {
 	constructor(
-		parser: IParser<Flashcard, FlashcardMetadata>,
+		parser: IParser<Flashcard, FlashcardYaml>,
 		index: IIndexer<FlashcardMetadata>,
 		predicate?: (entity: FlashcardMetadata) => boolean,
 	) {
 		const engine = new FsrsEngine();
 		super(parser, engine, index, predicate);
-		let entities = [];
+		let entities: FlashcardMetadata[] = [];
 
 		if (predicate) {
 			entities = this._index.query(predicate);

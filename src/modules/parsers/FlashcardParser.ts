@@ -1,6 +1,6 @@
 import { IAdapter } from '@/interfaces/IAdapter';
 import { ParseResult } from '@/interfaces/IParser';
-import type { Flashcard, FlashcardMetadata } from '@/schemas';
+import { Flashcard, type FlashcardContent, type FlashcardYaml } from '@/schemas';
 import { PluginSettings } from '@/schemas/settings';
 import { ERROR_MESSAGES } from '@/utils/constants';
 import { Logger } from '@/utils/Logger';
@@ -8,7 +8,7 @@ import { normalizePath, Plugin } from 'obsidian';
 import { FlashcardYamlEngine } from '../yaml-engines/FlashcardYamlEngine';
 import { BaseParser } from './BaseParser';
 
-export class FlashcardParser extends BaseParser<Flashcard, FlashcardMetadata> {
+export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 	private _settings: IAdapter<PluginSettings>;
 
 	constructor(plugin: Plugin, settings: IAdapter<PluginSettings>) {
@@ -16,80 +16,62 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardMetadata> {
 		this._settings = settings;
 	}
 
-	parseMetadata = async (filepath: string): Promise<ParseResult<FlashcardMetadata>> => {
-		try {
-			const result = await this._yaml.extractFromFile(filepath);
-			if (!result.success || !result.metadata) {
-				// Try recovery
-				await this._yaml.recover(filepath);
-				const retryResult = await this._yaml.extractFromFile(filepath);
-				if (!retryResult.success || !retryResult.metadata) {
-					throw new Error('Failed to extract metadata after recovery');
-				}
-				return {
-					success: true,
-					entity: retryResult.metadata,
-					error: undefined,
-				};
+	parseMetadata = async (filepath: string): Promise<ParseResult<FlashcardYaml>> => {
+		const result = await this._yaml.extractFromFile(filepath);
+		if (!result.success || !result.metadata) {
+			// Try recovery
+			await this._yaml.recover(filepath);
+			const retryResult = await this._yaml.extractFromFile(filepath);
+			if (!retryResult.success || !retryResult.metadata) {
+				throw new Error('Failed to extract metadata after recovery');
 			}
 			return {
-				success: true,
-				entity: result.metadata,
-				error: undefined,
-			};
-		} catch (error) {
-			return {
-				success: false,
-				entity: undefined,
-				error: error instanceof Error ? error.message : 'Unknown error parsing metadata',
+				entity: retryResult.metadata,
+				filepath,
 			};
 		}
+		return {
+			entity: result.metadata,
+			filepath,
+		};
 	};
 
 	parse = async (filepath: string): Promise<ParseResult<Flashcard>> => {
-		try {
-			const normalizedPath = normalizePath(filepath);
-			const content = await this._plugin.app.vault.adapter.read(normalizedPath);
-			const result = this._yaml.extractFromContent(content);
+		const normalizedPath = normalizePath(filepath);
+		const content = await this._plugin.app.vault.adapter.read(normalizedPath);
+		const result = this._yaml.extractFromContent(content);
 
-			if (!result.success || !result.metadata) {
-				await this._yaml.recover(filepath);
-				Logger.warn('Recovered flashcard with default metadata:', filepath);
+		if (!result.success || !result.metadata) {
+			await this._yaml.recover(filepath);
+			Logger.warn('Recovered flashcard with default metadata:', filepath);
 
-				const retryContent = await this._plugin.app.vault.adapter.read(normalizedPath);
-				const retryResult = this._yaml.extractFromContent(retryContent);
+			const retryContent = await this._plugin.app.vault.adapter.read(normalizedPath);
+			const retryResult = this._yaml.extractFromContent(retryContent);
 
-				if (!retryResult.success || !retryResult.metadata) {
-					throw new Error('impossible to recover metadata');
-				}
-
-				const splitResult = this.splitContent(retryResult.content);
-				const flashcard: Flashcard = {
-					...retryResult.metadata,
-					front: splitResult.front,
-					back: splitResult.back,
-				};
-				return { success: true, entity: flashcard, error: undefined };
+			if (!retryResult.success || !retryResult.metadata) {
+				throw new Error('impossible to recover metadata');
 			}
 
-			const splitResult = this.splitContent(result.content);
+			const splitResult = this.splitContent(retryResult.content);
 			const flashcard: Flashcard = {
-				...result.metadata,
+				...retryResult.metadata,
 				front: splitResult.front,
 				back: splitResult.back,
 			};
-
-			return { success: true, entity: flashcard, error: undefined };
-		} catch (error) {
-			return {
-				success: false,
-				entity: undefined,
-				error: error instanceof Error ? error.message : 'Unknown error parsing flashcard',
-			};
+			return { entity: flashcard, filepath };
 		}
+
+		const splitResult = this.splitContent(result.content);
+		const flashcard: FlashcardYaml & FlashcardContent = {
+			...result.metadata,
+			front: splitResult.front,
+			back: splitResult.back,
+		};
+
+		return { entity: flashcard, filepath };
 	};
 
-	parseAll = async (dirPath: string): Promise<ParseResult<FlashcardMetadata>[]> => {
+	parseAll = async (dirPath: string): Promise<ParseResult<FlashcardYaml>[]> => {
 		const normalizedDir = normalizePath(dirPath);
 		const dirExists = await this._plugin.app.vault.adapter.exists(normalizedDir);
 
@@ -100,7 +82,7 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardMetadata> {
 		const { files } = await this._plugin.app.vault.adapter.list(normalizedDir);
 		const mdFiles = files.filter((f) => f.endsWith('.md'));
 
-		const results: ParseResult<FlashcardMetadata>[] = [];
+		const results: ParseResult<FlashcardYaml>[] = [];
 
 		for (const file of mdFiles) {
 			const result = await this.parseMetadata(file);
