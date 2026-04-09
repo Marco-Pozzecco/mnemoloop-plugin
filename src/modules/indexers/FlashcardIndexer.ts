@@ -117,15 +117,11 @@ export class FlascardIndexer extends BaseIndexer<
 
 	initialize: () => Promise<void> = async () => {
 		await this._adapter.initialize();
+		const flashcards = await this._parser.parseAll(this._dirPath);
 
-		const { flashcards } = this._adapter.data;
-
-		if (flashcards.length === 0) {
-			await this.reindex();
-		} else {
-			for (const flashcard of flashcards) {
-				this._cache.set(flashcard.uuid, flashcard);
-			}
+		for (const flashcard of flashcards) {
+			const metadata = this._generateMetadata(flashcard);
+			this._cache.set(flashcard.entity.uuid, metadata);
 		}
 
 		await this.save();
@@ -142,15 +138,6 @@ export class FlascardIndexer extends BaseIndexer<
 
 		await this._adapter.save();
 		this.eventHandler('save');
-	};
-
-	reindex: () => Promise<void> = async () => {
-		const flashcards = await this._parser.parseAll(this._dirPath);
-
-		for (const flashcard of flashcards) {
-			const metadata = this._generateMetadata(flashcard);
-			this.upsert(flashcard.entity.uuid, metadata);
-		}
 	};
 
 	private _findByFilepath(
@@ -199,7 +186,7 @@ export class FlascardIndexer extends BaseIndexer<
 		try {
 			const result = await this._parser.parseMetadata(data.filepath);
 			const entity = this._generateMetadata(result);
-			this.upsert(result.entity.uuid, entity);
+			this.update(entity.uuid, entity);
 			Logger.info(`Watcher: updated flashcard ${result.entity.uuid} from ${data.filepath}`);
 		} catch (error) {
 			if (existing) {
@@ -265,6 +252,7 @@ export class FlascardIndexer extends BaseIndexer<
 		};
 		const existing = this._findByFilepath(data.filepath);
 		if (existing) {
+			metadata.uuid = existing.entity.uuid;
 			metadata.created_at = existing.entity.created_at;
 			metadata.updated_at = existing.entity.updated_at;
 			metadata.deleted_at = existing.entity.deleted_at;
