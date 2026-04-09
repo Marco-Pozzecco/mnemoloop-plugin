@@ -17,58 +17,51 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 	}
 
 	parseMetadata = async (filepath: string): Promise<ParseResult<FlashcardYaml>> => {
-		const result = await this._yaml.extractFromFile(filepath);
-		if (!result.success || !result.metadata) {
-			// Try recovery
-			await this._yaml.recover(filepath);
-			const retryResult = await this._yaml.extractFromFile(filepath);
-			if (!retryResult.success || !retryResult.metadata) {
-				throw new Error('Failed to extract metadata after recovery');
-			}
+		try {
+			const metadata = await this._yaml.extractFmFromFile(filepath);
 			return {
-				entity: retryResult.metadata,
+				entity: metadata,
 				filepath,
 			};
+		} catch (e) {
+			// Try recovery
+			await this._yaml.recover(filepath);
+			return this.parseMetadata(filepath);
 		}
-		return {
-			entity: result.metadata,
-			filepath,
-		};
 	};
 
 	parse = async (filepath: string): Promise<ParseResult<Flashcard>> => {
 		const normalizedPath = normalizePath(filepath);
 		const content = await this._plugin.app.vault.adapter.read(normalizedPath);
-		const result = this._yaml.extractFromContent(content);
 
-		if (!result.success || !result.metadata) {
-			await this._yaml.recover(filepath);
-			Logger.warn('Recovered flashcard with default metadata:', filepath);
-
-			const retryContent = await this._plugin.app.vault.adapter.read(normalizedPath);
-			const retryResult = this._yaml.extractFromContent(retryContent);
-
-			if (!retryResult.success || !retryResult.metadata) {
-				throw new Error('impossible to recover metadata');
-			}
-
-			const splitResult = this.splitContent(retryResult.content);
-			const flashcard: Flashcard = {
-				...retryResult.metadata,
+		try {
+			const result = this._yaml.extractFmFromContent(content);
+			const splitResult = this.splitContent(result.body);
+			const flashcard: FlashcardYaml & FlashcardContent = {
+				...result.fm,
 				front: splitResult.front,
 				back: splitResult.back,
 			};
 			return { entity: flashcard, filepath };
+		} catch {
+			await this._yaml.recover(filepath);
+			Logger.warn('Recovered flashcard with default metadata:', filepath);
+
+			const retryContent = await this._plugin.app.vault.adapter.read(normalizedPath);
+
+			try {
+				const retryResult = this._yaml.extractFmFromContent(retryContent);
+				const splitResult = this.splitContent(retryResult.body);
+				const flashcard: Flashcard = {
+					...retryResult.fm,
+					front: splitResult.front,
+					back: splitResult.back,
+				};
+				return { entity: flashcard, filepath };
+			} catch {
+				throw new Error('impossible to recover metadata');
+			}
 		}
-
-		const splitResult = this.splitContent(result.content);
-		const flashcard: FlashcardYaml & FlashcardContent = {
-			...result.metadata,
-			front: splitResult.front,
-			back: splitResult.back,
-		};
-
-		return { entity: flashcard, filepath };
 	};
 
 	parseAll = async (dirPath: string): Promise<ParseResult<FlashcardYaml>[]> => {
@@ -82,14 +75,12 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 		const { files } = await this._plugin.app.vault.adapter.list(normalizedDir);
 		const mdFiles = files.filter((f) => f.endsWith('.md'));
 
-		const results: ParseResult<FlashcardYaml>[] = [];
+		const promises = mdFiles.map(async (file) => {
+			Logger.info('parsing file:', file);
+			return await this.parseMetadata(file);
+		});
 
-		for (const file of mdFiles) {
-			const result = await this.parseMetadata(file);
-			results.push(result);
-		}
-
-		return results;
+		return Promise.all(promises);
 	};
 
 	/**
@@ -101,14 +92,22 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 	private splitContent(content: string): { front: string; back: string } {
 		const marker = this._settings.data.flashcard.marker;
 
-		const markerIndex = content.indexOf(marker);
+		// Escape special regex characters in the marker
+		const escapedMarker = marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+		// Use regex to find marker on its own line
+		const markerRegex = new RegExp(`\\n\\s*${escapedMarker}\\s*\\n`);
 
-		if (markerIndex === -1) {
+		const match = markerRegex.exec(content);
+
+		if (!match || match.index === undefined) {
 			throw new Error(ERROR_MESSAGES.MISSING_MARKER);
 		}
 
-		const front = content.substring(0, markerIndex).trim();
-		const back = content.substring(markerIndex + marker.length).trim();
+		const frontEnd = match.index;
+		const backStart = frontEnd + match.reduce((acc, curr) => (acc += curr.length), 0);
+
+		const front = content.substring(0, frontEnd).trim();
+		const back = content.substring(backStart).trim();
 
 		return {
 			front,
