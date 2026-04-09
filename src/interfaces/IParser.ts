@@ -4,16 +4,7 @@ export interface IParser<Entity extends EntityYaml, EntityYaml> {
 	parseAll: (dirPath: string) => Promise<ParseResult<EntityYaml>[]>;
 }
 
-export type ParseResult<Entity> = ParseResultSuccess<Entity> | ParseResultError;
-
-interface ParseResultSuccess<Entity> {
-	success: true;
+export type ParseResult<Entity> = {
 	entity: Entity;
-	error: undefined;
-}
-
-interface ParseResultError {
-	success: false;
-	entity: undefined;
-	error: string;
-}
+	filepath: string;
+};

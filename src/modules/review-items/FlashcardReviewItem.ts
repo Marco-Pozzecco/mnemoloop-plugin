@@ -1,15 +1,15 @@
+import { IParser } from '@/interfaces/IParser';
 import { IReviewEngine } from '@/interfaces/IReviewEngine';
-import { Flashcard, FlashcardMetadata } from '@/schemas';
+import { Flashcard, FlashcardYaml } from '@/schemas';
 import { EventType, ReviewFlashcardEvent } from '@/types/events';
 import { EventBus } from '../event-bus/EventBus';
 import { BaseReviewItem } from './BaseReviewItem';
-import { IParser } from '@/interfaces/IParser';
 
-export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardMetadata> {
+export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml> {
 	constructor(
 		filepath: string,
-		engine: IReviewEngine<FlashcardMetadata>,
-		parser: IParser<Flashcard, FlashcardMetadata>,
+		engine: IReviewEngine<FlashcardYaml>,
+		parser: IParser<Flashcard, FlashcardYaml>,
 	) {
 		super(filepath, engine, parser);
 	}

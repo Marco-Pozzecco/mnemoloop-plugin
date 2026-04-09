@@ -1,10 +1,10 @@
-import type { FlashcardMetadata } from '@/schemas/flashcard';
+import type { FlashcardYaml } from '@/schemas/flashcard';
 import type { FSRSParams } from '@/schemas/srs';
 import { Card, FSRS, FSRSParameters, generatorParameters, Rating, State } from 'ts-fsrs';
 import { EventData } from '@/types/events';
 import { BaseReviewEngine } from './BaseReviewEngine';
 
-export class FsrsEngine extends BaseReviewEngine<FlashcardMetadata> {
+export class FsrsEngine extends BaseReviewEngine<FlashcardYaml> {
 	private readonly STATE_PRIORITY: Record<number, number> = {
 		[State.Learning]: 0,
 		[State.Relearning]: 1,
@@ -24,7 +24,7 @@ export class FsrsEngine extends BaseReviewEngine<FlashcardMetadata> {
 	 * @param list Flashcards to sort (mutated in-place)
 	 * @returns The same sorted array reference
 	 */
-	sort: (list: FlashcardMetadata[]) => FlashcardMetadata[] = (list) => {
+	sort: <T extends FlashcardYaml>(list: T[]) => T[] = (list) => {
 		return list.sort((a, b) => {
 			const dueDiff = new Date(a.due).getTime() - new Date(b.due).getTime();
 			if (dueDiff !== 0) return dueDiff;
@@ -39,10 +39,7 @@ export class FsrsEngine extends BaseReviewEngine<FlashcardMetadata> {
 	 * Calculates updated FSRS parameters based on a user rating.
 	 * @returns Updated Flashcard entity
 	 */
-	calculate: (item: FlashcardMetadata, score: Exclude<Rating, 0>) => FlashcardMetadata = (
-		item,
-		score,
-	) => {
+	calculate: <T extends FlashcardYaml>(item: T, score: Exclude<Rating, 0>) => T = (item, score) => {
 		const params = item;
 		const card: Card = this.mapToFsrsCard(params);
 		const reviewTime = new Date();
@@ -63,7 +60,7 @@ export class FsrsEngine extends BaseReviewEngine<FlashcardMetadata> {
 		this.fsrs.parameters = params;
 	}
 
-	dispatch: (event: string, data: EventData<FlashcardMetadata>) => void = () => {
+	dispatch: (event: string, data: EventData<FlashcardYaml>) => void = () => {
 		// do nothing
 	};
 

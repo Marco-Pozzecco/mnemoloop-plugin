@@ -1,4 +1,4 @@
 export interface IReviewEngine<Entity> {
-  sort: (list: Entity[]) => Entity[];
-  calculate: (item: Entity, score: number) => Entity
+	sort<T extends Entity>(list: T[]): T[];
+	calculate<T extends Entity>(item: T, score: number): T;
 }

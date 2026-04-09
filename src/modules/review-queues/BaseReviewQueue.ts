@@ -5,19 +5,20 @@ import { IReviewItem } from '@/interfaces/IReviewItem';
 import { IReviewQueue } from '@/interfaces/IReviewQueue';
 
 export abstract class BaseReviewQueue<
-	Entity extends EntityMetadata,
-	EntityMetadata,
+	Entity extends EntityYaml,
+	EntityMetadata extends EntityYaml,
+	EntityYaml,
 > implements IReviewQueue<Entity> {
-	protected _parser: IParser<Entity, EntityMetadata>;
-	protected _engine: IReviewEngine<EntityMetadata>;
+	protected _parser: IParser<Entity, EntityYaml>;
+	protected _engine: IReviewEngine<EntityYaml>;
 	protected _index: IIndexer<EntityMetadata>;
 	protected _items: IReviewItem<Entity>[] = [];
 	protected _position: number = 0;
 	protected _itemsQuery?: (entity: EntityMetadata) => boolean;
 
 	constructor(
-		parser: IParser<Entity, EntityMetadata>,
-		engine: IReviewEngine<EntityMetadata>,
+		parser: IParser<Entity, EntityYaml>,
+		engine: IReviewEngine<EntityYaml>,
 		indexer: IIndexer<EntityMetadata>,
 		query?: (entity: EntityMetadata) => boolean,
 	) {

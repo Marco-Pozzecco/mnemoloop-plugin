@@ -1,22 +1,23 @@
 import type { IAdapter } from '@/interfaces/IAdapter';
 import { IIndexer } from '@/interfaces/IIndexer';
-import { IParser } from '@/interfaces/IParser';
+import { IParser, ParseResult } from '@/interfaces/IParser';
 import { PluginSettings } from '@/schemas/settings';
 import { IndexActions } from '@/types/indexes';
 import { Cache } from '@/utils/Cache';
 
 export abstract class BaseIndexer<
-	Entity extends EntityMetadata,
-	EntityMetadata,
+	Entity extends EntityYaml,
+	EntityMetadata extends EntityYaml,
+	EntityYaml,
 	Index,
 > implements IIndexer<EntityMetadata> {
 	protected _cache: Cache<EntityMetadata> = new Cache();
-	protected _parser: IParser<Entity, EntityMetadata>;
+	protected _parser: IParser<Entity, EntityYaml>;
 	protected _settings: IAdapter<PluginSettings>;
 	protected _adapter: IAdapter<Index>;
 
 	constructor(
-		parser: IParser<Entity, EntityMetadata>,
+		parser: IParser<Entity, EntityYaml>,
 		settings: IAdapter<PluginSettings>,
 		adapter: IAdapter<Index>,
 	) {
@@ -102,6 +103,8 @@ export abstract class BaseIndexer<
 
 		return this._cache.delete(id);
 	};
+
+	protected abstract _generateMetadata: (data: ParseResult<Entity>) => EntityMetadata;
 }
 
 enum IndexError {

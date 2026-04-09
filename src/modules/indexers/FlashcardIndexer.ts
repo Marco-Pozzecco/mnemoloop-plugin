@@ -1,5 +1,12 @@
 import { IAdapter } from '@/interfaces/IAdapter';
-import { Flashcard, FlashcardIndex, FlashcardMetadata } from '@/schemas';
+import { ParseResult } from '@/interfaces/IParser';
+import {
+	Flashcard,
+	FlashcardIndex,
+	FlashcardMetadata,
+	FlashcardMetadataSchema,
+	FlashcardYaml,
+} from '@/schemas';
 import { PluginSettings } from '@/schemas/settings';
 import { EventData, EventType, ReviewFlashcardEvent } from '@/types/events';
 import { IndexActions, IndexEventType, IndexFlashcardEvents } from '@/types/indexes';
@@ -10,14 +17,19 @@ import {
 	WatcherFlashcardModifyEvent,
 	WatcherFlashcardRenameEvent,
 } from '@/types/watcher';
-import { normalizePath } from 'obsidian';
 import { Logger } from '@/utils/Logger';
+import { normalizePath } from 'obsidian';
 import { FlashcardAdapter } from '../adapters/FlashcardAdapter';
 import { EventBus } from '../event-bus/EventBus';
 import { FlashcardParser } from '../parsers/FlashcardParser';
 import { BaseIndexer } from './BaseIndexer';
 
-export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, FlashcardIndex> {
+export class FlascardIndexer extends BaseIndexer<
+	Flashcard,
+	FlashcardMetadata,
+	FlashcardYaml,
+	FlashcardIndex
+> {
 	private _dirPath = this._settings.data.flashcard.watch.directory;
 
 	constructor(
@@ -136,10 +148,8 @@ export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, F
 		const flashcards = await this._parser.parseAll(this._dirPath);
 
 		for (const flashcard of flashcards) {
-			if (!flashcard.entity) {
-				continue;
-			}
-			this.upsert(flashcard.entity.uuid, flashcard.entity);
+			const metadata = this._generateMetadata(flashcard);
+			this.upsert(flashcard.entity.uuid, metadata);
 		}
 	};
 
@@ -153,15 +163,8 @@ export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, F
 			return undefined;
 		}
 
-		// Get the UUID from the cache dump
-		const dump = this._cache.dump();
-		for (const [uuid, entity] of Object.entries(dump)) {
-			if (entity.file === normalizedPath) {
-				return { uuid, entity };
-			}
-		}
-
-		return undefined;
+		const entity = entities[0];
+		return { entity, uuid: entity.uuid };
 	}
 
 	private async _handleWatcherCreate(data: { filepath: string }): Promise<void> {
@@ -173,11 +176,12 @@ export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, F
 
 		try {
 			const result = await this._parser.parseMetadata(data.filepath);
-			if (result.success && result.entity) {
-				this.upsert(result.entity.uuid, result.entity);
-				await this.save();
-				Logger.info(`Watcher: created flashcard ${result.entity.uuid} from ${data.filepath}`);
-			}
+
+			const entity = this._generateMetadata(result);
+			this.upsert(result.entity.uuid, entity);
+
+			await this.save();
+			Logger.info(`Watcher: created flashcard ${result.entity.uuid} from ${data.filepath}`);
 		} catch (error) {
 			Logger.error(`Watcher: failed to create flashcard from ${data.filepath}`, error);
 		}
@@ -194,14 +198,9 @@ export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, F
 
 		try {
 			const result = await this._parser.parseMetadata(data.filepath);
-			if (result.success && result.entity) {
-				this.upsert(result.entity.uuid, result.entity);
-				Logger.info(`Watcher: updated flashcard ${result.entity.uuid} from ${data.filepath}`);
-			} else if (existing) {
-				// File is no longer valid flashcard, delete existing
-				this.delete(existing.uuid);
-				Logger.info(`Watcher: deleted invalid flashcard ${existing.uuid} from ${data.filepath}`);
-			}
+			const entity = this._generateMetadata(result);
+			this.upsert(result.entity.uuid, entity);
+			Logger.info(`Watcher: updated flashcard ${result.entity.uuid} from ${data.filepath}`);
 		} catch (error) {
 			if (existing) {
 				this.delete(existing.uuid);
@@ -255,4 +254,22 @@ export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, F
 		const normalizedDir = normalizePath(this._dirPath);
 		return normalizedPath.startsWith(normalizedDir + '/') || normalizedPath === normalizedDir;
 	}
+
+	protected _generateMetadata = (data: ParseResult<FlashcardYaml>): FlashcardMetadata => {
+		let metadata: FlashcardMetadata = {
+			...data.entity,
+			file: data.filepath,
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
+			deleted_at: null,
+		};
+		const existing = this._findByFilepath(data.filepath);
+		if (existing) {
+			metadata.created_at = existing.entity.created_at;
+			metadata.updated_at = existing.entity.updated_at;
+			metadata.deleted_at = existing.entity.deleted_at;
+		}
+
+		return FlashcardMetadataSchema.parse(metadata);
+	};
 }
