@@ -3,6 +3,15 @@ import { Flashcard, FlashcardIndex, FlashcardMetadata } from '@/schemas';
 import { PluginSettings } from '@/schemas/settings';
 import { EventData, EventType, ReviewFlashcardEvent } from '@/types/events';
 import { IndexActions, IndexEventType, IndexFlashcardEvents } from '@/types/indexes';
+import {
+	WatcherEventType,
+	WatcherFlashcardCreateEvent,
+	WatcherFlashcardDeleteEvent,
+	WatcherFlashcardModifyEvent,
+	WatcherFlashcardRenameEvent,
+} from '@/types/watcher';
+import { normalizePath } from 'obsidian';
+import { Logger } from '@/utils/Logger';
 import { FlashcardAdapter } from '../adapters/FlashcardAdapter';
 import { EventBus } from '../event-bus/EventBus';
 import { FlashcardParser } from '../parsers/FlashcardParser';
@@ -23,6 +32,24 @@ export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, F
 				const card = (event as ReviewFlashcardEvent).data;
 				const cardUUID = card.uuid;
 				this.update(cardUUID, card);
+			}
+		});
+
+		// Subscribe to watcher events
+		EventBus.instance.subscribe((event) => {
+			switch (event.event_type) {
+				case WatcherEventType.WatcherFlashcardFileCreate:
+					this._handleWatcherCreate((event as WatcherFlashcardCreateEvent).data);
+					break;
+				case WatcherEventType.WatcherFlashcardFileModify:
+					this._handleWatcherModify((event as WatcherFlashcardModifyEvent).data);
+					break;
+				case WatcherEventType.WatcherFlashcardFileDelete:
+					this._handleWatcherDelete((event as WatcherFlashcardDeleteEvent).data);
+					break;
+				case WatcherEventType.WatcherFlashcardFileRename:
+					this._handleWatcherRename((event as WatcherFlashcardRenameEvent).data);
+					break;
 			}
 		});
 	}
@@ -115,4 +142,117 @@ export class FlascardIndexer extends BaseIndexer<Flashcard, FlashcardMetadata, F
 			this.upsert(flashcard.entity.uuid, flashcard.entity);
 		}
 	};
+
+	private _findByFilepath(
+		filepath: string,
+	): { uuid: string; entity: FlashcardMetadata } | undefined {
+		const normalizedPath = normalizePath(filepath);
+		const entities = this.query((e) => e.file === normalizedPath);
+
+		if (entities.length === 0) {
+			return undefined;
+		}
+
+		// Get the UUID from the cache dump
+		const dump = this._cache.dump();
+		for (const [uuid, entity] of Object.entries(dump)) {
+			if (entity.file === normalizedPath) {
+				return { uuid, entity };
+			}
+		}
+
+		return undefined;
+	}
+
+	private async _handleWatcherCreate(data: { filepath: string }): Promise<void> {
+		Logger.debug(`Watcher: handling create for ${data.filepath}`);
+
+		if (!this._isPathInWatchedDir(data.filepath)) {
+			return;
+		}
+
+		try {
+			const result = await this._parser.parseMetadata(data.filepath);
+			if (result.success && result.entity) {
+				this.upsert(result.entity.uuid, result.entity);
+				await this.save();
+				Logger.info(`Watcher: created flashcard ${result.entity.uuid} from ${data.filepath}`);
+			}
+		} catch (error) {
+			Logger.error(`Watcher: failed to create flashcard from ${data.filepath}`, error);
+		}
+	}
+
+	private async _handleWatcherModify(data: { filepath: string }): Promise<void> {
+		Logger.debug(`Watcher: handling modify for ${data.filepath}`);
+
+		if (!this._isPathInWatchedDir(data.filepath)) {
+			return;
+		}
+
+		const existing = this._findByFilepath(data.filepath);
+
+		try {
+			const result = await this._parser.parseMetadata(data.filepath);
+			if (result.success && result.entity) {
+				this.upsert(result.entity.uuid, result.entity);
+				Logger.info(`Watcher: updated flashcard ${result.entity.uuid} from ${data.filepath}`);
+			} else if (existing) {
+				// File is no longer valid flashcard, delete existing
+				this.delete(existing.uuid);
+				Logger.info(`Watcher: deleted invalid flashcard ${existing.uuid} from ${data.filepath}`);
+			}
+		} catch (error) {
+			if (existing) {
+				this.delete(existing.uuid);
+				Logger.info(`Watcher: deleted flashcard ${existing.uuid} due to parse error`);
+			}
+		}
+
+		await this.save();
+	}
+
+	private async _handleWatcherDelete(data: { filepath: string }): Promise<void> {
+		Logger.debug(`Watcher: handling delete for ${data.filepath}`);
+
+		if (!this._isPathInWatchedDir(data.filepath)) {
+			return;
+		}
+
+		const existing = this._findByFilepath(data.filepath);
+		if (existing) {
+			this.delete(existing.uuid);
+			await this.save();
+			Logger.info(`Watcher: deleted flashcard ${existing.uuid} from ${data.filepath}`);
+		}
+	}
+
+	private async _handleWatcherRename(data: { filepath: string; oldPath: string }): Promise<void> {
+		Logger.debug(`Watcher: handling rename from ${data.oldPath} to ${data.filepath}`);
+
+		const oldNormalized = normalizePath(data.oldPath);
+		const newNormalized = normalizePath(data.filepath);
+
+		// Find flashcard by old path
+		const existing = this._findByFilepath(oldNormalized);
+
+		if (existing) {
+			// Update file path
+			const updatedEntity = { ...existing.entity, file: newNormalized };
+			this.upsert(existing.uuid, updatedEntity);
+			await this.save();
+			Logger.info(
+				`Watcher: renamed flashcard ${existing.uuid} from ${data.oldPath} to ${data.filepath}`,
+			);
+		} else if (this._isPathInWatchedDir(data.filepath)) {
+			// Not found in old path but new path is in watched dir, treat as create
+			await this._handleWatcherCreate({ filepath: data.filepath });
+		}
+	}
+
+	private _isPathInWatchedDir(filepath: string): boolean {
+		const normalizedPath = normalizePath(filepath);
+		const normalizedDir = normalizePath(this._dirPath);
+		return normalizedPath.startsWith(normalizedDir + '/') || normalizedPath === normalizedDir;
+	}
 }
