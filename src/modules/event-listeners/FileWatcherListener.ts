@@ -4,7 +4,6 @@ import { EventBus } from '@/modules/event-bus/EventBus';
 import type { PluginSettings } from '@/schemas/settings';
 import type { EventData } from '@/types/events';
 import { WatcherEntity, WatcherEventType, WatcherFlashcardEventData } from '@/types/watcher';
-import { Logger } from '@/utils/Logger';
 import { normalizePath, Plugin, TAbstractFile, TFile } from 'obsidian';
 
 export class FileWatcherListener implements IEventListener {
@@ -50,20 +49,17 @@ export class FileWatcherListener implements IEventListener {
 	/**
 	 * Check if file should be watched based on extension, directories, and tags
 	 */
-	private _shouldWatchFile(file: TAbstractFile, entity: WatcherEntity): boolean {
+	private _shouldWatchFile(file: TAbstractFile): boolean {
 		// Check if file is a markdown file
 		if (!(file instanceof TFile) || file.extension !== 'md') {
 			return false;
 		}
 
-		// Check if file is in watched directories (exact match)
-		if (this._isInWatchedDirectory(file.path, entity)) {
-			return true;
-		}
-
-		// Check if file has watched tags (using metadataCache)
-		if (this._hasWatchedTags(file, entity)) {
-			return true;
+		for (const entity of Object.values(WatcherEntity)) {
+			// Check if file is in watched directories (exact match)
+			if (this._isInWatchedDirectory(file.path, entity)) return true;
+			// Check if file has watched tags (using metadataCache)
+			if (this._hasWatchedTags(file, entity)) return true;
 		}
 
 		return false;
@@ -185,32 +181,100 @@ export class FileWatcherListener implements IEventListener {
 	 * Handle file create event
 	 */
 	private _handleCreate(file: TAbstractFile): void {
-		// Implementation to be added
-		Logger.info('File created');
+		if (!this._shouldWatchFile(file)) {
+			return;
+		}
+
+		this._publishEvent(WatcherEventType.WatcherFlashcardFileCreate, {
+			filepath: file.path,
+		});
 	}
 
 	/**
 	 * Handle file modify event (debounced per-file)
 	 */
 	private _handleModify(file: TAbstractFile): void {
-		// Implementation to be added
-		Logger.info('File modified');
+		// Check if file was previously watched (based on path)
+		const wasWatched = this._debounceTimers.has(file.path);
+
+		// Check if file should currently be watched
+		const shouldWatch = this._shouldWatchFile(file);
+
+		// If file moved out of watched area and was previously watched, treat as delete
+		if (!shouldWatch && wasWatched) {
+			this._clearDebounceTimer(file.path);
+			this._publishEvent(WatcherEventType.WatcherFlashcardFileDelete, {
+				filepath: file.path,
+			});
+			return;
+		}
+
+		// If file shouldn't be watched, ignore
+		if (!shouldWatch) {
+			return;
+		}
+
+		// Debounce the modify event
+		this._setDebounceTimer(file.path, () => {
+			this._publishEvent(WatcherEventType.WatcherFlashcardFileModify, {
+				filepath: file.path,
+			});
+		});
 	}
 
 	/**
 	 * Handle file delete event
 	 */
 	private _handleDelete(file: TAbstractFile): void {
-		// Implementation to be added
-		Logger.info('File deleted');
+		// Clear any pending debounce timer for this file
+		this._clearDebounceTimer(file.path);
+
+		// check if it was a markdown file
+		if (!(file instanceof TFile) || file.extension !== 'md') {
+			return;
+		}
+
+		// check if it was a watched file
+		if (!this._shouldWatchFile(file)) {
+			return;
+		}
+
+		this._publishEvent(WatcherEventType.WatcherFlashcardFileDelete, {
+			filepath: file.path,
+		});
 	}
 
 	/**
 	 * Handle file rename event
 	 */
 	private _handleRename(file: TAbstractFile, oldPath: string): void {
-		// Implementation to be added
-		Logger.info('File renamed');
+		// Only handle markdown files
+		if (!(file instanceof TFile) || file.extension !== 'md') {
+			return;
+		}
+
+		for (const entity of Object.values(WatcherEntity)) {
+			// Check if old path was in watched directory
+			const wasInWatchedDir = this._isInWatchedDirectory(oldPath, entity);
+
+			// Check if new path is in watched directory
+			const isInWatchedDir = this._isInWatchedDirectory(file.path, entity);
+
+			// Check if file has watched tags (for the new file location)
+			const hasWatchedTags = this._hasWatchedTags(file, entity);
+
+			// Determine if we should publish a rename event
+			// Publish if either old or new location was watched
+			if (wasInWatchedDir || isInWatchedDir || hasWatchedTags) {
+				this._publishEvent(WatcherEventType.WatcherFlashcardFileRename, {
+					filepath: file.path,
+					oldPath: oldPath,
+				});
+			}
+		}
+
+		// Clear any debounce timer for the old path
+		this._clearDebounceTimer(oldPath);
 	}
 
 	/**
@@ -218,7 +282,7 @@ export class FileWatcherListener implements IEventListener {
 	 */
 	dispose(): void {
 		// Clear all debounce timers
-		for (const [filepath, timer] of this._debounceTimers) {
+		for (const [_filepath, timer] of this._debounceTimers) {
 			clearTimeout(timer);
 		}
 		this._debounceTimers.clear();
