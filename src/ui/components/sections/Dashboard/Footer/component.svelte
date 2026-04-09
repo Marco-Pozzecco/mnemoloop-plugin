@@ -11,22 +11,32 @@
 	}: DashboardFooterProps = $props();
 
 	let hasDueCards = $derived(stats.due_today > 0);
-	let hasNextReview = $derived(stats.next_review_in > 0);
-	let countdownDisplay = $derived(formatCountdown(stats.next_review_in));
-	let isCountdownActive = $derived(hasNextReview && !isLoading);
+	let hasNextReview = $state(() => {
+		return new Date(stats.next_review) > new Date();
+	});
+	let countdownDisplay = $state(formatCountdown(getSecondsUntilNextReview()));
 
 	$effect(() => {
-		if (!isCountdownActive) return;
+		isLoading = true;
 
 		const interval = setInterval(() => {
-			const currentValue = stats.next_review_in;
-			if (currentValue > 0) {
-				countdownDisplay = formatCountdown(currentValue - 1);
+			const seconds = getSecondsUntilNextReview();
+			if (seconds <= 0) {
+				clearInterval(interval);
+				countdownDisplay = formatCountdown(0);
+				return;
 			}
+			countdownDisplay = formatCountdown(seconds);
 		}, 1000);
+
+		isLoading = false;
 
 		return () => clearInterval(interval);
 	});
+
+	function getSecondsUntilNextReview(): number {
+		return Math.floor((new Date(stats.next_review).getTime() - Date.now()) / 1000);
+	}
 
 	function formatCountdown(seconds: number): string {
 		if (seconds <= 0) return '00:00:00';
@@ -42,13 +52,13 @@
 		variant="primary"
 		size="large"
 		className="ka-start-button"
-		disabled={isDisabled || hasNextReview}
+		disabled={isDisabled}
 		onclick={onStartReview}
 	>
 		{#if isLoading}
 			<Icon name="loader-2" className="ka-spin" size={20} />
 			<span>Loading...</span>
-		{:else if hasNextReview}
+		{:else if hasNextReview()}
 			<Icon name="clock" size={20} />
 			<span>Next review in {countdownDisplay}</span>
 		{:else if hasDueCards}
@@ -59,6 +69,10 @@
 			<span>All Caught Up!</span>
 		{/if}
 	</Button>
+	<Button variant="secondary" size="large" className="ka-learn-button">
+		<Icon name="book" size={20} />
+		Learn ahead
+	</Button>
 </div>
 
 <style>
@@ -66,9 +80,16 @@
 		margin-top: 8px;
 		display: flex;
 		justify-content: center;
+		gap: 12px;
 	}
 
 	:global(.ka-start-button) {
+		width: 100%;
+		max-width: 400px;
+		gap: 12px;
+	}
+
+	:global(.ka-learn-button) {
 		width: 100%;
 		max-width: 400px;
 		gap: 12px;
