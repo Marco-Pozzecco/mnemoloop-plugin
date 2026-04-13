@@ -3,7 +3,12 @@ import type { IEventListener } from '@/interfaces/IEventListener';
 import { EventBus } from '@/modules/event-bus/EventBus';
 import type { PluginSettings } from '@/schemas/settings';
 import type { EventData } from '@/types/events';
-import { WatcherEntity, WatcherEventType, WatcherFlashcardEventData } from '@/types/watcher';
+import {
+	WatcherEntity,
+	WatcherEventEnum,
+	WatcherEventType,
+	WatcherFlashcardEventData,
+} from '@/types/watcher';
 import { normalizePath, Plugin, TAbstractFile, TFile } from 'obsidian';
 
 export class FileWatcherListener implements IEventListener {
@@ -185,7 +190,7 @@ export class FileWatcherListener implements IEventListener {
 			return;
 		}
 
-		this._publishEvent(WatcherEventType.WatcherFlashcardFileCreate, {
+		this._publishEvent(WatcherEventEnum.WatcherFlashcardFileCreate, {
 			filepath: file.path,
 		});
 	}
@@ -203,7 +208,7 @@ export class FileWatcherListener implements IEventListener {
 		// If file moved out of watched area and was previously watched, treat as delete
 		if (!shouldWatch && wasWatched) {
 			this._clearDebounceTimer(file.path);
-			this._publishEvent(WatcherEventType.WatcherFlashcardFileDelete, {
+			this._publishEvent(WatcherEventEnum.WatcherFlashcardFileDelete, {
 				filepath: file.path,
 			});
 			return;
@@ -216,7 +221,7 @@ export class FileWatcherListener implements IEventListener {
 
 		// Debounce the modify event
 		this._setDebounceTimer(file.path, () => {
-			this._publishEvent(WatcherEventType.WatcherFlashcardFileModify, {
+			this._publishEvent(WatcherEventEnum.WatcherFlashcardFileModify, {
 				filepath: file.path,
 			});
 		});
@@ -239,7 +244,7 @@ export class FileWatcherListener implements IEventListener {
 			return;
 		}
 
-		this._publishEvent(WatcherEventType.WatcherFlashcardFileDelete, {
+		this._publishEvent(WatcherEventEnum.WatcherFlashcardFileDelete, {
 			filepath: file.path,
 		});
 	}
@@ -266,7 +271,7 @@ export class FileWatcherListener implements IEventListener {
 			// Determine if we should publish a rename event
 			// Publish if either old or new location was watched
 			if (wasInWatchedDir || isInWatchedDir || hasWatchedTags) {
-				this._publishEvent(WatcherEventType.WatcherFlashcardFileRename, {
+				this._publishEvent(WatcherEventEnum.WatcherFlashcardFileRename, {
 					filepath: file.path,
 					oldPath: oldPath,
 				});
