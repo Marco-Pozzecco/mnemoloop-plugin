@@ -15,34 +15,26 @@
 	import type DashboardProps from './types';
 	import type { DashboardConfig } from './types';
 
+	// Store references for automatic subscription with $ prefix
+	const statsStoreRef = statsStore.store;
+	const uiStoreRef = uiStore.store;
+	const sessionStoreRef = sessionStore.store;
+
 	// props
 	const { controller }: DashboardProps = $props();
 
-	// state
-	let stats: Stats = $state(statsStore.stats);
+	// state - using $derived with $ prefix for automatic store subscription
+	let stats = $derived($statsStoreRef);
 	let config: DashboardConfig = $state({
 		chartTimeframe: 'week',
 		chartType: 'bar',
 		showProgressChart: true,
 		showRetentionRate: true,
 	});
-	let isLoading = $state(uiStore.isLoading);
-	let session = $state(sessionStore.state);
+	let isLoading = $derived($uiStoreRef.isLoading);
+	let session = $derived($sessionStoreRef);
 	let isReviewDisabled = $derived(session.queue?.size === 0 || isLoading);
-	let showChart = $derived(config.showProgressChart && stats.total_learned > 0);
-
-	// subscribtions
-	statsStore.store.subscribe((state) => {
-		stats = state;
-	});
-
-	uiStore.store.subscribe((state) => {
-		isLoading = state.isLoading;
-	});
-
-	sessionStore.store.subscribe((state) => {
-		session = state;
-	});
+	let showChart = $derived(config.showProgressChart && stats.flashcard.total_learned > 0);
 
 	function onStartReview() {
 		controller.startReview(IndexKey.flashcard);
