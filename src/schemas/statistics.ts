@@ -37,23 +37,48 @@ export const ReviewSessionSchema = z
 		path: ['incorrect_count'],
 	});
 
+export const FlashcardStatsSchema = z.object({
+	retention_rate: z.number().min(0).max(1),
+	difficulty_dist: z.record(z.string(), z.number()),
+	current_streak: z.number().int().min(0),
+	longest_streak: z.number().int().min(0),
+	total_cards: z.number().int().min(0),
+	total_learned: z.number().int().min(0),
+	total_reviews: z.number().int().min(0),
+	due_now: z.number().int().min(0),
+	due_today: z.number().int().min(0),
+	daily_goal: z.number().int().min(0), // due today cards
+	next_review: z.iso.datetime(),
+	expected_review_time: z.number().int().nonnegative(),
+});
+
 export const StatsSchema = z.object({
 	progress: ProgressSchema,
 	sessions: z.array(ReviewSessionSchema),
+	flashcard: FlashcardStatsSchema,
 	updated_at: z.iso.datetime(),
-	retention_rate: z.number().min(0).max(1),
-	difficulty_dist: z.record(z.string(), z.number()),
-	total_learned: z.number().int().min(0),
-	due_today: z.number().int().min(0),
-	next_review: z.iso.datetime(),
-	expected_review_time: z.number().int().nonnegative(),
-	current_streak: z.number().int().min(0),
-	longest_streak: z.number().int().min(0),
-	daily_goal: z.number().int(),
-	total_cards: z.number().int().min(0),
-	total_reviews: z.number().int().min(0),
 });
 
 export type DailyProgress = z.infer<typeof DailyProgressSchema>;
 export type ReviewSession = z.infer<typeof ReviewSessionSchema>;
 export type Stats = z.infer<typeof StatsSchema>;
+
+export const DEFAULT_STATISTICS: Stats = {
+	progress: {},
+	sessions: [],
+	updated_at: new Date().toISOString(),
+	flashcard: {
+		retention_rate: 0,
+		difficulty_dist: {},
+		total_learned: 0,
+		total_cards: 0,
+		total_reviews: 0,
+		current_streak: 0,
+		longest_streak: 0,
+		due_now: 0,
+		due_today: 0,
+		daily_goal: 0,
+		expected_review_time: 0,
+		next_review: new Date().toISOString(),
+	},
+};

@@ -11,27 +11,27 @@
 <div class="ka-dashboard__stats-grid {className}">
 	<div class="ka-stat-card">
 		<span class="ka-stat-card__label">Due</span>
-		<span class="ka-stat-card__value">{stats.due_today}</span>
+		<span class="ka-stat-card__value">{stats.flashcard.due_today}</span>
 		<span class="ka-stat-card__description">cards to review</span>
 	</div>
 
 	{#if config.showRetentionRate}
 		<div class="ka-stat-card">
 			<span class="ka-stat-card__label">Retention</span>
-			<span class="ka-stat-card__value">{formatPercent(stats.retention_rate)}</span>
+			<span class="ka-stat-card__value">{formatPercent(stats.flashcard.retention_rate)}</span>
 			<span class="ka-stat-card__description">average accuracy</span>
 		</div>
 	{/if}
 
 	<div class="ka-stat-card">
 		<span class="ka-stat-card__label">Streak</span>
-		<span class="ka-stat-card__value">{stats.current_streak}</span>
+		<span class="ka-stat-card__value">{stats.flashcard.current_streak}</span>
 		<span class="ka-stat-card__description">days in a row</span>
 	</div>
 
 	<div class="ka-stat-card">
 		<span class="ka-stat-card__label">Total Cards</span>
-		<span class="ka-stat-card__value">{stats.total_cards}</span>
+		<span class="ka-stat-card__value">{stats.flashcard.total_cards}</span>
 		<span class="ka-stat-card__description">in your vault</span>
 	</div>
 </div>

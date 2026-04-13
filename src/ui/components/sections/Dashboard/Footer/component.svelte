@@ -10,32 +10,33 @@
 		className,
 	}: DashboardFooterProps = $props();
 
-	let hasDueCards = $derived(stats.due_today > 0);
-	let hasNextReview = $state(() => {
-		return new Date(stats.next_review) > new Date();
-	});
+	let isRefreshing = $state(false);
+
+	let hasDueCards = $derived(stats.flashcard.due_today > 0);
+	let hasNextReview = $derived(new Date(stats.flashcard.next_review) > new Date());
 	let countdownDisplay = $state(formatCountdown(getSecondsUntilNextReview()));
 
 	$effect(() => {
-		isLoading = true;
+		isRefreshing = true;
 
 		const interval = setInterval(() => {
 			const seconds = getSecondsUntilNextReview();
 			if (seconds <= 0) {
 				clearInterval(interval);
 				countdownDisplay = formatCountdown(0);
+				hasNextReview = false;
 				return;
 			}
 			countdownDisplay = formatCountdown(seconds);
 		}, 1000);
 
-		isLoading = false;
+		isRefreshing = false;
 
 		return () => clearInterval(interval);
 	});
 
 	function getSecondsUntilNextReview(): number {
-		return Math.floor((new Date(stats.next_review).getTime() - Date.now()) / 1000);
+		return Math.floor((new Date(stats.flashcard.next_review).getTime() - Date.now()) / 1000);
 	}
 
 	function formatCountdown(seconds: number): string {
@@ -58,7 +59,7 @@
 		{#if isLoading}
 			<Icon name="loader-2" className="ka-spin" size={20} />
 			<span>Loading...</span>
-		{:else if hasNextReview()}
+		{:else if hasNextReview}
 			<Icon name="clock" size={20} />
 			<span>Next review in {countdownDisplay}</span>
 		{:else if hasDueCards}

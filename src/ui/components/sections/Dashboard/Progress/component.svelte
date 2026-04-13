@@ -4,29 +4,28 @@
 
 	let { stats, className }: DashboardProgressProps = $props();
 
-	let hasDueCards = $derived(stats.due_today > 0);
+	let today = $derived(new Date().toISOString().split('T')[0]);
+	let todayProgress = $derived(stats.progress[today] ?? { total_count: 0 });
 
-	$effect(() => {
-		hasDueCards = stats.due_today > 0;
-	});
+	let hasDueCards = $derived(stats.flashcard.due_today > 0);
 </script>
 
 <section class="ka-dashboard__progress {className}" aria-labelledby="daily-goal-title">
 	<div class="ka-section-header">
 		<h2 id="daily-goal-title" class="ka-section-title">Daily Goal</h2>
 		<span class="ka-section-value" aria-live="polite">
-			{stats.total_learned} / {stats.daily_goal} cards
+			{todayProgress.total_count} / {stats.flashcard.daily_goal} cards
 		</span>
 	</div>
 	<ProgressBar
-		value={stats.total_learned}
-		max={stats.daily_goal}
+		value={todayProgress.total_count}
+		max={stats.flashcard.daily_goal}
 		showPercentage
 		ariaLabel="Daily review progress"
 	/>
 	{#if hasDueCards}
 		<p class="ka-progress-estimate">
-			Estimated time: <strong>{stats.expected_review_time} min</strong> to finish due cards
+			Estimated time: <strong>{stats.flashcard.expected_review_time} min</strong> to finish due cards
 		</p>
 	{/if}
 </section>
