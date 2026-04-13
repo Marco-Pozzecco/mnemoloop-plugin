@@ -1,5 +1,5 @@
 import { IIndexer } from '@/interfaces/IIndexer';
-import { Flashcard, FlashcardMetadata } from '@/schemas';
+import { FlashcardMetadata } from '@/schemas';
 import { capitalize } from '@/utils/String';
 import { EventData } from './events';
 
