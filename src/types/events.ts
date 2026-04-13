@@ -2,7 +2,7 @@ import { FlashcardYaml } from '@/schemas';
 import { Rating } from 'ts-fsrs';
 import { AdapterEventType } from './adapters';
 import { IndexEventType } from './indexes';
-import { WatcherEventType } from './watcher';
+import { WatcherEventEnum } from './watcher';
 
 export const EventType = {
 	// review
@@ -14,7 +14,7 @@ export const EventType = {
 	QueueInit: 'QUEUE:INIT',
 	...AdapterEventType,
 	...IndexEventType,
-	...WatcherEventType,
+	...WatcherEventEnum,
 } as const;
 
 export type EventType = (typeof EventType)[keyof typeof EventType];
