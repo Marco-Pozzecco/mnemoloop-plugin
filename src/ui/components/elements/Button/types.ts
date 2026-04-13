@@ -1,7 +1,7 @@
 import type { Snippet } from 'svelte';
 
 export default interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'danger';
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
   size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
   ariaLabel?: string;
