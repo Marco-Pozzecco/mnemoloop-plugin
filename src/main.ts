@@ -1,6 +1,6 @@
 import './ui/styles/main.css';
 
-import { Notice, Plugin } from 'obsidian';
+import { Notice, Plugin, PluginSettingTab } from 'obsidian';
 import { IAdapter } from './interfaces/IAdapter';
 import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
 import { StatisticsAdapter } from './modules/adapters/StatisticsAdapter';
@@ -12,6 +12,7 @@ import { AdapterKey, Adapters } from './types/adapters';
 import { Indexes, IndexKey } from './types/indexes';
 import { ListenerKey, Listeners } from './types/listeners';
 import { APP_VIEW, AppView } from './ui/views/App/AppView';
+import { SettingsView } from './ui/views/Settings/SettingsView';
 import { Logger } from './utils/Logger';
 import { ParserKey, Parsers } from './types/parsers';
 import { FlashcardParser } from './modules/parsers/FlashcardParser';
@@ -25,6 +26,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 
 	settings!: PluginSettings;
 	private ribbonIcon?: HTMLElement;
+	settingsView: SettingsView | null = null;
 
 	async onload() {
 		Logger.info('Loading plugin');
@@ -102,6 +104,10 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 		this.registerView(
 			APP_VIEW,
 			(leaf) => new AppView(this.app, leaf, this._indexes, this._parsers),
+		);
+
+		this.addSettingTab(
+			new SettingsView(this, this._adapter.get(AdapterKey.settings) as SettingsAdapter),
 		);
 	}
 
