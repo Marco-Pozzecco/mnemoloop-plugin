@@ -13,11 +13,11 @@
 	let maxCompleted = $derived(
 		Math.max(
 			...Object.values(stats.progress).map((d) => d.sessions_completed),
-			stats.daily_goal,
+			stats.flashcard.daily_goal,
 			1,
 		),
 	);
-	let goalY = $derived(chartHeight - (stats.daily_goal / maxCompleted) * chartHeight);
+	let goalY = $derived(chartHeight - (stats.flashcard.daily_goal / maxCompleted) * chartHeight);
 
 	function getBarHeight(completed: number): number {
 		return (completed / maxCompleted) * chartHeight;
