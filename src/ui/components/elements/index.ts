@@ -10,5 +10,7 @@ export { default as Input } from './Input/component.svelte';
 export type { default as InputProps } from './Input/types';
 export { default as ProgressBar } from './ProgressBar/component.svelte';
 export type { default as ProgressBarProps } from './ProgressBar/types';
+export { default as Select } from './Select/component.svelte';
+export type { default as SelectProps } from './Select/types';
 export { default as Toggle } from './Toggle/component.svelte';
 export type { default as ToggleProps } from './Toggle/types';
