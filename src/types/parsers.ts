@@ -1,12 +1,11 @@
-import { IParser } from '@/interfaces/IParser';
-import { Flashcard, FlashcardMetadata } from '@/schemas';
+import { FlashcardParser } from '@/modules/parsers/FlashcardParser';
 
 export enum ParserKey {
 	flashcard = 'flashcard',
 }
 
 interface ParserMap {
-	[ParserKey.flashcard]: IParser<Flashcard, FlashcardMetadata>;
+	[ParserKey.flashcard]: FlashcardParser;
 }
 
 export type Parsers = Map<ParserKey, ParserMap[ParserKey]>;
