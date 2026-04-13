@@ -11,7 +11,7 @@ import { PluginSettings } from '@/schemas/settings';
 import { EventData, EventType, ReviewFlashcardEvent } from '@/types/events';
 import { IndexActions, IndexEventType, IndexFlashcardEvents } from '@/types/indexes';
 import {
-	WatcherEventType,
+	WatcherEventEnum,
 	WatcherFlashcardCreateEvent,
 	WatcherFlashcardDeleteEvent,
 	WatcherFlashcardModifyEvent,
@@ -50,16 +50,16 @@ export class FlascardIndexer extends BaseIndexer<
 		// Subscribe to watcher events
 		EventBus.instance.subscribe((event) => {
 			switch (event.event_type) {
-				case WatcherEventType.WatcherFlashcardFileCreate:
+				case WatcherEventEnum.WatcherFlashcardFileCreate:
 					this._handleWatcherCreate((event as WatcherFlashcardCreateEvent).data);
 					break;
-				case WatcherEventType.WatcherFlashcardFileModify:
+				case WatcherEventEnum.WatcherFlashcardFileModify:
 					this._handleWatcherModify((event as WatcherFlashcardModifyEvent).data);
 					break;
-				case WatcherEventType.WatcherFlashcardFileDelete:
+				case WatcherEventEnum.WatcherFlashcardFileDelete:
 					this._handleWatcherDelete((event as WatcherFlashcardDeleteEvent).data);
 					break;
-				case WatcherEventType.WatcherFlashcardFileRename:
+				case WatcherEventEnum.WatcherFlashcardFileRename:
 					this._handleWatcherRename((event as WatcherFlashcardRenameEvent).data);
 					break;
 			}
@@ -117,6 +117,13 @@ export class FlascardIndexer extends BaseIndexer<
 
 	initialize: () => Promise<void> = async () => {
 		await this._adapter.initialize();
+
+		const entries = this._adapter.data.flashcards.reduce(
+			(acc, flashcard) => ({ ...acc, [flashcard.uuid]: flashcard }),
+			{} as Record<string, FlashcardMetadata>,
+		);
+		this._cache.load(entries);
+
 		const flashcards = await this._parser.parseAll(this._dirPath);
 
 		for (const flashcard of flashcards) {
@@ -250,12 +257,13 @@ export class FlascardIndexer extends BaseIndexer<
 			updated_at: new Date().toISOString(),
 			deleted_at: null,
 		};
-		const existing = this._findByFilepath(data.filepath);
+
+		const existing = this.query((flashcard) => flashcard.uuid === data.entity.uuid)?.[0];
 		if (existing) {
-			metadata.uuid = existing.entity.uuid;
-			metadata.created_at = existing.entity.created_at;
-			metadata.updated_at = existing.entity.updated_at;
-			metadata.deleted_at = existing.entity.deleted_at;
+			metadata.uuid = existing.uuid;
+			metadata.created_at = existing.created_at;
+			metadata.updated_at = existing.updated_at;
+			metadata.deleted_at = existing.deleted_at;
 		}
 
 		return FlashcardMetadataSchema.parse(metadata);
