@@ -15,12 +15,7 @@ export class StatsStore extends BaseStoreManager<Stats> {
 		EventBus.instance.subscribe((event) => {
 			if (event.event_type === EventType.AdapterStatisticsSave) {
 				const data = event.data as AdapterStatsEvents['save']['data'];
-				this.store.update((state) => {
-					return {
-						...state,
-						...data.stats,
-					};
-				});
+				this.store.update(() => data.stats);
 			}
 		});
 	}
