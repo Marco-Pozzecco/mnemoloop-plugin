@@ -7,15 +7,21 @@ export const WatcherEntity = {
 
 export type WatcherEntity = (typeof WatcherEntity)[keyof typeof WatcherEntity];
 
-// Watcher event types following pattern: WATCHER:[ENTITY]:FILE_[ACTION]
-export const WatcherEventType = {
+type Actions = 'CREATE' | 'MODIFY' | 'DELETE' | 'RENAME';
+
+export type WatcherEventKeys =
+	`Watcher${Capitalize<Lowercase<WatcherEntity>>}File${Capitalize<Lowercase<Actions>>}`;
+
+export type WatcherEventType = `WATCHER:${WatcherEntity}:FILE_${Actions}`;
+
+export type WatcherEventEnum = Record<WatcherEventKeys, WatcherEventType>;
+
+export const WatcherEventEnum: WatcherEventEnum = {
 	WatcherFlashcardFileCreate: 'WATCHER:FLASHCARD:FILE_CREATE',
 	WatcherFlashcardFileModify: 'WATCHER:FLASHCARD:FILE_MODIFY',
 	WatcherFlashcardFileDelete: 'WATCHER:FLASHCARD:FILE_DELETE',
 	WatcherFlashcardFileRename: 'WATCHER:FLASHCARD:FILE_RENAME',
 } as const;
-
-export type WatcherEventType = (typeof WatcherEventType)[keyof typeof WatcherEventType];
 
 // Event data structure
 export type WatcherFlashcardEventData = {
@@ -24,20 +30,21 @@ export type WatcherFlashcardEventData = {
 };
 
 export type WatcherFlashcardCreateEvent = EventData<WatcherFlashcardEventData> & {
-	event_type: typeof WatcherEventType.WatcherFlashcardFileCreate;
+	event_type: typeof WatcherEventEnum.WatcherFlashcardFileCreate;
 };
 
 export type WatcherFlashcardModifyEvent = EventData<WatcherFlashcardEventData> & {
-	event_type: typeof WatcherEventType.WatcherFlashcardFileModify;
+	event_type: typeof WatcherEventEnum.WatcherFlashcardFileModify;
 };
 
 export type WatcherFlashcardDeleteEvent = EventData<WatcherFlashcardEventData> & {
-	event_type: typeof WatcherEventType.WatcherFlashcardFileDelete;
+	event_type: typeof WatcherEventEnum.WatcherFlashcardFileDelete;
 };
 
-export type WatcherFlashcardRenameEvent = EventData<WatcherFlashcardEventData> & {
-	event_type: typeof WatcherEventType.WatcherFlashcardFileRename;
-	oldPath: string;
+export type WatcherFlashcardRenameEvent = EventData<
+	WatcherFlashcardEventData & { oldPath: string }
+> & {
+	event_type: typeof WatcherEventEnum.WatcherFlashcardFileRename;
 };
 
 export type WatcherFlashcardEvents = {
