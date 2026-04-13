@@ -3,6 +3,7 @@ import { AdapterEventsKeys, AdapterKey } from '@/types/adapters';
 import { DEFAULT_STATISTICS } from '@/utils/constants';
 import { Plugin } from 'obsidian';
 import { BaseAdapter } from './BaseAdapter';
+import { EventBus } from '../event-bus/EventBus';
 
 export class StatisticsAdapter extends BaseAdapter<Stats, AdapterKey.statistics> {
 	private _path: string;
@@ -30,4 +31,13 @@ export class StatisticsAdapter extends BaseAdapter<Stats, AdapterKey.statistics>
 			await this.plugin.app.vault.create(this._path, serialized);
 		}
 	}
+
+	public save: () => Promise<void> = async () => {
+		await this.saveData(this.data);
+		EventBus.instance.publish({
+			event_type: AdapterEventsKeys.statistics.save,
+			created_at: new Date(),
+			data: { stats: this.data, key: this._dataKey },
+		});
+	};
 }
