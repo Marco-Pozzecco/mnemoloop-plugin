@@ -1,4 +1,4 @@
-import type { FSRSParams, Stats } from '@/schemas';
+import type { FSRSParams } from '@/schemas';
 import { State } from 'ts-fsrs';
 
 export const DEFAULT_FSRS: FSRSParams = {
@@ -36,19 +36,4 @@ export const ERROR_MESSAGES = {
 	CALCULATION_ERROR: 'Error in FSRS calculation',
 } as const;
 
-export const DEFAULT_STATISTICS: Stats = {
-	progress: {},
-	sessions: [],
-	updated_at: new Date().toISOString(),
-	retention_rate: 0,
-	difficulty_dist: {},
-	total_learned: 0,
-	due_today: 0,
-	expected_review_time: 0,
-	current_streak: 0,
-	longest_streak: 0,
-	daily_goal: 0,
-	total_cards: 0,
-	total_reviews: 0,
-	next_review: new Date().toISOString(),
-};
+export { DEFAULT_STATISTICS } from '@/schemas/statistics';
