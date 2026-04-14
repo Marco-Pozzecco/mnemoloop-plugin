@@ -14,7 +14,7 @@ from pathlib import Path
 
 # Configuration
 COMPONENTS_DIR = Path(__file__).parent.parent / "src" / "ui" / "components"
-SUPPORTED_DIRECTORIES = ["elements", "layouts", "sections", "views"]
+SUPPORTED_DIRECTORIES = ["elements", "modals", "sections", "views"]
 
 
 def find_svelte_components(category_dir: Path) -> list[tuple[str, str, bool]]:
