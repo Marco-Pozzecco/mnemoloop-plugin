@@ -1,17 +1,18 @@
 <script lang="ts">
-	import { FlashcardModal } from '@/ui/components/';
+	import { FlashcardModal, ModalControls } from '@/ui/components/';
 	import { modalStore, ModalViewEnum } from '@/ui/store/modal.store';
-	import { ModalProps } from './types';
+	import { type ModalProps } from './types';
 
 	let { controller }: ModalProps = $props();
 
-	let { currentView, error, isLoading, data } = $derived(modalStore.state);
+	let { currentView, error, isLoading } = $derived(modalStore.state);
 </script>
 
 <div class="ka-modal-container">
 	{#if currentView === ModalViewEnum.flashcard}
-		<FlashcardModal {controller} {isLoading} {error} initialData={data} />
+		<FlashcardModal {controller} {isLoading} {error} />
 	{/if}
+	<ModalControls {controller} />
 </div>
 
 <style>
