@@ -1,15 +1,15 @@
-import type { IModalController } from '@/ui/controllers/ModalController';
+import { ModalController } from '@/ui/controllers/ModalController';
 import { App, Modal } from 'obsidian';
 import { mount, unmount } from 'svelte';
 import { default as ModalComponent } from './Modal.svelte';
 
 export class SvelteModal extends Modal {
 	protected svelteComponent: ReturnType<typeof mount> | null = null;
-	protected controller: IModalController;
+	protected controller: ModalController;
 
-	constructor(app: App, controller: IModalController) {
+	constructor(app: App) {
 		super(app);
-		this.controller = controller;
+		this.controller = new ModalController(this);
 	}
 
 	onOpen(): void {
@@ -29,6 +29,7 @@ export class SvelteModal extends Modal {
 			unmount(this.svelteComponent);
 			this.svelteComponent = null;
 		}
+		this.controller.onClose();
 		this.contentEl.empty();
 		this.contentEl.removeClass('ka-modal');
 	}
