@@ -1,5 +1,5 @@
-import { IModalController } from '@/ui/controllers/ModalController';
+import { ModalController } from '@/ui/controllers/ModalController';
 
 export interface ModalProps {
-	controller: IModalController;
+	controller: ModalController;
 }
