@@ -29,7 +29,6 @@ export class SvelteModal extends Modal {
 			unmount(this.svelteComponent);
 			this.svelteComponent = null;
 		}
-		this.controller.onClose();
 		this.contentEl.empty();
 		this.contentEl.removeClass('ka-modal');
 	}
