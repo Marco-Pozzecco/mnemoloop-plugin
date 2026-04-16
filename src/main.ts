@@ -1,22 +1,27 @@
 import './ui/styles/main.css';
 
-import { Notice, Plugin, PluginSettingTab } from 'obsidian';
+import { Editor, MarkdownFileInfo, MarkdownView, Menu, Notice, Plugin } from 'obsidian';
 import { IAdapter } from './interfaces/IAdapter';
+import { FlashcardAdapter } from './modules/adapters/FlashcardAdapter';
 import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
 import { StatisticsAdapter } from './modules/adapters/StatisticsAdapter';
-import { StatisticsListener } from './modules/event-listeners/StatisticsListener';
 import { FileWatcherListener } from './modules/event-listeners/FileWatcherListener';
+import { FlashcardWriterProcess } from './modules/event-listeners/FlashcardWriterProcessor';
+import { StatisticsListener } from './modules/event-listeners/StatisticsListener';
 import { FlascardIndexer } from './modules/indexers/FlashcardIndexer';
+import { FlashcardParser } from './modules/parsers/FlashcardParser';
+import { FlashcardWriter } from './modules/writers/FlashcardWriter';
 import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from './schemas/settings';
 import { AdapterKey, Adapters } from './types/adapters';
 import { Indexes, IndexKey } from './types/indexes';
 import { ListenerKey, Listeners } from './types/listeners';
+import { ParserKey, Parsers } from './types/parsers';
+import { FlashcardModalData } from './ui/components/modals/FlashcardModal/types';
+import { modalStore, ModalViewEnum } from './ui/store/modal.store';
 import { APP_VIEW, AppView } from './ui/views/App/AppView';
+import { SvelteModal } from './ui/views/Modal/ModalView';
 import { SettingsView } from './ui/views/Settings/SettingsView';
 import { Logger } from './utils/Logger';
-import { ParserKey, Parsers } from './types/parsers';
-import { FlashcardParser } from './modules/parsers/FlashcardParser';
-import { FlashcardAdapter } from './modules/adapters/FlashcardAdapter';
 
 export default class KnowledgeAcceleratorPlugin extends Plugin {
 	private _indexes: Indexes = new Map();
@@ -97,6 +102,14 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 			),
 		);
 
+		this._listeners.set(
+			ListenerKey.flashcardProcessor,
+			new FlashcardWriterProcess(
+				new FlashcardWriter(this, this._parsers.get(ParserKey.flashcard) as FlashcardParser),
+				this._adapter.get(AdapterKey.settings) as SettingsAdapter,
+			),
+		);
+
 		Logger.info('listeners initialized');
 	}
 
@@ -129,7 +142,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 			id: 'ka-open-dashboard',
 			name: 'Knowledge Accelerator: Open Dashboard',
 			callback: async () => {
-				Logger.debug('Opening dashboard from command');
+				this.activateView();
 			},
 		});
 
@@ -140,6 +153,43 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 				(this.app as any).setting.openTabById(this.manifest.id);
 			},
 		});
+
+		this.registerEvent(
+			this.app.workspace.on(
+				'editor-menu',
+				(menu: Menu, editor: Editor, view: MarkdownView | MarkdownFileInfo) => {
+					menu.addItem((item) => {
+						item
+							.setTitle('Generate flashcard from selection')
+							.setIcon('brain') // Lucide icon name
+							.onClick(async () => {
+								const selection = editor.getSelection();
+								const filepath = view.file?.path;
+
+								if (!selection) {
+									new Notice('Please select text to generate a flashcard');
+									return;
+								}
+
+								if (!filepath) {
+									new Notice('Impossible to get file path');
+									return;
+								}
+
+								modalStore.open(ModalViewEnum.flashcard, {
+									front: '',
+									back: selection,
+									deck: '',
+									filepath,
+								} as FlashcardModalData);
+
+								const modal = new SvelteModal(this.app);
+								modal.open();
+							});
+					});
+				},
+			),
+		);
 	}
 
 	private initializeRibbonIcon() {
