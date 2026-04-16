@@ -13,6 +13,7 @@ export default interface InputProps {
   min?: number;
   max?: number;
   className?: string;
+  autofocus?: boolean;
   onchange?: (value: string) => void;
   onfocus?: () => void;
   onblur?: () => void;
