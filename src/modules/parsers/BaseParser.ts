@@ -14,7 +14,9 @@ export abstract class BaseParser<Entity extends EntityMetadata, EntityMetadata> 
 		this._yaml = yamlEngine;
 	}
 
+	abstract marker: string;
 	abstract parse: (filepath: string) => Promise<ParseResult<Entity>>;
+	abstract parseContent: (content: string) => Omit<ParseResult<Entity>, 'filepath'>;
 	abstract parseMetadata: (filepath: string) => Promise<ParseResult<EntityMetadata>>;
 	abstract parseAll: (dirPath: string) => Promise<ParseResult<EntityMetadata>[]>;
 }

@@ -1,12 +1,13 @@
 import { IAdapter } from '@/interfaces/IAdapter';
 import { ParseResult } from '@/interfaces/IParser';
-import { Flashcard, type FlashcardContent, type FlashcardYaml } from '@/schemas';
+import { CardStatus, Flashcard, type FlashcardContent, type FlashcardYaml } from '@/schemas';
 import { PluginSettings } from '@/schemas/settings';
 import { ERROR_MESSAGES } from '@/utils/constants';
 import { Logger } from '@/utils/Logger';
 import { normalizePath, Plugin } from 'obsidian';
 import { FlashcardYamlEngine } from '../yaml-engines/FlashcardYamlEngine';
 import { BaseParser } from './BaseParser';
+import { State } from 'ts-fsrs';
 
 export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 	private _settings: IAdapter<PluginSettings>;
@@ -14,6 +15,10 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 	constructor(plugin: Plugin, settings: IAdapter<PluginSettings>) {
 		super(plugin, new FlashcardYamlEngine(plugin));
 		this._settings = settings;
+	}
+
+	get marker() {
+		return this._settings.data.flashcard.marker;
 	}
 
 	parseMetadata = async (filepath: string): Promise<ParseResult<FlashcardYaml>> => {
@@ -28,6 +33,17 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 			await this._yaml.recover(filepath);
 			return this.parseMetadata(filepath);
 		}
+	};
+
+	parseContent: (content: string) => Omit<ParseResult<Flashcard>, 'filepath'> = (content) => {
+		const result = this._yaml.extractFmFromContent(content);
+		const splitResult = this.splitContent(result.body);
+		const flashcard: FlashcardYaml & FlashcardContent = {
+			...result.fm,
+			front: splitResult.front,
+			back: splitResult.back,
+		};
+		return { entity: flashcard };
 	};
 
 	parse = async (filepath: string): Promise<ParseResult<Flashcard>> => {
