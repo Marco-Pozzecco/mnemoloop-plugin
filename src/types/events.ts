@@ -7,6 +7,8 @@ import { WatcherEventEnum } from './watcher';
 export const EventType = {
 	// review
 	ReviewFlashcard: 'REVIEW:FLASHCARD',
+	// flashcard
+	FlashcardCreateRequest: 'FLASHCARD:CREATE_REQUEST',
 	// session
 	SessionStart: 'SESSION:START',
 	SessionEnd: 'SESSION:END',
@@ -69,3 +71,12 @@ export type SessionEndEntity = {
 
 export type SessionStartEvent = EventData<SessionStartEntity>;
 export type SessionEndEvent = EventData<SessionEndEntity>;
+
+export type FlashcardCreateRequestData = {
+	front: string;
+	back: string;
+	deck: string;
+	source: string;
+};
+
+export type FlashcardCreateRequestEvent = EventData<FlashcardCreateRequestData>;
