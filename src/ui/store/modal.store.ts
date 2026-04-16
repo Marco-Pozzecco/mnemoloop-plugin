@@ -74,6 +74,13 @@ export class ModalStore extends BaseStoreManager<ModalState> {
 	setError(error: string | null): void {
 		this.store.update((state) => ({ ...state, error }));
 	}
+
+	setData(partialData: Partial<ModalState['data']>): void {
+		this.store.update((state) => ({
+			...state,
+			data: { ...(state.data || {}), ...partialData },
+		}));
+	}
 }
 
 export const modalStore = new ModalStore();
