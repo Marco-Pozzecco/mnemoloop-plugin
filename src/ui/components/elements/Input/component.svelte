@@ -16,6 +16,7 @@
 		min,
 		max,
 		className = '',
+		autofocus = false,
 		onchange,
 		onfocus,
 		onblur,
@@ -67,6 +68,7 @@
 		{value}
 		{disabled}
 		{required}
+		{autofocus}
 		maxlength={maxLength}
 		{min}
 		{max}
