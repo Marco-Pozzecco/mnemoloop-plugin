@@ -1,6 +1,6 @@
 import { ModalController } from '@/ui/controllers/ModalController';
 
-export interface FlashcardModalProps {
+export default interface FlashcardModalProps {
 	controller: ModalController;
 	isLoading: boolean;
 	error: string | null;

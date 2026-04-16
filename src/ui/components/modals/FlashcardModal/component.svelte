@@ -3,7 +3,8 @@
 	import { EventType, type FlashcardCreateRequestEvent } from '@/types/events';
 	import { Input } from '@/ui/components/elements';
 	import { modalStore } from '@/ui/store/modal.store';
-	import { type FlashcardModalData, type FlashcardModalProps } from './types';
+	import type FlashcardModalProps from './types';
+	import { type FlashcardModalData } from './types';
 
 	let { controller, isLoading, error }: FlashcardModalProps = $props();
 
