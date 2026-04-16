@@ -1,16 +1,44 @@
 <script lang="ts">
-	import { Button, Input } from '@/ui/components/elements';
-	import type FlashcardModalProps from './types';
+	import { EventBus } from '@/modules/event-bus/EventBus';
+	import { EventType, type FlashcardCreateRequestEvent } from '@/types/events';
+	import { Input } from '@/ui/components/elements';
+	import { modalStore } from '@/ui/store/modal.store';
+	import { type FlashcardModalData, type FlashcardModalProps } from './types';
 
-	let { controller, isLoading, error, initialData }: FlashcardModalProps = $props();
+	let { controller, isLoading, error }: FlashcardModalProps = $props();
 
-	function handleConfirm() {
-		controller.onConfirm(() => {});
+	const store = modalStore.store;
+
+	let data = $derived($store.data) as FlashcardModalData;
+
+	// Update functions that sync to the store
+	function updateFront(value: string) {
+		controller.store.setData({ front: value });
 	}
 
-	function handleCancel() {
-		controller.onCancel(() => {});
+	function updateBack(value: string) {
+		controller.store.setData({ back: value });
 	}
+
+	// function updateDeck(value: string) {
+	// 	controller.store.setData({ deck: value });
+	// }
+
+	$effect(() => {
+		controller.confirmAction = async () => {
+			const event: FlashcardCreateRequestEvent = {
+				created_at: new Date(),
+				event_type: EventType.FlashcardCreateRequest,
+				data: {
+					back: data.back,
+					deck: data.deck,
+					front: data.front,
+					source: data.filepath,
+				},
+			};
+			EventBus.instance.publish(event);
+		};
+	});
 </script>
 
 <div class="ka-flashcard-modal-content">
@@ -22,25 +50,25 @@
 
 	<div class="ka-form-field">
 		<label for="flashcard-front">Front</label>
-		<Input id="flashcard-front" value={'front'} disabled={isLoading} />
+		<Input id="flashcard-front" value={data.front} disabled={isLoading} onchange={updateFront} />
 	</div>
 
 	<div class="ka-form-field">
 		<label for="flashcard-back">Back</label>
-		<textarea id="flashcard-back" class="ka-textarea" disabled={isLoading} rows="4"></textarea>
+		<textarea
+			id="flashcard-back"
+			class="ka-textarea"
+			bind:value={data.back}
+			oninput={(e) => updateBack(e.currentTarget.value)}
+			disabled={isLoading}
+			rows="4"
+		></textarea>
 	</div>
 
-	<div class="ka-form-field">
-		<label for="flashcard-deck">Deck</label>
-		<Input id="flashcard-deck" value={'Deck goes here'} disabled={isLoading} />
-	</div>
-
-	<div class="ka-modal-actions">
-		<Button variant="secondary" onclick={handleCancel} disabled={isLoading}>Cancel</Button>
-		<Button variant="primary" onclick={handleConfirm} disabled={isLoading}>
-			{isLoading ? 'Saving...' : 'Save'}
-		</Button>
-	</div>
+	<!-- <div class="ka-form-field"> -->
+	<!-- 	<label for="flashcard-deck">Deck</label> -->
+	<!-- 	<Input id="flashcard-deck" value={data.deck} disabled={isLoading} onchange={updateDeck} /> -->
+	<!-- </div> -->
 </div>
 
 <style>
@@ -107,14 +135,5 @@
 		color: var(--text-muted);
 		cursor: not-allowed;
 		opacity: 0.6;
-	}
-
-	.ka-modal-actions {
-		display: flex;
-		justify-content: flex-end;
-		gap: var(--size-4-2);
-		margin-top: var(--size-4-4);
-		padding-top: var(--size-4-3);
-		border-top: 1px solid var(--background-modifier-border);
 	}
 </style>
