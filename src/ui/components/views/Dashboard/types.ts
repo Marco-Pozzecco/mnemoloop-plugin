@@ -6,8 +6,10 @@ export interface DashboardConfig {
 	showProgressChart: boolean;
 	showRetentionRate: boolean;
 	chartTimeframe: ChartTimeframe;
-	chartType: 'bar' | 'line';
+	chartType: ChartType;
 }
+
+export type ChartType = 'heatmap';
 
 export default interface DashboardProps {
 	controller: DashboardController;

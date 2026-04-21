@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { Stats } from '@/schemas';
 	import { IndexKey } from '@/types/indexes';
 	import { ErrorWrapper } from '@/ui/components';
 	import {
@@ -27,7 +26,7 @@
 	let stats = $derived($statsStoreRef);
 	let config: DashboardConfig = $state({
 		chartTimeframe: 'week',
-		chartType: 'bar',
+		chartType: 'heatmap',
 		showProgressChart: true,
 		showRetentionRate: true,
 	});
@@ -56,7 +55,7 @@
 		<DashboardStatsGrid {stats} {config} />
 		<DashboardProgress {stats} />
 		{#if showChart}
-			<DashboardChart {stats} />
+			<DashboardChart {stats} chartType={config.chartType} />
 		{/if}
 		<DashboardFooter {stats} {onStartReview} isDisabled={isReviewDisabled} {isLoading} />
 	</div>
