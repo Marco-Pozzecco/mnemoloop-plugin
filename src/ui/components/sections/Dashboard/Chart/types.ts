@@ -1,6 +1,8 @@
 import type { Stats } from '@/schemas';
+import { ChartType } from '@/ui/components/views/Dashboard/types';
 
 export default interface DashboardChartProps {
-  stats: Stats;
-  className?: string;
+	stats: Stats;
+	chartType: ChartType;
+	className?: string;
 }
