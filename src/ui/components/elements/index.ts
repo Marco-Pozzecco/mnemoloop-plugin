@@ -2,6 +2,8 @@ export { default as Button } from './Button/component.svelte';
 export type { default as ButtonProps } from './Button/types';
 export { default as Card } from './Card/component.svelte';
 export type { default as CardProps } from './Card/types';
+export { default as ChartHeatmap } from './Chart/Heatmap/component.svelte';
+export type { default as ChartHeatmapProps } from './Chart/Heatmap/types';
 export { default as ErrorWrapper } from './ErrorWrapper/component.svelte';
 export type { default as ErrorWrapperProps } from './ErrorWrapper/types';
 export { default as Icon } from './Icon/component.svelte';
