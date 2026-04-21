@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Logger } from '@/utils/Logger';
 	import { scaleThreshold } from 'd3-scale';
 	import { Calendar, Chart, Layer, Rect, Tooltip } from 'layerchart';
 	import type HeatMapProps from './types';
@@ -17,12 +16,6 @@
 
 	// Get year bounds for Calendar
 	const { start, end } = $derived(getYearBounds(year));
-
-	$effect(() => {
-		Logger.info('startofyear', start);
-		Logger.info('endofyear', end);
-		Logger.info('last datum', data[data.length - 1]);
-	});
 
 	// Calculate max value for dynamic color scale
 	const maxValue = $derived(Math.max(...data.map((d) => d.value), 1));
