@@ -47,9 +47,9 @@ export class FlascardIndexer extends BaseIndexer<
 			}
 		});
 
-		// Subscribe to watcher events
 		EventBus.instance.subscribe((event) => {
 			switch (event.event_type) {
+				// Subscribe to watcher events
 				case WatcherEventEnum.WatcherFlashcardFileCreate:
 					this._handleWatcherCreate((event as WatcherFlashcardCreateEvent).data);
 					break;
@@ -61,6 +61,10 @@ export class FlascardIndexer extends BaseIndexer<
 					break;
 				case WatcherEventEnum.WatcherFlashcardFileRename:
 					this._handleWatcherRename((event as WatcherFlashcardRenameEvent).data);
+					break;
+				// Subscribe to recalc request
+				case IndexEventType.IndexFlashcardRecalcReq:
+					this.eventHandler('recalcReq');
 					break;
 			}
 		});
@@ -109,6 +113,13 @@ export class FlascardIndexer extends BaseIndexer<
 					total: this._cache.size(),
 					saved_at: new Date(),
 				} satisfies IndexFlashcardEvents['save']['data'];
+				break;
+			case 'recalcReq':
+				event.event_type = IndexEventType.IndexFlashcardRecalcRes;
+				event.data = {
+					flashcards: this._cache.getAll(),
+					total: this._cache.size(),
+				} satisfies IndexFlashcardEvents['recalcRes']['data'];
 				break;
 		}
 
