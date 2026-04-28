@@ -1,9 +1,12 @@
 import { writable } from 'svelte/store';
 import { BaseStoreManager } from './base.store';
+import { FlashcardModalData } from '../components/modals/FlashcardModal/types';
 
 export enum ModalViewEnum {
 	flashcard = 'flashcard',
 }
+
+export type ModalData = FlashcardModalData | Record<string, never>;
 
 export type ModalView = ModalViewEnum | null;
 
