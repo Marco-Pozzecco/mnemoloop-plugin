@@ -4,7 +4,7 @@ export interface SelectOption {
 	disabled?: boolean;
 }
 
-export default interface SelectProps {
+export interface SelectProps {
 	id?: string;
 	label?: string;
 	options: SelectOption[];
@@ -18,3 +18,5 @@ export default interface SelectProps {
 	className?: string;
 	onchange?: (value: string) => void;
 }
+
+export default SelectProps;
