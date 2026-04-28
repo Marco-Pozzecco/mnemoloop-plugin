@@ -24,7 +24,7 @@ export function transformStatsToHeatmap(
 	firstMonday.setDate(firstMonday.getDate() - daysToSubtract);
 
 	// Generate all days for the year display
-	let currentDate = new Date(firstMonday);
+	const currentDate = new Date(firstMonday);
 
 	while (currentDate <= end) {
 		const dateString = formatDateString(currentDate);
@@ -99,7 +99,7 @@ export function getYearStats(cells: HeatMapCell[], year: number): YearStats {
 	const sortedCells = [...yearCells].sort((a, b) => b.date.getTime() - a.date.getTime());
 
 	const today = new Date();
-	const todayCell = sortedCells.find((c) => new Date(c.dateString) === today);
+	const todayCell = sortedCells.find((c) => new Date(c.dateString).getTime() === today.getTime());
 
 	if (todayCell && todayCell.value > 0) {
 		currentStreak = 1;

@@ -16,7 +16,6 @@
 		min,
 		max,
 		className = '',
-		autofocus = false,
 		onchange,
 		onfocus,
 		onblur,
@@ -27,10 +26,10 @@
 
 	function handleChange(event: Event) {
 		const target = event.target as HTMLInputElement;
-		const newValue = type === 'number' ? Number(target.value) : target.value;
+		const newValue = target.value;
 		value = newValue;
 		if (onchange) {
-			onchange(newValue as string);
+			onchange(newValue);
 		}
 	}
 
@@ -68,7 +67,6 @@
 		{value}
 		{disabled}
 		{required}
-		{autofocus}
 		maxlength={maxLength}
 		{min}
 		{max}
