@@ -46,6 +46,8 @@
     "vitest": "^1.0.0"
   },
   "dependencies": {
+    "@internationalized/date": "^3.12.1",
+    "bits-ui": "^2.18.0",
     "d3-scale": "^4.0.2",
     "layerchart": "^2.0.0-next.56",
     "svelte": "^5.48.2",
