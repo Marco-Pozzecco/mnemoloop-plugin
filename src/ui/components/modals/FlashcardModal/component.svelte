@@ -35,6 +35,7 @@
 					deck: data.deck,
 					front: data.front,
 					source: data.filepath,
+					requestId: data.requestId,
 				},
 			};
 			EventBus.instance.publish(event);
@@ -51,7 +52,7 @@
 
 	<div class="ka-form-field">
 		<label for="flashcard-front">Front</label>
-		<Input id="flashcard-front" value={data.front} disabled={isLoading} onchange={updateFront} />
+		<Input id="flashcard-front" value={data.front} disabled={isLoading} onchange={(v) => updateFront(v)} type='text'/>
 	</div>
 
 	<div class="ka-form-field">
@@ -73,6 +74,10 @@
 </div>
 
 <style>
+	:global(.ka-flashcard-modal) {
+		width: var(--dialog-width);
+	}
+
 	.ka-flashcard-modal-content {
 		background: var(--background-primary);
 		padding: var(--size-4-4);
