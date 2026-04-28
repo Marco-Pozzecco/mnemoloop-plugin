@@ -71,7 +71,7 @@ export class FlascardIndexer extends BaseIndexer<
 	}
 
 	protected eventHandler: (eventType: IndexActions) => void = (eventType) => {
-		let event: EventData<unknown> = {
+		const event: EventData<unknown> = {
 			created_at: new Date(),
 			data: null,
 			event_type: IndexEventType.IndexFlashcardInitialize,
@@ -206,7 +206,7 @@ export class FlascardIndexer extends BaseIndexer<
 			const entity = this._generateMetadata(result);
 			this.update(entity.uuid, entity);
 			Logger.info(`Watcher: updated flashcard ${result.entity.uuid} from ${data.filepath}`);
-		} catch (error) {
+		} catch {
 			if (existing) {
 				this.delete(existing.uuid);
 				Logger.info(`Watcher: deleted flashcard ${existing.uuid} due to parse error`);
@@ -261,7 +261,7 @@ export class FlascardIndexer extends BaseIndexer<
 	}
 
 	protected _generateMetadata = (data: ParseResult<FlashcardYaml>): FlashcardMetadata => {
-		let metadata: FlashcardMetadata = {
+		const metadata: FlashcardMetadata = {
 			...data.entity,
 			file: data.filepath,
 			created_at: new Date().toISOString(),
