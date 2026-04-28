@@ -1,10 +1,18 @@
 import './ui/styles/main.css';
 
-import { Editor, MarkdownFileInfo, MarkdownView, Menu, Notice, Plugin } from 'obsidian';
+import { Plugin } from 'obsidian';
 import { IAdapter } from './interfaces/IAdapter';
 import { FlashcardAdapter } from './modules/adapters/FlashcardAdapter';
 import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
 import { StatisticsAdapter } from './modules/adapters/StatisticsAdapter';
+import {
+	CommandRegistry,
+	CreateEmptyFlashcardCommand,
+	CreateFlashcardFromFileCommand,
+	GenerateFromSelectionCommand,
+	OpenDashboardCommand,
+	OpenSettingsCommand,
+} from './modules/commands';
 import { FileWatcherListener } from './modules/event-listeners/FileWatcherListener';
 import { FlashcardWriterProcess } from './modules/event-listeners/FlashcardWriterProcessor';
 import { StatisticsListener } from './modules/event-listeners/StatisticsListener';
@@ -13,13 +21,11 @@ import { FlashcardParser } from './modules/parsers/FlashcardParser';
 import { FlashcardWriter } from './modules/writers/FlashcardWriter';
 import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from './schemas/settings';
 import { AdapterKey, Adapters } from './types/adapters';
+import { CommandKey } from './types/commands';
 import { Indexes, IndexKey } from './types/indexes';
 import { ListenerKey, Listeners } from './types/listeners';
 import { ParserKey, Parsers } from './types/parsers';
-import { FlashcardModalData } from './ui/components/modals/FlashcardModal/types';
-import { modalStore, ModalViewEnum } from './ui/store/modal.store';
 import { APP_VIEW, AppView } from './ui/views/App/AppView';
-import { SvelteModal } from './ui/views/Modal/ModalView';
 import { SettingsView } from './ui/views/Settings/SettingsView';
 import { Logger } from './utils/Logger';
 
@@ -28,6 +34,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	private _adapter: Adapters = new Map();
 	private _parsers: Parsers = new Map();
 	private _listeners: Listeners = new Map();
+	private _commandRegistry: CommandRegistry = new CommandRegistry();
 
 	settings!: PluginSettings;
 	private ribbonIcon?: HTMLElement;
@@ -37,17 +44,18 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 		Logger.info('Loading plugin');
 
 		this.initializeRibbonIcon();
-		await this.initializeCommands();
 		await this.loadAdapters();
 		await this.loadParsers();
 		await this.loadListeners();
 		await this.loadIndexes();
 		await this.initializeViews();
+		this.loadCommands();
 	}
 
 	onunload() {
 		Logger.info('Unloading plugin');
 		this._listeners.forEach((listener) => listener.dispose());
+		this._commandRegistry.unregisterAll();
 		this.ribbonIcon?.remove();
 	}
 
@@ -124,72 +132,30 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 		);
 	}
 
-	private async initializeCommands() {
-		this.addCommand({
-			id: 'ka-start-review',
-			name: 'Knowledge Accelerator: Start Review',
-			callback: async () => {
-				Logger.debug('Opening review view');
-				try {
-				} catch (error) {
-					Logger.error('Failed to open review view:', error);
-					new Notice('Failed to open review view');
-				}
-			},
-		});
-
-		this.addCommand({
-			id: 'ka-open-dashboard',
-			name: 'Knowledge Accelerator: Open Dashboard',
-			callback: async () => {
-				this.activateView();
-			},
-		});
-
-		this.addCommand({
-			id: 'open-settings',
-			name: 'Knowledge Accelerator: Open Settings',
-			callback: async () => {
-				(this.app as any).setting.openTabById(this.manifest.id);
-			},
-		});
-
-		this.registerEvent(
-			this.app.workspace.on(
-				'editor-menu',
-				(menu: Menu, editor: Editor, view: MarkdownView | MarkdownFileInfo) => {
-					menu.addItem((item) => {
-						item
-							.setTitle('Generate flashcard from selection')
-							.setIcon('brain') // Lucide icon name
-							.onClick(async () => {
-								const selection = editor.getSelection();
-								const filepath = view.file?.path;
-
-								if (!selection) {
-									new Notice('Please select text to generate a flashcard');
-									return;
-								}
-
-								if (!filepath) {
-									new Notice('Impossible to get file path');
-									return;
-								}
-
-								modalStore.open(ModalViewEnum.flashcard, {
-									front: '',
-									back: selection,
-									deck: '',
-									filepath,
-								} as FlashcardModalData);
-
-								const modal = new SvelteModal(this.app);
-								modal.open();
-							});
-					});
-				},
-			),
+	private loadCommands(): void {
+		this._commandRegistry.register(CommandKey.openDashboard, new OpenDashboardCommand());
+		this._commandRegistry.register(CommandKey.openSettings, new OpenSettingsCommand());
+		this._commandRegistry.register(
+			CommandKey.createEmptyFlashcard,
+			new CreateEmptyFlashcardCommand(),
 		);
+		this._commandRegistry.register(
+			CommandKey.generateFromSelection,
+			new GenerateFromSelectionCommand(),
+		);
+		this._commandRegistry.register(
+			CommandKey.createFlashcardFromFile,
+			new CreateFlashcardFromFileCommand(),
+		);
+
+		this._commandRegistry.initialize({
+			plugin: this,
+			adapters: this._adapter,
+			indexes: this._indexes,
+			parsers: this._parsers,
+		});
+
+		Logger.info('commands initialized');
 	}
 
 	private initializeRibbonIcon() {
