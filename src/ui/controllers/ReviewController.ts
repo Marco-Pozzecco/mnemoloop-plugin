@@ -1,10 +1,9 @@
-import { IReviewQueue } from '@/interfaces/IReviewQueue';
 import { IReviewItem } from '@/interfaces/IReviewItem';
+import { IReviewQueue } from '@/interfaces/IReviewQueue';
+import { EventBus, FlashcardReviewSessionEndEvent } from '@/modules/events';
 import { Rating } from 'ts-fsrs';
-import { UIStore, uiStore } from '../store/ui.store';
 import { sessionStore } from '../store/session.store';
-import { EventBus } from '@/modules/event-bus/EventBus';
-import { EventType, SessionEndEvent } from '@/types/events';
+import { UIStore, uiStore } from '../store/ui.store';
 
 interface IReviewController<T> {
 	readonly position: number;
@@ -81,25 +80,21 @@ export class ReviewController<T = unknown> implements IReviewController<T> {
 		const state = this._sessionStore.state;
 		if (state.session_id && state.start_time) {
 			this._queue.recalc();
-			const due_today = this._queue.size;
 			const end_time = Date.now();
-			const event: SessionEndEvent = {
-				event_type: EventType.SessionEnd,
-				created_at: new Date(),
-				data: {
+
+			EventBus.instance.publish(
+				new FlashcardReviewSessionEndEvent({
 					session_id: state.session_id,
-					review_type: state.review_type,
 					date: new Date().toISOString().split('T')[0],
+					review_type: state.review_type,
 					start_time: state.start_time,
 					end_time,
-					total_count: state.total_count,
+					count: state.total_count,
 					correct_count: state.correct_count,
 					incorrect_count: state.incorrect_count,
-					duration_s: Math.floor((end_time - state.start_time) / 1000),
-					due_today,
-				},
-			};
-			EventBus.instance.publish(event);
+					duration: Math.floor((end_time - state.start_time) / 1000),
+				}),
+			);
 		}
 		this._sessionStore.reset();
 		this._uiStore.currentView = 'dashboard';

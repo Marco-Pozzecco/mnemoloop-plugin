@@ -1,8 +1,7 @@
 import { IReviewQueue } from '@/interfaces/IReviewQueue';
-import { EventBus } from '@/modules/event-bus/EventBus';
+import { EventBus, FlashcardReviewSessionStartEvent } from '@/modules/events';
 import { FlashcardReviewQueue } from '@/modules/review-queues/FlashcardReviewQueue';
 import { CardStatus, FlashcardMetadata } from '@/schemas';
-import { EventType, SessionStartEvent } from '@/types/events';
 import { Indexes, IndexKey } from '@/types/indexes';
 import { ParserKey, Parsers } from '@/types/parsers';
 import { uiStore, UIStore } from '@/ui/store/ui.store';
@@ -53,16 +52,12 @@ export class DashboardController implements IDashboardController {
 
 		this._sessionStore.startSession('flashcard');
 
-		const sessionEvent: SessionStartEvent = {
-			event_type: EventType.SessionStart,
-			created_at: new Date(),
-			data: {
+		EventBus.instance.publish(
+			new FlashcardReviewSessionStartEvent({
 				session_id: this._sessionStore.state.session_id!,
-				review_type: 'flashcard',
 				start_time: this._sessionStore.state.start_time!,
-			},
-		};
-		EventBus.instance.publish(sessionEvent);
+			}),
+		);
 
 		this._uiStore.isLoading = false;
 		this._uiStore.currentView = 'review';
