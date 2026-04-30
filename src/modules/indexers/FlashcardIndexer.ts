@@ -1,4 +1,5 @@
 import { IAdapter } from '@/interfaces/IAdapter';
+import { IEvent } from '@/interfaces/IEvent';
 import { ParseResult } from '@/interfaces/IParser';
 import {
 	Flashcard,
@@ -8,19 +9,30 @@ import {
 	FlashcardYaml,
 } from '@/schemas';
 import { PluginSettings } from '@/schemas/settings';
-import { EventData, EventType, ReviewFlashcardEvent } from '@/types/events';
-import { IndexActions, IndexEventType, IndexFlashcardEvents } from '@/types/indexes';
-import {
-	WatcherEventEnum,
-	WatcherFlashcardCreateEvent,
-	WatcherFlashcardDeleteEvent,
-	WatcherFlashcardModifyEvent,
-	WatcherFlashcardRenameEvent,
-} from '@/types/watcher';
 import { Logger } from '@/utils/Logger';
 import { normalizePath } from 'obsidian';
 import { FlashcardAdapter } from '../adapters/FlashcardAdapter';
-import { EventBus } from '../event-bus/EventBus';
+import {
+	EventBus,
+	FileWatcherCreateData,
+	FlashcardWatcherCreateEvent,
+	FileWatcherDeleteData,
+	FlashcardWatcherDeleteEvent,
+	FileWatcherModifyData,
+	FlashcardWatcherModifyEvent,
+	FileWatcherRenameData,
+	FlashcardWatcherRenameEvent,
+	FlashcardIndexCreateEvent,
+	FlashcardIndexDeleteEvent,
+	FlashcardIndexEventData,
+	FlashcardIndexInitializeEvent,
+	FlashcardIndexRecalcRequestEvent,
+	FlashcardIndexRecalcResponseEvent,
+	FlashcardIndexSaveEvent,
+	FlashcardIndexUpdateEvent,
+	FlashcardReviewSessionScoreEvent,
+	IndexAction,
+} from '../events';
 import { FlashcardParser } from '../parsers/FlashcardParser';
 import { BaseIndexer } from './BaseIndexer';
 
@@ -40,90 +52,49 @@ export class FlascardIndexer extends BaseIndexer<
 		super(parser, settings, adapter);
 
 		EventBus.instance.subscribe((event) => {
-			if (event.event_type === EventType.ReviewFlashcard) {
-				const card = (event as ReviewFlashcardEvent).data;
+			if (event.isType(FlashcardReviewSessionScoreEvent.type)) {
+				const card = (event as FlashcardReviewSessionScoreEvent).data;
 				const cardUUID = card.uuid;
 				this.update(cardUUID, card);
-			}
-		});
-
-		EventBus.instance.subscribe((event) => {
-			switch (event.event_type) {
-				// Subscribe to watcher events
-				case WatcherEventEnum.WatcherFlashcardFileCreate:
-					this._handleWatcherCreate((event as WatcherFlashcardCreateEvent).data);
-					break;
-				case WatcherEventEnum.WatcherFlashcardFileModify:
-					this._handleWatcherModify((event as WatcherFlashcardModifyEvent).data);
-					break;
-				case WatcherEventEnum.WatcherFlashcardFileDelete:
-					this._handleWatcherDelete((event as WatcherFlashcardDeleteEvent).data);
-					break;
-				case WatcherEventEnum.WatcherFlashcardFileRename:
-					this._handleWatcherRename((event as WatcherFlashcardRenameEvent).data);
-					break;
-				// Subscribe to recalc request
-				case IndexEventType.IndexFlashcardRecalcReq:
-					this.eventHandler('recalcReq');
-					break;
+			} else if (event.isType(FlashcardIndexRecalcRequestEvent.type)) {
+				this.emit(IndexAction.Recalc);
+			} else if (event.isType(FlashcardWatcherCreateEvent.type)) {
+				this._handleWatcherCreate((event as FlashcardWatcherCreateEvent).data);
+			} else if (event.isType(FlashcardWatcherModifyEvent.type)) {
+				this._handleWatcherModify((event as FlashcardWatcherModifyEvent).data);
+			} else if (event.isType(FlashcardWatcherDeleteEvent.type)) {
+				this._handleWatcherDelete((event as FlashcardWatcherDeleteEvent).data);
+			} else if (event.isType(FlashcardWatcherRenameEvent.type)) {
+				this._handleWatcherRename((event as FlashcardWatcherRenameEvent).data);
 			}
 		});
 	}
 
-	protected eventHandler: (eventType: IndexActions) => void = (eventType) => {
-		const event: EventData<unknown> = {
-			created_at: new Date(),
-			data: null,
-			event_type: IndexEventType.IndexFlashcardInitialize,
+	emit: (action: IndexAction) => void = (action) => {
+		let event: IEvent | null = null;
+
+		const data: FlashcardIndexEventData = {
+			flashcards: this._cache.getAll(),
+			total: this._cache.size(),
 		};
 
-		switch (eventType) {
-			case 'create':
-				event.event_type = IndexEventType.IndexFlashcardCreate;
-				event.data = {
-					flashcards: this._cache.getAll(),
-					total: this._cache.size(),
-				} satisfies IndexFlashcardEvents['create']['data'];
-				break;
-			case 'update':
-				event.event_type = IndexEventType.IndexFlashcardUpdate;
-				event.data = {
-					flashcards: this._cache.getAll(),
-					total: this._cache.size(),
-				} satisfies IndexFlashcardEvents['update']['data'];
-				break;
-			case 'delete':
-				event.event_type = IndexEventType.IndexFlashcardDelete;
-				event.data = {
-					flashcards: this._cache.getAll(),
-					total: this._cache.size(),
-				} satisfies IndexFlashcardEvents['delete']['data'];
-				break;
-			case 'initialize':
-				event.event_type = IndexEventType.IndexFlashcardInitialize;
-				event.data = {
-					flashcards: this._cache.getAll(),
-					total: this._cache.size(),
-				} satisfies IndexFlashcardEvents['initialize']['data'];
-				break;
-			case 'save':
-				event.event_type = IndexEventType.IndexFlashcardSave;
-				event.data = {
-					flashcards: this._cache.getAll(),
-					total: this._cache.size(),
-					saved_at: new Date(),
-				} satisfies IndexFlashcardEvents['save']['data'];
-				break;
-			case 'recalcReq':
-				event.event_type = IndexEventType.IndexFlashcardRecalcRes;
-				event.data = {
-					flashcards: this._cache.getAll(),
-					total: this._cache.size(),
-				} satisfies IndexFlashcardEvents['recalcRes']['data'];
-				break;
+		if (action === IndexAction.Create) {
+			event = new FlashcardIndexCreateEvent(data);
+		} else if (action === IndexAction.Update) {
+			event = new FlashcardIndexUpdateEvent(data);
+		} else if (action === IndexAction.Delete) {
+			event = new FlashcardIndexDeleteEvent(data);
+		} else if (action === IndexAction.Recalc) {
+			event = new FlashcardIndexRecalcResponseEvent(data);
+		} else if (action === IndexAction.Save) {
+			event = new FlashcardIndexSaveEvent(data);
+		} else if (action === IndexAction.Initialize) {
+			event = new FlashcardIndexInitializeEvent(data);
 		}
 
-		EventBus.instance.publish(event);
+		if (event) {
+			EventBus.instance.publish(event);
+		}
 	};
 
 	initialize: () => Promise<void> = async () => {
@@ -143,7 +114,7 @@ export class FlascardIndexer extends BaseIndexer<
 		}
 
 		await this.save();
-		this.eventHandler('initialize');
+		this.emit(IndexAction.Initialize);
 	};
 
 	save: () => Promise<void> = async () => {
@@ -155,7 +126,7 @@ export class FlascardIndexer extends BaseIndexer<
 		});
 
 		await this._adapter.save();
-		this.eventHandler('save');
+		this.emit(IndexAction.Save);
 	};
 
 	private _findByFilepath(
@@ -172,40 +143,40 @@ export class FlascardIndexer extends BaseIndexer<
 		return { entity, uuid: entity.uuid };
 	}
 
-	private async _handleWatcherCreate(data: { filepath: string }): Promise<void> {
-		Logger.debug(`Watcher: handling create for ${data.filepath}`);
+	private async _handleWatcherCreate(data: FileWatcherCreateData): Promise<void> {
+		Logger.debug(`Watcher: handling create for ${data.path}`);
 
-		if (!this._isPathInWatchedDir(data.filepath)) {
+		if (!this._isPathInWatchedDir(data.path)) {
 			return;
 		}
 
 		try {
-			const result = await this._parser.parseMetadata(data.filepath);
+			const result = await this._parser.parseMetadata(data.path);
 
 			const entity = this._generateMetadata(result);
 			this.upsert(result.entity.uuid, entity);
 
 			await this.save();
-			Logger.info(`Watcher: created flashcard ${result.entity.uuid} from ${data.filepath}`);
+			Logger.info(`Watcher: created flashcard ${result.entity.uuid} from ${data.path}`);
 		} catch (error) {
-			Logger.error(`Watcher: failed to create flashcard from ${data.filepath}`, error);
+			Logger.error(`Watcher: failed to create flashcard from ${data.path}`, error);
 		}
 	}
 
-	private async _handleWatcherModify(data: { filepath: string }): Promise<void> {
-		Logger.debug(`Watcher: handling modify for ${data.filepath}`);
+	private async _handleWatcherModify(data: FileWatcherModifyData): Promise<void> {
+		Logger.debug(`Watcher: handling modify for ${data.path}`);
 
-		if (!this._isPathInWatchedDir(data.filepath)) {
+		if (!this._isPathInWatchedDir(data.path)) {
 			return;
 		}
 
-		const existing = this._findByFilepath(data.filepath);
+		const existing = this._findByFilepath(data.path);
 
 		try {
-			const result = await this._parser.parseMetadata(data.filepath);
+			const result = await this._parser.parseMetadata(data.path);
 			const entity = this._generateMetadata(result);
 			this.update(entity.uuid, entity);
-			Logger.info(`Watcher: updated flashcard ${result.entity.uuid} from ${data.filepath}`);
+			Logger.info(`Watcher: updated flashcard ${result.entity.uuid} from ${data.path}`);
 		} catch {
 			if (existing) {
 				this.delete(existing.uuid);
@@ -216,26 +187,26 @@ export class FlascardIndexer extends BaseIndexer<
 		await this.save();
 	}
 
-	private async _handleWatcherDelete(data: { filepath: string }): Promise<void> {
-		Logger.debug(`Watcher: handling delete for ${data.filepath}`);
+	private async _handleWatcherDelete(data: FileWatcherDeleteData): Promise<void> {
+		Logger.debug(`Watcher: handling delete for ${data.path}`);
 
-		if (!this._isPathInWatchedDir(data.filepath)) {
+		if (!this._isPathInWatchedDir(data.path)) {
 			return;
 		}
 
-		const existing = this._findByFilepath(data.filepath);
+		const existing = this._findByFilepath(data.path);
 		if (existing) {
 			this.delete(existing.uuid);
 			await this.save();
-			Logger.info(`Watcher: deleted flashcard ${existing.uuid} from ${data.filepath}`);
+			Logger.info(`Watcher: deleted flashcard ${existing.uuid} from ${data.path}`);
 		}
 	}
 
-	private async _handleWatcherRename(data: { filepath: string; oldPath: string }): Promise<void> {
-		Logger.debug(`Watcher: handling rename from ${data.oldPath} to ${data.filepath}`);
+	private async _handleWatcherRename(data: FileWatcherRenameData): Promise<void> {
+		Logger.debug(`Watcher: handling rename from ${data.oldPath} to ${data.path}`);
 
 		const oldNormalized = normalizePath(data.oldPath);
-		const newNormalized = normalizePath(data.filepath);
+		const newNormalized = normalizePath(data.path);
 
 		// Find flashcard by old path
 		const existing = this._findByFilepath(oldNormalized);
@@ -246,11 +217,13 @@ export class FlascardIndexer extends BaseIndexer<
 			this.upsert(existing.uuid, updatedEntity);
 			await this.save();
 			Logger.info(
-				`Watcher: renamed flashcard ${existing.uuid} from ${data.oldPath} to ${data.filepath}`,
+				`Watcher: renamed flashcard ${existing.uuid} from ${data.oldPath} to ${data.path}`,
 			);
-		} else if (this._isPathInWatchedDir(data.filepath)) {
+		} else if (this._isPathInWatchedDir(data.path)) {
 			// Not found in old path but new path is in watched dir, treat as create
-			await this._handleWatcherCreate({ filepath: data.filepath });
+			await this._handleWatcherCreate({
+				path: data.path,
+			});
 		}
 	}
 

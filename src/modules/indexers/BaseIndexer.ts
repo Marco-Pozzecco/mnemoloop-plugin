@@ -2,15 +2,18 @@ import type { IAdapter } from '@/interfaces/IAdapter';
 import { IIndexer } from '@/interfaces/IIndexer';
 import { IParser, ParseResult } from '@/interfaces/IParser';
 import { PluginSettings } from '@/schemas/settings';
-import { IndexActions } from '@/types/indexes';
 import { Cache } from '@/utils/Cache';
+import { IndexAction } from '../events';
+import { IEventEmitter } from '@/interfaces/IEventEmitter';
 
 export abstract class BaseIndexer<
 	Entity extends EntityYaml,
 	EntityMetadata extends EntityYaml,
 	EntityYaml,
 	Index,
-> implements IIndexer<EntityMetadata> {
+>
+	implements IIndexer<EntityMetadata>, IEventEmitter<IndexAction>
+{
 	protected _cache: Cache<EntityMetadata> = new Cache();
 	protected _parser: IParser<Entity, EntityYaml>;
 	protected _settings: IAdapter<PluginSettings>;
@@ -34,7 +37,7 @@ export abstract class BaseIndexer<
 
 	abstract save: () => Promise<void>;
 
-	protected abstract eventHandler: (eventType: IndexActions) => void;
+	abstract emit: (action: IndexAction) => void;
 
 	get: (id: string) => EntityMetadata | undefined = (id) => {
 		return this._cache.get(id);
@@ -55,7 +58,7 @@ export abstract class BaseIndexer<
 			throw new Error(IndexError.FAILED_TO_CREATE);
 		}
 
-		this.eventHandler('create');
+		this.emit(IndexAction.Create);
 
 		return entity;
 	};
@@ -80,7 +83,7 @@ export abstract class BaseIndexer<
 			throw new Error(IndexError.FAILED_TO_UPDATE);
 		}
 
-		this.eventHandler('update');
+		this.emit(IndexAction.Update);
 
 		return result;
 	};
@@ -99,7 +102,7 @@ export abstract class BaseIndexer<
 		const entity = this._cache.get(id);
 		if (!entity) throw new Error(IndexError.NOT_FOUND);
 
-		this.eventHandler('delete');
+		this.emit(IndexAction.Delete);
 
 		return this._cache.delete(id);
 	};
