@@ -1,7 +1,7 @@
-import { EventData } from '@/types/events'
+import type { IEvent } from './IEvent';
 
 export interface IEventBus {
-  subscribe(callback: (event: EventData<unknown>) => void): void
-  unsubscribe(callback: (event: EventData<unknown>) => void): void
-  publish(event: EventData<unknown>): void
+	subscribe(callback: (event: IEvent) => void): void;
+	unsubscribe(callback: (event: IEvent) => void): void;
+	publish(event: IEvent): void;
 }
