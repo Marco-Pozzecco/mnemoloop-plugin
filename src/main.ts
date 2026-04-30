@@ -1,6 +1,7 @@
 import './ui/styles/main.css';
 
 import { Plugin } from 'obsidian';
+import { EventRegistry } from './modules/events';
 import { IAdapter } from './interfaces/IAdapter';
 import { FlashcardAdapter } from './modules/adapters/FlashcardAdapter';
 import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
@@ -13,17 +14,12 @@ import {
 	OpenDashboardCommand,
 	OpenSettingsCommand,
 } from './modules/commands';
-import { FileWatcherListener } from './modules/event-listeners/FileWatcherListener';
-import { FlashcardWriterProcess } from './modules/event-listeners/FlashcardWriterProcessor';
-import { StatisticsListener } from './modules/event-listeners/StatisticsListener';
 import { FlascardIndexer } from './modules/indexers/FlashcardIndexer';
 import { FlashcardParser } from './modules/parsers/FlashcardParser';
-import { FlashcardWriter } from './modules/writers/FlashcardWriter';
 import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from './schemas/settings';
 import { AdapterKey, Adapters } from './types/adapters';
 import { CommandKey } from './types/commands';
 import { Indexes, IndexKey } from './types/indexes';
-import { ListenerKey, Listeners } from './types/listeners';
 import { ParserKey, Parsers } from './types/parsers';
 import { APP_VIEW, AppView } from './ui/views/App/AppView';
 import { SettingsView } from './ui/views/Settings/SettingsView';
@@ -33,7 +29,6 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	private _indexes: Indexes = new Map();
 	private _adapter: Adapters = new Map();
 	private _parsers: Parsers = new Map();
-	private _listeners: Listeners = new Map();
 	private _commandRegistry: CommandRegistry = new CommandRegistry();
 
 	settings!: PluginSettings;
@@ -46,15 +41,19 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 		this.initializeRibbonIcon();
 		await this.loadAdapters();
 		await this.loadParsers();
-		await this.loadListeners();
 		await this.loadIndexes();
+
+		// Initialize event processors with dependencies
+		this.initializeEventProcessors();
+
 		await this.initializeViews();
 		this.loadCommands();
 	}
 
 	onunload() {
 		Logger.info('Unloading plugin');
-		this._listeners.forEach((listener) => listener.dispose());
+		// Dispose all event processors via registry
+		EventRegistry.instance.dispose();
 		this._commandRegistry.unregisterAll();
 		this.ribbonIcon?.remove();
 	}
@@ -96,29 +95,17 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 		Logger.info('indexes initialized');
 	}
 
-	private async loadListeners() {
-		this._listeners.set(
-			ListenerKey.statistics,
-			new StatisticsListener(this._adapter.get(AdapterKey.statistics) as StatisticsAdapter),
-		);
-
-		this._listeners.set(
-			ListenerKey.fileWatcher,
-			new FileWatcherListener(
-				this,
-				this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>,
-			),
-		);
-
-		this._listeners.set(
-			ListenerKey.flashcardProcessor,
-			new FlashcardWriterProcess(
-				new FlashcardWriter(this, this._parsers.get(ParserKey.flashcard) as FlashcardParser),
-				this._adapter.get(AdapterKey.settings) as SettingsAdapter,
-			),
-		);
-
-		Logger.info('listeners initialized');
+	/**
+	 * Initialize all registered event processors with dependencies.
+	 */
+	private initializeEventProcessors(): void {
+		EventRegistry.instance.initialize({
+			plugin: this,
+			adapters: this._adapter,
+			indexes: this._indexes,
+			parsers: this._parsers,
+		});
+		Logger.info('event processors initialized');
 	}
 
 	private async initializeViews() {
@@ -127,9 +114,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 			(leaf) => new AppView(this.app, leaf, this._indexes, this._parsers),
 		);
 
-		this.addSettingTab(
-			new SettingsView(this, this._adapter.get(AdapterKey.settings) as SettingsAdapter),
-		);
+		this.addSettingTab(new SettingsView(this));
 	}
 
 	private loadCommands(): void {
