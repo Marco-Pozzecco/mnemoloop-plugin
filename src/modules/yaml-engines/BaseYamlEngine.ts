@@ -1,6 +1,4 @@
 import { IYamlEngine } from '@/interfaces/IYamlEngine';
-import { EventBus } from '@/modules/event-bus/EventBus';
-import { EventData, EventType } from '@/types/events';
 import { ERROR_MESSAGES } from '@/utils/constants';
 import { normalizePath, parseYaml, Plugin } from 'obsidian';
 import { ZodType } from 'zod';
@@ -14,8 +12,6 @@ export abstract class BaseYamlEngine<T extends Record<string, unknown>> implemen
 	constructor(plugin: Plugin, schema: ZodType<T>) {
 		this._plugin = plugin;
 		this._schema = schema;
-
-		EventBus.instance.subscribe(this.handleEvent.bind(this));
 	}
 
 	abstract recover: (filepath: string) => Promise<void>;
@@ -88,8 +84,8 @@ export abstract class BaseYamlEngine<T extends Record<string, unknown>> implemen
 
 	encode(data: T): string {
 		const lines: string[] = [];
-
-		const entries = Object.entries(data);
+		const parsed = this.validate(data);
+		const entries = Object.entries(parsed);
 
 		lines.push('---');
 
@@ -109,16 +105,5 @@ export abstract class BaseYamlEngine<T extends Record<string, unknown>> implemen
 	decode(yaml: string): T {
 		const parsed = parseYaml(yaml);
 		return this.validate(parsed);
-	}
-
-	private handleEvent(event: EventData<unknown>): void {
-		if (event.event_type === EventType.ReviewFlashcard) {
-			const typedData = event as EventData<T>;
-			const entity = typedData.data as Record<string, unknown>;
-			const hasFile = Object.prototype.hasOwnProperty.call(entity, 'file');
-			if (!hasFile) return;
-			const frontmatter = this.validate(entity);
-			this.write(entity.file as string, frontmatter);
-		}
 	}
 }
