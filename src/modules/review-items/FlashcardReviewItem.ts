@@ -1,16 +1,27 @@
-import { IParser } from '@/interfaces/IParser';
 import { IReviewEngine } from '@/interfaces/IReviewEngine';
 import { Flashcard, FlashcardYaml } from '@/schemas';
-import { EventBus, FlashcardReviewSessionScoreEvent } from '../events';
+import {
+	EventBus,
+	FlashcardParserParseRequestEvent,
+	FlashcardParserParseResponseEvent,
+	FlashcardReviewSessionScoreEvent,
+} from '../events';
 import { BaseReviewItem } from './BaseReviewItem';
 
 export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml> {
-	constructor(
-		filepath: string,
-		engine: IReviewEngine<FlashcardYaml>,
-		parser: IParser<Flashcard, FlashcardYaml>,
-	) {
-		super(filepath, engine, parser);
+	constructor(filepath: string, engine: IReviewEngine<FlashcardYaml>) {
+		super(filepath, engine);
+
+		EventBus.instance.subscribe((event) => {
+			if (event.isType(FlashcardParserParseResponseEvent.type)) {
+				const { data } = event as FlashcardParserParseResponseEvent;
+				if (data.filepath === filepath) {
+					this._data = data.entity;
+				}
+			}
+		});
+
+		EventBus.instance.publish(new FlashcardParserParseRequestEvent({ filepath }));
 	}
 
 	review: <Score extends number>(score: Score) => void = (score) => {
