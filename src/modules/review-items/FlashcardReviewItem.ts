@@ -1,8 +1,7 @@
 import { IParser } from '@/interfaces/IParser';
 import { IReviewEngine } from '@/interfaces/IReviewEngine';
 import { Flashcard, FlashcardYaml } from '@/schemas';
-import { EventType, ReviewFlashcardEvent } from '@/types/events';
-import { EventBus } from '../event-bus/EventBus';
+import { EventBus, FlashcardReviewSessionScoreEvent } from '../events';
 import { BaseReviewItem } from './BaseReviewItem';
 
 export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml> {
@@ -19,13 +18,12 @@ export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml
 		const result = this._engine.calculate(this._data, score);
 		this._data = { ...this._data, ...result };
 
-		const event: ReviewFlashcardEvent = {
-			event_type: EventType.ReviewFlashcard,
-			filepath: this._filepath,
-			created_at: new Date(),
-			data: result,
-			rating: score,
-		};
-		EventBus.instance.publish(event);
+		EventBus.instance.publish(
+			new FlashcardReviewSessionScoreEvent({
+				...result,
+				rating: score,
+				filepath: this._filepath,
+			}),
+		);
 	};
 }
