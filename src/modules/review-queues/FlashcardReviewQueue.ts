@@ -1,0 +1,47 @@
+import { IIndexer } from '@/interfaces/IIndexer';
+import { IParser } from '@/interfaces/IParser';
+import { Flashcard, FlashcardMetadata, FlashcardYaml } from '@/schemas';
+import { FsrsEngine } from '../review-engines/FsrsEngine';
+import { FlashcardReviewItem } from '../review-items/FlashcardReviewItem';
+import { BaseReviewQueue } from './BaseReviewQueue';
+
+export class FlashcardReviewQueue extends BaseReviewQueue<
+	Flashcard,
+	FlashcardMetadata,
+	FlashcardYaml
+> {
+	constructor(
+		parser: IParser<Flashcard, FlashcardYaml>,
+		index: IIndexer<FlashcardMetadata>,
+		predicate?: (entity: FlashcardMetadata) => boolean,
+	) {
+		const engine = new FsrsEngine();
+		super(parser, engine, index, predicate);
+		let entities: FlashcardMetadata[] = [];
+
+		if (predicate) {
+			entities = this._index.query(predicate);
+		} else {
+			entities = this._index.getAll();
+		}
+
+		const sortedEntities = this._engine.sort(entities);
+		this._items = sortedEntities.map((item) => new FlashcardReviewItem(item.file, engine, parser));
+	}
+
+	recalc(): void {
+		let entities = [];
+
+		if (this._itemsQuery) {
+			entities = this._index.query(this._itemsQuery);
+		} else {
+			entities = this._index.getAll();
+		}
+
+		const sortedEntities = this._engine.sort(entities);
+		this._items = sortedEntities.map(
+			(item) => new FlashcardReviewItem(item.file, this._engine, this._parser),
+		);
+		this._position = 0;
+	}
+}

@@ -1,7 +1,7 @@
-import { FSRSStats } from '../core/srs/types';
-import { ParserSettings } from '../core/parser/types';
+import type { FSRSParams } from '@/schemas';
+import { State } from 'ts-fsrs';
 
-export const DEFAULT_FSRS: FSRSStats = {
+export const DEFAULT_FSRS: FSRSParams = {
 	stability: 0,
 	difficulty: 0,
 	elapsed_days: 0,
@@ -9,14 +9,9 @@ export const DEFAULT_FSRS: FSRSStats = {
 	learning_steps: 0,
 	reps: 0,
 	lapses: 0,
-	state: 0,
+	state: State.New,
 	last_review: null,
-	next_review: new Date().toISOString(),
-};
-
-export const DEFAULT_PARSER_SETTINGS: ParserSettings = {
-	flashcard_directory: '/flashcards/',
-	marker: '?',
+	due: new Date().toISOString(),
 };
 
 export const VALIDATION_RULES = {
@@ -40,3 +35,5 @@ export const ERROR_MESSAGES = {
 	PARSER_ERROR: 'Error parsing flashcard content',
 	CALCULATION_ERROR: 'Error in FSRS calculation',
 } as const;
+
+export { DEFAULT_STATISTICS } from '@/schemas/statistics';
