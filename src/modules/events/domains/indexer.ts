@@ -1,9 +1,6 @@
 import { FlashcardMetadata } from '@/schemas';
 import { Event } from '../core/Event';
 
-// Re-export IndexKey for consumers
-export { IndexKey } from '@/types/indexes';
-
 export enum IndexAction {
 	Create = 'create',
 	Delete = 'delete',
@@ -11,6 +8,7 @@ export enum IndexAction {
 	Save = 'save',
 	Update = 'update',
 	Recalc = 'recalc',
+	Query = 'query',
 }
 
 type IndexEntities = 'flashcard';
@@ -73,5 +71,25 @@ export class FlashcardIndexRecalcResponseEvent extends Event<FlashcardIndexEvent
 
 	constructor(data: FlashcardIndexEventData) {
 		super(FlashcardIndexRecalcResponseEvent.type, data);
+	}
+}
+
+export type FlashcardIndexQueryRequestEventData = {
+	predicate: (f: FlashcardMetadata) => boolean;
+};
+
+export class FlashcardIndexQueryRequestEvent extends Event<FlashcardIndexQueryRequestEventData> {
+	static readonly type: IndexEventType = 'Flashcard:Index:Query:Request';
+
+	constructor(data: FlashcardIndexQueryRequestEventData) {
+		super(FlashcardIndexQueryRequestEvent.type, data);
+	}
+}
+
+export class FlashcardIndexQueryResponseEvent extends Event<FlashcardIndexEventData> {
+	static readonly type: IndexEventType = 'Flashcard:Index:Query:Response';
+
+	constructor(data: FlashcardIndexEventData) {
+		super(FlashcardIndexQueryResponseEvent.type, data);
 	}
 }
