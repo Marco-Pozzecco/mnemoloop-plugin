@@ -1,0 +1,235 @@
+/**
+ * Theme CSS Variable Mappings for Knowledge Accelerator
+ *
+ * Maps custom CSS properties to Obsidian's theme variables
+ * for consistent styling across light and dark themes
+ */
+
+/* ==================== Base Theme Variables ==================== */
+:root {
+  /* Text Colors */
+  --ka-text-normal: var(--text-normal);
+  --ka-text-muted: var(--text-muted);
+  --ka-text-faint: var(--text-faint);
+  --ka-text-accent: var(--text-accent);
+  --ka-text-error: var(--text-error);
+  --ka-text-warning: var(--text-warning);
+  --ka-text-success: var(--text-success);
+
+  /* Background Colors */
+  --ka-background-primary: var(--background-primary);
+  --ka-background-secondary: var(--background-secondary);
+  --ka-background-tertiary: var(--background-tertiary);
+  --ka-background-modifier-border: var(--background-modifier-border);
+  --ka-background-modifier-hover: var(--background-modifier-hover);
+  --ka-background-modifier-active: var(--background-modifier-active);
+  --ka-background-modifier-selected: var(--background-modifier-selected);
+
+  /* Interactive Colors */
+  --ka-interactive-accent: var(--interactive-accent);
+  --ka-interactive-accent-hover: var(--interactive-accent-hover);
+  --ka-interactive-normal: var(--interactive-normal);
+  --ka-interactive-hover: var(--interactive-hover);
+
+  /* Border Colors */
+  --ka-border-color: var(--background-modifier-border);
+  --ka-border-color-focus: var(--background-modifier-border-focus);
+
+  /* Status Colors */
+  --ka-status-info: var(--color-blue);
+  --ka-status-success: var(--color-green);
+  --ka-status-warning: var(--color-orange);
+  --ka-status-error: var(--color-red);
+
+  /* Spacing */
+  --ka-spacing-xs: 0.25rem;
+  --ka-spacing-sm: 0.5rem;
+  --ka-spacing-md: 1rem;
+  --ka-spacing-lg: 1.5rem;
+  --ka-spacing-xl: 2rem;
+
+  /* Border Radius */
+  --ka-radius-sm: 4px;
+  --ka-radius-md: 8px;
+  --ka-radius-lg: 12px;
+  --ka-radius-xl: 16px;
+
+  /* Shadows */
+  --ka-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --ka-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --ka-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  /* Transitions */
+  --ka-transition-fast: 0.15s ease;
+  --ka-transition-normal: 0.2s ease;
+  --ka-transition-slow: 0.3s ease;
+
+  /* Z-Index */
+  --ka-z-base: 1;
+  --ka-z-dropdown: 100;
+  --ka-z-modal: 1000;
+  --ka-z-toast: 2000;
+}
+
+/* ==================== Dark Theme Overrides ==================== */
+.theme-dark {
+  /* Enhanced contrast for dark theme */
+  --ka-text-muted: rgba(255, 255, 255, 0.6);
+  --ka-text-faint: rgba(255, 255, 255, 0.4);
+
+  /* Darker backgrounds for cards */
+  --ka-card-background: rgba(0, 0, 0, 0.2);
+  --ka-card-border: rgba(255, 255, 255, 0.1);
+
+  /* Darker shadows */
+  --ka-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --ka-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --ka-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+
+  /* Adjusted status colors for dark theme */
+  --ka-status-info: #7dd3fc;
+  --ka-status-success: #4ade80;
+  --ka-status-warning: #fbbf24;
+  --ka-status-error: #f87171;
+
+  /* Card face hover effect */
+  --ka-card-hover-glow: rgba(255, 255, 255, 0.05);
+}
+
+/* ==================== Light Theme Overrides ==================== */
+.theme-light {
+  /* Enhanced contrast for light theme */
+  --ka-text-muted: rgba(0, 0, 0, 0.6);
+  --ka-text-faint: rgba(0, 0, 0, 0.4);
+
+  /* Lighter backgrounds for cards */
+  --ka-card-background: rgba(255, 255, 255, 0.5);
+  --ka-card-border: rgba(0, 0, 0, 0.1);
+
+  /* Lighter shadows */
+  --ka-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --ka-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
+  --ka-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  /* Adjusted status colors for light theme */
+  --ka-status-info: #0ea5e9;
+  --ka-status-success: #22c55e;
+  --ka-status-warning: #f59e0b;
+  --ka-status-error: #ef4444;
+
+  /* Card face hover effect */
+  --ka-card-hover-glow: rgba(0, 0, 0, 0.03);
+}
+
+/* ==================== Component-Specific Variables ==================== */
+
+/* Card Face */
+:root {
+  --ka-card-min-height: 200px;
+  --ka-card-padding: 2rem;
+  --ka-card-transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-dark .ka-card-face-container:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.theme-light .ka-card-face-container:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Rating Buttons */
+:root {
+  --ka-rating-button-height: 60px;
+  --ka-rating-button-gap: 1rem;
+
+  /* Rating colors */
+  --ka-rating-again: var(--text-error);
+  --ka-rating-hard: var(--text-warning);
+  --ka-rating-good: var(--text-accent);
+  --ka-rating-easy: var(--text-success);
+}
+
+.theme-dark {
+  --ka-rating-again: #f87171;
+  --ka-rating-hard: #fbbf24;
+  --ka-rating-good: #60a5fa;
+  --ka-rating-easy: #4ade80;
+}
+
+.theme-light {
+  --ka-rating-again: #ef4444;
+  --ka-rating-hard: #f59e0b;
+  --ka-rating-good: #3b82f6;
+  --ka-rating-easy: #22c55e;
+}
+
+/* Progress Bar */
+:root {
+  --ka-progress-height: 4px;
+  --ka-progress-background: var(--background-modifier-border);
+  --ka-progress-fill: var(--interactive-accent);
+}
+
+/* Toast Notifications */
+:root {
+  --ka-toast-max-width: 400px;
+  --ka-toast-padding: 0.875rem 1rem;
+  --ka-toast-border-radius: 8px;
+  --ka-toast-shadow: var(--ka-shadow-lg);
+}
+
+/* Dashboard Stats */
+:root {
+  --ka-stat-card-padding: 1.25rem;
+  --ka-stat-card-border-radius: var(--ka-radius-md);
+  --ka-stat-value-font-size: 2rem;
+  --ka-stat-label-font-size: 0.85rem;
+}
+
+/* Buttons */
+:root {
+  --ka-button-height: 40px;
+  --ka-button-padding: 0.5rem 1rem;
+  --ka-button-border-radius: var(--ka-radius-sm);
+  --ka-button-transition: all 0.15s ease;
+}
+
+/* ==================== Reduced Motion ==================== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ka-transition-fast: 0s;
+    --ka-transition-normal: 0s;
+    --ka-transition-slow: 0s;
+    --ka-card-transition: none;
+  }
+}
+
+/* ==================== High Contrast Mode ==================== */
+@media (prefers-contrast: high) {
+  :root {
+    --ka-border-color: currentColor;
+    --ka-card-border: 2px solid currentColor;
+  }
+
+  .theme-dark {
+    --ka-text-muted: rgba(255, 255, 255, 0.8);
+  }
+
+  .theme-light {
+    --ka-text-muted: rgba(0, 0, 0, 0.8);
+  }
+}
+
+/* ==================== Print Styles ==================== */
+@media print {
+  :root {
+    --ka-background-primary: white;
+    --ka-text-normal: black;
+    --ka-text-muted: black;
+    --ka-interactive-accent: black;
+    --ka-shadow-sm: none;
+    --ka-shadow-md: none;
+    --ka-shadow-lg: none;
+  }
+}

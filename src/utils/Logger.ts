@@ -1,6 +1,3 @@
-/**
- * Simple logger utility for the plugin.
- */
 export class Logger {
 	private static prefix = '[Knowledge Accelerator]';
 

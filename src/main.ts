@@ -1,32 +1,61 @@
-import { Plugin } from 'obsidian';
-import { PluginSettings, DEFAULT_PLUGIN_SETTINGS } from './core/plugin/types';
-import { IndexManager } from './core/indexer/managers/IndexManager';
-import { VaultWatcher } from './obsidian/VaultWatcher';
-import { SettingsManager } from './obsidian/SettingsManager';
-import { CommandRegistry } from './obsidian/CommandRegistry';
-import { IVaultWatcherConfig } from './obsidian/contracts';
+import './ui/styles/main.css';
 
+import { Plugin } from 'obsidian';
+import { EventRegistry } from './modules/events';
+import { IAdapter } from './interfaces/IAdapter';
+import { FlashcardAdapter } from './modules/adapters/FlashcardAdapter';
+import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
+import { StatisticsAdapter } from './modules/adapters/StatisticsAdapter';
+import {
+	CommandRegistry,
+	CreateEmptyFlashcardCommand,
+	CreateFlashcardFromFileCommand,
+	GenerateFromSelectionCommand,
+	OpenDashboardCommand,
+	OpenSettingsCommand,
+} from './modules/commands';
+import { FlascardIndexer } from './modules/indexers/FlashcardIndexer';
+import { FlashcardParser } from './modules/parsers/FlashcardParser';
+import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from './schemas/settings';
+import { AdapterKey, Adapters } from './types/adapters';
+import { CommandKey } from './types/commands';
+import { Indexes, IndexKey } from './types/indexes';
+import { ParserKey, Parsers } from './types/parsers';
+import { APP_VIEW, AppView } from './ui/views/App/AppView';
+import { SettingsView } from './ui/views/Settings/SettingsView';
 import { Logger } from './utils/Logger';
 
 export default class KnowledgeAcceleratorPlugin extends Plugin {
+	private _indexes: Indexes = new Map();
+	private _adapter: Adapters = new Map();
+	private _parsers: Parsers = new Map();
+	private _commandRegistry: CommandRegistry = new CommandRegistry();
+
 	settings!: PluginSettings;
-	private indexManager!: IndexManager;
-	private vaultWatcher!: VaultWatcher;
-	private settingsManager!: SettingsManager;
-	private commandRegistry!: CommandRegistry;
+	private ribbonIcon?: HTMLElement;
+	settingsView: SettingsView | null = null;
 
 	async onload() {
 		Logger.info('Loading plugin');
 
-		await this.initializeCoreComponents();
-		await this.initializeSettings();
-		await this.initializeCommands();
-		await this.initializeVaultWatcher();
+		this.initializeRibbonIcon();
+		await this.loadAdapters();
+		await this.loadParsers();
+		await this.loadIndexes();
+
+		// Initialize event processors with dependencies
+		this.initializeEventProcessors();
+
+		await this.initializeViews();
+		this.loadCommands();
 	}
 
 	onunload() {
 		Logger.info('Unloading plugin');
-		this.vaultWatcher.shutdown();
+		// Dispose all event processors via registry
+		EventRegistry.instance.dispose();
+		this._commandRegistry.unregisterAll();
+		this.ribbonIcon?.remove();
 	}
 
 	async loadSettings() {
@@ -37,66 +66,98 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	private async initializeCoreComponents() {
-		this.indexManager = new IndexManager(this.app);
-		await this.indexManager.load();
+	private async loadAdapters() {
+		this._adapter.set(AdapterKey.settings, new SettingsAdapter(this));
+		this._adapter.set(AdapterKey.statistics, new StatisticsAdapter(this));
+		this._adapter.set(AdapterKey.flashcard, new FlashcardAdapter(this));
+		this._adapter.forEach(async (adapter) => await adapter.initialize());
+		Logger.info('adapters initialized');
 	}
 
-	private async initializeSettings() {
-		this.settingsManager = new SettingsManager(this.app);
-		await this.settingsManager.initialize();
-		this.settingsManager.onSettingsChanged((settings) => {
-			const vaultConfig: IVaultWatcherConfig = {
-				watchDirectories: settings.watchDirectories,
-				watchTags: settings.watchTags,
-				ignoredDirectories: settings.ignoredDirectories,
-				debounceTimeoutMs: settings.debounceTimeoutMs,
-				enableSoftDelete: settings.enableSoftDelete,
-				softDeleteHours: settings.softDeleteHours,
-			};
-			this.vaultWatcher?.updateConfiguration(vaultConfig);
+	private async loadParsers() {
+		const settings = this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>;
+		if (!settings) throw new Error('failed to initialize adapters');
+
+		this._parsers.set(ParserKey.flashcard, new FlashcardParser(this, settings));
+	}
+
+	private async loadIndexes() {
+		this._indexes.set(
+			IndexKey.flashcard,
+			new FlascardIndexer(
+				this._parsers.get(ParserKey.flashcard) as FlashcardParser,
+				this._adapter.get(AdapterKey.flashcard) as FlashcardAdapter,
+				this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>,
+			),
+		);
+
+		this._indexes.forEach(async (index) => await index.initialize());
+		Logger.info('indexes initialized');
+	}
+
+	/**
+	 * Initialize all registered event processors with dependencies.
+	 */
+	private initializeEventProcessors(): void {
+		EventRegistry.instance.initialize({
+			plugin: this,
+			adapters: this._adapter,
+			indexes: this._indexes,
+			parsers: this._parsers,
+		});
+		Logger.info('event processors initialized');
+	}
+
+	private async initializeViews() {
+		this.registerView(
+			APP_VIEW,
+			(leaf) => new AppView(this.app, leaf, this._indexes, this._parsers),
+		);
+
+		this.addSettingTab(new SettingsView(this));
+	}
+
+	private loadCommands(): void {
+		this._commandRegistry.register(CommandKey.openDashboard, new OpenDashboardCommand());
+		this._commandRegistry.register(CommandKey.openSettings, new OpenSettingsCommand());
+		this._commandRegistry.register(
+			CommandKey.createEmptyFlashcard,
+			new CreateEmptyFlashcardCommand(),
+		);
+		this._commandRegistry.register(
+			CommandKey.generateFromSelection,
+			new GenerateFromSelectionCommand(),
+		);
+		this._commandRegistry.register(
+			CommandKey.createFlashcardFromFile,
+			new CreateFlashcardFromFileCommand(),
+		);
+
+		this._commandRegistry.initialize({
+			plugin: this,
+			adapters: this._adapter,
+			indexes: this._indexes,
+			parsers: this._parsers,
+		});
+
+		Logger.info('commands initialized');
+	}
+
+	private initializeRibbonIcon() {
+		this.ribbonIcon = this.addRibbonIcon('brain', 'Knowledge Accelerator', () => {
+			this.activateView();
 		});
 	}
 
-	private async initializeCommands() {
-		this.commandRegistry = new CommandRegistry();
-		this.commandRegistry.initialize(this);
+	private async activateView() {
+		const { workspace } = this.app;
+		let leaf = workspace.getLeavesOfType(APP_VIEW)[0];
 
-		this.commandRegistry.registerCommand({
-			id: 'ka-start-review',
-			name: 'Knowledge Accelerator: Start Review',
-			callback: async () => {
-				Logger.debug('Starting review session');
-			},
-		});
+		if (!leaf) {
+			leaf = workspace.getLeaf(false);
+			await leaf.setViewState({ type: APP_VIEW, active: true });
+		}
 
-		this.commandRegistry.registerCommand({
-			id: 'ka-open-dashboard',
-			name: 'Knowledge Accelerator: Open Dashboard',
-			callback: async () => {
-				Logger.debug('Opening dashboard');
-			},
-		});
-
-		this.commandRegistry.registerCommand({
-			id: 'open-settings',
-			name: 'Knowledge Accelerator: Open Settings',
-			callback: async () => {
-				(this.app as any).setting.openTabById(this.manifest.id);
-			},
-		});
-	}
-
-	private async initializeVaultWatcher() {
-		const pluginSettings = this.settingsManager.getSettings();
-		this.vaultWatcher = new VaultWatcher(this.app, this.indexManager, {
-			watchDirectories: pluginSettings.watchDirectories,
-			watchTags: pluginSettings.watchTags,
-			ignoredDirectories: pluginSettings.ignoredDirectories,
-			debounceTimeoutMs: pluginSettings.debounceTimeoutMs,
-			enableSoftDelete: pluginSettings.enableSoftDelete,
-			softDeleteHours: pluginSettings.softDeleteHours,
-		});
-		await this.vaultWatcher.initialize();
+		workspace.revealLeaf(leaf);
 	}
 }
