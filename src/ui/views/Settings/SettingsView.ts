@@ -1,24 +1,19 @@
-import { mount, unmount } from 'svelte';
-import { Plugin, PluginSettingTab } from 'obsidian';
-import Settings from './Settings.svelte';
-import { SettingsAdapter } from '@/modules/adapters/SettingsAdapter';
-import { Logger } from '@/utils/Logger';
 import { settingsStore } from '@/ui/store/settings.store';
+import { Logger } from '@/utils/Logger';
+import { Plugin, PluginSettingTab } from 'obsidian';
+import { mount, unmount } from 'svelte';
+import Settings from './Settings.svelte';
 
 export class SettingsView extends PluginSettingTab {
 	private component: ReturnType<typeof mount> | null = null;
-	private adapter: SettingsAdapter;
 
-	constructor(plugin: Plugin, settings: SettingsAdapter) {
+	constructor(plugin: Plugin) {
 		super(plugin.app, plugin);
-		this.adapter = settings;
 	}
 
 	display(): void {
 		this.containerEl.empty();
 		this.containerEl.addClass('ka-settings-view');
-
-		settingsStore.initialize(this.adapter);
 
 		this.component = mount(Settings, {
 			target: this.containerEl,
