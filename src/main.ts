@@ -109,10 +109,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	}
 
 	private async initializeViews() {
-		this.registerView(
-			APP_VIEW,
-			(leaf) => new AppView(this.app, leaf, this._indexes, this._parsers),
-		);
+		this.registerView(APP_VIEW, (leaf) => new AppView(this.app, leaf));
 
 		this.addSettingTab(new SettingsView(this));
 	}
