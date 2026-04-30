@@ -1,22 +1,22 @@
 import type { IAdapter } from '@/interfaces/IAdapter';
-import { AdapterDataKey, AdapterEventsKeys, AdapterEventsOf } from '@/types/adapters';
+import { IEventEmitter } from '@/interfaces/IEventEmitter';
 import { Logger } from '@/utils/Logger';
 import { ZodError, ZodType } from 'zod';
-import { EventBus } from '../event-bus/EventBus';
+import { AdapterAction } from '../events';
 
-export abstract class BaseAdapter<T, K extends keyof AdapterEventsKeys> implements IAdapter<T> {
+export abstract class BaseAdapter<T> implements IAdapter<T>, IEventEmitter<AdapterAction> {
 	protected _data: T;
 	protected _schema: ZodType<T>;
 
 	constructor(
 		protected defaultData: T,
-		protected _eventTypes: AdapterEventsOf<K>,
-		protected _dataKey: AdapterDataKey,
 		schema: ZodType<T>,
 	) {
 		this._data = defaultData;
 		this._schema = schema;
 	}
+
+	abstract emit: (action: AdapterAction) => void;
 
 	get data(): T {
 		return this._data;
@@ -24,15 +24,7 @@ export abstract class BaseAdapter<T, K extends keyof AdapterEventsKeys> implemen
 
 	set: (data: T) => void = (data) => {
 		this._data = this._schema.parse(data);
-
-		const event = {
-			event_type: this._eventTypes.set,
-			created_at: new Date(),
-			data: {
-				[this._dataKey]: this._data,
-			},
-		};
-		EventBus.instance.publish(event);
+		this.emit(AdapterAction.Set);
 	};
 
 	setField: (field: keyof T, value: unknown) => void = (field, value) => {
@@ -41,29 +33,13 @@ export abstract class BaseAdapter<T, K extends keyof AdapterEventsKeys> implemen
 
 	update: (data: Partial<T>) => void = (data) => {
 		this.set({ ...this._data, ...data } as T);
-
-		const event = {
-			event_type: this._eventTypes.update,
-			created_at: new Date(),
-			data: {
-				[this._dataKey]: this._data,
-			},
-		};
-		EventBus.instance.publish(event);
+		this.emit(AdapterAction.Update);
 	};
 
 	reset: () => Promise<void> = async () => {
 		this.set(this.defaultData);
+		this.emit(AdapterAction.Reset);
 		await this.save();
-
-		const event = {
-			event_type: this._eventTypes.reset,
-			created_at: new Date(),
-			data: {
-				[this._dataKey]: this._data,
-			},
-		};
-		EventBus.instance.publish(event);
 	};
 
 	initialize: () => Promise<void> = async () => {
@@ -73,43 +49,21 @@ export abstract class BaseAdapter<T, K extends keyof AdapterEventsKeys> implemen
 
 			if (result.success) {
 				this._data = result.data;
-				Logger.info(`${this._dataKey} adapter initialized successfully`);
 			} else {
-				Logger.warn(
-					`${this._dataKey} adapter validation failed, attempting partial recovery`,
-					result.error.issues,
-				);
 				this._data = this.recoverPartialData(storedData, result.error);
 				await this.save();
 			}
 		} catch (error) {
-			Logger.error(`${this._dataKey} adapter failed to load data, using defaults`, error);
+			Logger.error(`adapter failed to load data, using defaults`, error);
 			this._data = this.defaultData;
 			await this.save();
 		}
-
-		const event = {
-			event_type: this._eventTypes.init,
-			created_at: new Date(),
-			data: {
-				[this._dataKey]: this._data,
-			},
-		};
-		EventBus.instance.publish(event);
+		this.emit(AdapterAction.Init);
 	};
 
 	save: () => Promise<void> = async () => {
 		await this.saveData(this._data);
-
-		const event = {
-			event_type: this._eventTypes.save,
-			created_at: new Date(),
-			data: {
-				[this._dataKey]: this._data,
-				saved_at: new Date(),
-			},
-		};
-		EventBus.instance.publish(event);
+		this.emit(AdapterAction.Save);
 	};
 
 	protected abstract loadData(): Promise<unknown>;
@@ -163,9 +117,6 @@ export abstract class BaseAdapter<T, K extends keyof AdapterEventsKeys> implemen
 	private recoverPartialData(storedData: unknown, error: ZodError): T {
 		// If storedData is null, undefined, or not an object, can't do partial recovery
 		if (storedData === null || storedData === undefined || typeof storedData !== 'object') {
-			Logger.warn(
-				`${this._dataKey} adapter data is ${storedData === null ? 'null' : storedData === undefined ? 'undefined' : 'not an object'}, using full defaults`,
-			);
 			return this.defaultData;
 		}
 
@@ -179,14 +130,9 @@ export abstract class BaseAdapter<T, K extends keyof AdapterEventsKeys> implemen
 
 		const recoveryResult = this._schema.safeParse(clonedData);
 		if (recoveryResult.success) {
-			Logger.info(`${this._dataKey} adapter partial recovery successful`);
 			return recoveryResult.data;
 		}
 
-		Logger.error(
-			`${this._dataKey} adapter partial recovery failed, using full defaults`,
-			recoveryResult.error.issues,
-		);
 		return this.defaultData;
 	}
 }
