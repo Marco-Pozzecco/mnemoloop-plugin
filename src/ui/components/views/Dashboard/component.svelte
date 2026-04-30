@@ -11,16 +11,15 @@
 	import { sessionStore } from '@/ui/store/session.store';
 	import { statsStore } from '@/ui/store/stats.store';
 	import { uiStore } from '@/ui/store/ui.store';
-	import type DashboardProps from './types';
 	import type { DashboardConfig } from './types';
+	import { DashboardController } from '@/ui/controllers/DashboardController';
 
 	// Store references for automatic subscription with $ prefix
 	const statsStoreRef = statsStore.store;
 	const uiStoreRef = uiStore.store;
 	const sessionStoreRef = sessionStore.store;
 
-	// props
-	const { controller }: DashboardProps = $props();
+	const controller = $derived(new DashboardController());
 
 	// state - using $derived with $ prefix for automatic store subscription
 	let stats = $derived($statsStoreRef);

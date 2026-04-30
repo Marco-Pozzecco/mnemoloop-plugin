@@ -15,9 +15,6 @@
 	import { sessionStore, SessionStore } from '@/ui/store/session.store';
 	import { onDestroy, onMount } from 'svelte';
 	import { Rating } from 'ts-fsrs';
-	import type ReviewProps from './types';
-
-	const {}: ReviewProps = $props();
 
 	const store = sessionStore as SessionStore<Flashcard>;
 	let sessionState = $derived(store.state);
