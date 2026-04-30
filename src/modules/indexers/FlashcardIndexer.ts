@@ -15,22 +15,24 @@ import { FlashcardAdapter } from '../adapters/FlashcardAdapter';
 import {
 	EventBus,
 	FileWatcherCreateData,
-	FlashcardWatcherCreateEvent,
 	FileWatcherDeleteData,
-	FlashcardWatcherDeleteEvent,
 	FileWatcherModifyData,
-	FlashcardWatcherModifyEvent,
 	FileWatcherRenameData,
-	FlashcardWatcherRenameEvent,
 	FlashcardIndexCreateEvent,
 	FlashcardIndexDeleteEvent,
 	FlashcardIndexEventData,
 	FlashcardIndexInitializeEvent,
+	FlashcardIndexQueryRequestEvent,
+	FlashcardIndexQueryResponseEvent,
 	FlashcardIndexRecalcRequestEvent,
 	FlashcardIndexRecalcResponseEvent,
 	FlashcardIndexSaveEvent,
 	FlashcardIndexUpdateEvent,
 	FlashcardReviewSessionScoreEvent,
+	FlashcardWatcherCreateEvent,
+	FlashcardWatcherDeleteEvent,
+	FlashcardWatcherModifyEvent,
+	FlashcardWatcherRenameEvent,
 	IndexAction,
 } from '../events';
 import { FlashcardParser } from '../parsers/FlashcardParser';
@@ -58,6 +60,9 @@ export class FlascardIndexer extends BaseIndexer<
 				this.update(cardUUID, card);
 			} else if (event.isType(FlashcardIndexRecalcRequestEvent.type)) {
 				this.emit(IndexAction.Recalc);
+			} else if (event.isType(FlashcardIndexQueryRequestEvent.type)) {
+				const data = (event as FlashcardIndexQueryRequestEvent).data;
+				this.query(data.predicate);
 			} else if (event.isType(FlashcardWatcherCreateEvent.type)) {
 				this._handleWatcherCreate((event as FlashcardWatcherCreateEvent).data);
 			} else if (event.isType(FlashcardWatcherModifyEvent.type)) {
@@ -90,6 +95,8 @@ export class FlascardIndexer extends BaseIndexer<
 			event = new FlashcardIndexSaveEvent(data);
 		} else if (action === IndexAction.Initialize) {
 			event = new FlashcardIndexInitializeEvent(data);
+		} else if (action === IndexAction.Query) {
+			event = new FlashcardIndexQueryResponseEvent(data);
 		}
 
 		if (event) {
