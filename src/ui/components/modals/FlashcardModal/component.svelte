@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { EventBus } from '@/modules/event-bus/EventBus';
-	import { EventType, type FlashcardCreateRequestEvent } from '@/types/events';
+	import { EventBus, FlashcardWriterCreateRequestEvent } from '@/modules/events';
 	import { Input } from '@/ui/components/elements';
 	import { modalStore } from '@/ui/store/modal.store';
 	import type FlashcardModalProps from './types';
@@ -27,18 +26,11 @@
 
 	$effect(() => {
 		controller.confirmAction = async () => {
-			const event: FlashcardCreateRequestEvent = {
-				created_at: new Date(),
-				event_type: EventType.FlashcardCreateRequest,
-				data: {
-					back: data.back,
-					deck: data.deck,
-					front: data.front,
-					source: data.filepath,
-					requestId: data.requestId,
-				},
-			};
-			EventBus.instance.publish(event);
+			EventBus.instance.publish(new FlashcardWriterCreateRequestEvent({
+				back: data.back,
+				front: data.front,
+				source: data.filepath,
+			}));
 		};
 	});
 </script>

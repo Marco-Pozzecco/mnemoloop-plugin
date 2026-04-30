@@ -11,5 +11,4 @@ export interface FlashcardModalData {
 	back: string;
 	deck: string;
 	filepath: string;
-	requestId?: string; // For tracking auto-open on creation
 }
