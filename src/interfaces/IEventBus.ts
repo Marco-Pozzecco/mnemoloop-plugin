@@ -1,7 +1,9 @@
 import type { IEvent } from './IEvent';
 
+export type EventCallback = (event: IEvent) => void;
+
 export interface IEventBus {
-	subscribe(callback: (event: IEvent) => void): void;
-	unsubscribe(callback: (event: IEvent) => void): void;
+	subscribe(callback: EventCallback): EventCallback;
+	unsubscribe(callback: EventCallback): void;
 	publish(event: IEvent): void;
 }
