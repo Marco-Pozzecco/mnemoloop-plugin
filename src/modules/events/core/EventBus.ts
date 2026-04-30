@@ -20,8 +20,9 @@ export class EventBus implements IEventBus {
 		return EventBus._instance;
 	}
 
-	public subscribe(callback: (event: IEvent) => void): void {
+	public subscribe(callback: (event: IEvent) => void) {
 		this._subscribers.add(callback);
+		return callback;
 	}
 
 	public unsubscribe(callback: (event: IEvent) => void): void {
