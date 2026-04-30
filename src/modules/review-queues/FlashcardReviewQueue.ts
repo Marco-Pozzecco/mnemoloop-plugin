@@ -1,6 +1,9 @@
-import { IIndexer } from '@/interfaces/IIndexer';
-import { IParser } from '@/interfaces/IParser';
 import { Flashcard, FlashcardMetadata, FlashcardYaml } from '@/schemas';
+import {
+	EventBus,
+	FlashcardIndexQueryRequestEvent,
+	FlashcardIndexQueryResponseEvent,
+} from '../events';
 import { FsrsEngine } from '../review-engines/FsrsEngine';
 import { FlashcardReviewItem } from '../review-items/FlashcardReviewItem';
 import { BaseReviewQueue } from './BaseReviewQueue';
@@ -10,38 +13,32 @@ export class FlashcardReviewQueue extends BaseReviewQueue<
 	FlashcardMetadata,
 	FlashcardYaml
 > {
-	constructor(
-		parser: IParser<Flashcard, FlashcardYaml>,
-		index: IIndexer<FlashcardMetadata>,
-		predicate?: (entity: FlashcardMetadata) => boolean,
-	) {
+	constructor(predicate?: (entity: FlashcardMetadata) => boolean) {
 		const engine = new FsrsEngine();
-		super(parser, engine, index, predicate);
-		let entities: FlashcardMetadata[] = [];
+		super(engine, predicate);
 
-		if (predicate) {
-			entities = this._index.query(predicate);
-		} else {
-			entities = this._index.getAll();
-		}
+		EventBus.instance.subscribe((event) => {
+			if (event.isType(FlashcardIndexQueryResponseEvent.type)) {
+				const data = (event as FlashcardIndexQueryResponseEvent).data;
+				const sortedData = this._engine.sort(data.flashcards);
+				this._items = sortedData.map((f) => new FlashcardReviewItem(f.file, engine));
+			}
+		});
 
-		const sortedEntities = this._engine.sort(entities);
-		this._items = sortedEntities.map((item) => new FlashcardReviewItem(item.file, engine, parser));
+		EventBus.instance.publish(
+			new FlashcardIndexQueryRequestEvent({
+				predicate: predicate ?? (() => false),
+			}),
+		);
 	}
 
 	recalc(): void {
-		let entities = [];
-
-		if (this._itemsQuery) {
-			entities = this._index.query(this._itemsQuery);
-		} else {
-			entities = this._index.getAll();
-		}
-
-		const sortedEntities = this._engine.sort(entities);
-		this._items = sortedEntities.map(
-			(item) => new FlashcardReviewItem(item.file, this._engine, this._parser),
+		EventBus.instance.publish(
+			new FlashcardIndexQueryRequestEvent({
+				predicate: this._itemsQuery ?? (() => true),
+			}),
 		);
+
 		this._position = 0;
 	}
 }
