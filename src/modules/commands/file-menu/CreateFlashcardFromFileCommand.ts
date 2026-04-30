@@ -1,12 +1,11 @@
-import { Menu, TAbstractFile, TFile, WorkspaceLeaf, normalizePath } from 'obsidian';
+import { IEvent } from '@/interfaces/IEvent';
 import { BaseCommand } from '@/modules/commands/BaseCommand';
-import { EventBus } from '@/modules/event-bus/EventBus';
 import {
-	EventData,
-	EventType,
-	FlashcardCreateRequestEvent,
-	FlashcardCreateResEvent,
-} from '@/types/events';
+	EventBus,
+	FlashcardWriterCreateRequestEvent,
+	FlashcardWriterCreateResponseEvent,
+} from '@/modules/events';
+import { Menu, TAbstractFile, TFile, WorkspaceLeaf, normalizePath } from 'obsidian';
 
 export class CreateFlashcardFromFileCommand extends BaseCommand {
 	readonly id = 'ka-create-empty-in-panel';
@@ -36,18 +35,13 @@ export class CreateFlashcardFromFileCommand extends BaseCommand {
 
 	private async handleClick(file: TFile): Promise<void> {
 		const sourcePath = file.path;
-		const requestId = crypto.randomUUID();
 
-		const callback = async (evt: EventData<unknown>) => {
-			if (evt.event_type !== EventType.FlashcardCreated) {
+		const callback = async (evt: IEvent) => {
+			if (!evt.isType(FlashcardWriterCreateResponseEvent.type)) {
 				return;
 			}
 
-			const data = (evt as FlashcardCreateResEvent).data;
-
-			if (data.requestId !== requestId) {
-				return;
-			}
+			const data = (evt as FlashcardWriterCreateResponseEvent).data;
 
 			const path = normalizePath(data.filepath);
 			const file = this.plugin.app.vault.getFileByPath(path);
@@ -77,18 +71,12 @@ export class CreateFlashcardFromFileCommand extends BaseCommand {
 
 		EventBus.instance.subscribe(callback);
 
-		const event: FlashcardCreateRequestEvent = {
-			created_at: new Date(),
-			event_type: EventType.FlashcardCreateRequest,
-			data: {
-				front: '',
+		EventBus.instance.publish(
+			new FlashcardWriterCreateRequestEvent({
 				back: '',
-				deck: '',
+				front: '',
 				source: sourcePath,
-				requestId,
-			},
-		};
-
-		EventBus.instance.publish(event);
+			}),
+		);
 	}
 }

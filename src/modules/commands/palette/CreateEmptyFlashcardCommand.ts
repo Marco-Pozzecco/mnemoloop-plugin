@@ -1,6 +1,5 @@
 import { BaseCommand } from '@/modules/commands/BaseCommand';
-import { EventBus } from '@/modules/event-bus/EventBus';
-import { EventType, FlashcardCreateRequestEvent } from '@/types/events';
+import { EventBus, FlashcardWriterCreateRequestEvent } from '@/modules/events';
 
 export class CreateEmptyFlashcardCommand extends BaseCommand {
 	readonly id = 'ka-create-empty-flashcard';
@@ -13,18 +12,13 @@ export class CreateEmptyFlashcardCommand extends BaseCommand {
 			callback: async () => {
 				const activeFile = this.plugin.app.workspace.getActiveFile();
 
-				const event: FlashcardCreateRequestEvent = {
-					created_at: new Date(),
-					event_type: EventType.FlashcardCreateRequest,
-					data: {
-						front: '',
+				EventBus.instance.publish(
+					new FlashcardWriterCreateRequestEvent({
 						back: '',
-						deck: '',
+						front: '',
 						source: activeFile?.path ?? '',
-					},
-				};
-
-				EventBus.instance.publish(event);
+					}),
+				);
 			},
 		});
 	}
