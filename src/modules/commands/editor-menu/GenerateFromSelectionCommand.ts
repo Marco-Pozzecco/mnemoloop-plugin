@@ -1,11 +1,11 @@
-import { Editor, MarkdownFileInfo, MarkdownView, Menu, Notice, TFile } from 'obsidian';
+import { IEvent } from '@/interfaces/IEvent';
 import { BaseCommand } from '@/modules/commands/BaseCommand';
-import { EventBus } from '@/modules/event-bus/EventBus';
-import { EventData, EventType, FlashcardCreateResEvent } from '@/types/events';
+import { EventBus, FlashcardWriterCreateResponseEvent } from '@/modules/events';
 import { FlashcardModalData } from '@/ui/components/modals/FlashcardModal/types';
 import { modalStore, ModalViewEnum } from '@/ui/store/modal.store';
-import { ModalClassNames } from '@/ui/views/Modal/types';
 import { SvelteModal } from '@/ui/views/Modal/ModalView';
+import { ModalClassNames } from '@/ui/views/Modal/types';
+import { Editor, MarkdownFileInfo, MarkdownView, Menu, Notice, TFile } from 'obsidian';
 
 export class GenerateFromSelectionCommand extends BaseCommand {
 	readonly id = 'ka-generate-from-selection';
@@ -43,18 +43,12 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 			return;
 		}
 
-		const requestId = crypto.randomUUID();
-
-		const callback = (evt: EventData<unknown>) => {
-			if (evt.event_type !== EventType.FlashcardCreated) {
+		const callback = (evt: IEvent) => {
+			if (evt.type !== FlashcardWriterCreateResponseEvent.type) {
 				return;
 			}
 
-			const data = (evt as FlashcardCreateResEvent).data;
-
-			if (data.requestId !== requestId) {
-				return;
-			}
+			const data = (evt as FlashcardWriterCreateResponseEvent).data;
 
 			EventBus.instance.unsubscribe(callback);
 
@@ -82,7 +76,6 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 			back: selection,
 			deck: '',
 			filepath,
-			requestId,
 		} as FlashcardModalData);
 
 		const modal = new SvelteModal(this.plugin.app, ModalClassNames.flashcard);
