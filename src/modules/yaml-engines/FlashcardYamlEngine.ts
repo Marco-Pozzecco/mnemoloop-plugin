@@ -9,7 +9,7 @@ export class FlashcardYamlEngine
 	implements IYamlEngine<FlashcardYaml>
 {
 	constructor(plugin: Plugin) {
-		super(plugin, FlashcardYamlSchema.strict());
+		super(plugin, FlashcardYamlSchema);
 	}
 
 	recover: (filepath: string) => Promise<void> = async (filepath) => {
