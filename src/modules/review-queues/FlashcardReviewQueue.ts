@@ -1,8 +1,6 @@
 import { IIndexer } from '@/interfaces/IIndexer';
 import { IParser } from '@/interfaces/IParser';
 import { Flashcard, FlashcardMetadata, FlashcardYaml } from '@/schemas';
-import { EventType, QueueInitEvent } from '@/types/events';
-import { EventBus } from '../event-bus/EventBus';
 import { FsrsEngine } from '../review-engines/FsrsEngine';
 import { FlashcardReviewItem } from '../review-items/FlashcardReviewItem';
 import { BaseReviewQueue } from './BaseReviewQueue';
@@ -29,17 +27,6 @@ export class FlashcardReviewQueue extends BaseReviewQueue<
 
 		const sortedEntities = this._engine.sort(entities);
 		this._items = sortedEntities.map((item) => new FlashcardReviewItem(item.file, engine, parser));
-
-		const event: QueueInitEvent = {
-			event_type: EventType.QueueInit,
-			created_at: new Date(),
-			data: {
-				due_today: this._items.length,
-				total_cards: this._index.getAll().length,
-			},
-		};
-
-		EventBus.instance.publish(event);
 	}
 
 	recalc(): void {

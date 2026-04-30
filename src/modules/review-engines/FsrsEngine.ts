@@ -1,7 +1,6 @@
 import type { FlashcardYaml } from '@/schemas/flashcard';
 import type { FSRSParams } from '@/schemas/srs';
 import { Card, FSRS, FSRSParameters, generatorParameters, Rating, State } from 'ts-fsrs';
-import { EventData } from '@/types/events';
 import { BaseReviewEngine } from './BaseReviewEngine';
 
 export class FsrsEngine extends BaseReviewEngine<FlashcardYaml> {
@@ -59,10 +58,6 @@ export class FsrsEngine extends BaseReviewEngine<FlashcardYaml> {
 	updateParameters(params: Partial<FSRSParameters>): void {
 		this.fsrs.parameters = params;
 	}
-
-	dispatch: (event: string, data: EventData<FlashcardYaml>) => void = () => {
-		// do nothing
-	};
 
 	/**
 	 * Maps internal FSRSStats to ts-fsrs Card object.
