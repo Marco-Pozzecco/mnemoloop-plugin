@@ -2,9 +2,7 @@ import { Stats } from '@/schemas';
 import { DEFAULT_STATISTICS } from '@/utils/constants';
 import { writable } from 'svelte/store';
 import { BaseStoreManager } from './base.store';
-import { EventBus } from '@/modules/event-bus/EventBus';
-import { EventType } from '@/types/events';
-import { AdapterStatsEvents } from '@/types/adapters';
+import { EventBus, StatisticsAdapterSaveResponseEvent } from '@/modules/events';
 
 const store = writable(DEFAULT_STATISTICS);
 
@@ -13,9 +11,9 @@ export class StatsStore extends BaseStoreManager<Stats> {
 		super(DEFAULT_STATISTICS, store);
 
 		EventBus.instance.subscribe((event) => {
-			if (event.event_type === EventType.AdapterStatisticsSave) {
-				const data = event.data as AdapterStatsEvents['save']['data'];
-				this.store.update(() => data.stats);
+			if (event.isType(StatisticsAdapterSaveResponseEvent.type)) {
+				const data = event.data as StatisticsAdapterSaveResponseEvent['data'];
+				this.store.update(() => data);
 			}
 		});
 	}
