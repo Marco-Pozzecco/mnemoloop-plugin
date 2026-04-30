@@ -2,11 +2,13 @@ import { FlashcardMetadata } from '@/schemas';
 import { Event } from '../core/Event';
 
 export enum IndexAction {
+	Get = 'get',
+	GetAll = 'getAll',
+	Update = 'update',
 	Create = 'create',
 	Delete = 'delete',
 	Initialize = 'initialize',
 	Save = 'save',
-	Update = 'update',
 	Recalc = 'recalc',
 	Query = 'query',
 }
@@ -18,18 +20,20 @@ type IndexEventType =
 
 export type FlashcardIndexEventData = { flashcards: FlashcardMetadata[]; total: number };
 
-export class FlashcardIndexCreateEvent extends Event<FlashcardIndexEventData> {
+export type FlashcardIndexCreateEventData = FlashcardMetadata;
+export class FlashcardIndexCreateEvent extends Event<FlashcardIndexCreateEventData> {
 	static readonly type: IndexEventType = 'Flashcard:Index:Create:Response';
 
-	constructor(data: FlashcardIndexEventData) {
+	constructor(data: FlashcardIndexCreateEventData) {
 		super(FlashcardIndexCreateEvent.type, data);
 	}
 }
 
-export class FlashcardIndexDeleteEvent extends Event<FlashcardIndexEventData> {
+export type FlashcardIndexDeleteEventData = FlashcardMetadata;
+export class FlashcardIndexDeleteEvent extends Event<FlashcardIndexDeleteEventData> {
 	static readonly type: IndexEventType = 'Flashcard:Index:Delete:Response';
 
-	constructor(data: FlashcardIndexEventData) {
+	constructor(data: FlashcardIndexDeleteEventData) {
 		super(FlashcardIndexDeleteEvent.type, data);
 	}
 }
@@ -50,10 +54,11 @@ export class FlashcardIndexSaveEvent extends Event<FlashcardIndexEventData> {
 	}
 }
 
-export class FlashcardIndexUpdateEvent extends Event<FlashcardIndexEventData> {
+export type FlashcardIndexUpdateEventData = FlashcardMetadata;
+export class FlashcardIndexUpdateEvent extends Event<FlashcardIndexUpdateEventData> {
 	static readonly type: IndexEventType = 'Flashcard:Index:Update:Response';
 
-	constructor(data: FlashcardIndexEventData) {
+	constructor(data: FlashcardIndexUpdateEventData) {
 		super(FlashcardIndexUpdateEvent.type, data);
 	}
 }
@@ -77,7 +82,6 @@ export class FlashcardIndexRecalcResponseEvent extends Event<FlashcardIndexEvent
 export type FlashcardIndexQueryRequestEventData = {
 	predicate: (f: FlashcardMetadata) => boolean;
 };
-
 export class FlashcardIndexQueryRequestEvent extends Event<FlashcardIndexQueryRequestEventData> {
 	static readonly type: IndexEventType = 'Flashcard:Index:Query:Request';
 
@@ -86,10 +90,47 @@ export class FlashcardIndexQueryRequestEvent extends Event<FlashcardIndexQueryRe
 	}
 }
 
-export class FlashcardIndexQueryResponseEvent extends Event<FlashcardIndexEventData> {
+export type FlashcardIndexQueryResponseEventData = FlashcardMetadata[];
+export class FlashcardIndexQueryResponseEvent extends Event<FlashcardIndexQueryResponseEventData> {
 	static readonly type: IndexEventType = 'Flashcard:Index:Query:Response';
 
-	constructor(data: FlashcardIndexEventData) {
+	constructor(data: FlashcardIndexQueryResponseEventData) {
 		super(FlashcardIndexQueryResponseEvent.type, data);
+	}
+}
+
+export type FlashcardIndexGetRequestEventData = { id: string };
+export class FlashcardIndexGetRequestEvent extends Event<FlashcardIndexGetRequestEventData> {
+	static readonly type: IndexEventType = 'Flashcard:Index:Get:Request';
+
+	constructor(data: FlashcardIndexGetRequestEventData) {
+		super(FlashcardIndexGetRequestEvent.type, data);
+	}
+}
+
+export type FlashcardIndexGetEventData = FlashcardMetadata;
+export class FlashcardIndexGetEvent extends Event<FlashcardIndexGetEventData> {
+	static readonly type: IndexEventType = 'Flashcard:Index:Get:Response';
+
+	constructor(data: FlashcardIndexGetEventData) {
+		super(FlashcardIndexGetEvent.type, data);
+	}
+}
+
+export type FlashcardIndexGetAllRequestEventData = undefined;
+export class FlashcardIndexGetAllRequestEvent extends Event<FlashcardIndexGetAllRequestEventData> {
+	static readonly type: IndexEventType = 'Flashcard:Index:GetAll:Request';
+
+	constructor(data: FlashcardIndexGetAllRequestEventData) {
+		super(FlashcardIndexGetAllRequestEvent.type, data);
+	}
+}
+
+export type FlashcardIndexGetAllEventData = FlashcardMetadata[];
+export class FlashcardIndexGetAllEvent extends Event<FlashcardIndexGetAllEventData> {
+	static readonly type: IndexEventType = 'Flashcard:Index:GetAll:Response';
+
+	constructor(data: FlashcardIndexGetAllEventData) {
+		super(FlashcardIndexGetAllEvent.type, data);
 	}
 }
