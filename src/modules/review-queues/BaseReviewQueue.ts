@@ -49,5 +49,5 @@ export abstract class BaseReviewQueue<
 		return this.current;
 	}
 
-	abstract recalc(): void;
+	abstract dispose(): void;
 }
