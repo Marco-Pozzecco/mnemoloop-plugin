@@ -29,10 +29,17 @@ export class EventBus implements IEventBus {
 		this._subscribers.delete(callback);
 	}
 
-	public publish(event: IEvent): void {
+	public publish(event: IEvent): string {
 		Logger.debug('Event:', event.type, 'Data:', event.data);
 		this._subscribers.forEach((callback) => {
 			callback(event);
 		});
+		return event.id;
+	}
+
+	public request(event: IEvent, callback: (event: IEvent) => void): void {
+		this.subscribe(callback);
+		this.publish(event);
+		this.unsubscribe(callback);
 	}
 }
