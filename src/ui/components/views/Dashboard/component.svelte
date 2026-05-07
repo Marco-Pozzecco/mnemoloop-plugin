@@ -5,10 +5,8 @@
 		DashboardChart,
 		DashboardFooter,
 		DashboardHeader,
-		DashboardProgress,
 		DashboardStatsGrid,
 	} from '@/ui/components/sections';
-	import { sessionStore } from '@/ui/store/session.store';
 	import { statsStore } from '@/ui/store/stats.store';
 	import { uiStore } from '@/ui/store/ui.store';
 	import type { DashboardConfig } from './types';
@@ -17,7 +15,6 @@
 	// Store references for automatic subscription with $ prefix
 	const statsStoreRef = statsStore.store;
 	const uiStoreRef = uiStore.store;
-	const sessionStoreRef = sessionStore.store;
 
 	const controller = $derived(new DashboardController());
 
@@ -30,8 +27,7 @@
 		showRetentionRate: true,
 	});
 	let isLoading = $derived($uiStoreRef.isLoading);
-	let session = $derived($sessionStoreRef);
-	let isReviewDisabled = $derived(session.queue?.size === 0 || isLoading);
+	let isReviewDisabled = $derived(stats.flashcard.due_now === 0);
 	let showChart = $derived(config.showProgressChart && stats.flashcard.total_learned > 0);
 
 	function onStartReview() {
@@ -52,7 +48,6 @@
 	<div class="ka-dashboard" role="main" aria-label="Learning Dashboard">
 		<DashboardHeader {isLoading} {onRefresh} />
 		<DashboardStatsGrid {stats} {config} />
-		<DashboardProgress {stats} />
 		{#if showChart}
 			<DashboardChart {stats} chartType={config.chartType} />
 		{/if}
