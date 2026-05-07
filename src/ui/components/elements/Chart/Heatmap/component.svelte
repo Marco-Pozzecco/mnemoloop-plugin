@@ -57,7 +57,7 @@
 				<Layer>
 					<Calendar {start} {end} monthLabel={true} tooltip>
 						{#snippet children({ cells, cellSize })}
-							{#each cells as cell}
+							{#each cells as cell (cell.data)}
 								<Rect
 									x={cell.x}
 									y={cell.y}
