@@ -7,12 +7,15 @@ import {
 	FlashcardReviewSessionScoreEvent,
 } from '../events';
 import { BaseReviewItem } from './BaseReviewItem';
+import { EventCallback } from '@/interfaces/IEventBus';
 
 export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml> {
+	private _callback: EventCallback;
+
 	constructor(filepath: string, engine: IReviewEngine<FlashcardYaml>) {
 		super(filepath, engine);
 
-		EventBus.instance.subscribe((event) => {
+		this._callback = EventBus.instance.subscribe((event) => {
 			if (event.isType(FlashcardParserParseResponseEvent.type)) {
 				const { data } = event as FlashcardParserParseResponseEvent;
 				if (data.filepath === filepath) {
@@ -37,4 +40,25 @@ export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml
 			}),
 		);
 	};
+
+	/**
+	 * Restore the flashcard to a previous FSRS state (for undo)
+	 */
+	restore(due: string | null, stability: number | null, difficulty: number | null): void {
+		if (!this._data) return;
+
+		if (due !== null) {
+			this._data.due = due;
+		}
+		if (stability !== null) {
+			this._data.stability = stability;
+		}
+		if (difficulty !== null) {
+			this._data.difficulty = difficulty;
+		}
+	}
+
+	dispose(): void {
+		EventBus.instance.unsubscribe(this._callback);
+	}
 }
