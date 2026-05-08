@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { type Flashcard } from '@/schemas';
 	import { gesture } from '@/ui/actions/gestures';
 	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
 	import { Button } from '@/ui/components';
 	import type FlashCardProps from './types';
-	import { type Flashcard } from '@/schemas';
 
 	let { item, showingAnswer, onShowAnswer, onSwipeLeft, onSwipeRight, onTap }: FlashCardProps =
 		$props();
@@ -48,20 +48,20 @@
 			tapMaxDistance: 10,
 		}}
 	>
-		<div class="ka-card-content">
-			{#if flashcard}
-				{#if showingAnswer}
-					<div class="ka-card-front" use:renderMarkdown={frontOptions}></div>
-					<div class="ka-card-back" use:renderMarkdown={backOptions}></div>
+			<div class="ka-card-content">
+				{#if flashcard}
+					{#if showingAnswer}
+						<div class="ka-card-front" use:renderMarkdown={frontOptions}></div>
+						<div class="ka-card-back" use:renderMarkdown={backOptions}></div>
+					{:else}
+						<div class="ka-card-front" use:renderMarkdown={frontOptions}></div>
+					{/if}
 				{:else}
-					<div class="ka-card-front" use:renderMarkdown={frontOptions}></div>
+					<div class="ka-loading-state">
+						<p>Loading card...</p>
+					</div>
 				{/if}
-			{:else}
-				<div class="ka-loading-state">
-					<p>Loading card...</p>
-				</div>
-			{/if}
-		</div>
+			</div>
 	</div>
 
 	{#if !showingAnswer}

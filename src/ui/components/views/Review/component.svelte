@@ -122,6 +122,8 @@
 		total,
 		remaining,
 		progress,
+		accuracy: sessionState.correct_count / sessionState.total_count,
+		startTime: sessionState.start_time ?? Date.now(),
 		onEndSession: handleEndSession,
 	});
 
