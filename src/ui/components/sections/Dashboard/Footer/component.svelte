@@ -10,15 +10,12 @@
 		className,
 	}: DashboardFooterProps = $props();
 
-	let isRefreshing = $state(false);
 
-	let hasDueCards = $derived(stats.flashcard.due_today > 0);
-	let hasNextReview = $derived(new Date(stats.flashcard.next_review) > new Date());
+	let hasDueCards = $derived(stats.flashcard.due_now > 0);
+	let hasNextReview = $derived(new Date(stats.flashcard.next_review) > new Date() && !hasDueCards);
 	let countdownDisplay = $state(formatCountdown(getSecondsUntilNextReview()));
 
 	$effect(() => {
-		isRefreshing = true;
-
 		const interval = setInterval(() => {
 			const seconds = getSecondsUntilNextReview();
 			if (seconds <= 0) {
@@ -29,8 +26,6 @@
 			}
 			countdownDisplay = formatCountdown(seconds);
 		}, 1000);
-
-		isRefreshing = false;
 
 		return () => clearInterval(interval);
 	});
