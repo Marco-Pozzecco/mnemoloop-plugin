@@ -41,13 +41,12 @@ import {
 } from '../events';
 import { FlashcardParser } from '../parsers/FlashcardParser';
 import { BaseIndexer } from './BaseIndexer';
+import { IEventEmitter } from '@/interfaces/IEventEmitter';
 
-export class FlascardIndexer extends BaseIndexer<
-	Flashcard,
-	FlashcardMetadata,
-	FlashcardYaml,
-	FlashcardIndex
-> {
+export class FlascardIndexer
+	extends BaseIndexer<Flashcard, FlashcardMetadata, FlashcardYaml, FlashcardIndex>
+	implements IEventEmitter<IndexAction>
+{
 	private _dirPath = this._settings.data.flashcard.watch.directory;
 
 	constructor(
@@ -66,7 +65,8 @@ export class FlascardIndexer extends BaseIndexer<
 				this.emit(IndexAction.Recalc);
 			} else if (event.isType(FlashcardIndexQueryRequestEvent.type)) {
 				const data = (event as FlashcardIndexQueryRequestEvent).data;
-				this.query(data.predicate);
+				const result = this.query(data.predicate);
+				this.emit(IndexAction.Query, result);
 			} else if (event.isType(FlashcardWatcherCreateEvent.type)) {
 				this._handleWatcherCreate((event as FlashcardWatcherCreateEvent).data);
 			} else if (event.isType(FlashcardWatcherModifyEvent.type)) {
