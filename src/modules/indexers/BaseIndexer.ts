@@ -53,7 +53,6 @@ export abstract class BaseIndexer<
 
 	query: (predicate: (entity: EntityMetadata) => boolean) => EntityMetadata[] = (predicate) => {
 		const result = this._cache.query(predicate);
-		this.emit(IndexAction.Query, result);
 		return result;
 	};
 
