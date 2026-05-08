@@ -15,7 +15,7 @@
 </script>
 
 <div class="ka-rating-controls" class:disabled>
-	{#each ratings as rating}
+	{#each ratings as rating (rating.value)}
 		<div class="ka-rating-button-wrapper">
 			<!-- style="--button-color: {rating.color}" -->
 			<Button
