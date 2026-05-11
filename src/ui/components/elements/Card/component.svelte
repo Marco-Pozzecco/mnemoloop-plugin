@@ -19,7 +19,9 @@
 	}
 </script>
 
-<button
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+
+<div
 	class="ka-card {className}"
 	class:has-border={hasBorder}
 	class:clickable
@@ -28,8 +30,8 @@
 	class:padding-medium={padding === 'medium'}
 	class:padding-large={padding === 'large'}
 	role={clickable ? 'button' : undefined}
-	tabindex={clickable ? 0 : undefined}
-	onclick={handleClick}
+	tabindex={clickable ? 0 : -1}
+	onclick={clickable ? handleClick : undefined}
 	onkeydown={clickable ? (e) => e.key === 'Enter' && handleClick() : undefined}
 >
 	{#if title || icon}
@@ -56,7 +58,7 @@
 			{@render footer()}
 		</footer>
 	{/if}
-</button>
+</div>
 
 <style>
 	.ka-card {
@@ -111,6 +113,8 @@
 
 	.ka-card-content {
 		padding: 1.25rem;
+		width: 100%;
+		height: fit-content;
 	}
 
 	.ka-card-footer {
