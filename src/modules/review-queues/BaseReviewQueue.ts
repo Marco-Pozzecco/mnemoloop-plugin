@@ -34,18 +34,19 @@ export abstract class BaseReviewQueue<
 	}
 
 	next(): IReviewItem<Entity> | null {
-		if (this._position >= this._items.length - 1) {
+		this._position++;
+		if (this._position >= this._items.length) {
 			return null;
 		}
-		this._position++;
 		return this.current;
 	}
 
 	previous(): IReviewItem<Entity> | null {
-		if (this._position <= 0) {
+		this._position--;
+		if (this._position < 0) {
+			this._position = 0;
 			return null;
 		}
-		this._position--;
 		return this.current;
 	}
 
