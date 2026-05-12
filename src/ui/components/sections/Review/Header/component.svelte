@@ -2,9 +2,19 @@
 	import { Button, Icon, ProgressBar } from '@/ui/components';
 	import type HeaderProps from './types';
 
-	const { position, total, progress, onEndSession, accuracy = 0 , remaining, startTime}: HeaderProps = $props();
+	const {
+		position,
+		total,
+		progress,
+		onEndSession,
+		accuracy = 0,
+		remaining,
+		startTime,
+		onUndo,
+		canUndo,
+	}: HeaderProps = $props();
 
-	let elapsedTime = $state(0) // seconds
+	let elapsedTime = $state(0); // seconds
 
 	const formattedTime = $derived(() => {
 		const minutes = Math.floor(elapsedTime / 60);
@@ -38,7 +48,7 @@
 
 		<span class="ka-stat-item ka-stat-secondary">
 			<Icon name="percent" size={14} />
-			<span>{accuracyPercent()}%</span>
+			<span>{accuracyPercent()}</span>
 		</span>
 
 		<span class="ka-stat-item ka-stat-secondary">
@@ -52,6 +62,15 @@
 	</div>
 
 	<div class="ka-header-actions">
+		<Button
+			variant="secondary"
+			size="small"
+			disabled={!canUndo}
+			onclick={onUndo}
+			ariaLabel="Undo last rating"
+		>
+			<Icon name="undo" size={18} />
+		</Button>
 		<Button variant="secondary" size="small" onclick={onEndSession}>
 			<Icon name="x" size={18} />
 		</Button>
