@@ -7,7 +7,7 @@ import { uiStore, UIStore } from '@/ui/store/ui.store';
 import { sessionStore, SessionStore } from '../store/session.store';
 
 interface IDashboardController {
-	startReview: (type: IndexKey) => Promise<void>;
+	startReview: (type: IndexKey, deckFilter?: string) => Promise<void>;
 }
 
 export class DashboardController implements IDashboardController {
@@ -16,23 +16,23 @@ export class DashboardController implements IDashboardController {
 
 	constructor() {}
 
-	startReview: (type: IndexKey) => Promise<void> = async (type) => {
+	startReview: (type: IndexKey, deckFilter?: string) => Promise<void> = async (type, deckFilter) => {
 		switch (type) {
 			case IndexKey.flashcard:
-				return await this.startFlashcardReview();
+				return await this.startFlashcardReview(deckFilter);
 		}
 	};
 
-	private async startFlashcardReview() {
+	private async startFlashcardReview(deckFilter?: string) {
 		this._uiStore.isLoading = true;
 
 		const predicate = (entity: FlashcardMetadata) =>
 			entity.status === CardStatus.ACTIVE && new Date(entity.due) <= new Date();
-		const list = new FlashcardReviewQueue(predicate);
+		const list = new FlashcardReviewQueue(predicate, deckFilter);
 
 		this._sessionStore.queue = list as IReviewQueue<unknown>;
 
-		this._sessionStore.startSession('flashcard');
+		this._sessionStore.startSession('flashcard', deckFilter);
 
 		EventBus.instance.publish(
 			new FlashcardReviewSessionStartEvent({

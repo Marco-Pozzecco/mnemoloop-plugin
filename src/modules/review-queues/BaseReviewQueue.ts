@@ -11,10 +11,16 @@ export abstract class BaseReviewQueue<
 	protected _items: IReviewItem<Entity>[] = [];
 	protected _position: number = 0;
 	protected _itemsQuery?: (entity: EntityMetadata) => boolean;
+	protected _deckFilter?: string;
 
-	constructor(engine: IReviewEngine<EntityYaml>, query?: (entity: EntityMetadata) => boolean) {
+	constructor(
+		engine: IReviewEngine<EntityYaml>,
+		query?: (entity: EntityMetadata) => boolean,
+		deckFilter?: string,
+	) {
 		this._engine = engine;
 		this._itemsQuery = query;
+		this._deckFilter = deckFilter;
 	}
 
 	get items(): IReviewItem<Entity>[] {

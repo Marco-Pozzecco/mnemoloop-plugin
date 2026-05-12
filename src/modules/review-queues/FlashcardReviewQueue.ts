@@ -16,9 +16,12 @@ export class FlashcardReviewQueue extends BaseReviewQueue<
 > {
 	private _callback: (event: IEvent) => void;
 
-	constructor(predicate?: (entity: FlashcardMetadata) => boolean) {
+	constructor(
+		predicate?: (entity: FlashcardMetadata) => boolean,
+		deckFilter?: string,
+	) {
 		const engine = new FsrsEngine();
-		super(engine, predicate);
+		super(engine, predicate, deckFilter);
 
 		this._callback = (event) => {
 			if (event.isType(FlashcardIndexQueryResponseEvent.type)) {
@@ -31,6 +34,7 @@ export class FlashcardReviewQueue extends BaseReviewQueue<
 		EventBus.instance.request(
 			new FlashcardIndexQueryRequestEvent({
 				predicate: predicate ?? (() => false),
+				deckFilter,
 			}),
 			this._callback,
 		);
@@ -40,6 +44,7 @@ export class FlashcardReviewQueue extends BaseReviewQueue<
 		EventBus.instance.request(
 			new FlashcardIndexQueryRequestEvent({
 				predicate: this._itemsQuery ?? (() => false),
+				deckFilter: this._deckFilter,
 			}),
 			this._callback,
 		);
