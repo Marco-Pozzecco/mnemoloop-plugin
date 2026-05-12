@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { type Flashcard } from '@/schemas';
 	import { gesture } from '@/ui/actions/gestures';
 	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
-	import { Button } from '@/ui/components';
+	import { Button, Card, Skeleton } from '@/ui/components';
 	import type FlashCardProps from './types';
-	import { type Flashcard } from '@/schemas';
 
 	let { item, showingAnswer, onShowAnswer, onSwipeLeft, onSwipeRight, onTap }: FlashCardProps =
 		$props();
@@ -19,7 +19,7 @@
 				flashcard = item.data;
 			}
 			if (!flashcard) {
-				setTimeout(checkData, 25); // Poll until ready
+				setTimeout(checkData, 1000); // Poll until ready
 			}
 		};
 		checkData();
@@ -33,11 +33,15 @@
 	const backOptions: MarkdownOptions = $derived({
 		content: flashcard?.back ?? '',
 	});
+
+	const footerOptions: MarkdownOptions = $derived({
+		content: flashcard?.source ?? '',
+	});
 </script>
 
 <div class="ka-flashcard-wrapper">
 	<div
-		class="ka-card-wrapper"
+		class="ka-flashcard-container"
 		bind:this={cardContainer}
 		use:gesture={{
 			onSwipeLeft,
@@ -48,20 +52,29 @@
 			tapMaxDistance: 10,
 		}}
 	>
-		<div class="ka-card-content">
-			{#if flashcard}
+		{#if flashcard}
+			<Card>
 				{#if showingAnswer}
-					<div class="ka-card-front" use:renderMarkdown={frontOptions}></div>
-					<div class="ka-card-back" use:renderMarkdown={backOptions}></div>
+					<div class="ka-flashcard-front" use:renderMarkdown={frontOptions}></div>
+					<div class="ka-flashcard-back" use:renderMarkdown={backOptions}></div>
 				{:else}
-					<div class="ka-card-front" use:renderMarkdown={frontOptions}></div>
+					<div class="ka-flashcard-front" use:renderMarkdown={frontOptions}></div>
 				{/if}
-			{:else}
-				<div class="ka-loading-state">
-					<p>Loading card...</p>
-				</div>
-			{/if}
-		</div>
+
+				{#snippet footer()}
+					<div class="ka-flashcard-footer">
+						<p class="ka-flashcard-footer-key">Source:</p>
+						{#if flashcard?.source}
+							<div use:renderMarkdown={footerOptions}></div>
+						{:else}
+							<p class="ka-flashcard-footer-value">No source available</p>
+						{/if}
+					</div>
+				{/snippet}
+			</Card>
+		{:else}
+			<Skeleton width="full" height="200px" shape="default" radius="8px" />
+		{/if}
 	</div>
 
 	{#if !showingAnswer}
@@ -88,31 +101,38 @@
 		overflow-y: auto;
 	}
 
-	.ka-card-wrapper {
+	.ka-flashcard-container {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
+		gap: 1.5rem;
 		min-height: 0;
 		overflow-y: auto;
 	}
 
-	.ka-card-content {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		padding: 1.5rem;
-		background-color: var(--background-primary);
-		border-radius: 8px;
-		overflow-y: auto;
-	}
-
-	.ka-card-front,
-	.ka-card-back {
+	.ka-flashcard-front,
+	.ka-flashcard-back {
 		line-height: 1.6;
 	}
 
-	.ka-card-back {
+	.ka-flashcard-footer {
+		font-size: 0.9rem;
+		color: var(--text-muted);
+		display: flex;
+		flex-direction: row;
+		gap: 0.5rem;
+	}
+
+	.ka-flashcard-footer-key {
+		font-weight: bold;
+	}
+
+	.ka-flashcard-footer-value {
+		flex: 1;
+		font-style: italic;
+	}
+
+	.ka-flashcard-back {
 		padding-top: 1rem;
 		border-top: 1px solid var(--background-modifier-border);
 	}
@@ -142,24 +162,7 @@
 		border-radius: 3px;
 	}
 
-	.ka-empty-state {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		text-align: center;
-		gap: 1rem;
-		padding: 3rem;
-		background-color: var(--background-secondary);
-		border-radius: 8px;
-		color: var(--text-muted);
-	}
-
 	@media (max-width: 480px) {
-		.ka-card-content {
-			padding: 1rem;
-		}
-
 		.ka-key-hint {
 			display: none;
 		}

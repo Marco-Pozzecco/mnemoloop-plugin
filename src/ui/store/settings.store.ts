@@ -9,7 +9,6 @@ import {
 	SettingsAdapterUpdateRequestEvent,
 } from '@/modules/events';
 import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from '@/schemas/settings';
-import { Logger } from '@/utils/Logger';
 import { writable, Writable } from 'svelte/store';
 import { BaseStoreManager } from './base.store';
 
@@ -78,8 +77,6 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 
 		// Set value at nested path
 		this.setValueAtPath(currentSettings, path, value);
-		Logger.info('data:', path, value);
-		Logger.info('updated settings:', this.currentSettings);
 
 		const request = new SettingsAdapterUpdateRequestEvent(currentSettings);
 		EventBus.instance.publish(request);

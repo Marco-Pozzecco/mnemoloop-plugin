@@ -1,16 +1,14 @@
 <script lang="ts">
 	import { Dashboard, Review } from '@/ui/components';
 	import { setAppContext } from '@/ui/context/AppContext';
-	import { DashboardController } from '@/ui/controllers/DashboardController';
 	import { uiStore } from '@/ui/store/ui.store';
 	import type { AppProps } from './types';
 
 	// props
-	const { indexes, parsers, app, component }: AppProps = $props();
+	const { app, component }: AppProps = $props();
 
 	// state
 	let currentView = $state(uiStore.currentView);
-	const dashboardController = $derived(new DashboardController(indexes, parsers));
 
 	// subscription
 	uiStore.store.subscribe((state) => {
@@ -25,7 +23,7 @@
 
 <div class="app-container">
 	{#if currentView === 'dashboard'}
-		<Dashboard controller={dashboardController} />
+		<Dashboard />
 	{:else if currentView === 'review'}
 		<Review />
 	{/if}

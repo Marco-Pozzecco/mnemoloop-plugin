@@ -37,18 +37,23 @@ export abstract class BaseIndexer<
 
 	abstract save: () => Promise<void>;
 
-	abstract emit: (action: IndexAction) => void;
+	abstract emit: (action: IndexAction, data?: unknown) => void;
 
 	get: (id: string) => EntityMetadata | undefined = (id) => {
-		return this._cache.get(id);
+		const result = this._cache.get(id);
+		this.emit(IndexAction.Get, result);
+		return result;
 	};
 
 	getAll: () => EntityMetadata[] = () => {
-		return this._cache.getAll();
+		const result = this._cache.getAll();
+		this.emit(IndexAction.GetAll, result);
+		return result;
 	};
 
 	query: (predicate: (entity: EntityMetadata) => boolean) => EntityMetadata[] = (predicate) => {
-		return this._cache.query(predicate);
+		const result = this._cache.query(predicate);
+		return result;
 	};
 
 	create: (id: string, data: EntityMetadata) => EntityMetadata = (id, data) => {
@@ -58,7 +63,7 @@ export abstract class BaseIndexer<
 			throw new Error(IndexError.FAILED_TO_CREATE);
 		}
 
-		this.emit(IndexAction.Create);
+		this.emit(IndexAction.Create, entity);
 
 		return entity;
 	};
@@ -83,7 +88,7 @@ export abstract class BaseIndexer<
 			throw new Error(IndexError.FAILED_TO_UPDATE);
 		}
 
-		this.emit(IndexAction.Update);
+		this.emit(IndexAction.Update, result);
 
 		return result;
 	};
@@ -102,7 +107,7 @@ export abstract class BaseIndexer<
 		const entity = this._cache.get(id);
 		if (!entity) throw new Error(IndexError.NOT_FOUND);
 
-		this.emit(IndexAction.Delete);
+		this.emit(IndexAction.Delete, entity);
 
 		return this._cache.delete(id);
 	};

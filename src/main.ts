@@ -13,6 +13,7 @@ import {
 	GenerateFromSelectionCommand,
 	OpenDashboardCommand,
 	OpenSettingsCommand,
+	SetAllFlashcardsDueNowCommand,
 } from './modules/commands';
 import { FlascardIndexer } from './modules/indexers/FlashcardIndexer';
 import { FlashcardParser } from './modules/parsers/FlashcardParser';
@@ -109,10 +110,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	}
 
 	private async initializeViews() {
-		this.registerView(
-			APP_VIEW,
-			(leaf) => new AppView(this.app, leaf, this._indexes, this._parsers),
-		);
+		this.registerView(APP_VIEW, (leaf) => new AppView(this.app, leaf));
 
 		this.addSettingTab(new SettingsView(this));
 	}
@@ -131,6 +129,10 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 		this._commandRegistry.register(
 			CommandKey.createFlashcardFromFile,
 			new CreateFlashcardFromFileCommand(),
+		);
+		this._commandRegistry.register(
+			CommandKey.setAllFlashcardsDueNow,
+			new SetAllFlashcardsDueNowCommand(),
 		);
 
 		this._commandRegistry.initialize({

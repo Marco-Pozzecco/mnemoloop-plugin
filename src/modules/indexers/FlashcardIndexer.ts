@@ -11,37 +11,44 @@ import {
 import { PluginSettings } from '@/schemas/settings';
 import { Logger } from '@/utils/Logger';
 import { normalizePath } from 'obsidian';
+import { matchesDeckFilter } from '@/utils/deck-utils';
 import { FlashcardAdapter } from '../adapters/FlashcardAdapter';
 import {
 	EventBus,
 	FileWatcherCreateData,
-	FlashcardWatcherCreateEvent,
 	FileWatcherDeleteData,
-	FlashcardWatcherDeleteEvent,
 	FileWatcherModifyData,
-	FlashcardWatcherModifyEvent,
 	FileWatcherRenameData,
-	FlashcardWatcherRenameEvent,
 	FlashcardIndexCreateEvent,
+	FlashcardIndexCreateEventData,
 	FlashcardIndexDeleteEvent,
+	FlashcardIndexDeleteEventData,
 	FlashcardIndexEventData,
 	FlashcardIndexInitializeEvent,
+	FlashcardIndexQueryRequestEvent,
+	FlashcardIndexQueryRequestEventData,
+	FlashcardIndexQueryResponseEvent,
+	FlashcardIndexQueryResponseEventData,
 	FlashcardIndexRecalcRequestEvent,
 	FlashcardIndexRecalcResponseEvent,
 	FlashcardIndexSaveEvent,
 	FlashcardIndexUpdateEvent,
+	FlashcardIndexUpdateEventData,
 	FlashcardReviewSessionScoreEvent,
+	FlashcardWatcherCreateEvent,
+	FlashcardWatcherDeleteEvent,
+	FlashcardWatcherModifyEvent,
+	FlashcardWatcherRenameEvent,
 	IndexAction,
 } from '../events';
 import { FlashcardParser } from '../parsers/FlashcardParser';
 import { BaseIndexer } from './BaseIndexer';
+import { IEventEmitter } from '@/interfaces/IEventEmitter';
 
-export class FlascardIndexer extends BaseIndexer<
-	Flashcard,
-	FlashcardMetadata,
-	FlashcardYaml,
-	FlashcardIndex
-> {
+export class FlascardIndexer
+	extends BaseIndexer<Flashcard, FlashcardMetadata, FlashcardYaml, FlashcardIndex>
+	implements IEventEmitter<IndexAction>
+{
 	private _dirPath = this._settings.data.flashcard.watch.directory;
 
 	constructor(
@@ -58,6 +65,11 @@ export class FlascardIndexer extends BaseIndexer<
 				this.update(cardUUID, card);
 			} else if (event.isType(FlashcardIndexRecalcRequestEvent.type)) {
 				this.emit(IndexAction.Recalc);
+			} else if (event.isType(FlashcardIndexQueryRequestEvent.type)) {
+				const data = (event as FlashcardIndexQueryRequestEvent).data;
+				const combinedPredicate = buildFlashcardQueryPredicate(data);
+				const result = this.query(combinedPredicate);
+				this.emit(IndexAction.Query, result);
 			} else if (event.isType(FlashcardWatcherCreateEvent.type)) {
 				this._handleWatcherCreate((event as FlashcardWatcherCreateEvent).data);
 			} else if (event.isType(FlashcardWatcherModifyEvent.type)) {
@@ -70,26 +82,24 @@ export class FlascardIndexer extends BaseIndexer<
 		});
 	}
 
-	emit: (action: IndexAction) => void = (action) => {
+	emit: (action: IndexAction, data?: unknown) => void = (action, data) => {
 		let event: IEvent | null = null;
 
-		const data: FlashcardIndexEventData = {
-			flashcards: this._cache.getAll(),
-			total: this._cache.size(),
-		};
-
 		if (action === IndexAction.Create) {
-			event = new FlashcardIndexCreateEvent(data);
+			event = new FlashcardIndexCreateEvent(data as FlashcardIndexCreateEventData);
 		} else if (action === IndexAction.Update) {
-			event = new FlashcardIndexUpdateEvent(data);
+			event = new FlashcardIndexUpdateEvent(data as FlashcardIndexUpdateEventData);
 		} else if (action === IndexAction.Delete) {
-			event = new FlashcardIndexDeleteEvent(data);
+			event = new FlashcardIndexDeleteEvent(data as FlashcardIndexDeleteEventData);
 		} else if (action === IndexAction.Recalc) {
+			const data = { flashcards: this._cache.getAll(), total: this._cache.size() };
 			event = new FlashcardIndexRecalcResponseEvent(data);
 		} else if (action === IndexAction.Save) {
-			event = new FlashcardIndexSaveEvent(data);
+			event = new FlashcardIndexSaveEvent(data as FlashcardIndexEventData);
 		} else if (action === IndexAction.Initialize) {
-			event = new FlashcardIndexInitializeEvent(data);
+			event = new FlashcardIndexInitializeEvent(data as FlashcardIndexEventData);
+		} else if (action === IndexAction.Query) {
+			event = new FlashcardIndexQueryResponseEvent(data as FlashcardIndexQueryResponseEventData);
 		}
 
 		if (event) {
@@ -114,7 +124,12 @@ export class FlascardIndexer extends BaseIndexer<
 		}
 
 		await this.save();
-		this.emit(IndexAction.Initialize);
+
+		const data: FlashcardIndexEventData = {
+			flashcards: Object.values(this._cache.dump()),
+			total: this._cache.size(),
+		};
+		this.emit(IndexAction.Initialize, data);
 	};
 
 	save: () => Promise<void> = async () => {
@@ -126,7 +141,12 @@ export class FlascardIndexer extends BaseIndexer<
 		});
 
 		await this._adapter.save();
-		this.emit(IndexAction.Save);
+
+		const data: FlashcardIndexEventData = {
+			flashcards: Object.values(this._cache.dump()),
+			total: this._cache.size(),
+		};
+		this.emit(IndexAction.Save, data);
 	};
 
 	private _findByFilepath(
@@ -144,8 +164,6 @@ export class FlascardIndexer extends BaseIndexer<
 	}
 
 	private async _handleWatcherCreate(data: FileWatcherCreateData): Promise<void> {
-		Logger.debug(`Watcher: handling create for ${data.path}`);
-
 		if (!this._isPathInWatchedDir(data.path)) {
 			return;
 		}
@@ -157,15 +175,12 @@ export class FlascardIndexer extends BaseIndexer<
 			this.upsert(result.entity.uuid, entity);
 
 			await this.save();
-			Logger.info(`Watcher: created flashcard ${result.entity.uuid} from ${data.path}`);
 		} catch (error) {
 			Logger.error(`Watcher: failed to create flashcard from ${data.path}`, error);
 		}
 	}
 
 	private async _handleWatcherModify(data: FileWatcherModifyData): Promise<void> {
-		Logger.debug(`Watcher: handling modify for ${data.path}`);
-
 		if (!this._isPathInWatchedDir(data.path)) {
 			return;
 		}
@@ -176,11 +191,9 @@ export class FlascardIndexer extends BaseIndexer<
 			const result = await this._parser.parseMetadata(data.path);
 			const entity = this._generateMetadata(result);
 			this.update(entity.uuid, entity);
-			Logger.info(`Watcher: updated flashcard ${result.entity.uuid} from ${data.path}`);
 		} catch {
 			if (existing) {
 				this.delete(existing.uuid);
-				Logger.info(`Watcher: deleted flashcard ${existing.uuid} due to parse error`);
 			}
 		}
 
@@ -188,8 +201,6 @@ export class FlascardIndexer extends BaseIndexer<
 	}
 
 	private async _handleWatcherDelete(data: FileWatcherDeleteData): Promise<void> {
-		Logger.debug(`Watcher: handling delete for ${data.path}`);
-
 		if (!this._isPathInWatchedDir(data.path)) {
 			return;
 		}
@@ -198,13 +209,10 @@ export class FlascardIndexer extends BaseIndexer<
 		if (existing) {
 			this.delete(existing.uuid);
 			await this.save();
-			Logger.info(`Watcher: deleted flashcard ${existing.uuid} from ${data.path}`);
 		}
 	}
 
 	private async _handleWatcherRename(data: FileWatcherRenameData): Promise<void> {
-		Logger.debug(`Watcher: handling rename from ${data.oldPath} to ${data.path}`);
-
 		const oldNormalized = normalizePath(data.oldPath);
 		const newNormalized = normalizePath(data.path);
 
@@ -216,9 +224,6 @@ export class FlascardIndexer extends BaseIndexer<
 			const updatedEntity = { ...existing.entity, file: newNormalized };
 			this.upsert(existing.uuid, updatedEntity);
 			await this.save();
-			Logger.info(
-				`Watcher: renamed flashcard ${existing.uuid} from ${data.oldPath} to ${data.path}`,
-			);
 		} else if (this._isPathInWatchedDir(data.path)) {
 			// Not found in old path but new path is in watched dir, treat as create
 			await this._handleWatcherCreate({
@@ -251,5 +256,25 @@ export class FlascardIndexer extends BaseIndexer<
 		}
 
 		return FlashcardMetadataSchema.parse(metadata);
+	};
+
+}
+
+export function buildFlashcardQueryPredicate(
+	data: FlashcardIndexQueryRequestEventData,
+): (f: FlashcardMetadata) => boolean {
+	const base = data.predicate;
+	const filter = data.deckFilter;
+
+	if (!filter) return base;
+
+	if (filter === 'Uncategorized') {
+		return (f: FlashcardMetadata) => base(f) && (!f.decks || f.decks.length === 0);
+	}
+
+	return (f: FlashcardMetadata) => {
+		if (!base(f)) return false;
+		if (!f.decks || f.decks.length === 0) return false;
+		return matchesDeckFilter(f.decks, filter);
 	};
 }

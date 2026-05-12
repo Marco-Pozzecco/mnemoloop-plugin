@@ -1,13 +1,12 @@
 import { IAdapter } from '@/interfaces/IAdapter';
 import { ParseResult } from '@/interfaces/IParser';
-import { CardStatus, Flashcard, type FlashcardContent, type FlashcardYaml } from '@/schemas';
+import { Flashcard, type FlashcardContent, type FlashcardYaml } from '@/schemas';
 import { PluginSettings } from '@/schemas/settings';
 import { ERROR_MESSAGES } from '@/utils/constants';
 import { Logger } from '@/utils/Logger';
 import { normalizePath, Plugin } from 'obsidian';
 import { FlashcardYamlEngine } from '../yaml-engines/FlashcardYamlEngine';
 import { BaseParser } from './BaseParser';
-import { State } from 'ts-fsrs';
 
 export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 	private _settings: IAdapter<PluginSettings>;
@@ -28,7 +27,7 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 				entity: metadata,
 				filepath,
 			};
-		} catch (e) {
+		} catch {
 			// Try recovery
 			await this._yaml.recover(filepath);
 			return this.parseMetadata(filepath);
@@ -92,7 +91,6 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 		const mdFiles = files.filter((f) => f.endsWith('.md'));
 
 		const promises = mdFiles.map(async (file) => {
-			Logger.info('parsing file:', file);
 			return await this.parseMetadata(file);
 		});
 

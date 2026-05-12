@@ -90,6 +90,7 @@ export abstract class BaseYamlEngine<T extends Record<string, unknown>> implemen
 		lines.push('---');
 
 		for (const [key, value] of entries) {
+			if (value === undefined) continue;
 			if (typeof value === 'object') {
 				lines.push(`${key}: ${JSON.stringify(value)}`);
 			} else {

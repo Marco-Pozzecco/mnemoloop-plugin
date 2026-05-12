@@ -1,5 +1,3 @@
-import { IIndexer } from '@/interfaces/IIndexer';
-import { IParser } from '@/interfaces/IParser';
 import { IReviewEngine } from '@/interfaces/IReviewEngine';
 import { IReviewItem } from '@/interfaces/IReviewItem';
 import { IReviewQueue } from '@/interfaces/IReviewQueue';
@@ -9,23 +7,20 @@ export abstract class BaseReviewQueue<
 	EntityMetadata extends EntityYaml,
 	EntityYaml,
 > implements IReviewQueue<Entity> {
-	protected _parser: IParser<Entity, EntityYaml>;
 	protected _engine: IReviewEngine<EntityYaml>;
-	protected _index: IIndexer<EntityMetadata>;
 	protected _items: IReviewItem<Entity>[] = [];
 	protected _position: number = 0;
 	protected _itemsQuery?: (entity: EntityMetadata) => boolean;
+	protected _deckFilter?: string;
 
 	constructor(
-		parser: IParser<Entity, EntityYaml>,
 		engine: IReviewEngine<EntityYaml>,
-		indexer: IIndexer<EntityMetadata>,
 		query?: (entity: EntityMetadata) => boolean,
+		deckFilter?: string,
 	) {
-		this._parser = parser;
 		this._engine = engine;
-		this._index = indexer;
 		this._itemsQuery = query;
+		this._deckFilter = deckFilter;
 	}
 
 	get items(): IReviewItem<Entity>[] {
@@ -45,20 +40,21 @@ export abstract class BaseReviewQueue<
 	}
 
 	next(): IReviewItem<Entity> | null {
-		if (this._position >= this._items.length - 1) {
+		this._position++;
+		if (this._position >= this._items.length) {
 			return null;
 		}
-		this._position++;
 		return this.current;
 	}
 
 	previous(): IReviewItem<Entity> | null {
-		if (this._position <= 0) {
+		this._position--;
+		if (this._position < 0) {
+			this._position = 0;
 			return null;
 		}
-		this._position--;
 		return this.current;
 	}
 
-	abstract recalc(): void;
+	abstract dispose(): void;
 }

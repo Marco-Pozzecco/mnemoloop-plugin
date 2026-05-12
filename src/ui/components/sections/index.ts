@@ -8,6 +8,10 @@ export { default as DashboardProgress } from './Dashboard/Progress/component.sve
 export type { default as DashboardProgressProps } from './Dashboard/Progress/types';
 export { default as DashboardStatsGrid } from './Dashboard/StatsGrid/component.svelte';
 export type { default as DashboardStatsGridProps } from './Dashboard/StatsGrid/types';
+export { default as DeckTree } from './Dashboard/DeckTree/component.svelte';
+export type { default as DeckTreeProps } from './Dashboard/DeckTree/types';
+export { default as DeckTreeNode } from './Dashboard/DeckTreeNode/component.svelte';
+export type { default as DeckTreeNodeProps } from './Dashboard/DeckTreeNode/types';
 export { default as ModalControls } from './Modal/Controls/component.svelte';
 export type { default as ModalControlsProps } from './Modal/Controls/types';
 export { default as ReviewControls } from './Review/Controls/component.svelte';
