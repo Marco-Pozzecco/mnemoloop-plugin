@@ -310,6 +310,36 @@ Additional docs in `docs/` directory:
 
 ---
 
+## Deck System
+
+### Deck Storage
+- Decks are stored as YAML array `decks: string[]` on each flashcard frontmatter
+- Old cards without `decks` parse with `decks: undefined` — they are **never rewritten**
+- New cards are created with `decks: []` via `DEFAULT_FLASHCARD_YAML`
+
+### Nested Deck Syntax
+- Anki-style `::` separator for nested decks (e.g., `Maths::Linear algebra`)
+- Utility functions in `src/utils/deck-utils.ts`: `splitDeckPath`, `getParentDecks`, `matchesDeckFilter`
+- Prefix match filtering: selecting `Maths` includes cards in `Maths::*` sub-decks
+
+### Virtual "Uncategorized"
+- "Uncategorized" is a **UI-only concept** — never persisted to card YAML
+- Cards with `decks: undefined` or `decks: []` appear under "Uncategorized" in the deck tree
+- The label is configurable via `default_deck_name` setting (default: `'Uncategorized'`)
+- Query layer handles `'Uncategorized'` as a special filter matching cards with no decks
+
+### No Migration Policy
+- **No batch rewrite** of existing cards
+- Old cards stay without `decks` forever
+- New cards get `decks: []` on creation
+- This is an intentional design decision to avoid touching user data
+
+### Deck Tree Store
+- `src/ui/store/deck-tree.store.ts` computes tree from `FlashcardIndexRecalcResponseEvent`
+- Virtual normalization happens only in the store (not in query layer or YAML)
+- Parent decks aggregate counts from all children
+- Tree is reactive via Svelte writable store
+
 ## Common Tasks
 
 ### Adding a New Component
