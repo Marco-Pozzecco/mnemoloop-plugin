@@ -8,8 +8,10 @@
 		DashboardFooter,
 		DashboardHeader,
 		DashboardStatsGrid,
+		DeckTree,
 	} from '@/ui/components/sections';
 	import { DashboardController } from '@/ui/controllers/DashboardController';
+	import { deckTreeStore } from '@/ui/store/deck-tree.store';
 	import { statsStore } from '@/ui/store/stats.store';
 	import { uiStore } from '@/ui/store/ui.store';
 	import { onMount } from 'svelte';
@@ -18,11 +20,14 @@
 	// Store references for automatic subscription with $ prefix
 	const statsStoreRef = statsStore.store;
 	const uiStoreRef = uiStore.store;
+	const deckTreeRef = deckTreeStore.store;
 
 	const controller = $derived(new DashboardController());
 
 	// state - using $derived with $ prefix for automatic store subscription
 	let stats = $derived($statsStoreRef);
+	let deckTree = $derived($deckTreeRef);
+	let selectedDeck = $derived(deckTree.selectedDeck);
 	let config: DashboardConfig = $state({
 		chartTimeframe: 'week',
 		chartType: 'heatmap',
@@ -34,7 +39,15 @@
 	let showChart = $derived(config.showProgressChart && stats.flashcard.total_learned > 0);
 
 	function onStartReview() {
-		controller.startReview(IndexKey.flashcard);
+		controller.startReview(IndexKey.flashcard, selectedDeck?.fullPath);
+	}
+
+	function onSelectDeck(fullPath: string | null) {
+		deckTreeStore.selectDeck(fullPath);
+	}
+
+	function onToggleExpand(fullPath: string) {
+		deckTreeStore.toggleExpand(fullPath);
 	}
 
 	function onRefresh() {
@@ -55,10 +68,17 @@
 	<div class="ka-dashboard" role="main">
 		<DashboardHeader {isLoading} {onRefresh} />
 		<DashboardStatsGrid {stats} {config} />
+		<DeckTree nodes={deckTree.nodes} {selectedDeck} {onSelectDeck} {onToggleExpand} />
 		{#if showChart}
 			<DashboardChart {stats} chartType={config.chartType} />
 		{/if}
-		<DashboardFooter {stats} {onStartReview} isDisabled={isReviewDisabled} {isLoading} />
+		<DashboardFooter
+			{stats}
+			{onStartReview}
+			isDisabled={isReviewDisabled}
+			{isLoading}
+			{selectedDeck}
+		/>
 	</div>
 </ErrorWrapper>
 

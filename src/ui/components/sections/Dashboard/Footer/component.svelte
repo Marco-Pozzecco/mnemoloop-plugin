@@ -7,6 +7,7 @@
 		onStartReview,
 		isDisabled = false,
 		isLoading = false,
+		selectedDeck = null,
 		className,
 	}: DashboardFooterProps = $props();
 
@@ -56,6 +57,9 @@
 		{:else if hasNextReview}
 			<Icon name="clock" size={20} />
 			<span>Next review in {countdownDisplay}</span>
+		{:else if selectedDeck}
+			<Icon name="play" size={20} />
+			<span>Review {selectedDeck.name} ({selectedDeck.dueNow} due now)</span>
 		{:else if hasDueCards}
 			<Icon name="play" size={20} />
 			<span>Start Review Session</span>
