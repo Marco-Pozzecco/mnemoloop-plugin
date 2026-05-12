@@ -11,6 +11,7 @@ import {
 import { PluginSettings } from '@/schemas/settings';
 import { Logger } from '@/utils/Logger';
 import { normalizePath } from 'obsidian';
+import { matchesDeckFilter } from '@/utils/deck-utils';
 import { FlashcardAdapter } from '../adapters/FlashcardAdapter';
 import {
 	EventBus,
@@ -25,6 +26,7 @@ import {
 	FlashcardIndexEventData,
 	FlashcardIndexInitializeEvent,
 	FlashcardIndexQueryRequestEvent,
+	FlashcardIndexQueryRequestEventData,
 	FlashcardIndexQueryResponseEvent,
 	FlashcardIndexQueryResponseEventData,
 	FlashcardIndexRecalcRequestEvent,
@@ -65,7 +67,8 @@ export class FlascardIndexer
 				this.emit(IndexAction.Recalc);
 			} else if (event.isType(FlashcardIndexQueryRequestEvent.type)) {
 				const data = (event as FlashcardIndexQueryRequestEvent).data;
-				const result = this.query(data.predicate);
+				const combinedPredicate = buildFlashcardQueryPredicate(data);
+				const result = this.query(combinedPredicate);
 				this.emit(IndexAction.Query, result);
 			} else if (event.isType(FlashcardWatcherCreateEvent.type)) {
 				this._handleWatcherCreate((event as FlashcardWatcherCreateEvent).data);
@@ -253,5 +256,25 @@ export class FlascardIndexer
 		}
 
 		return FlashcardMetadataSchema.parse(metadata);
+	};
+
+}
+
+export function buildFlashcardQueryPredicate(
+	data: FlashcardIndexQueryRequestEventData,
+): (f: FlashcardMetadata) => boolean {
+	const base = data.predicate;
+	const filter = data.deckFilter;
+
+	if (!filter) return base;
+
+	if (filter === 'Uncategorized') {
+		return (f: FlashcardMetadata) => base(f) && (!f.decks || f.decks.length === 0);
+	}
+
+	return (f: FlashcardMetadata) => {
+		if (!base(f)) return false;
+		if (!f.decks || f.decks.length === 0) return false;
+		return matchesDeckFilter(f.decks, filter);
 	};
 }

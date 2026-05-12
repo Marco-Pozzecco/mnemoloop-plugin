@@ -81,6 +81,7 @@ export class FlashcardIndexRecalcResponseEvent extends Event<FlashcardIndexEvent
 
 export type FlashcardIndexQueryRequestEventData = {
 	predicate: (f: FlashcardMetadata) => boolean;
+	deckFilter?: string;
 };
 export class FlashcardIndexQueryRequestEvent extends Event<FlashcardIndexQueryRequestEventData> {
 	static readonly type: IndexEventType = 'Flashcard:Index:Query:Request';
