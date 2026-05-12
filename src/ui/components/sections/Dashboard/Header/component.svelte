@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Button, Icon } from '@/ui/components';
 	import type DashboardHeaderProps from './types';
 
 	export const { className, onRefresh, isLoading } = $props() as DashboardHeaderProps;
@@ -9,17 +8,6 @@
 	<div class="ka-dashboard__title-group">
 		<h1 class="ka-dashboard__title">Learning Dashboard</h1>
 		<p class="ka-dashboard__subtitle">Track your progress and stay consistent</p>
-	</div>
-	<div class="ka-dashboard__actions">
-		<Button
-			variant="secondary"
-			size="small"
-			onclick={onRefresh}
-			disabled={isLoading}
-			title="Refresh statistics"
-		>
-			<Icon name="refresh-cw" size={16} />
-		</Button>
 	</div>
 </header>
 
@@ -44,20 +32,11 @@
 		font-size: var(--font-ui-small);
 	}
 
-	.ka-dashboard__actions {
-		display: flex;
-		gap: 8px;
-	}
-
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
 		.ka-dashboard__header {
 			flex-direction: column;
 			align-items: stretch;
-		}
-
-		.ka-dashboard__actions {
-			justify-content: flex-end;
 		}
 	}
 </style>
