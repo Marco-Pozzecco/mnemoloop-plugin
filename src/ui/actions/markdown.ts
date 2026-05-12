@@ -24,8 +24,22 @@ export function renderMarkdown(
 	const { app, component } = context;
 	let currentOptions = options;
 
+	function handleClick(event: MouseEvent) {
+		const target = event.target as HTMLElement;
+		const link = target.closest('a');
+		if (!link) return;
+
+		if (link.classList.contains('internal-link')) {
+			const href = link.getAttribute('data-href') || link.textContent;
+			event.preventDefault();
+			app.workspace.openLinkText(href, currentOptions.sourcePath ?? '', false);
+		}
+		// external links: let browser handle or window.open()
+	}
+
 	async function doRender() {
 		node.empty();
+		node.addEventListener('click', handleClick);
 		await MarkdownRenderer.render(
 			app,
 			currentOptions.content,
@@ -49,6 +63,7 @@ export function renderMarkdown(
 		},
 		destroy() {
 			node.empty();
+			node.removeEventListener('click', handleClick);
 			// Component cleanup is handled automatically when ItemView closes
 		},
 	};
