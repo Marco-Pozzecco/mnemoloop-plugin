@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { EventBus } from '@/modules/events';
+	import { DashboardOpenEvent } from '@/modules/events/domains/ui/dashboard';
 	import { IndexKey } from '@/types/indexes';
 	import { ErrorWrapper } from '@/ui/components';
 	import {
@@ -7,10 +9,11 @@
 		DashboardHeader,
 		DashboardStatsGrid,
 	} from '@/ui/components/sections';
+	import { DashboardController } from '@/ui/controllers/DashboardController';
 	import { statsStore } from '@/ui/store/stats.store';
 	import { uiStore } from '@/ui/store/ui.store';
+	import { onMount } from 'svelte';
 	import type { DashboardConfig } from './types';
-	import { DashboardController } from '@/ui/controllers/DashboardController';
 
 	// Store references for automatic subscription with $ prefix
 	const statsStoreRef = statsStore.store;
@@ -37,6 +40,10 @@
 	function onRefresh() {
 		//
 	}
+
+	onMount(() => {
+		EventBus.instance.publish(new DashboardOpenEvent());
+	});
 </script>
 
 <ErrorWrapper
@@ -45,7 +52,7 @@
 	maxRetries={3}
 	errorContext="DashboardView"
 >
-	<div class="ka-dashboard" role="main" aria-label="Learning Dashboard">
+	<div class="ka-dashboard" role="main">
 		<DashboardHeader {isLoading} {onRefresh} />
 		<DashboardStatsGrid {stats} {config} />
 		{#if showChart}
