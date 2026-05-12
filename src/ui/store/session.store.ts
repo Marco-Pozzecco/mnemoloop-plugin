@@ -19,6 +19,7 @@ export interface SessionState<T = unknown> {
 	isAnswerShowing: boolean;
 	session_id: string | null;
 	review_type: string;
+	deck_filter: string | null;
 	start_time: number | null;
 	total_count: number;
 	correct_count: number;
@@ -38,6 +39,7 @@ export const DefaultSessionState: SessionState = {
 	isAnswerShowing: false,
 	session_id: null,
 	review_type: '',
+	deck_filter: null,
 	start_time: null,
 	total_count: 0,
 	correct_count: 0,
@@ -77,11 +79,12 @@ export class SessionStore<T = unknown> extends BaseStoreManager<SessionState<T>>
 		this.store.update((state) => ({ ...state, isAnswerShowing: false }));
 	}
 
-	startSession(reviewType: string): void {
+	startSession(reviewType: string, deckFilter?: string): void {
 		this.store.update((state) => ({
 			...state,
 			session_id: uuid(),
 			review_type: reviewType,
+			deck_filter: deckFilter ?? null,
 			start_time: Date.now(),
 			total_count: 0,
 			correct_count: 0,
