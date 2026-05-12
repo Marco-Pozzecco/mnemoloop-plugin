@@ -71,7 +71,7 @@ export class FlashcardWriterDeleteResponseEvent extends Event<FlashcardDeleteRes
 	}
 }
 
-type FlashcardWriterFmRequestData = Partial<FlashcardYaml>;
+type FlashcardWriterFmRequestData = { fm: Partial<FlashcardYaml>; filepath: string };
 
 export class FlashcardWriterFmRequestEvent extends Event<FlashcardWriterFmRequestData> {
 	static readonly type: WriterEventType = 'Flashcard:Writer:Fm:Request';
