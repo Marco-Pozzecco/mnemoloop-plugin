@@ -14,6 +14,8 @@ export { default as ProgressBar } from './ProgressBar/component.svelte';
 export type { default as ProgressBarProps } from './ProgressBar/types';
 export { default as Select } from './Select/component.svelte';
 export type { default as SelectProps } from './Select/types';
+export { default as Skeleton } from './Skeleton/component.svelte';
+export type { default as SkeletonProps } from './Skeleton/types';
 export { default as Slider } from './Slider/component.svelte';
 export type { default as SliderProps } from './Slider/types';
 export { default as Toggle } from './Toggle/component.svelte';
