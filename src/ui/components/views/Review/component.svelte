@@ -31,6 +31,7 @@
 	const controller = $derived(new ReviewController(sessionState.queue!));
 
 	let isGesturing = $state(false);
+	let containerRef: HTMLDivElement;
 
 	const showingAnswer = $derived(sessionState.isAnswerShowing);
 	const item = $derived(controller.current);
@@ -40,6 +41,10 @@
 	const total = $derived(controller.total);
 
 	function handleKeyDown(event: KeyboardEvent) {
+		// Only handle keys when the review view is actually visible (not hidden behind another tab)
+		if (!containerRef || containerRef.offsetParent === null) {
+			return;
+		}
 		if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
 			return;
 		}
@@ -132,7 +137,7 @@
 	});
 </script>
 
-<div class="ka-review-container">
+<div bind:this={containerRef} class="ka-review-container">
 	<Card className="ka-review-header">
 		<ReviewHeader {...headerProps} />
 	</Card>
