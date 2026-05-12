@@ -63,8 +63,12 @@
 
 				{#snippet footer()}
 					<div class="ka-flashcard-footer">
-						<p>Source:</p>
-						<div use:renderMarkdown={footerOptions}></div>
+						<p class="ka-flashcard-footer-key">Source:</p>
+						{#if flashcard?.source}
+							<div use:renderMarkdown={footerOptions}></div>
+						{:else}
+							<p class="ka-flashcard-footer-value">No source available</p>
+						{/if}
 					</div>
 				{/snippet}
 			</Card>
@@ -117,6 +121,15 @@
 		display: flex;
 		flex-direction: row;
 		gap: 0.5rem;
+	}
+
+	.ka-flashcard-footer-key {
+		font-weight: bold;
+	}
+
+	.ka-flashcard-footer-value {
+		flex: 1;
+		font-style: italic;
 	}
 
 	.ka-flashcard-back {
