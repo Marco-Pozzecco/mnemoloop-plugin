@@ -91,7 +91,6 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 		const mdFiles = files.filter((f) => f.endsWith('.md'));
 
 		const promises = mdFiles.map(async (file) => {
-			Logger.info('parsing file:', file);
 			return await this.parseMetadata(file);
 		});
 

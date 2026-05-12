@@ -221,9 +221,6 @@ export class FlascardIndexer
 			const updatedEntity = { ...existing.entity, file: newNormalized };
 			this.upsert(existing.uuid, updatedEntity);
 			await this.save();
-			Logger.info(
-				`Watcher: renamed flashcard ${existing.uuid} from ${data.oldPath} to ${data.path}`,
-			);
 		} else if (this._isPathInWatchedDir(data.path)) {
 			// Not found in old path but new path is in watched dir, treat as create
 			await this._handleWatcherCreate({

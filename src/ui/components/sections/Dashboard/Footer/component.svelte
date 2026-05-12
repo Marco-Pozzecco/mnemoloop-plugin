@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Button, Icon } from '@/ui/components';
-	import { Logger } from '@/utils/Logger';
 	import type DashboardFooterProps from './types';
 
 	let {
@@ -14,10 +13,6 @@
 	let hasDueCards = $derived(stats.flashcard.due_now > 0);
 	let hasNextReview = $derived(new Date(stats.flashcard.next_review) > new Date() && !hasDueCards);
 	let countdownDisplay = $state(formatCountdown(getSecondsUntilNextReview()));
-
-	$effect(() => {
-		Logger.info('Stats', stats);
-	});
 
 	$effect(() => {
 		const interval = setInterval(() => {
