@@ -4,3 +4,4 @@ export * from './parsers';
 export * from './watcher';
 export * from './review';
 export * from './writer';
+export * from './ui/dashboard';
