@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Button, Icon } from '@/ui/components';
+	import { Logger } from '@/utils/Logger';
 	import type DashboardFooterProps from './types';
 
 	let {
@@ -10,10 +11,13 @@
 		className,
 	}: DashboardFooterProps = $props();
 
-
 	let hasDueCards = $derived(stats.flashcard.due_now > 0);
 	let hasNextReview = $derived(new Date(stats.flashcard.next_review) > new Date() && !hasDueCards);
 	let countdownDisplay = $state(formatCountdown(getSecondsUntilNextReview()));
+
+	$effect(() => {
+		Logger.info('Stats', stats);
+	});
 
 	$effect(() => {
 		const interval = setInterval(() => {
@@ -65,10 +69,6 @@
 			<span>All Caught Up!</span>
 		{/if}
 	</Button>
-	<Button variant="secondary" size="large" className="ka-learn-button">
-		<Icon name="book" size={20} />
-		Learn ahead
-	</Button>
 </div>
 
 <style>
@@ -80,13 +80,7 @@
 	}
 
 	:global(.ka-start-button) {
-		width: 100%;
-		max-width: 400px;
-		gap: 12px;
-	}
-
-	:global(.ka-learn-button) {
-		width: 100%;
+		width: max-content;
 		max-width: 400px;
 		gap: 12px;
 	}
