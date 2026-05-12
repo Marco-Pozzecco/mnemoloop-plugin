@@ -1,29 +1,33 @@
 <script lang="ts">
+	import { EventBus } from '@/modules/events';
+	import { DashboardOpenEvent } from '@/modules/events/domains/ui/dashboard';
 	import { IndexKey } from '@/types/indexes';
 	import { ErrorWrapper } from '@/ui/components';
 	import {
 		DashboardChart,
 		DashboardFooter,
 		DashboardHeader,
-		DashboardProgress,
 		DashboardStatsGrid,
+		DeckTree,
 	} from '@/ui/components/sections';
-	import { sessionStore } from '@/ui/store/session.store';
+	import { DashboardController } from '@/ui/controllers/DashboardController';
+	import { deckTreeStore } from '@/ui/store/deck-tree.store';
 	import { statsStore } from '@/ui/store/stats.store';
 	import { uiStore } from '@/ui/store/ui.store';
-	import type DashboardProps from './types';
+	import { onMount } from 'svelte';
 	import type { DashboardConfig } from './types';
 
 	// Store references for automatic subscription with $ prefix
 	const statsStoreRef = statsStore.store;
 	const uiStoreRef = uiStore.store;
-	const sessionStoreRef = sessionStore.store;
+	const deckTreeRef = deckTreeStore.store;
 
-	// props
-	const { controller }: DashboardProps = $props();
+	const controller = $derived(new DashboardController());
 
 	// state - using $derived with $ prefix for automatic store subscription
 	let stats = $derived($statsStoreRef);
+	let deckTree = $derived($deckTreeRef);
+	let selectedDeck = $derived(deckTree.selectedDeck);
 	let config: DashboardConfig = $state({
 		chartTimeframe: 'week',
 		chartType: 'heatmap',
@@ -31,17 +35,28 @@
 		showRetentionRate: true,
 	});
 	let isLoading = $derived($uiStoreRef.isLoading);
-	let session = $derived($sessionStoreRef);
-	let isReviewDisabled = $derived(session.queue?.size === 0 || isLoading);
+	let isReviewDisabled = $derived(stats.flashcard.due_now === 0);
 	let showChart = $derived(config.showProgressChart && stats.flashcard.total_learned > 0);
 
 	function onStartReview() {
-		controller.startReview(IndexKey.flashcard);
+		controller.startReview(IndexKey.flashcard, selectedDeck?.fullPath);
+	}
+
+	function onSelectDeck(fullPath: string | null) {
+		deckTreeStore.selectDeck(fullPath);
+	}
+
+	function onToggleExpand(fullPath: string) {
+		deckTreeStore.toggleExpand(fullPath);
 	}
 
 	function onRefresh() {
 		//
 	}
+
+	onMount(() => {
+		EventBus.instance.publish(new DashboardOpenEvent());
+	});
 </script>
 
 <ErrorWrapper
@@ -50,14 +65,20 @@
 	maxRetries={3}
 	errorContext="DashboardView"
 >
-	<div class="ka-dashboard" role="main" aria-label="Learning Dashboard">
+	<div class="ka-dashboard" role="main">
 		<DashboardHeader {isLoading} {onRefresh} />
 		<DashboardStatsGrid {stats} {config} />
-		<DashboardProgress {stats} />
+		<DeckTree nodes={deckTree.nodes} {selectedDeck} {onSelectDeck} {onToggleExpand} />
 		{#if showChart}
 			<DashboardChart {stats} chartType={config.chartType} />
 		{/if}
-		<DashboardFooter {stats} {onStartReview} isDisabled={isReviewDisabled} {isLoading} />
+		<DashboardFooter
+			{stats}
+			{onStartReview}
+			isDisabled={isReviewDisabled}
+			{isLoading}
+			{selectedDeck}
+		/>
 	</div>
 </ErrorWrapper>
 

@@ -16,6 +16,7 @@ export const FlashcardYamlSchema = FSRSParams.extend({
 		.regex(/^\[\[.*\]\]$/, 'Must be valid Obsidian link format')
 		.nullable(),
 	status: z.enum(CardStatus),
+	decks: z.array(z.string()),
 });
 
 export const FlashcardMetadataSchema = FlashcardYamlSchema.extend({
@@ -47,6 +48,7 @@ export const DEFAULT_FLASHCARD_YAML: Omit<FlashcardYaml, 'uuid'> = {
 	...DEFAULT_FSRS,
 	source: null,
 	status: CardStatus.ACTIVE,
+	decks: [],
 };
 
 export const DEFAULT_FLASHCARD_METADATA: Omit<FlashcardMetadata, 'uuid' | 'file'> = {

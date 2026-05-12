@@ -1,47 +1,60 @@
-import { IIndexer } from '@/interfaces/IIndexer';
-import { IParser } from '@/interfaces/IParser';
 import { Flashcard, FlashcardMetadata, FlashcardYaml } from '@/schemas';
+import {
+	EventBus,
+	FlashcardIndexQueryRequestEvent,
+	FlashcardIndexQueryResponseEvent,
+} from '../events';
 import { FsrsEngine } from '../review-engines/FsrsEngine';
 import { FlashcardReviewItem } from '../review-items/FlashcardReviewItem';
 import { BaseReviewQueue } from './BaseReviewQueue';
+import { IEvent } from '@/interfaces/IEvent';
 
 export class FlashcardReviewQueue extends BaseReviewQueue<
 	Flashcard,
 	FlashcardMetadata,
 	FlashcardYaml
 > {
+	private _callback: (event: IEvent) => void;
+
 	constructor(
-		parser: IParser<Flashcard, FlashcardYaml>,
-		index: IIndexer<FlashcardMetadata>,
 		predicate?: (entity: FlashcardMetadata) => boolean,
+		deckFilter?: string,
 	) {
 		const engine = new FsrsEngine();
-		super(parser, engine, index, predicate);
-		let entities: FlashcardMetadata[] = [];
+		super(engine, predicate, deckFilter);
 
-		if (predicate) {
-			entities = this._index.query(predicate);
-		} else {
-			entities = this._index.getAll();
-		}
+		this._callback = (event) => {
+			if (event.isType(FlashcardIndexQueryResponseEvent.type)) {
+				const data = (event as FlashcardIndexQueryResponseEvent).data;
+				const sortedData = this._engine.sort(data);
+				this._items = sortedData.map((f) => new FlashcardReviewItem(f.file, engine));
+			}
+		};
 
-		const sortedEntities = this._engine.sort(entities);
-		this._items = sortedEntities.map((item) => new FlashcardReviewItem(item.file, engine, parser));
+		EventBus.instance.request(
+			new FlashcardIndexQueryRequestEvent({
+				predicate: predicate ?? (() => false),
+				deckFilter,
+			}),
+			this._callback,
+		);
 	}
 
 	recalc(): void {
-		let entities = [];
-
-		if (this._itemsQuery) {
-			entities = this._index.query(this._itemsQuery);
-		} else {
-			entities = this._index.getAll();
-		}
-
-		const sortedEntities = this._engine.sort(entities);
-		this._items = sortedEntities.map(
-			(item) => new FlashcardReviewItem(item.file, this._engine, this._parser),
+		EventBus.instance.request(
+			new FlashcardIndexQueryRequestEvent({
+				predicate: this._itemsQuery ?? (() => false),
+				deckFilter: this._deckFilter,
+			}),
+			this._callback,
 		);
+
 		this._position = 0;
+	}
+
+	dispose(): void {
+		for (const item of this._items) {
+			item.dispose();
+		}
 	}
 }

@@ -19,6 +19,7 @@ import {
 	FlashcardReviewSessionScoreEvent,
 	FlashcardWriterCreateRequestEvent,
 	FlashcardWriterCreateResponseEvent,
+	FlashcardWriterFmRequestEvent,
 } from '../domains';
 import { AdapterKey } from '@/types/adapters';
 import { ParserKey } from '@/types/parsers';
@@ -29,6 +30,7 @@ export class FlashcardWriterProcessor extends EventProcessor {
 	protected readonly eventTypes: string[] = [
 		FlashcardWriterCreateRequestEvent.type,
 		FlashcardReviewSessionScoreEvent.type,
+		FlashcardWriterFmRequestEvent.type,
 	];
 
 	private readonly _writer: IWriter<Flashcard, FlashcardYaml, FlashcardContent>;
@@ -66,7 +68,9 @@ export class FlashcardWriterProcessor extends EventProcessor {
 	protected process(event: IEvent): void {
 		if (event.isType(FlashcardReviewSessionScoreEvent.type)) {
 			this._handleReview(event as FlashcardReviewSessionScoreEvent);
-		} else {
+		} else if (event.isType(FlashcardWriterFmRequestEvent.type)) {
+			this._handleFmRequest(event as FlashcardWriterFmRequestEvent);
+		} else if (event.isType(FlashcardWriterCreateRequestEvent.type)) {
 			this._handleCreate(event as FlashcardWriterCreateRequestEvent);
 		}
 	}
@@ -106,6 +110,11 @@ export class FlashcardWriterProcessor extends EventProcessor {
 
 	private async _handleReview(event: FlashcardReviewSessionScoreEvent): Promise<void> {
 		const { filepath, ...fm } = event.data;
+		this._writer.updateFrontmatter(filepath, fm);
+	}
+
+	private async _handleFmRequest(event: FlashcardWriterFmRequestEvent): Promise<void> {
+		const { filepath, fm } = event.data;
 		this._writer.updateFrontmatter(filepath, fm);
 	}
 }

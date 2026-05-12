@@ -11,3 +11,5 @@ Thumbs.db
 coverage/
 .vscode/
 .idea/
+.pi-subagents-output
+docs

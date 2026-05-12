@@ -11,7 +11,7 @@
 <div class="ka-dashboard__stats-grid {className}">
 	<div class="ka-stat-card">
 		<span class="ka-stat-card__label">Due</span>
-		<span class="ka-stat-card__value">{stats.flashcard.due_today}</span>
+		<span class="ka-stat-card__value">{stats.flashcard.due_now}</span>
 		<span class="ka-stat-card__description">cards to review</span>
 	</div>
 

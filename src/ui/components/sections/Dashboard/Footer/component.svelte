@@ -7,18 +7,15 @@
 		onStartReview,
 		isDisabled = false,
 		isLoading = false,
+		selectedDeck = null,
 		className,
 	}: DashboardFooterProps = $props();
 
-	let isRefreshing = $state(false);
-
-	let hasDueCards = $derived(stats.flashcard.due_today > 0);
-	let hasNextReview = $derived(new Date(stats.flashcard.next_review) > new Date());
+	let hasDueCards = $derived(stats.flashcard.due_now > 0);
+	let hasNextReview = $derived(new Date(stats.flashcard.next_review) > new Date() && !hasDueCards);
 	let countdownDisplay = $state(formatCountdown(getSecondsUntilNextReview()));
 
 	$effect(() => {
-		isRefreshing = true;
-
 		const interval = setInterval(() => {
 			const seconds = getSecondsUntilNextReview();
 			if (seconds <= 0) {
@@ -29,8 +26,6 @@
 			}
 			countdownDisplay = formatCountdown(seconds);
 		}, 1000);
-
-		isRefreshing = false;
 
 		return () => clearInterval(interval);
 	});
@@ -62,6 +57,9 @@
 		{:else if hasNextReview}
 			<Icon name="clock" size={20} />
 			<span>Next review in {countdownDisplay}</span>
+		{:else if selectedDeck}
+			<Icon name="play" size={20} />
+			<span>Review {selectedDeck.name} ({selectedDeck.dueNow} due now)</span>
 		{:else if hasDueCards}
 			<Icon name="play" size={20} />
 			<span>Start Review Session</span>
@@ -69,10 +67,6 @@
 			<Icon name="check-circle" size={20} />
 			<span>All Caught Up!</span>
 		{/if}
-	</Button>
-	<Button variant="secondary" size="large" className="ka-learn-button">
-		<Icon name="book" size={20} />
-		Learn ahead
 	</Button>
 </div>
 
@@ -85,13 +79,7 @@
 	}
 
 	:global(.ka-start-button) {
-		width: 100%;
-		max-width: 400px;
-		gap: 12px;
-	}
-
-	:global(.ka-learn-button) {
-		width: 100%;
+		width: max-content;
 		max-width: 400px;
 		gap: 12px;
 	}

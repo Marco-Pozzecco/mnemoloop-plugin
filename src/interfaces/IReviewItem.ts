@@ -1,4 +1,7 @@
 export interface IReviewItem<Entity> {
 	readonly data: Entity | null;
-	review: <Score extends number>(score: Score) => void;
+	readonly id: string;
+	review<Score extends number>(score: Score): void;
+	restore(due: string | null, stability: number | null, difficulty: number | null): void;
+	dispose(): void;
 }
