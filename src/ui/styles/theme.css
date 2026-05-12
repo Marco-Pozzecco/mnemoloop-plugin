@@ -64,6 +64,21 @@
   --ka-transition-normal: 0.2s ease;
   --ka-transition-slow: 0.3s ease;
 
+  /* Animation Durations (Phase 0) */
+  --ka-animation-duration-fast: 150ms;
+  --ka-animation-duration-normal: 300ms;
+  --ka-animation-duration-slow: 400ms;
+  --ka-animation-duration-flip: 400ms;
+  --ka-animation-duration-slide: 300ms;
+
+  /* Animation Easings (Phase 0) */
+  --ka-easing-default: ease;
+  --ka-easing-in: ease-in;
+  --ka-easing-out: ease-out;
+  --ka-easing-in-out: ease-in-out;
+  --ka-easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ka-easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
   /* Z-Index */
   --ka-z-base: 1;
   --ka-z-dropdown: 100;
@@ -148,6 +163,12 @@
   --ka-rating-hard: var(--text-warning);
   --ka-rating-good: var(--text-accent);
   --ka-rating-easy: var(--text-success);
+
+  /* Rating colors with alpha (Phase 0) - for borders, backgrounds */
+  --ka-rating-again-alpha: rgba(239, 68, 68, 0.2);
+  --ka-rating-hard-alpha: rgba(245, 158, 11, 0.2);
+  --ka-rating-good-alpha: rgba(59, 130, 246, 0.2);
+  --ka-rating-easy-alpha: rgba(34, 197, 94, 0.2);
 }
 
 .theme-dark {
