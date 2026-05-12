@@ -4,17 +4,17 @@
 		ReviewControls,
 		ReviewEmptyState,
 		ReviewFlashCard,
-		ReviewFooter,
 		ReviewHeader,
 		type ReviewEmptyStateProps,
 		type ReviewFlashCardProps,
-		type ReviewFooterProps,
 		type ReviewHeaderProps,
 	} from '@/ui/components/sections';
 	import { ReviewController } from '@/ui/controllers/ReviewController';
 	import { sessionStore, SessionStore } from '@/ui/store/session.store';
+	import { Logger } from '@/utils/Logger';
 	import { onDestroy, onMount } from 'svelte';
 	import { Rating } from 'ts-fsrs';
+	import { Card } from '../../elements';
 
 	const store = sessionStore as SessionStore<Flashcard>;
 	let sessionState = $derived(store.state);
@@ -35,7 +35,7 @@
 
 	const showingAnswer = $derived(sessionState.isAnswerShowing);
 	const item = $derived(controller.current);
-	const position = $derived(controller.position + 1);
+	const position = $derived(controller.position);
 	const progress = $derived(controller.progress);
 	const remaining = $derived(controller.remaining);
 	const total = $derived(controller.total);
@@ -55,10 +55,8 @@
 			if (showingAnswer) handleSubmitRating(3);
 		} else if (event.key === '4') {
 			if (showingAnswer) handleSubmitRating(4);
-		} else if (event.key.toLowerCase() === 'n') {
-			handleNextCard();
-		} else if (event.key.toLowerCase() === 'p') {
-			handlePreviousCard();
+		} else if (event.key.toLowerCase() === 'u') {
+			handleUndo();
 		}
 	}
 
@@ -69,18 +67,13 @@
 	function handleSubmitRating(rating: Rating) {
 		store.hideAnswer();
 		if (!item) return;
-		item.review(rating as Rating);
-		handleNextCard();
-	}
-
-	function handleNextCard() {
+		controller.scoreItem(rating);
 		store.hideAnswer();
 		controller.getNextItem();
 	}
 
-	function handlePreviousCard() {
-		store.hideAnswer();
-		controller!.getPreviousItem();
+	function handleUndo() {
+		controller!.undoReview();
 	}
 
 	function handleEndSession() {
@@ -90,16 +83,12 @@
 	function handleSwipeLeft() {
 		if (showingAnswer) {
 			handleSubmitRating(1);
-		} else {
-			handlePreviousCard();
 		}
 	}
 
 	function handleSwipeRight() {
 		if (showingAnswer) {
 			handleSubmitRating(3);
-		} else {
-			handleShowAnswer();
 		}
 	}
 
@@ -117,14 +106,22 @@
 		window.removeEventListener('keydown', handleKeyDown);
 	});
 
+	$effect(() => {
+		Logger.info('SessionState', sessionState);
+		Logger.info('Item', item);
+	});
+
 	const headerProps: ReviewHeaderProps = $derived({
 		position,
 		total,
 		remaining,
 		progress,
-		accuracy: sessionState.correct_count / sessionState.total_count,
+		accuracy:
+			sessionState.total_count > 0 ? sessionState.correct_count / sessionState.total_count : 0,
 		startTime: sessionState.start_time ?? Date.now(),
 		onEndSession: handleEndSession,
+		onUndo: handleUndo,
+		canUndo: controller!.canUndo(),
 	});
 
 	const flashCardProps: ReviewFlashCardProps = $derived({
@@ -139,19 +136,12 @@
 	const emptyStateProps: ReviewEmptyStateProps = $derived({
 		onEndSession: handleEndSession,
 	});
-
-	const footerProps: ReviewFooterProps = $derived({
-		position,
-		total,
-		onPrevious: handlePreviousCard,
-		onNext: handleNextCard,
-	});
 </script>
 
 <div class="ka-review-container">
-	<header class="ka-review-header">
+	<Card className="ka-review-header">
 		<ReviewHeader {...headerProps} />
-	</header>
+	</Card>
 
 	<main class="ka-review-main">
 		{#if item}
@@ -166,10 +156,6 @@
 			<ReviewEmptyState {...emptyStateProps} />
 		{/if}
 	</main>
-
-	<footer class="ka-review-footer">
-		<ReviewFooter {...footerProps} />
-	</footer>
 </div>
 
 <style>
@@ -188,7 +174,7 @@
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		justify-content: center;
+		justify-content: start;
 		gap: 2rem;
 		min-height: 0;
 	}
@@ -197,12 +183,6 @@
 		display: flex;
 		justify-content: center;
 		min-height: 100px;
-	}
-
-	.ka-review-footer {
-		display: flex;
-		justify-content: center;
-		padding-bottom: 1rem;
 	}
 
 	@media (max-width: 480px) {

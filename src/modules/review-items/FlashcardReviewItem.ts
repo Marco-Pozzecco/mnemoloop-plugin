@@ -5,6 +5,7 @@ import {
 	FlashcardParserParseRequestEvent,
 	FlashcardParserParseResponseEvent,
 	FlashcardReviewSessionScoreEvent,
+	FlashcardWriterFmRequestEvent,
 } from '../events';
 import { BaseReviewItem } from './BaseReviewItem';
 import { EventCallback } from '@/interfaces/IEventBus';
@@ -56,6 +57,17 @@ export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml
 		if (difficulty !== null) {
 			this._data.difficulty = difficulty;
 		}
+
+		const event = new FlashcardWriterFmRequestEvent({
+			fm: {
+				due: this._data.due,
+				stability: this._data.stability,
+				difficulty: this._data.difficulty,
+			},
+			filepath: this._filepath,
+		});
+
+		EventBus.instance.publish(event);
 	}
 
 	dispose(): void {
