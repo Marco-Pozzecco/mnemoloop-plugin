@@ -32,6 +32,9 @@ export default defineConfig(({ mode }) => {
 	const isProduction = mode === 'production';
 
 	return {
+		define: {
+			__DEV__: JSON.stringify(!isProduction),
+		},
 		resolve: {
 			alias: {
 				'@/*': resolve(__dirname, './src/*'),
