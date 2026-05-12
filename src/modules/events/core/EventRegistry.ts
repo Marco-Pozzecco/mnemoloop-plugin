@@ -77,8 +77,6 @@ export class EventRegistry implements IEventRegistry {
 	 * Initialize all registered processors by calling their factories with dependencies.
 	 */
 	public initialize(deps: IEventRegistryDependencies): void {
-		Logger.info('EventRegistry: Initializing processors');
-
 		for (const [key, factory] of this._factories) {
 			if (this._processors.has(key)) {
 				Logger.debug(`EventRegistry: Processor "${key}" already initialized, skipping`);
@@ -93,16 +91,12 @@ export class EventRegistry implements IEventRegistry {
 				Logger.error(`EventRegistry: Failed to initialize processor "${key}"`, error);
 			}
 		}
-
-		Logger.info(`EventRegistry: Initialized ${this._processors.size} processor(s)`);
 	}
 
 	/**
 	 * Dispose all initialized processors and clear the registry.
 	 */
 	public dispose(): void {
-		Logger.info('EventRegistry: Disposing processors');
-
 		for (const [key, processor] of this._processors) {
 			try {
 				processor.dispose();
@@ -114,8 +108,6 @@ export class EventRegistry implements IEventRegistry {
 
 		this._processors.clear();
 		this._factories.clear();
-
-		Logger.info('EventRegistry: All processors disposed');
 	}
 
 	/**

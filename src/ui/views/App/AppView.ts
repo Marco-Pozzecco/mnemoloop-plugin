@@ -43,8 +43,6 @@ export class AppView extends ItemView {
 	 */
 	async onOpen(): Promise<void> {
 		try {
-			Logger.info('Opening Knowledge Accelerator view');
-
 			// Load the Svelte component
 			this._component = mount(Home, {
 				target: this.contentEl,
@@ -53,8 +51,6 @@ export class AppView extends ItemView {
 					component: this,
 				} as AppProps,
 			});
-
-			Logger.info('Knowledge Accelerator view opened successfully');
 		} catch (error) {
 			Logger.error('Failed to open Home view:', error);
 			this.containerEl.createEl('div', { text: 'Failed to load Knowledge Accelerator' });
@@ -66,15 +62,11 @@ export class AppView extends ItemView {
 	 */
 	async onClose(): Promise<void> {
 		try {
-			Logger.info('Closing Knowledge Accelerator view');
-
 			// Clean up Svelte component
 			if (this._component) {
 				unmount(this._component);
 				this._component = null;
 			}
-
-			Logger.info('Knowledge Accelerator view closed successfully');
 		} catch (error) {
 			Logger.error('Failed to close Home view:', error);
 		}

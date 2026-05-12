@@ -11,7 +11,6 @@
 	} from '@/ui/components/sections';
 	import { ReviewController } from '@/ui/controllers/ReviewController';
 	import { sessionStore, SessionStore } from '@/ui/store/session.store';
-	import { Logger } from '@/utils/Logger';
 	import { onDestroy, onMount } from 'svelte';
 	import { Rating } from 'ts-fsrs';
 	import { Card } from '../../elements';
@@ -104,11 +103,6 @@
 
 	onDestroy(() => {
 		window.removeEventListener('keydown', handleKeyDown);
-	});
-
-	$effect(() => {
-		Logger.info('SessionState', sessionState);
-		Logger.info('Item', item);
 	});
 
 	const headerProps: ReviewHeaderProps = $derived({
