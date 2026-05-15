@@ -120,6 +120,11 @@
 
 	/* Mobile-first responsive adjustments */
 	@media (max-width: 480px) {
+		:global(button.ml-button--small) {
+			min-height: 40px;
+			padding: 0 14px;
+		}
+
 		:global(button.ml-button--large) {
 			width: 100%;
 		}

@@ -64,7 +64,6 @@
 	.ml-card {
 		background-color: var(--background-secondary);
 		border-radius: var(--card-radius, 8px);
-		overflow: hidden;
 		transition:
 			box-shadow 0.2s ease,
 			transform 0.2s ease;
@@ -160,8 +159,7 @@
 		.ml-card-header,
 		.ml-card-content,
 		.ml-card-footer {
-			padding-left: 1rem;
-			padding-right: 1rem;
+			padding: 0.75rem 1rem;
 		}
 	}
 </style>

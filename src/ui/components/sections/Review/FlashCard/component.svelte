@@ -170,5 +170,18 @@
 		:global(.ml-show-answer-button) {
 			height: 44px !important;
 		}
+
+		.ml-show-answer-wrapper {
+			min-height: 60px;
+			padding: 0.5rem 0;
+		}
+
+		.ml-flashcard-container {
+			gap: 1rem;
+		}
+
+		.ml-flashcard-back {
+			padding-top: 0.75rem;
+		}
 	}
 </style>

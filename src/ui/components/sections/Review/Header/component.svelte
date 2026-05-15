@@ -115,5 +115,13 @@
 		.ml-stat-secondary {
 			display: none;
 		}
+
+		.ml-review-header {
+			gap: 0.5rem;
+		}
+
+		.ml-progress-wrapper {
+			max-width: 120px;
+		}
 	}
 </style>

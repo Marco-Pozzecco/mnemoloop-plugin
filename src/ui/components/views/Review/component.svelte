@@ -185,7 +185,15 @@
 	@media (max-width: 480px) {
 		.ml-review-container {
 			padding: 0.5rem;
+			gap: 0.75rem;
+		}
+
+		.ml-review-main {
 			gap: 1rem;
+		}
+
+		.ml-controls-wrapper {
+			min-height: auto;
 		}
 	}
 </style>
