@@ -37,7 +37,6 @@
 	const item = $derived(controller.current);
 	const position = $derived(controller.position);
 	const progress = $derived(controller.progress);
-	const remaining = $derived(controller.remaining);
 	const total = $derived(controller.total);
 
 	function handleKeyDown(event: KeyboardEvent) {
@@ -113,7 +112,6 @@
 	const headerProps: ReviewHeaderProps = $derived({
 		position,
 		total,
-		remaining,
 		progress,
 		accuracy:
 			sessionState.total_count > 0 ? sessionState.correct_count / sessionState.total_count : 0,

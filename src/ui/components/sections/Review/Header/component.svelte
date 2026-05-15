@@ -8,7 +8,6 @@
 		progress,
 		onEndSession,
 		accuracy = 0,
-		remaining,
 		startTime,
 		onUndo,
 		canUndo,
@@ -39,11 +38,6 @@
 		<span class="ka-stat-item ka-stat-primary">
 			<Icon name="layers" size={14} />
 			<span>{position}/{total}</span>
-		</span>
-
-		<span class="ka-stat-item ka-stat-secondary">
-			<Icon name="clock" size={14} />
-			<span>{remaining}</span>
 		</span>
 
 		<span class="ka-stat-item ka-stat-secondary">
