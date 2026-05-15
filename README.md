@@ -23,7 +23,7 @@ Every flashcard is a standalone Markdown file in a dedicated directory, linked b
 Mnemoloop is the only Obsidian plugin with native FSRS scheduling—the same scientifically validated algorithm powering modern Anki. Better retention. Fewer reviews. Less frustration. No context switching.
 
 ### Stale Card Detection
-When you edit a source note, Mnemoloop automatically flags linked flashcards as **STALE**, so you never accidentally review outdated information. It is like having a research assistant who watches your notes and taps you on the shoulder when your understanding evolves.
+When you edit a source note, Mnemoloop automatically flags linked flashcards as **STALE**, so you never accidentally review outdated information. 
 
 ### Built for Mobile from Day One
 Swipe to rate. Tap to flip. Responsive layouts. Mnemoloop works as beautifully on your phone as on your desktop—no separate app required, because it runs natively inside Obsidian Mobile.
@@ -39,12 +39,19 @@ Dual-source truth: a fast JSON index for queries, plus human-readable YAML front
 |---------|-------------|
 | 🧠 **FSRS Scheduling** | State-of-the-art spaced repetition algorithm for optimal retention |
 | 📄 **1 File = 1 Flashcard** | Each card is a standalone Markdown file—portable, version-controllable, never touches source notes |
-| 🔔 **Stale Detection** | Source note edits automatically flag linked flashcards as `STALE` |
-| 📊 **Learning Dashboard** | Heatmaps, progress charts, deck tree, daily goals, and retention rates |
-| 📱 **Mobile Touch UI** | Swipe left/right to rate, tap to flip—native feel inside Obsidian Mobile |
+| 📊 **Learning Dashboard** | Heatmaps, deck tree, daily goals, and retention rates |
 | 🔒 **Local-First & Private** | Core features work fully offline. No telemetry. No data mining. Your knowledge belongs to you. |
 | 🏗️ **Self-Healing Data** | JSON index + YAML dual-source truth with corruption recovery |
 | ⚡ **High Performance** | Lazy card loading, debounced vault watching, and 50,000-card performance targets |
+
+## Coming soon
+
+| Feature | Description | 
+|---------|-------------|
+| 🤖 **AI-Powered Flashcard Generation** | AI generates flashcards from source notes, keeping your knowledge base up-to-date (paid feature) |
+| 📱 **Mobile Touch UI** | Swipe left/right to rate, tap to flip — native feel inside Obsidian Mobile |
+| 🔔 **Stale Detection** | Source note edits automatically flag linked flashcards as `STALE` |
+| 📈 **Learning Analytics** | Track your learning progress with real-time analytics and progress tracking |
 
 ---
 
@@ -152,26 +159,13 @@ The `?` delimiter separates question from answer (configurable in settings). All
 
 ---
 
-## Architecture
-
-Mnemoloop is built on an unusually sophisticated architecture for an Obsidian plugin:
-
-- **Event-driven** — Typed `EventBus` with `CARD_RATED`, `SESSION_COMPLETED`, `SETTINGS_UPDATED` events
-- **Dependency injection** — `DependencyContainer` with singleton and transient registries
-- **Dual-source truth** — `index.json` for fast queries + YAML frontmatter for human readability and git compatibility
-- **Bidirectional sync** — JSON ↔ YAML synchronization after every review session
-- **Lazy loading** — Card content is read from the vault only when entering the review queue
-- **Performance targets** — `<2s` due-card queries, `<500ms` per card load, `<30s` full rebuild for 50,000 cards
-
----
-
-## Documentation
+<!--## Documentation
 
 For full documentation, tutorials, advanced configuration, and the complete command reference, visit:
 
 **[www.mnemoloop.app/docs](https://www.mnemoloop.app/docs)**
 
----
+----->
 
 ## Contributing
 
