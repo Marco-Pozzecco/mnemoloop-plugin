@@ -93,16 +93,18 @@
 	/* Mobile optimizations */
 	@media (max-width: 480px) {
 		.ml-rating-controls {
-			gap: 0.5rem;
+			gap: 0.75rem;
+			grid-template-columns: repeat(2, 1fr);
+			margin-top: 1rem;
 		}
 
 		:global(.ml-rating-button) {
-			height: 50px !important;
+			height: 56px !important;
 			padding: 0.5rem !important;
 		}
 
 		.ml-rating-label {
-			font-size: 0.7rem;
+			font-size: 0.85rem;
 		}
 
 		.ml-rating-shortcut {
