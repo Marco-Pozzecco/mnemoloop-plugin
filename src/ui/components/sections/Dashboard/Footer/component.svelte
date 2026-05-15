@@ -43,16 +43,16 @@
 	}
 </script>
 
-<div class="ka-dashboard__footer-actions {className}">
+<div class="ml-dashboard__footer-actions {className}">
 	<Button
 		variant="primary"
 		size="large"
-		className="ka-start-button"
+		className="ml-start-button"
 		disabled={isDisabled}
 		onclick={onStartReview}
 	>
 		{#if isLoading}
-			<Icon name="loader-2" className="ka-spin" size={20} />
+			<Icon name="loader-2" className="ml-spin" size={20} />
 			<span>Loading...</span>
 		{:else if hasNextReview}
 			<Icon name="clock" size={20} />
@@ -71,24 +71,24 @@
 </div>
 
 <style>
-	.ka-dashboard__footer-actions {
+	.ml-dashboard__footer-actions {
 		margin-top: 8px;
 		display: flex;
 		justify-content: center;
 		gap: 12px;
 	}
 
-	:global(.ka-start-button) {
+	:global(.ml-start-button) {
 		width: max-content;
 		max-width: 400px;
 		gap: 12px;
 	}
 
-	:global(.ka-spin) {
-		animation: ka-spin 1s linear infinite;
+	:global(.ml-spin) {
+		animation: ml-spin 1s linear infinite;
 	}
 
-	@keyframes ka-spin {
+	@keyframes ml-spin {
 		from {
 			transform: rotate(0deg);
 		}

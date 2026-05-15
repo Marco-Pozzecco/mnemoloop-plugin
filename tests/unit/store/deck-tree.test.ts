@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildDeckTree, DeckNode } from '@/ui/store/deck-tree.store';
+import { buildDeckTree } from '@/ui/store/deck-tree.store';
 import { FlashcardMetadata } from '@/schemas';
 import { DEFAULT_FSRS } from '@/utils/constants';
 

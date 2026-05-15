@@ -2,7 +2,7 @@ import { BaseCommand } from '@/modules/commands/BaseCommand';
 import { EventBus, FlashcardWriterCreateRequestEvent } from '@/modules/events';
 
 export class CreateEmptyFlashcardCommand extends BaseCommand {
-	readonly id = 'ka-create-empty-flashcard';
+	readonly id = 'ml-create-empty-flashcard';
 	readonly name = 'Create Empty Flashcard';
 
 	protected onRegister(): void {

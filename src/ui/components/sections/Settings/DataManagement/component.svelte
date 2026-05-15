@@ -28,10 +28,10 @@
 	);
 </script>
 
-<section class="ka-data-management-section">
-	<h3 class="ka-section-header">Data Management</h3>
+<section class="ml-data-management-section">
+	<h3 class="ml-section-header">Data Management</h3>
 
-	<div class="ka-field-group">
+	<div class="ml-field-group">
 		<Toggle
 			label="Enable Soft Delete"
 			checked={settings.enable_soft_delete}
@@ -40,7 +40,7 @@
 		/>
 	</div>
 
-	<div class="ka-field-group">
+	<div class="ml-field-group">
 		<Select
 			label="Retention Period (hours)"
 			options={retentionOptions}
@@ -55,14 +55,14 @@
 </section>
 
 <style>
-	.ka-data-management-section {
+	.ml-data-management-section {
 		display: flex;
 		flex-direction: column;
 		gap: 1.5rem;
 		padding: 1rem 0;
 	}
 
-	.ka-section-header {
+	.ml-section-header {
 		font-size: var(--font-ui-medium);
 		font-weight: var(--font-bold);
 		color: var(--text-normal);
@@ -71,7 +71,7 @@
 		border-bottom: 1px solid var(--background-modifier-border);
 	}
 
-	.ka-field-group {
+	.ml-field-group {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;

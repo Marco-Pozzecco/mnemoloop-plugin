@@ -30,19 +30,19 @@
 	const yearStats = $derived(getYearStats(data, year));
 </script>
 
-<div class="ka-heatmap {className}">
+<div class="ml-heatmap {className}">
 	<!-- Header with year stats -->
-	<header class="ka-heatmap__header">
-		<h3 class="ka-heatmap__title">Learning Activity</h3>
-		<div class="ka-heatmap__stats">
-			<span class="ka-heatmap__stat">{yearStats.totalCards} cards reviewed</span>
-			<span class="ka-heatmap__stat">{yearStats.activeDays} active days</span>
-			<span class="ka-heatmap__stat">{yearStats.currentStreak} day streak</span>
+	<header class="ml-heatmap__header">
+		<h3 class="ml-heatmap__title">Learning Activity</h3>
+		<div class="ml-heatmap__stats">
+			<span class="ml-heatmap__stat">{yearStats.totalCards} cards reviewed</span>
+			<span class="ml-heatmap__stat">{yearStats.activeDays} active days</span>
+			<span class="ml-heatmap__stat">{yearStats.currentStreak} day streak</span>
 		</div>
 	</header>
 
 	<!-- LayerChart Heatmap -->
-	<div class="ka-heatmap__chart-container">
+	<div class="ml-heatmap__chart-container">
 		<Chart
 			{data}
 			{cRange}
@@ -78,7 +78,7 @@
 
 				<Tooltip.Root
 					classes={{
-						root: 'ka-heatmap__tooltip-font',
+						root: 'ml-heatmap__tooltip-font',
 					}}
 				>
 					{#snippet children({ data })}
@@ -107,66 +107,66 @@
 </div>
 
 <style>
-	.ka-heatmap {
+	.ml-heatmap {
 		width: 100%;
 	}
 
-	.ka-heatmap__header {
+	.ml-heatmap__header {
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
 		margin-bottom: 16px;
 	}
 
-	.ka-heatmap__title {
+	.ml-heatmap__title {
 		margin: 0;
 		font-size: var(--font-ui-medium);
 		font-weight: var(--font-semibold);
 		color: var(--text-normal);
 	}
 
-	.ka-heatmap__stats {
+	.ml-heatmap__stats {
 		display: flex;
 		gap: 16px;
 		flex-wrap: wrap;
 	}
 
-	.ka-heatmap__stat {
+	.ml-heatmap__stat {
 		font-size: var(--font-ui-smaller);
 		color: var(--text-muted);
 	}
 
-	.ka-heatmap__chart-container {
+	.ml-heatmap__chart-container {
 		position: relative;
 		width: 100%;
 		min-height: 140px;
 		overflow-x: auto;
 	}
 
-	.ka-heatmap__chart-container :global(svg) {
+	.ml-heatmap__chart-container :global(svg) {
 		display: block;
 	}
 
 	/* LayerChart Calendar cell styling */
-	.ka-heatmap__chart-container :global(.lc-calendar-cell) {
+	.ml-heatmap__chart-container :global(.lc-calendar-cell) {
 		cursor: pointer;
 		transition: all 0.2s ease;
 		rx: 2;
 	}
 
-	.ka-heatmap__chart-container :global(.lc-calendar-cell:hover) {
+	.ml-heatmap__chart-container :global(.lc-calendar-cell:hover) {
 		stroke: var(--interactive-accent);
 		stroke-width: 2px;
 	}
 
-	:global(.ka-heatmap__tooltip-font) {
+	:global(.ml-heatmap__tooltip-font) {
 		font-family: var(--font-text) !important;
 		font-size: var(--font-ui-small) !important;
 	}
 
 	/* Mobile adjustments */
 	@media (max-width: 600px) {
-		.ka-heatmap {
+		.ml-heatmap {
 			padding: 16px;
 		}
 	}

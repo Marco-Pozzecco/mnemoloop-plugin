@@ -14,29 +14,29 @@
 	];
 </script>
 
-<div class="ka-rating-controls" class:disabled>
+<div class="ml-rating-controls" class:disabled>
 	{#each ratings as rating (rating.value)}
-		<div class="ka-rating-button-wrapper">
+		<div class="ml-rating-button-wrapper">
 			<!-- style="--button-color: {rating.color}" -->
 			<Button
 				variant="primary"
-				className="ka-rating-button"
+				className="ml-rating-button"
 				onclick={() => !disabled && onSubmitRating(rating.value)}
 				{disabled}
 				ariaLabel="Rate as {rating.label}"
 			>
-				<div class="ka-rating-button-content">
+				<div class="ml-rating-button-content">
 					<Icon name={rating.icon || ''} size={18} />
-					<span class="ka-rating-label">{rating.label}</span>
+					<span class="ml-rating-label">{rating.label}</span>
 				</div>
 			</Button>
-			<span class="ka-rating-shortcut">{rating.shortcut}</span>
+			<span class="ml-rating-shortcut">{rating.shortcut}</span>
 		</div>
 	{/each}
 </div>
 
 <style>
-	.ka-rating-controls {
+	.ml-rating-controls {
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
 		gap: 1rem;
@@ -44,44 +44,44 @@
 		margin-top: 1.5rem;
 	}
 
-	.ka-rating-controls.disabled {
+	.ml-rating-controls.disabled {
 		opacity: 0.6;
 		pointer-events: none;
 	}
 
-	.ka-rating-button-wrapper {
+	.ml-rating-button-wrapper {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: 0.5rem;
 	}
 
-	:global(.ka-rating-button) {
+	:global(.ml-rating-button) {
 		width: 100%;
 		height: 60px !important;
 		border-color: var(--background-modifier-border) !important;
 		transition: all 0.2s ease !important;
 	}
 
-	:global(.ka-rating-button:hover) {
+	:global(.ml-rating-button:hover) {
 		border-color: var(--button-color) !important;
 		background-color: var(--background-secondary) !important;
 		color: var(--button-color) !important;
 	}
 
-	.ka-rating-button-content {
+	.ml-rating-button-content {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: 4px;
 	}
 
-	.ka-rating-label {
+	.ml-rating-label {
 		font-size: 0.8rem;
 		font-weight: 500;
 	}
 
-	.ka-rating-shortcut {
+	.ml-rating-shortcut {
 		font-size: 0.7rem;
 		color: var(--text-muted);
 		background-color: var(--background-secondary);
@@ -92,20 +92,20 @@
 
 	/* Mobile optimizations */
 	@media (max-width: 480px) {
-		.ka-rating-controls {
+		.ml-rating-controls {
 			gap: 0.5rem;
 		}
 
-		:global(.ka-rating-button) {
+		:global(.ml-rating-button) {
 			height: 50px !important;
 			padding: 0.5rem !important;
 		}
 
-		.ka-rating-label {
+		.ml-rating-label {
 			font-size: 0.7rem;
 		}
 
-		.ka-rating-shortcut {
+		.ml-rating-shortcut {
 			display: none;
 		}
 	}

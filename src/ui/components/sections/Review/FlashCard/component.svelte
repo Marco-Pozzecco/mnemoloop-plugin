@@ -39,9 +39,9 @@
 	});
 </script>
 
-<div class="ka-flashcard-wrapper">
+<div class="ml-flashcard-wrapper">
 	<div
-		class="ka-flashcard-container"
+		class="ml-flashcard-container"
 		bind:this={cardContainer}
 		use:gesture={{
 			onSwipeLeft,
@@ -55,19 +55,19 @@
 		{#if flashcard}
 			<Card>
 				{#if showingAnswer}
-					<div class="ka-flashcard-front" use:renderMarkdown={frontOptions}></div>
-					<div class="ka-flashcard-back" use:renderMarkdown={backOptions}></div>
+					<div class="ml-flashcard-front" use:renderMarkdown={frontOptions}></div>
+					<div class="ml-flashcard-back" use:renderMarkdown={backOptions}></div>
 				{:else}
-					<div class="ka-flashcard-front" use:renderMarkdown={frontOptions}></div>
+					<div class="ml-flashcard-front" use:renderMarkdown={frontOptions}></div>
 				{/if}
 
 				{#snippet footer()}
-					<div class="ka-flashcard-footer">
-						<p class="ka-flashcard-footer-key">Source:</p>
+					<div class="ml-flashcard-footer">
+						<p class="ml-flashcard-footer-key">Source:</p>
 						{#if flashcard?.source}
 							<div use:renderMarkdown={footerOptions}></div>
 						{:else}
-							<p class="ka-flashcard-footer-value">No source available</p>
+							<p class="ml-flashcard-footer-value">No source available</p>
 						{/if}
 					</div>
 				{/snippet}
@@ -78,22 +78,22 @@
 	</div>
 
 	{#if !showingAnswer}
-		<div class="ka-show-answer-wrapper">
+		<div class="ml-show-answer-wrapper">
 			<Button
 				variant="primary"
-				className="ka-show-answer-button"
+				className="ml-show-answer-button"
 				onclick={onShowAnswer}
 				ariaLabel="Show answer"
 			>
 				Show Answer
-				<span class="ka-key-hint">Space</span>
+				<span class="ml-key-hint">Space</span>
 			</Button>
 		</div>
 	{/if}
 </div>
 
 <style>
-	.ka-flashcard-wrapper {
+	.ml-flashcard-wrapper {
 		display: flex;
 		flex-direction: column;
 		flex: 1;
@@ -101,7 +101,7 @@
 		overflow-y: auto;
 	}
 
-	.ka-flashcard-container {
+	.ml-flashcard-container {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
@@ -110,12 +110,12 @@
 		overflow-y: auto;
 	}
 
-	.ka-flashcard-front,
-	.ka-flashcard-back {
+	.ml-flashcard-front,
+	.ml-flashcard-back {
 		line-height: 1.6;
 	}
 
-	.ka-flashcard-footer {
+	.ml-flashcard-footer {
 		font-size: 0.9rem;
 		color: var(--text-muted);
 		display: flex;
@@ -123,28 +123,28 @@
 		gap: 0.5rem;
 	}
 
-	.ka-flashcard-footer-key {
+	.ml-flashcard-footer-key {
 		font-weight: bold;
 	}
 
-	.ka-flashcard-footer-value {
+	.ml-flashcard-footer-value {
 		flex: 1;
 		font-style: italic;
 	}
 
-	.ka-flashcard-back {
+	.ml-flashcard-back {
 		padding-top: 1rem;
 		border-top: 1px solid var(--background-modifier-border);
 	}
 
-	.ka-show-answer-wrapper {
+	.ml-show-answer-wrapper {
 		display: flex;
 		justify-content: center;
 		min-height: 100px;
 		padding: 1rem 0;
 	}
 
-	:global(.ka-show-answer-button) {
+	:global(.ml-show-answer-button) {
 		width: 100%;
 		max-width: 300px;
 		height: 50px !important;
@@ -152,7 +152,7 @@
 		position: relative;
 	}
 
-	.ka-key-hint {
+	.ml-key-hint {
 		position: absolute;
 		right: 1rem;
 		font-size: 0.7rem;
@@ -163,11 +163,11 @@
 	}
 
 	@media (max-width: 480px) {
-		.ka-key-hint {
+		.ml-key-hint {
 			display: none;
 		}
 
-		:global(.ka-show-answer-button) {
+		:global(.ml-show-answer-button) {
 			height: 44px !important;
 		}
 	}

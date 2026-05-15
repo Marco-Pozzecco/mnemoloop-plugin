@@ -1,5 +1,5 @@
 /**
- * Mobile responsive styles for Knowledge Accelerator plugin
+ * Mobile responsive styles for Mnemoloop plugin
  *
  * Optimized for:
  * - Tablets (max-width: 768px)
@@ -10,44 +10,44 @@
 /* ==================== Tablet Styles (768px and below) ==================== */
 @media (max-width: 768px) {
   /* Review view adjustments */
-  .ka-review-container {
+  .ml-review-container {
     padding: 0.75rem;
     max-width: 100%;
   }
 
-  .ka-card-wrapper {
+  .ml-card-wrapper {
     padding: 0 0.5rem;
   }
 
   /* Dashboard view adjustments */
-  .ka-dashboard-container {
+  .ml-dashboard-container {
     padding: 0.75rem;
   }
 
-  .ka-stats-grid {
+  .ml-stats-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
   }
 
   /* Button sizing adjustments */
-  :global(.ka-button) {
+  :global(.ml-button) {
     min-height: 44px;
     padding: 0.5rem 1rem;
   }
 
   /* Rating controls grid adjustment */
-  .ka-rating-controls {
+  .ml-rating-controls {
     gap: 0.75rem;
   }
 
   /* Card face container */
-  .ka-card-face-container {
+  .ml-card-face-container {
     padding: 1.5rem;
     min-height: 180px;
   }
 
   /* Progress bar visibility */
-  .ka-progress-wrapper {
+  .ml-progress-wrapper {
     max-width: 200px;
   }
 }
@@ -55,131 +55,131 @@
 /* ==================== Mobile Styles (480px and below) ==================== */
 @media (max-width: 480px) {
   /* Review view - reduce spacing */
-  .ka-review-container {
+  .ml-review-container {
     padding: 0.5rem;
     gap: 1rem;
   }
 
-  .ka-review-header {
+  .ml-review-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
 
-  .ka-review-stats {
+  .ml-review-stats {
     font-size: 0.75rem;
     gap: 0.5rem;
     width: 100%;
     justify-content: space-between;
   }
 
-  .ka-stat-item {
+  .ml-stat-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.2rem;
   }
 
   /* Hide keyboard shortcuts on mobile */
-  .ka-key-hint,
-  .ka-rating-shortcut {
+  .ml-key-hint,
+  .ml-rating-shortcut {
     display: none !important;
   }
 
   /* Card adjustments */
-  .ka-card-wrapper {
+  .ml-card-wrapper {
     padding: 0;
   }
 
-  .ka-card-face-container {
+  .ml-card-face-container {
     padding: 1.25rem;
     min-height: 150px;
     border-radius: 6px;
   }
 
-  .ka-card-divider {
+  .ml-card-divider {
     margin: 1rem 0;
   }
 
   /* Show answer button - full width */
-  :global(.ka-show-answer-button) {
+  :global(.ml-show-answer-button) {
     width: 100%;
     height: 48px !important;
     font-size: 1rem !important;
   }
 
   /* Rating controls - stack vertically on very small screens */
-  .ka-rating-controls {
+  .ml-rating-controls {
     gap: 0.5rem;
   }
 
-  :global(.ka-rating-button) {
+  :global(.ml-rating-button) {
     height: 48px !important;
     padding: 0.5rem !important;
   }
 
-  .ka-rating-label {
+  .ml-rating-label {
     font-size: 0.7rem;
   }
 
   /* Navigation controls */
-  .ka-navigation-controls {
+  .ml-navigation-controls {
     gap: 1rem;
     width: 100%;
   }
 
-  .ka-navigation-controls :global(button) {
+  .ml-navigation-controls :global(button) {
     flex: 1;
   }
 
   /* Dashboard adjustments */
-  .ka-dashboard-container {
+  .ml-dashboard-container {
     padding: 0.5rem;
   }
 
-  .ka-stats-grid {
+  .ml-stats-grid {
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
 
-  .ka-stat-card {
+  .ml-stat-card {
     padding: 1rem;
   }
 
-  .ka-stat-value {
+  .ml-stat-value {
     font-size: 1.5rem;
   }
 
-  .ka-stat-label {
+  .ml-stat-label {
     font-size: 0.8rem;
   }
 
   /* Footer adjustments */
-  .ka-review-footer {
+  .ml-review-footer {
     padding-bottom: 0.5rem;
   }
 
   /* Empty state */
-  .ka-empty-state {
+  .ml-empty-state {
     padding: 2rem 1rem;
     gap: 0.75rem;
   }
 
-  .ka-empty-state h2 {
+  .ml-empty-state h2 {
     font-size: 1.25rem;
   }
 
-  .ka-empty-state p {
+  .ml-empty-state p {
     font-size: 0.9rem;
   }
 
   /* Toast notifications */
-  .ka-toast-container {
+  .ml-toast-container {
     left: 0.5rem;
     right: 0.5rem;
     bottom: 1rem;
   }
 
-  .ka-toast {
+  .ml-toast {
     padding: 0.75rem 1rem;
     font-size: 0.9rem;
   }
@@ -188,32 +188,32 @@
 /* ==================== Touch Device Optimizations ==================== */
 @media (hover: none) and (pointer: coarse) {
   /* Increase touch targets for all interactive elements */
-  :global(.ka-button),
-  :global(button.ka-rating-button),
-  :global(.ka-card-face-container) {
+  :global(.ml-button),
+  :global(button.ml-rating-button),
+  :global(.ml-card-face-container) {
     min-height: 44px;
     min-width: 44px;
   }
 
   /* Remove hover effects on touch devices */
-  :global(.ka-button:hover),
-  :global(.ka-card-face-container:hover),
-  :global(.ka-rating-button:hover) {
+  :global(.ml-button:hover),
+  :global(.ml-card-face-container:hover),
+  :global(.ml-rating-button:hover) {
     transform: none;
     box-shadow: none;
   }
 
   /* Add active state feedback for touch */
-  :global(.ka-button:active),
-  :global(.ka-card-face-container:active),
-  :global(.ka-rating-button:active) {
+  :global(.ml-button:active),
+  :global(.ml-card-face-container:active),
+  :global(.ml-rating-button:active) {
     transform: scale(0.98);
     transition: transform 0.1s ease;
   }
 
   /* Disable text selection on interactive elements */
-  .ka-card-wrapper,
-  .ka-rating-controls {
+  .ml-card-wrapper,
+  .ml-rating-controls {
     user-select: none;
     -webkit-user-select: none;
   }
@@ -224,11 +224,11 @@
   }
 
   /* Optimize gesture recognition areas */
-  .ka-review-main {
+  .ml-review-main {
     touch-action: pan-y;
   }
 
-  .ka-card-wrapper {
+  .ml-card-wrapper {
     touch-action: none;
   }
 }
@@ -236,34 +236,34 @@
 /* ==================== Landscape Mobile Adjustments ==================== */
 @media (max-height: 480px) and (orientation: landscape) {
   /* Compress vertical spacing for landscape mode */
-  .ka-review-container {
+  .ml-review-container {
     padding: 0.5rem 1rem;
     gap: 0.75rem;
   }
 
-  .ka-review-header {
+  .ml-review-header {
     padding: 0.25rem 0;
   }
 
-  .ka-card-face-container {
+  .ml-card-face-container {
     padding: 1rem;
     min-height: 120px;
   }
 
-  .ka-controls-wrapper {
+  .ml-controls-wrapper {
     min-height: 60px;
   }
 
-  :global(.ka-rating-button) {
+  :global(.ml-rating-button) {
     height: 40px !important;
   }
 
-  .ka-review-footer {
+  .ml-review-footer {
     padding-bottom: 0.25rem;
   }
 
   /* Hide footer in landscape if needed */
-  .ka-navigation-controls {
+  .ml-navigation-controls {
     gap: 0.5rem;
   }
 }
@@ -282,15 +282,15 @@
 /* ==================== Animation Performance ==================== */
 @media (max-width: 768px) {
   /* Reduce animation complexity for mobile */
-  .ka-card-face-container,
-  :global(.ka-button) {
+  .ml-card-face-container,
+  :global(.ml-button) {
     transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
   }
 
   /* Disable GPU-intensive transitions on low-end devices */
   @media (prefers-reduced-motion: reduce) {
-    .ka-card-face-container,
-    :global(.ka-button) {
+    .ml-card-face-container,
+    :global(.ml-button) {
       transition: none;
     }
   }

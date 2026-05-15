@@ -14,37 +14,37 @@
 </script>
 
 <div
-	class="ka-progress-container {className}"
+	class="ml-progress-container {className}"
 	role="progressbar"
 	aria-label={ariaLabel}
 	aria-valuemin="0"
 	aria-valuemax={max}
 	aria-valuenow={indeterminate ? undefined : value}
 >
-	<div class="ka-progress-track">
+	<div class="ml-progress-track">
 		<div
-			class="ka-progress-fill"
-			class:ka-progress-fill--indeterminate={indeterminate}
+			class="ml-progress-fill"
+			class:ml-progress-fill--indeterminate={indeterminate}
 			style:width={indeterminate ? '100%' : `${percentage}%`}
 		></div>
 	</div>
 
 	{#if showPercentage && !indeterminate}
-		<span class="ka-progress-label">
+		<span class="ml-progress-label">
 			{Math.round(percentage)}%
 		</span>
 	{/if}
 </div>
 
 <style>
-	.ka-progress-container {
+	.ml-progress-container {
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
 		width: 100%;
 	}
 
-	.ka-progress-track {
+	.ml-progress-track {
 		height: 8px;
 		width: 100%;
 		background-color: var(--background-modifier-border);
@@ -53,21 +53,21 @@
 		position: relative;
 	}
 
-	.ka-progress-fill {
+	.ml-progress-fill {
 		height: 100%;
 		background-color: var(--interactive-accent);
 		border-radius: 4px;
 		transition: width 0.3s ease-in-out;
 	}
 
-	.ka-progress-fill--indeterminate {
+	.ml-progress-fill--indeterminate {
 		width: 30% !important;
 		position: absolute;
 		animation: indeterminate-progress 1.5s infinite linear;
 		transform-origin: 0% 50%;
 	}
 
-	.ka-progress-label {
+	.ml-progress-label {
 		font-size: var(--font-ui-smaller);
 		color: var(--text-muted);
 		text-align: right;
@@ -85,10 +85,10 @@
 
 	/* High contrast mode support */
 	@media (prefers-contrast: high) {
-		.ka-progress-track {
+		.ml-progress-track {
 			border: 1px solid currentColor;
 		}
-		.ka-progress-fill {
+		.ml-progress-fill {
 			background-color: Highlight;
 		}
 	}

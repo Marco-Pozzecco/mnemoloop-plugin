@@ -35,23 +35,23 @@
 	});
 </script>
 
-<div class="ka-flashcard-modal-content">
-	<h3 class="ka-modal-title">Create Flashcard</h3>
+<div class="ml-flashcard-modal-content">
+	<h3 class="ml-modal-title">Create Flashcard</h3>
 
 	{#if error}
-		<div class="ka-modal-error">{error}</div>
+		<div class="ml-modal-error">{error}</div>
 	{/if}
 
-	<div class="ka-form-field">
+	<div class="ml-form-field">
 		<label for="flashcard-front">Front</label>
 		<Input id="flashcard-front" value={data.front} disabled={isLoading} onchange={(v) => updateFront(v)} type='text'/>
 	</div>
 
-	<div class="ka-form-field">
+	<div class="ml-form-field">
 		<label for="flashcard-back">Back</label>
 		<textarea
 			id="flashcard-back"
-			class="ka-textarea"
+			class="ml-textarea"
 			bind:value={data.back}
 			oninput={(e) => updateBack(e.currentTarget.value)}
 			disabled={isLoading}
@@ -59,31 +59,31 @@
 		></textarea>
 	</div>
 
-	<!-- <div class="ka-form-field"> -->
+	<!-- <div class="ml-form-field"> -->
 	<!-- 	<label for="flashcard-deck">Deck</label> -->
 	<!-- 	<Input id="flashcard-deck" value={data.deck} disabled={isLoading} onchange={updateDeck} /> -->
 	<!-- </div> -->
 </div>
 
 <style>
-	:global(.ka-flashcard-modal) {
+	:global(.ml-flashcard-modal) {
 		width: var(--dialog-width);
 	}
 
-	.ka-flashcard-modal-content {
+	.ml-flashcard-modal-content {
 		background: var(--background-primary);
 		padding: var(--size-4-4);
 		border-radius: var(--radius-s);
 	}
 
-	.ka-modal-title {
+	.ml-modal-title {
 		font-size: var(--font-ui-larger);
 		font-weight: var(--font-semibold);
 		color: var(--text-normal);
 		margin: 0 0 var(--size-4-4) 0;
 	}
 
-	.ka-modal-error {
+	.ml-modal-error {
 		background: var(--background-modifier-error);
 		color: var(--text-error);
 		padding: var(--size-4-2);
@@ -93,11 +93,11 @@
 		font-weight: var(--font-medium);
 	}
 
-	.ka-form-field {
+	.ml-form-field {
 		margin-bottom: var(--size-4-3);
 	}
 
-	.ka-form-field label {
+	.ml-form-field label {
 		display: block;
 		font-size: var(--font-ui-small);
 		font-weight: var(--font-medium);
@@ -105,7 +105,7 @@
 		margin-bottom: var(--size-4-1);
 	}
 
-	.ka-textarea {
+	.ml-textarea {
 		width: 100%;
 		padding: var(--size-4-2);
 		font-family: inherit;
@@ -118,17 +118,17 @@
 		min-height: 80px;
 	}
 
-	.ka-textarea:hover:not(:disabled):not(:focus) {
+	.ml-textarea:hover:not(:disabled):not(:focus) {
 		border-color: var(--background-modifier-border-hover);
 	}
 
-	.ka-textarea:focus {
+	.ml-textarea:focus {
 		outline: none;
 		border-color: var(--interactive-accent);
 		box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
 	}
 
-	.ka-textarea:disabled {
+	.ml-textarea:disabled {
 		background-color: var(--background-secondary);
 		color: var(--text-muted);
 		cursor: not-allowed;

@@ -13,7 +13,7 @@ export class SettingsView extends PluginSettingTab {
 
 	display(): void {
 		this.containerEl.empty();
-		this.containerEl.addClass('ka-settings-view');
+		this.containerEl.addClass('ml-settings-view');
 
 		this.component = mount(Settings, {
 			target: this.containerEl,
@@ -33,7 +33,7 @@ export class SettingsView extends PluginSettingTab {
 			}
 
 			this.containerEl.empty();
-			this.containerEl.removeClass('ka-settings-view');
+			this.containerEl.removeClass('ml-settings-view');
 
 			// Dispose settings store
 			settingsStore.dispose();

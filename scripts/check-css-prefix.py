@@ -18,10 +18,10 @@ from collections.abc import Iterator
 ROOT = Path(__file__).parent.parent.resolve()
 
 CONFIG = {
-    "prefix": "ka-",
+    "prefix": "ml-",
     # Class names / prefixes that are allowed without the project prefix
     # theme- = Obsidian body theme classes (theme-dark, theme-light)
-    "allowedPrefixes": ["ka-", "lc-", "svelte-", "theme-"],
+    "allowedPrefixes": ["ml-", "lc-", "svelte-", "theme-"],
     # Specific class names to allow as exceptions
     "allow": [],
     # Directories to scan (relative to project root)

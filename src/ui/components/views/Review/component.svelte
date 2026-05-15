@@ -135,17 +135,17 @@
 	});
 </script>
 
-<div bind:this={containerRef} class="ka-review-container">
-	<Card className="ka-review-header">
+<div bind:this={containerRef} class="ml-review-container">
+	<Card className="ml-review-header">
 		<ReviewHeader {...headerProps} />
 	</Card>
 
-	<main class="ka-review-main">
+	<main class="ml-review-main">
 		{#if item}
 			<ReviewFlashCard {...flashCardProps} />
 
 			{#if showingAnswer}
-				<div class="ka-controls-wrapper">
+				<div class="ml-controls-wrapper">
 					<ReviewControls onSubmitRating={handleSubmitRating} />
 				</div>
 			{/if}
@@ -156,7 +156,7 @@
 </div>
 
 <style>
-	.ka-review-container {
+	.ml-review-container {
 		display: flex;
 		flex-direction: column;
 		height: 100%;
@@ -167,7 +167,7 @@
 		gap: 1.5rem;
 	}
 
-	.ka-review-main {
+	.ml-review-main {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
@@ -176,14 +176,14 @@
 		min-height: 0;
 	}
 
-	.ka-controls-wrapper {
+	.ml-controls-wrapper {
 		display: flex;
 		justify-content: center;
 		min-height: 100px;
 	}
 
 	@media (max-width: 480px) {
-		.ka-review-container {
+		.ml-review-container {
 			padding: 0.5rem;
 			gap: 1rem;
 		}

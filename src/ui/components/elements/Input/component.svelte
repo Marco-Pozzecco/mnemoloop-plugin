@@ -2,7 +2,7 @@
 	import type InputProps from './types';
 
 	let {
-		id = `ka-input-${Math.random().toString(36).substring(2, 9)}`,
+		id = `ml-input-${Math.random().toString(36).substring(2, 9)}`,
 		type = 'text',
 		label,
 		placeholder = '',
@@ -49,12 +49,12 @@
 	}
 </script>
 
-<div class="ka-input-wrapper {className}" class:has-error={hasError}>
+<div class="ml-input-wrapper {className}" class:has-error={hasError}>
 	{#if label}
-		<label for={id} class="ka-input-label">
+		<label for={id} class="ml-input-label">
 			{label}
 			{#if required}
-				<span class="ka-input-required">*</span>
+				<span class="ml-input-required">*</span>
 			{/if}
 		</label>
 	{/if}
@@ -72,7 +72,7 @@
 		{max}
 		aria-invalid={hasError}
 		aria-describedby={hasError ? `${id}-error` : helperText ? `${id}-helper` : undefined}
-		class="ka-input"
+		class="ml-input"
 		onchange={handleChange}
 		onfocus={handleFocus}
 		{onblur}
@@ -80,20 +80,20 @@
 	/>
 
 	{#if hasError && errorMessage}
-		<div id="{id}-error" class="ka-input-error">{errorMessage}</div>
+		<div id="{id}-error" class="ml-input-error">{errorMessage}</div>
 	{:else if helperText}
-		<div id="{id}-helper" class="ka-input-helper">{helperText}</div>
+		<div id="{id}-helper" class="ml-input-helper">{helperText}</div>
 	{/if}
 </div>
 
 <style>
-	.ka-input-wrapper {
+	.ml-input-wrapper {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
 	}
 
-	.ka-input-label {
+	.ml-input-label {
 		font-size: var(--font-ui-smaller);
 		font-weight: var(--font-medium);
 		color: var(--text-normal);
@@ -103,12 +103,12 @@
 		gap: 0.25rem;
 	}
 
-	.ka-input-required {
+	.ml-input-required {
 		color: var(--text-error);
 		font-weight: bold;
 	}
 
-	.ka-input {
+	.ml-input {
 		width: 100%;
 		padding: 0.625rem 0.75rem;
 		font-family: inherit;
@@ -123,53 +123,53 @@
 		min-height: 44px;
 	}
 
-	.ka-input::placeholder {
+	.ml-input::placeholder {
 		color: var(--text-muted);
 	}
 
-	.ka-input:hover:not(:disabled):not(:focus) {
+	.ml-input:hover:not(:disabled):not(:focus) {
 		border-color: var(--background-modifier-border-hover);
 	}
 
-	.ka-input:focus {
+	.ml-input:focus {
 		outline: none;
 		border-color: var(--interactive-accent);
 		box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
 	}
 
-	.ka-input:disabled {
+	.ml-input:disabled {
 		background-color: var(--background-secondary);
 		color: var(--text-muted);
 		cursor: not-allowed;
 		opacity: 0.6;
 	}
 
-	.ka-input-wrapper.has-error .ka-input {
+	.ml-input-wrapper.has-error .ml-input {
 		border-color: var(--text-error);
 		background-color: rgba(255, 0, 0, 0.05);
 	}
 
-	.ka-input-wrapper.has-error .ka-input:focus {
+	.ml-input-wrapper.has-error .ml-input:focus {
 		box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
 	}
 
-	.ka-input-error,
-	.ka-input-helper {
+	.ml-input-error,
+	.ml-input-helper {
 		font-size: var(--font-ui-smaller);
 		line-height: 1.4;
 	}
 
-	.ka-input-error {
+	.ml-input-error {
 		color: var(--text-error);
 	}
 
-	.ka-input-helper {
+	.ml-input-helper {
 		color: var(--text-muted);
 	}
 
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
-		.ka-input {
+		.ml-input {
 			padding: 0.5rem 0.625rem;
 			font-size: 1rem; /* Prevent iOS zoom */
 		}

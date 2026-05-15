@@ -3,7 +3,7 @@
 	import type ToggleProps from './types';
 
 	let {
-		id = `ka-toggle-${Math.random().toString(36).substring(2, 9)}`,
+		id = `ml-toggle-${Math.random().toString(36).substring(2, 9)}`,
 		label,
 		checked = $bindable(false),
 		disabled = false,
@@ -21,8 +21,8 @@
 	}
 </script>
 
-<div class="ka-toggle-wrapper ka-toggle-wrapper--{size} {className}">
-	<div class="ka-toggle-label-row">
+<div class="ml-toggle-wrapper ml-toggle-wrapper--{size} {className}">
+	<div class="ml-toggle-label-row">
 		<Switch.Root
 			{id}
 			bind:checked
@@ -31,38 +31,38 @@
 			aria-describedby={helperText ? `${id}-helper` : undefined}
 		>
 			{#snippet child({ props, checked: isChecked })}
-				<button {...props} class="ka-toggle-switch" class:checked={isChecked} class:disabled>
+				<button {...props} class="ml-toggle-switch" class:checked={isChecked} class:disabled>
 					<Switch.Thumb>
 						{#snippet child({ props: thumbProps })}
-							<span {...thumbProps} class="ka-toggle-thumb"></span>
+							<span {...thumbProps} class="ml-toggle-thumb"></span>
 						{/snippet}
 					</Switch.Thumb>
 				</button>
 			{/snippet}
 		</Switch.Root>
 		{#if label}
-			<label for={id} class="ka-toggle-text">{label}</label>
+			<label for={id} class="ml-toggle-text">{label}</label>
 		{/if}
 	</div>
 	{#if helperText}
-		<div id="{id}-helper" class="ka-toggle-helper">{helperText}</div>
+		<div id="{id}-helper" class="ml-toggle-helper">{helperText}</div>
 	{/if}
 </div>
 
 <style>
-	.ka-toggle-wrapper {
+	.ml-toggle-wrapper {
 		display: flex;
 		flex-direction: column;
 		gap: 0.25rem;
 	}
 
-	.ka-toggle-label-row {
+	.ml-toggle-label-row {
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
 	}
 
-	.ka-toggle-switch {
+	.ml-toggle-switch {
 		position: relative;
 		display: flex;
 		align-items: center;
@@ -75,7 +75,7 @@
 		flex-shrink: 0;
 	}
 
-	.ka-toggle-thumb {
+	.ml-toggle-thumb {
 		display: block;
 		background-color: white;
 		border-radius: 50%;
@@ -84,16 +84,16 @@
 		flex-shrink: 0;
 	}
 
-	.ka-toggle-switch.checked {
+	.ml-toggle-switch.checked {
 		background-color: var(--interactive-accent);
 	}
 
-	.ka-toggle-switch.disabled {
+	.ml-toggle-switch.disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
 
-	.ka-toggle-text {
+	.ml-toggle-text {
 		font-size: var(--font-ui-small);
 		color: var(--text-normal);
 		line-height: 1.4;
@@ -101,71 +101,71 @@
 		user-select: none;
 	}
 
-	.ka-toggle-helper {
+	.ml-toggle-helper {
 		font-size: var(--font-ui-smaller);
 		color: var(--text-muted);
 		line-height: 1.4;
 		margin-left: calc(var(--toggle-width, 40px) + 0.75rem);
 	}
 
-	.ka-toggle-label-row:hover .ka-toggle-switch:not(.disabled) {
+	.ml-toggle-label-row:hover .ml-toggle-switch:not(.disabled) {
 		background-color: var(--background-modifier-border-hover);
 	}
 
-	.ka-toggle-label-row:hover .ka-toggle-switch.checked:not(.disabled) {
+	.ml-toggle-label-row:hover .ml-toggle-switch.checked:not(.disabled) {
 		background-color: var(--interactive-accent-hover);
 	}
 
 	/* Size variants - small */
-	.ka-toggle-wrapper--small .ka-toggle-switch {
+	.ml-toggle-wrapper--small .ml-toggle-switch {
 		width: 32px;
 		height: 18px;
 		padding: 0 3px;
 	}
 
-	.ka-toggle-wrapper--small .ka-toggle-thumb {
+	.ml-toggle-wrapper--small .ml-toggle-thumb {
 		width: 12px;
 		height: 12px;
 	}
 
-	.ka-toggle-wrapper--small .ka-toggle-switch.checked .ka-toggle-thumb {
+	.ml-toggle-wrapper--small .ml-toggle-switch.checked .ml-toggle-thumb {
 		transform: translateX(14px);
 	}
 
 	/* Size variants - medium */
-	.ka-toggle-wrapper--medium .ka-toggle-switch {
+	.ml-toggle-wrapper--medium .ml-toggle-switch {
 		width: 40px;
 		height: 22px;
 		padding: 0 4px;
 	}
 
-	.ka-toggle-wrapper--medium .ka-toggle-thumb {
+	.ml-toggle-wrapper--medium .ml-toggle-thumb {
 		width: 16px;
 		height: 16px;
 	}
 
-	.ka-toggle-wrapper--medium .ka-toggle-switch.checked .ka-toggle-thumb {
+	.ml-toggle-wrapper--medium .ml-toggle-switch.checked .ml-toggle-thumb {
 		transform: translateX(18px);
 	}
 
 	/* Size variants - large */
-	.ka-toggle-wrapper--large .ka-toggle-switch {
+	.ml-toggle-wrapper--large .ml-toggle-switch {
 		width: 48px;
 		height: 26px;
 		padding: 0 4px;
 	}
 
-	.ka-toggle-wrapper--large .ka-toggle-thumb {
+	.ml-toggle-wrapper--large .ml-toggle-thumb {
 		width: 20px;
 		height: 20px;
 	}
 
-	.ka-toggle-wrapper--large .ka-toggle-switch.checked .ka-toggle-thumb {
+	.ml-toggle-wrapper--large .ml-toggle-switch.checked .ml-toggle-thumb {
 		transform: translateX(22px);
 	}
 
 	/* Focus visible */
-	.ka-toggle-switch:focus-visible {
+	.ml-toggle-switch:focus-visible {
 		outline: 2px solid var(--interactive-accent);
 		outline-offset: 2px;
 	}

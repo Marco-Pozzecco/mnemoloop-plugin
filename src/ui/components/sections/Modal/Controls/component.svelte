@@ -14,7 +14,7 @@
 	}
 </script>
 
-<div class="ka-modal-controls">
+<div class="ml-modal-controls">
 	<Button variant="secondary" onclick={handleCancel} disabled={isLoading}>Cancel</Button>
 	<Button variant="primary" onclick={handleConfirm} disabled={isLoading}>
 		{isLoading ? 'Saving...' : 'Save'}
@@ -22,7 +22,7 @@
 </div>
 
 <style>
-	.ka-modal-controls {
+	.ml-modal-controls {
 		display: flex;
 		justify-content: flex-end;
 		gap: var(--size-4-2);

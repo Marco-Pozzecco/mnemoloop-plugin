@@ -8,7 +8,7 @@ import {
 import { Menu, TAbstractFile, TFile, WorkspaceLeaf, normalizePath } from 'obsidian';
 
 export class CreateFlashcardFromFileCommand extends BaseCommand {
-	readonly id = 'ka-create-empty-in-panel';
+	readonly id = 'ml-create-empty-in-panel';
 	readonly name = 'Create flashcard from file';
 
 	protected onRegister(): void {
