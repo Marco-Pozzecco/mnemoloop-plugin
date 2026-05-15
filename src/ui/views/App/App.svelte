@@ -21,7 +21,7 @@
 	});
 </script>
 
-<div class="app-container">
+<div class="ka-app-container">
 	{#if currentView === 'dashboard'}
 		<Dashboard />
 	{:else if currentView === 'review'}
@@ -30,35 +30,10 @@
 </div>
 
 <style>
-	.app-container {
+	.ka-app-container {
 		display: flex;
 		flex-direction: column;
 		height: 100%;
 		overflow: hidden;
-	}
-
-	.loading-container {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		height: 100%;
-		gap: 1rem;
-		color: var(--text-muted);
-	}
-
-	.loading-spinner {
-		width: 40px;
-		height: 40px;
-		border: 3px solid var(--background-modifier-border);
-		border-top-color: var(--interactive-accent);
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
 	}
 </style>
