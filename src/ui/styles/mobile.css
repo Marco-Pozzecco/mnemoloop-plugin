@@ -1,297 +1,78 @@
-/**
- * Mobile responsive styles for Mnemoloop plugin
- *
- * Optimized for:
- * - Tablets (max-width: 768px)
- * - Mobile devices (max-width: 480px)
- * - Touch devices (hover: none and pointer: coarse)
- */
-
-/* ==================== Tablet Styles (768px and below) ==================== */
-@media (max-width: 768px) {
-  /* Review view adjustments */
-  .ml-review-container {
-    padding: 0.75rem;
-    max-width: 100%;
-  }
-
-  .ml-card-wrapper {
-    padding: 0 0.5rem;
-  }
-
-  /* Dashboard view adjustments */
-  .ml-dashboard-container {
-    padding: 0.75rem;
-  }
-
-  .ml-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-  }
-
-  /* Button sizing adjustments */
-  :global(.ml-button) {
-    min-height: 44px;
-    padding: 0.5rem 1rem;
-  }
-
-  /* Rating controls grid adjustment */
-  .ml-rating-controls {
-    gap: 0.75rem;
-  }
-
-  /* Card face container */
-  .ml-card-face-container {
-    padding: 1.5rem;
-    min-height: 180px;
-  }
-
-  /* Progress bar visibility */
-  .ml-progress-wrapper {
-    max-width: 200px;
-  }
-}
-
-/* ==================== Mobile Styles (480px and below) ==================== */
-@media (max-width: 480px) {
-  /* Review view - reduce spacing */
-  .ml-review-container {
-    padding: 0.5rem;
-    gap: 1rem;
-  }
-
-  .ml-review-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .ml-review-stats {
-    font-size: 0.75rem;
-    gap: 0.5rem;
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .ml-stat-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.2rem;
-  }
-
-  /* Hide keyboard shortcuts on mobile */
-  .ml-key-hint,
-  .ml-rating-shortcut {
-    display: none !important;
-  }
-
-  /* Card adjustments */
-  .ml-card-wrapper {
-    padding: 0;
-  }
-
-  .ml-card-face-container {
-    padding: 1.25rem;
-    min-height: 150px;
-    border-radius: 6px;
-  }
-
-  .ml-card-divider {
-    margin: 1rem 0;
-  }
-
-  /* Show answer button - full width */
-  :global(.ml-show-answer-button) {
-    width: 100%;
-    height: 48px !important;
-    font-size: 1rem !important;
-  }
-
-  /* Rating controls - stack vertically on very small screens */
-  .ml-rating-controls {
-    gap: 0.5rem;
-  }
-
-  :global(.ml-rating-button) {
-    height: 48px !important;
-    padding: 0.5rem !important;
-  }
-
-  .ml-rating-label {
-    font-size: 0.7rem;
-  }
-
-  /* Navigation controls */
-  .ml-navigation-controls {
-    gap: 1rem;
-    width: 100%;
-  }
-
-  .ml-navigation-controls :global(button) {
-    flex: 1;
-  }
-
-  /* Dashboard adjustments */
-  .ml-dashboard-container {
-    padding: 0.5rem;
-  }
-
-  .ml-stats-grid {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-
-  .ml-stat-card {
-    padding: 1rem;
-  }
-
-  .ml-stat-value {
-    font-size: 1.5rem;
-  }
-
-  .ml-stat-label {
-    font-size: 0.8rem;
-  }
-
-  /* Footer adjustments */
-  .ml-review-footer {
-    padding-bottom: 0.5rem;
-  }
-
-  /* Empty state */
-  .ml-empty-state {
-    padding: 2rem 1rem;
-    gap: 0.75rem;
-  }
-
-  .ml-empty-state h2 {
-    font-size: 1.25rem;
-  }
-
-  .ml-empty-state p {
-    font-size: 0.9rem;
-  }
-
-  /* Toast notifications */
-  .ml-toast-container {
-    left: 0.5rem;
-    right: 0.5rem;
-    bottom: 1rem;
-  }
-
-  .ml-toast {
-    padding: 0.75rem 1rem;
-    font-size: 0.9rem;
-  }
-}
-
 /* ==================== Touch Device Optimizations ==================== */
 @media (hover: none) and (pointer: coarse) {
-  /* Increase touch targets for all interactive elements */
-  :global(.ml-button),
-  :global(button.ml-rating-button),
-  :global(.ml-card-face-container) {
-    min-height: 44px;
-    min-width: 44px;
-  }
+	/* Increase touch targets for all interactive elements */
+	:global(.ml-button),
+	:global(button.ml-rating-button),
+	:global(.ml-card-face-container) {
+		min-height: 44px;
+		min-width: 44px;
+	}
 
-  /* Remove hover effects on touch devices */
-  :global(.ml-button:hover),
-  :global(.ml-card-face-container:hover),
-  :global(.ml-rating-button:hover) {
-    transform: none;
-    box-shadow: none;
-  }
+	/* Remove hover effects on touch devices */
+	:global(.ml-button:hover),
+	:global(.ml-card-face-container:hover),
+	:global(.ml-rating-button:hover) {
+		transform: none;
+		box-shadow: none;
+	}
 
-  /* Add active state feedback for touch */
-  :global(.ml-button:active),
-  :global(.ml-card-face-container:active),
-  :global(.ml-rating-button:active) {
-    transform: scale(0.98);
-    transition: transform 0.1s ease;
-  }
+	/* Add active state feedback for touch */
+	:global(.ml-button:active),
+	:global(.ml-card-face-container:active),
+	:global(.ml-rating-button:active) {
+		transform: scale(0.98);
+		transition: transform 0.1s ease;
+	}
 
-  /* Disable text selection on interactive elements */
-  .ml-card-wrapper,
-  .ml-rating-controls {
-    user-select: none;
-    -webkit-user-select: none;
-  }
+	/* Disable text selection on interactive elements */
+	.ml-card-wrapper,
+	.ml-rating-controls {
+		user-select: none;
+		-webkit-user-select: none;
+	}
 
-  /* Improve tap responsiveness */
-  * {
-    -webkit-tap-highlight-color: transparent;
-  }
+	/* Improve tap responsiveness */
+	* {
+		-webkit-tap-highlight-color: transparent;
+	}
 
-  /* Optimize gesture recognition areas */
-  .ml-review-main {
-    touch-action: pan-y;
-  }
+	/* Optimize gesture recognition areas */
+	.ml-review-main {
+		touch-action: pan-y;
+	}
 
-  .ml-card-wrapper {
-    touch-action: none;
-  }
-}
-
-/* ==================== Landscape Mobile Adjustments ==================== */
-@media (max-height: 480px) and (orientation: landscape) {
-  /* Compress vertical spacing for landscape mode */
-  .ml-review-container {
-    padding: 0.5rem 1rem;
-    gap: 0.75rem;
-  }
-
-  .ml-review-header {
-    padding: 0.25rem 0;
-  }
-
-  .ml-card-face-container {
-    padding: 1rem;
-    min-height: 120px;
-  }
-
-  .ml-controls-wrapper {
-    min-height: 60px;
-  }
-
-  :global(.ml-rating-button) {
-    height: 40px !important;
-  }
-
-  .ml-review-footer {
-    padding-bottom: 0.25rem;
-  }
-
-  /* Hide footer in landscape if needed */
-  .ml-navigation-controls {
-    gap: 0.5rem;
-  }
+	.ml-card-wrapper {
+		touch-action: none;
+	}
 }
 
 /* ==================== Font Size Scaling ==================== */
 @media (max-width: 480px) {
-  :root {
-    --font-ui-smaller: 12px;
-    --font-ui-small: 13px;
-    --font-ui-medium: 14px;
-    --font-ui-large: 16px;
-    --font-ui-larger: 18px;
-  }
+	:root {
+		--font-ui-smaller: 12px;
+		--font-ui-small: 13px;
+		--font-ui-medium: 14px;
+		--font-ui-large: 16px;
+		--font-ui-larger: 18px;
+	}
 }
 
 /* ==================== Animation Performance ==================== */
 @media (max-width: 768px) {
-  /* Reduce animation complexity for mobile */
-  .ml-card-face-container,
-  :global(.ml-button) {
-    transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
-  }
+	/* Reduce animation complexity for mobile */
+	.ml-card-face-container,
+	:global(.ml-button) {
+		transition:
+			background-color 0.15s ease,
+			border-color 0.15s ease,
+			opacity 0.15s ease;
+	}
 
-  /* Disable GPU-intensive transitions on low-end devices */
-  @media (prefers-reduced-motion: reduce) {
-    .ml-card-face-container,
-    :global(.ml-button) {
-      transition: none;
-    }
-  }
+	/* Disable GPU-intensive transitions on low-end devices */
+	@media (prefers-reduced-motion: reduce) {
+		.ml-card-face-container,
+		:global(.ml-button) {
+			transition: none;
+		}
+	}
 }
