@@ -13,26 +13,15 @@
 		onNestedFieldChange(['flashcard', 'watch', 'directory'], value);
 	}
 
-	function handleTagsChange(value: string) {
-		const tags = value
-			.split(',')
-			.map((t) => t.trim())
-			.filter((t) => t.length > 0);
-		onNestedFieldChange(['flashcard', 'watch', 'tags'], tags);
-	}
-
 	function handleMarkerChange(value: string) {
 		onNestedFieldChange(['flashcard', 'marker'], value);
 	}
-
-	// Derive tags as comma-separated string for the input
-	const tagsValue = $derived(settings.flashcard.watch.tags.join(', '));
 </script>
 
-<section class="flashcard-config-section">
-	<h3 class="section-header">Flashcard Settings</h3>
+<section class="ka-flashcard-config-section">
+	<h3 class="ka-section-header">Flashcard Settings</h3>
 
-	<div class="form-fields">
+	<div class="ka-form-fields">
 		<Input
 			label="Flashcard directory"
 			value={settings.flashcard.watch.directory}
@@ -41,15 +30,6 @@
 			errorMessage={getError('flashcard.watch.directory')}
 			onchange={handleDirectoryChange}
 		/>
-
-		<!-- <Input -->
-		<!-- 	label="Required Tags (comma-separated)" -->
-		<!-- 	value={tagsValue} -->
-		<!-- 	helperText="Tags required on notes (e.g., 'flashcard, srs')" -->
-		<!-- 	hasError={hasError('flashcard.watch.tags')} -->
-		<!-- 	errorMessage={getError('flashcard.watch.tags')} -->
-		<!-- 	onchange={handleTagsChange} -->
-		<!-- /> -->
 
 		<Input
 			label="Flashcard Marker"
@@ -63,13 +43,13 @@
 </section>
 
 <style>
-	.flashcard-config-section {
+	.ka-flashcard-config-section {
 		display: flex;
 		flex-direction: column;
 		gap: 1.25rem;
 	}
 
-	.section-header {
+	.ka-section-header {
 		font-size: var(--font-ui-medium);
 		font-weight: var(--font-medium);
 		color: var(--text-normal);
@@ -79,7 +59,7 @@
 		border-bottom: 1px solid var(--background-modifier-border);
 	}
 
-	.form-fields {
+	.ka-form-fields {
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
