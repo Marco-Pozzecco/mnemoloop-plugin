@@ -26,9 +26,9 @@
 	}
 </script>
 
-<div class="ka-deck-tree-node" class:ka-deck-tree-node--selected={isSelected}>
+<div class="ml-deck-tree-node" class:ml-deck-tree-node--selected={isSelected}>
 	<div
-		class="ka-deck-tree-node__content"
+		class="ml-deck-tree-node__content"
 		style={indentStyle}
 		onclick={handleSelect}
 		role="button"
@@ -37,7 +37,7 @@
 	>
 		{#if hasChildren}
 			<button
-				class="ka-deck-tree-node__chevron"
+				class="ml-deck-tree-node__chevron"
 				onclick={handleToggle}
 				type="button"
 				aria-label={node.isExpanded ? 'Collapse' : 'Expand'}
@@ -45,18 +45,18 @@
 				<Icon name={node.isExpanded ? 'chevron-down' : 'chevron-right'} size={14} />
 			</button>
 		{:else}
-			<span class="ka-deck-tree-node__spacer"></span>
+			<span class="ml-deck-tree-node__spacer"></span>
 		{/if}
 
-		<span class="ka-deck-tree-node__name">{node.name}</span>
+		<span class="ml-deck-tree-node__name">{node.name}</span>
 
 		{#if node.dueNow > 0}
-			<span class="ka-deck-tree-node__badge">{node.dueNow}</span>
+			<span class="ml-deck-tree-node__badge">{node.dueNow}</span>
 		{/if}
 	</div>
 
 	{#if hasChildren && node.isExpanded}
-		<div class="ka-deck-tree-node__children">
+		<div class="ml-deck-tree-node__children">
 			{#each node.children as child (child.fullPath)}
 				<Self node={child} {selectedDeck} {onSelectDeck} {onToggleExpand} level={level + 1} />
 			{/each}
@@ -65,11 +65,11 @@
 </div>
 
 <style>
-	.ka-deck-tree-node {
-		--ka-deck-tree-indent: 16px;
+	.ml-deck-tree-node {
+		--ml-deck-tree-indent: 16px;
 	}
 
-	.ka-deck-tree-node__content {
+	.ml-deck-tree-node__content {
 		display: flex;
 		align-items: center;
 		gap: 6px;
@@ -80,15 +80,15 @@
 		min-height: 32px;
 	}
 
-	.ka-deck-tree-node__content:hover {
+	.ml-deck-tree-node__content:hover {
 		background-color: var(--background-modifier-hover);
 	}
 
-	.ka-deck-tree-node--selected .ka-deck-tree-node__content {
+	.ml-deck-tree-node--selected .ml-deck-tree-node__content {
 		background-color: var(--background-modifier-active-hover);
 	}
 
-	.ka-deck-tree-node__chevron {
+	.ml-deck-tree-node__chevron {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -103,17 +103,17 @@
 		flex-shrink: 0;
 	}
 
-	.ka-deck-tree-node__chevron:hover {
+	.ml-deck-tree-node__chevron:hover {
 		/*background-color: var(--background-modifier-hover);*/
 		color: var(--text-normal);
 	}
 
-	.ka-deck-tree-node__spacer {
+	.ml-deck-tree-node__spacer {
 		width: 18px;
 		flex-shrink: 0;
 	}
 
-	.ka-deck-tree-node__name {
+	.ml-deck-tree-node__name {
 		flex: 1;
 		font-size: var(--font-ui-small);
 		color: var(--text-normal);
@@ -122,7 +122,7 @@
 		text-overflow: ellipsis;
 	}
 
-	.ka-deck-tree-node__badge {
+	.ml-deck-tree-node__badge {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -137,7 +137,7 @@
 		flex-shrink: 0;
 	}
 
-	.ka-deck-tree-node__children {
+	.ml-deck-tree-node__children {
 		display: flex;
 		flex-direction: column;
 	}

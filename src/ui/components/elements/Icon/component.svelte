@@ -44,12 +44,12 @@
 
 <span
 	use:iconAction={name}
-	class="ka-icon {className}"
+	class="ml-icon {className}"
 	style="--icon-size: {size}px; --icon-color: {color}; --icon-transform: {transformStyle}"
 ></span>
 
 <style>
-	.ka-icon {
+	.ml-icon {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -59,7 +59,7 @@
 		transform: var(--icon-transform);
 	}
 
-	:global(.ka-icon svg) {
+	:global(.ml-icon svg) {
 		display: block;
 		transition: transform 0.2s ease;
 	}

@@ -86,19 +86,19 @@
 
 <svelte:boundary onerror={handleError}>
 	{#if hasError}
-		<div class="ka-error-wrapper {className}" role="alert" aria-live="polite">
-			<div class="ka-error-wrapper__content">
-				<div class="ka-error-wrapper__icon">
+		<div class="ml-error-wrapper {className}" role="alert" aria-live="polite">
+			<div class="ml-error-wrapper__content">
+				<div class="ml-error-wrapper__icon">
 					<Icon name="alert-triangle" size={32} />
 				</div>
-				<div class="ka-error-wrapper__message">
-					<h3 class="ka-error-wrapper__title">Something went wrong</h3>
-					<p class="ka-error-wrapper__description">{displayMessage}</p>
+				<div class="ml-error-wrapper__message">
+					<h3 class="ml-error-wrapper__title">Something went wrong</h3>
+					<p class="ml-error-wrapper__description">{displayMessage}</p>
 					{#if showError && errorMessage && !retryExceeded}
-						<div class="ka-error-wrapper__details">
+						<div class="ml-error-wrapper__details">
 							<details>
 								<summary>Error details</summary>
-								<code class="ka-error-wrapper__code">{errorMessage}</code>
+								<code class="ml-error-wrapper__code">{errorMessage}</code>
 							</details>
 						</div>
 					{/if}
@@ -106,9 +106,9 @@
 			</div>
 
 			{#if canRetry}
-				<div class="ka-error-wrapper__actions">
+				<div class="ml-error-wrapper__actions">
 					{#if retryCount > 0}
-						<span class="ka-error-wrapper__retry-info"
+						<span class="ml-error-wrapper__retry-info"
 							>Retry attempt {retryCount} of {maxRetries}</span
 						>
 					{/if}
@@ -120,8 +120,8 @@
 			{/if}
 
 			{#if retryExceeded}
-				<div class="ka-error-wrapper__actions">
-					<span class="ka-error-wrapper__retry-info ka-error-wrapper__retry-info--exceeded">
+				<div class="ml-error-wrapper__actions">
+					<span class="ml-error-wrapper__retry-info ml-error-wrapper__retry-info--exceeded">
 						Maximum retries exceeded
 					</span>
 					<Button variant="secondary" onclick={() => window.location.reload()}>
@@ -137,7 +137,7 @@
 </svelte:boundary>
 
 <style>
-	.ka-error-wrapper {
+	.ml-error-wrapper {
 		display: flex;
 		flex-direction: column;
 		gap: 16px;
@@ -149,10 +149,10 @@
 		max-width: 600px;
 		margin: 24px auto;
 		text-align: center;
-		animation: ka-fade-in 0.3s ease-out;
+		animation: ml-fade-in 0.3s ease-out;
 	}
 
-	@keyframes ka-fade-in {
+	@keyframes ml-fade-in {
 		from {
 			opacity: 0;
 			transform: translateY(-10px);
@@ -163,14 +163,14 @@
 		}
 	}
 
-	.ka-error-wrapper__content {
+	.ml-error-wrapper__content {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: 16px;
 	}
 
-	.ka-error-wrapper__icon {
+	.ml-error-wrapper__icon {
 		color: var(--text-warning);
 		display: flex;
 		align-items: center;
@@ -182,7 +182,7 @@
 		flex-shrink: 0;
 	}
 
-	.ka-error-wrapper__message {
+	.ml-error-wrapper__message {
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
@@ -190,31 +190,31 @@
 		width: 100%;
 	}
 
-	.ka-error-wrapper__title {
+	.ml-error-wrapper__title {
 		margin: 0;
 		font-size: var(--font-ui-larger);
 		font-weight: var(--font-bold);
 		color: var(--text-normal);
 	}
 
-	.ka-error-wrapper__description {
+	.ml-error-wrapper__description {
 		margin: 0;
 		font-size: var(--font-ui-small);
 		color: var(--text-muted);
 		line-height: 1.5;
 	}
 
-	.ka-error-wrapper__details {
+	.ml-error-wrapper__details {
 		margin-top: 8px;
 	}
 
-	.ka-error-wrapper__details details {
+	.ml-error-wrapper__details details {
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
 	}
 
-	.ka-error-wrapper__details summary {
+	.ml-error-wrapper__details summary {
 		cursor: pointer;
 		color: var(--text-muted);
 		font-size: var(--font-ui-smaller);
@@ -222,13 +222,13 @@
 		outline: none;
 	}
 
-	.ka-error-wrapper__details summary:focus {
+	.ml-error-wrapper__details summary:focus {
 		outline: 2px solid var(--interactive-accent);
 		outline-offset: 2px;
 		border-radius: 2px;
 	}
 
-	.ka-error-wrapper__code {
+	.ml-error-wrapper__code {
 		display: block;
 		padding: 12px;
 		background-color: var(--background-primary-alt);
@@ -244,7 +244,7 @@
 		overflow-y: auto;
 	}
 
-	.ka-error-wrapper__actions {
+	.ml-error-wrapper__actions {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -254,33 +254,33 @@
 		width: 100%;
 	}
 
-	.ka-error-wrapper__retry-info {
+	.ml-error-wrapper__retry-info {
 		font-size: var(--font-ui-smaller);
 		color: var(--text-muted);
 	}
 
-	.ka-error-wrapper__retry-info--exceeded {
+	.ml-error-wrapper__retry-info--exceeded {
 		color: var(--text-warning);
 		font-weight: var(--font-medium);
 	}
 
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
-		.ka-error-wrapper {
+		.ml-error-wrapper {
 			padding: 24px 16px;
 			margin: 16px;
 		}
 
-		.ka-error-wrapper__icon {
+		.ml-error-wrapper__icon {
 			width: 48px;
 			height: 48px;
 		}
 
-		.ka-error-wrapper__title {
+		.ml-error-wrapper__title {
 			font-size: var(--font-ui-large);
 		}
 
-		.ka-error-wrapper__code {
+		.ml-error-wrapper__code {
 			max-height: 150px;
 			font-size: 11px;
 		}

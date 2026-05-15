@@ -61,12 +61,12 @@ export default defineConfig(
     },
 
     rules: {
-      // Enforce ka- prefix on CSS classes in Svelte templates.
+      // Enforce ml- prefix on CSS classes in Svelte templates.
       // Change 'warn' to 'error' once all violations are resolved.
       'local/require-class-prefix': [
         'warn',
         {
-          prefix: 'ka-',
+          prefix: 'ml-',
           // Add any intentional exceptions here, e.g.:
           // allow: ['has-error', 'disabled'],
         },

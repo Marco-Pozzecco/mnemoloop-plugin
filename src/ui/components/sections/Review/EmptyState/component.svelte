@@ -5,7 +5,7 @@
 	const { onEndSession }: EmptyStateProps = $props();
 </script>
 
-<div class="ka-empty-state">
+<div class="ml-empty-state">
 	<Icon name="check-circle" size={48} />
 	<h2>Session Complete!</h2>
 	<p>You've reviewed all cards in this session.</p>
@@ -13,7 +13,7 @@
 </div>
 
 <style>
-	.ka-empty-state {
+	.ml-empty-state {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -25,26 +25,26 @@
 		border-radius: 12px;
 	}
 
-	.ka-empty-state h2 {
+	.ml-empty-state h2 {
 		margin: 0;
 	}
 
-	.ka-empty-state p {
+	.ml-empty-state p {
 		color: var(--text-muted);
 		margin-bottom: 1rem;
 	}
 
 	@media (max-width: 480px) {
-		.ka-empty-state {
+		.ml-empty-state {
 			padding: 2rem 1rem;
 			gap: 0.75rem;
 		}
 
-		.ka-empty-state h2 {
+		.ml-empty-state h2 {
 			font-size: 1.25rem;
 		}
 
-		.ka-empty-state p {
+		.ml-empty-state p {
 			font-size: 0.9rem;
 		}
 	}

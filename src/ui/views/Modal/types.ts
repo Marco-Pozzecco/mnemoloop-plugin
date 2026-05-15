@@ -8,5 +8,5 @@ export interface ModalProps {
 }
 
 export enum ModalClassNames {
-	flashcard = 'ka-flashcard-modal',
+	flashcard = 'ml-flashcard-modal',
 }

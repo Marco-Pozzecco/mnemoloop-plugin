@@ -21,7 +21,7 @@
 	});
 </script>
 
-<div class="ka-app-container">
+<div class="ml-app-container">
 	{#if currentView === 'dashboard'}
 		<Dashboard />
 	{:else if currentView === 'review'}
@@ -30,7 +30,7 @@
 </div>
 
 <style>
-	.ka-app-container {
+	.ml-app-container {
 		display: flex;
 		flex-direction: column;
 		height: 100%;

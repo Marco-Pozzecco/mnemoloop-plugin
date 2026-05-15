@@ -33,29 +33,29 @@
 	});
 </script>
 
-<header class="ka-review-header">
-	<div class="ka-review-stats">
-		<span class="ka-stat-item ka-stat-primary">
+<header class="ml-review-header">
+	<div class="ml-review-stats">
+		<span class="ml-stat-item ml-stat-primary">
 			<Icon name="layers" size={14} />
 			<span>{position}/{total}</span>
 		</span>
 
-		<span class="ka-stat-item ka-stat-secondary">
+		<span class="ml-stat-item ml-stat-secondary">
 			<Icon name="percent" size={14} />
 			<span>{accuracyPercent()}</span>
 		</span>
 
-		<span class="ka-stat-item ka-stat-secondary">
+		<span class="ml-stat-item ml-stat-secondary">
 			<Icon name="timer" size={14} />
 			<span>{formattedTime()}</span>
 		</span>
 	</div>
 
-	<div class="ka-progress-wrapper">
+	<div class="ml-progress-wrapper">
 		<ProgressBar value={progress} />
 	</div>
 
-	<div class="ka-header-actions">
+	<div class="ml-header-actions">
 		<Button
 			variant="secondary"
 			size="small"
@@ -72,47 +72,47 @@
 </header>
 
 <style>
-	.ka-review-header {
+	.ml-review-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
 	}
 
-	.ka-review-stats {
+	.ml-review-stats {
 		display: flex;
 		gap: 1rem;
 		color: var(--text-muted);
 		font-size: 0.85rem;
 	}
 
-	.ka-stat-item {
+	.ml-stat-item {
 		display: flex;
 		align-items: center;
 		gap: 0.4rem;
 	}
 
-	.ka-progress-wrapper {
+	.ml-progress-wrapper {
 		flex: 1;
 	}
 
-	.ka-stat-secondary {
+	.ml-stat-secondary {
 		color: var(--text-muted);
 	}
 
-	.ka-header-actions {
+	.ml-header-actions {
 		display: flex;
 		gap: 0.5rem;
 		align-items: center;
 	}
 
 	@media (max-width: 480px) {
-		.ka-review-stats {
+		.ml-review-stats {
 			font-size: 0.75rem;
 			gap: 0.5rem;
 		}
 
-		.ka-stat-secondary {
+		.ml-stat-secondary {
 			display: none;
 		}
 	}

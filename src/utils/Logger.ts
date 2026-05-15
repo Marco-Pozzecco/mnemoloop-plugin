@@ -1,7 +1,7 @@
 import { env, LogLevel } from '@/env';
 
 export class Logger {
-	private static prefix = '[Knowledge Accelerator]';
+	private static prefix = '[Mnemoloop]';
 
 	static info(message: string, ...args: unknown[]): void {
 		if (LogLevel.INFO <= env.logLevel) {

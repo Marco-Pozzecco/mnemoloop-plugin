@@ -1,6 +1,6 @@
 {
-	"id": "knowledge-accelerator",
-	"name": "Obsidian Knowledge Accelerator",
+	"id": "mnemoloop",
+	"name": "Mnemoloop",
 	"version": "1.0.0",
 	"minAppVersion": "1.4.0",
 	"description": "A high-performance spaced repetition system for Obsidian.",

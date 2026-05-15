@@ -3,7 +3,7 @@
 	import type SliderProps from './types';
 
 	let {
-		id = `ka-slider-${Math.random().toString(36).substring(2, 9)}`,
+		id = `ml-slider-${Math.random().toString(36).substring(2, 9)}`,
 		label,
 		value = $bindable(0),
 		min = 0,
@@ -26,12 +26,12 @@
 	}
 </script>
 
-<div class="ka-slider-wrapper {className}" class:has-error={hasError} class:disabled>
+<div class="ml-slider-wrapper {className}" class:has-error={hasError} class:disabled>
 	{#if label}
-		<label for={id} class="ka-slider-label">
+		<label for={id} class="ml-slider-label">
 			{label}
 			{#if required}
-				<span class="ka-slider-required">*</span>
+				<span class="ml-slider-required">*</span>
 			{/if}
 		</label>
 	{/if}
@@ -49,19 +49,19 @@
 		aria-describedby={hasError ? `${id}-error` : helperText ? `${id}-helper` : undefined}
 	>
 		{#snippet child({ props, thumbItems })}
-			<div {...props} class="ka-slider-container">
-				<div class="ka-slider-track">
+			<div {...props} class="ml-slider-container">
+				<div class="ml-slider-track">
 					<Slider.Range>
 						{#snippet child({ props: rangeProps })}
 							{@const rangeWidth = ((value - min) / (max - min)) * 100}
-							<div {...rangeProps} class="ka-slider-range" style="width: {rangeWidth}%"></div>
+							<div {...rangeProps} class="ml-slider-range" style="width: {rangeWidth}%"></div>
 						{/snippet}
 					</Slider.Range>
 				</div>
 				{#each thumbItems as thumb (thumb.index)}
 					<Slider.Thumb index={thumb.index}>
 						{#snippet child({ props: thumbProps })}
-							<div {...thumbProps} class="ka-slider-thumb"></div>
+							<div {...thumbProps} class="ml-slider-thumb"></div>
 						{/snippet}
 					</Slider.Thumb>
 				{/each}
@@ -70,20 +70,20 @@
 	</Slider.Root>
 
 	{#if hasError && errorMessage}
-		<div id="{id}-error" class="ka-slider-error">{errorMessage}</div>
+		<div id="{id}-error" class="ml-slider-error">{errorMessage}</div>
 	{:else if helperText}
-		<div id="{id}-helper" class="ka-slider-helper">{helperText}</div>
+		<div id="{id}-helper" class="ml-slider-helper">{helperText}</div>
 	{/if}
 </div>
 
 <style>
-	.ka-slider-wrapper {
+	.ml-slider-wrapper {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
 	}
 
-	.ka-slider-label {
+	.ml-slider-label {
 		font-size: var(--font-ui-smaller);
 		font-weight: var(--font-medium);
 		color: var(--text-normal);
@@ -93,12 +93,12 @@
 		gap: 0.25rem;
 	}
 
-	.ka-slider-required {
+	.ml-slider-required {
 		color: var(--text-error);
 		font-weight: bold;
 	}
 
-	.ka-slider-container {
+	.ml-slider-container {
 		position: relative;
 		display: flex;
 		align-items: center;
@@ -108,7 +108,7 @@
 		user-select: none;
 	}
 
-	.ka-slider-track {
+	.ml-slider-track {
 		height: 4px;
 		background-color: var(--background-modifier-border);
 		border-radius: 2px;
@@ -117,7 +117,7 @@
 		overflow: hidden;
 	}
 
-	.ka-slider-range {
+	.ml-slider-range {
 		height: 100%;
 		background-color: var(--interactive-accent);
 		border-radius: 2px;
@@ -126,7 +126,7 @@
 		top: 0;
 	}
 
-	.ka-slider-thumb {
+	.ml-slider-thumb {
 		width: 16px;
 		height: 16px;
 		background-color: var(--interactive-accent);
@@ -143,73 +143,73 @@
 			box-shadow 0.15s ease;
 	}
 
-	.ka-slider-thumb:hover {
+	.ml-slider-thumb:hover {
 		background-color: var(--interactive-accent-hover);
 		transform: translate(-50%, -50%) scale(1.1);
 	}
 
-	.ka-slider-thumb:focus-visible {
+	.ml-slider-thumb:focus-visible {
 		outline: 2px solid var(--interactive-accent);
 		outline-offset: 2px;
 	}
 
-	.ka-slider-thumb:active {
+	.ml-slider-thumb:active {
 		cursor: grabbing;
 		transform: translate(-50%, -50%) scale(0.95);
 		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 	}
 
 	/* Error state */
-	.ka-slider-wrapper.has-error .ka-slider-track {
+	.ml-slider-wrapper.has-error .ml-slider-track {
 		background-color: rgba(255, 0, 0, 0.2);
 	}
 
-	.ka-slider-wrapper.has-error .ka-slider-range {
+	.ml-slider-wrapper.has-error .ml-slider-range {
 		background-color: var(--text-error);
 	}
 
-	.ka-slider-wrapper.has-error .ka-slider-thumb {
+	.ml-slider-wrapper.has-error .ml-slider-thumb {
 		background-color: var(--text-error);
 		border-color: var(--background-primary);
 	}
 
-	.ka-slider-wrapper.has-error .ka-slider-thumb:hover {
+	.ml-slider-wrapper.has-error .ml-slider-thumb:hover {
 		background-color: var(--text-error);
 		filter: brightness(1.1);
 	}
 
-	.ka-slider-wrapper.has-error .ka-slider-label {
+	.ml-slider-wrapper.has-error .ml-slider-label {
 		color: var(--text-error);
 	}
 
 	/* Disabled state */
-	.ka-slider-wrapper.disabled .ka-slider-track {
+	.ml-slider-wrapper.disabled .ml-slider-track {
 		background-color: var(--background-modifier-border);
 		opacity: 0.5;
 	}
 
-	.ka-slider-wrapper.disabled .ka-slider-range {
+	.ml-slider-wrapper.disabled .ml-slider-range {
 		background-color: var(--text-muted);
 	}
 
-	.ka-slider-wrapper.disabled .ka-slider-thumb {
+	.ml-slider-wrapper.disabled .ml-slider-thumb {
 		background-color: var(--text-muted);
 		cursor: not-allowed;
 		box-shadow: none;
 	}
 
 	/* Error and helper text */
-	.ka-slider-error,
-	.ka-slider-helper {
+	.ml-slider-error,
+	.ml-slider-helper {
 		font-size: var(--font-ui-smaller);
 		line-height: 1.4;
 	}
 
-	.ka-slider-error {
+	.ml-slider-error {
 		color: var(--text-error);
 	}
 
-	.ka-slider-helper {
+	.ml-slider-helper {
 		color: var(--text-muted);
 	}
 </style>

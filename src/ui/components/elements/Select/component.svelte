@@ -3,7 +3,7 @@
 	import type { SelectProps } from './types';
 
 	let {
-		id = `ka-select-${Math.random().toString(36).substring(2, 9)}`,
+		id = `ml-select-${Math.random().toString(36).substring(2, 9)}`,
 		label,
 		options,
 		value = $bindable(''),
@@ -32,12 +32,12 @@
 	}
 </script>
 
-<div class="ka-select-wrapper {className}" class:has-error={hasError}>
+<div class="ml-select-wrapper {className}" class:has-error={hasError}>
 	{#if label}
-		<label for={id} class="ka-select-label">
+		<label for={id} class="ml-select-label">
 			{label}
 			{#if required}
-				<span class="ka-select-required">*</span>
+				<span class="ml-select-required">*</span>
 			{/if}
 		</label>
 	{/if}
@@ -51,7 +51,7 @@
 	>
 		<Select.Trigger
 			{id}
-			class="ka-select"
+			class="ml-select"
 			aria-invalid={hasError}
 			aria-describedby={buildAriaDescribedBy()}
 		>
@@ -62,14 +62,14 @@
 			{/snippet}
 		</Select.Trigger>
 		<Select.Portal>
-			<Select.Content class="ka-select-content">
-				<Select.Viewport class="ka-select-viewport">
+			<Select.Content class="ml-select-content">
+				<Select.Viewport class="ml-select-viewport">
 					{#each options as option (option.value)}
-						<Select.Item value={option.value} disabled={option.disabled} class="ka-select-item">
+						<Select.Item value={option.value} disabled={option.disabled} class="ml-select-item">
 							{#snippet children({ selected })}
-								<span class="ka-select-item-label">{option.label}</span>
+								<span class="ml-select-item-label">{option.label}</span>
 								{#if selected}
-									<span class="ka-select-item-indicator">✓</span>
+									<span class="ml-select-item-indicator">✓</span>
 								{/if}
 							{/snippet}
 						</Select.Item>
@@ -80,20 +80,20 @@
 	</Select.Root>
 
 	{#if hasError && errorMessage}
-		<div id="{id}-error" class="ka-select-error">{errorMessage}</div>
+		<div id="{id}-error" class="ml-select-error">{errorMessage}</div>
 	{:else if helperText}
-		<div id="{id}-helper" class="ka-select-helper">{helperText}</div>
+		<div id="{id}-helper" class="ml-select-helper">{helperText}</div>
 	{/if}
 </div>
 
 <style>
-	.ka-select-wrapper {
+	.ml-select-wrapper {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
 	}
 
-	.ka-select-label {
+	.ml-select-label {
 		font-size: var(--font-ui-smaller);
 		font-weight: var(--font-medium);
 		color: var(--text-normal);
@@ -103,12 +103,12 @@
 		gap: 0.25rem;
 	}
 
-	.ka-select-required {
+	.ml-select-required {
 		color: var(--text-error);
 		font-weight: bold;
 	}
 
-	:global(.ka-select) {
+	:global(.ml-select) {
 		width: 100%;
 		padding: 0.625rem 0.75rem;
 		font-family: inherit;
@@ -128,39 +128,39 @@
 		justify-content: space-between;
 	}
 
-	:global(.ka-select:hover:not([data-disabled])) {
+	:global(.ml-select:hover:not([data-disabled])) {
 		border-color: var(--background-modifier-border-hover);
 	}
 
-	:global(.ka-select[data-state='open']) {
+	:global(.ml-select[data-state='open']) {
 		border-color: var(--interactive-accent);
 		box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
 	}
 
-	:global(.ka-select:focus-visible) {
+	:global(.ml-select:focus-visible) {
 		outline: none;
 		border-color: var(--interactive-accent);
 		box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
 	}
 
-	:global(.ka-select[data-disabled]) {
+	:global(.ml-select[data-disabled]) {
 		background-color: var(--background-secondary);
 		color: var(--text-muted);
 		cursor: not-allowed;
 		opacity: 0.6;
 	}
 
-	.ka-select-wrapper.has-error :global(.ka-select) {
+	.ml-select-wrapper.has-error :global(.ml-select) {
 		border-color: var(--text-error);
 		background-color: rgba(255, 0, 0, 0.05);
 	}
 
-	.ka-select-wrapper.has-error :global(.ka-select:focus-visible) {
+	.ml-select-wrapper.has-error :global(.ml-select:focus-visible) {
 		box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
 	}
 
 	/* Dropdown content styles */
-	:global(.ka-select-content) {
+	:global(.ml-select-content) {
 		background-color: var(--background-primary);
 		border: 1px solid var(--background-modifier-border);
 		border-radius: var(--input-radius, 4px);
@@ -169,13 +169,13 @@
 		min-width: var(--bits-select-trigger-width);
 	}
 
-	:global(.ka-select-viewport) {
+	:global(.ml-select-viewport) {
 		padding: 0.25rem;
 		max-height: 300px;
 		overflow-y: auto;
 	}
 
-	:global(.ka-select-item) {
+	:global(.ml-select-item) {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -187,52 +187,52 @@
 		transition: background-color 0.15s ease;
 	}
 
-	:global(.ka-select-item:hover:not([data-disabled])) {
+	:global(.ml-select-item:hover:not([data-disabled])) {
 		background-color: var(--background-modifier-hover);
 	}
 
-	:global(.ka-select-item[data-selected]) {
+	:global(.ml-select-item[data-selected]) {
 		background-color: var(--background-modifier-active);
 	}
 
-	:global(.ka-select-item[data-disabled]) {
+	:global(.ml-select-item[data-disabled]) {
 		color: var(--text-muted);
 		cursor: not-allowed;
 		opacity: 0.5;
 	}
 
-	:global(.ka-select-item-label) {
+	:global(.ml-select-item-label) {
 		flex: 1;
 	}
 
-	:global(.ka-select-item-indicator) {
+	:global(.ml-select-item-indicator) {
 		color: var(--interactive-accent);
 		font-weight: bold;
 		margin-left: 0.5rem;
 	}
 
-	.ka-select-error,
-	.ka-select-helper {
+	.ml-select-error,
+	.ml-select-helper {
 		font-size: var(--font-ui-smaller);
 		line-height: 1.4;
 	}
 
-	.ka-select-error {
+	.ml-select-error {
 		color: var(--text-error);
 	}
 
-	.ka-select-helper {
+	.ml-select-helper {
 		color: var(--text-muted);
 	}
 
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
-		:global(.ka-select) {
+		:global(.ml-select) {
 			padding: 0.5rem 0.625rem;
 			font-size: 1rem; /* Prevent iOS zoom */
 		}
 
-		:global(.ka-select-item) {
+		:global(.ml-select-item) {
 			padding: 0.625rem 0.75rem;
 			font-size: 1rem;
 		}

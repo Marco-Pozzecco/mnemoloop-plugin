@@ -1,16 +1,16 @@
 {
-	"name": "obs-knowledge-accelerator",
+	"name": "obs-mnemoloop",
 	"version": "1.0.0",
 	"description": "An obsidian plugin for spaced repetition learning",
-	"homepage": "https://github.com/Marco-Pozzecco/obs-knowledge-accelerator#readme",
+	"homepage": "https://github.com/Marco-Pozzecco/obs-mnemoloop#readme",
 	"bugs": {
-		"url": "https://github.com/Marco-Pozzecco/obs-knowledge-accelerator/issues"
+		"url": "https://github.com/Marco-Pozzecco/obs-mnemoloop/issues"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+ssh://git@github.com/Marco-Pozzecco/obs-knowledge-accelerator.git"
+		"url": "git+ssh://git@github.com/Marco-Pozzecco/obs-mnemoloop.git"
 	},
-	"license": "ISC",
+	"license": "MIT",
 	"author": "Marco Pozzecco",
 	"type": "module",
 	"main": "main.js",

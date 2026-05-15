@@ -7,7 +7,7 @@
  *   - class:foo={bar} directives
  *
  * Ignores:
- *   - Dynamic template expressions ({className}, ka-btn--{variant})
+ *   - Dynamic template expressions ({className}, ml-btn--{variant})
  *   - Third-party library prefixes (lc-*)
  *   - Explicitly allowed names (configured via options)
  */
@@ -41,7 +41,7 @@ export default {
 
 	create(context) {
 		const options = context.options[0] || {};
-		const prefix = options.prefix || 'ka-';
+		const prefix = options.prefix || 'ml-';
 		const allow = new Set(options.allow || []);
 
 		/**
@@ -53,7 +53,7 @@ export default {
 			if (name.startsWith(prefix)) return true;
 			if (name.startsWith('lc-')) return true; // layerchart
 			if (name.startsWith('svelte-')) return true; // svelte compiler hashes
-			// Contains curly braces → dynamic expression (e.g. ka-btn--{variant})
+			// Contains curly braces → dynamic expression (e.g. ml-btn--{variant})
 			if (name.includes('{') || name.includes('}')) return true;
 			return false;
 		}
@@ -93,7 +93,7 @@ export default {
 
 			// ── class:foo={bar} and class:foo (shorthand) ──
 			// Intentionally ignored: class:* directives are state/modifier toggles
-			// that compose with a base ka-* class (e.g. .ka-card.has-border).
+			// that compose with a base ml-* class (e.g. .ml-card.has-border).
 			// Unprefixed selectors in <style> blocks are caught by check-css-prefix.js.
 		};
 	},

@@ -19,7 +19,7 @@
 	{onclick}
 	{type}
 	aria-label={ariaLabel}
-	class="ka-button ka-button--{variant} ka-button--{size} {className}"
+	class="ml-button ml-button--{variant} ml-button--{size} {className}"
 >
 	{#if children}
 		{@render children()}
@@ -27,7 +27,7 @@
 </Button.Root>
 
 <style>
-	:global(button.ka-button) {
+	:global(button.ml-button) {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -49,78 +49,78 @@
 	}
 
 	/* Variants */
-	:global(button.ka-button--primary) {
+	:global(button.ml-button--primary) {
 		background-color: var(--interactive-accent);
 		color: var(--text-on-accent);
 	}
 
-	:global(button.ka-button--primary:hover:not(:disabled)) {
+	:global(button.ml-button--primary:hover:not(:disabled)) {
 		background-color: var(--interactive-accent-hover);
 	}
 
-	:global(button.ka-button--secondary) {
+	:global(button.ml-button--secondary) {
 		background-color: var(--button-secondary-background, var(--background-modifier-border));
 		color: var(--text-normal);
 		border: 1px solid var(--background-modifier-border-focus);
 	}
 
-	:global(button.ka-button--secondary:hover:not(:disabled)) {
+	:global(button.ml-button--secondary:hover:not(:disabled)) {
 		background-color: var(--background-modifier-hover);
 	}
 
-	:global(button.ka-button--danger) {
+	:global(button.ml-button--danger) {
 		background-color: var(--text-error);
 		color: var(--text-on-accent);
 	}
 
-	:global(button.ka-button--danger:hover:not(:disabled)) {
+	:global(button.ml-button--danger:hover:not(:disabled)) {
 		filter: brightness(1.1);
 	}
 
-	:global(button.ka-button--ghost) {
+	:global(button.ml-button--ghost) {
 		background-color: transparent;
 		color: var(--text-normal);
 		border: 1px solid var(--background-modifier-border);
 		box-shadow: none;
 	}
 
-	:global(button.ka-button--ghost:hover:not(:disabled)) {
+	:global(button.ml-button--ghost:hover:not(:disabled)) {
 		color: var(--interactive-accent);
 	}
 
 	/* Sizes */
-	:global(button.ka-button--small) {
+	:global(button.ml-button--small) {
 		min-height: 32px;
 		padding: 0 12px;
 		font-size: var(--font-ui-smaller);
 	}
 
-	:global(button.ka-button--medium) {
+	:global(button.ml-button--medium) {
 		min-height: 44px;
 		padding: 0 20px;
 		font-size: var(--font-ui-small);
 	}
 
-	:global(button.ka-button--large) {
+	:global(button.ml-button--large) {
 		min-height: 52px;
 		padding: 0 28px;
 		font-size: var(--font-ui-medium);
 	}
 
 	/* States */
-	:global(button.ka-button:disabled) {
+	:global(button.ml-button:disabled) {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
 
-	:global(button.ka-button:focus-visible) {
+	:global(button.ml-button:focus-visible) {
 		outline: 2px solid var(--interactive-accent);
 		outline-offset: 2px;
 	}
 
 	/* Mobile-first responsive adjustments */
 	@media (max-width: 480px) {
-		:global(button.ka-button--large) {
+		:global(button.ml-button--large) {
 			width: 100%;
 		}
 	}

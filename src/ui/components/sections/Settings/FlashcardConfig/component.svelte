@@ -18,10 +18,10 @@
 	}
 </script>
 
-<section class="ka-flashcard-config-section">
-	<h3 class="ka-section-header">Flashcard Settings</h3>
+<section class="ml-flashcard-config-section">
+	<h3 class="ml-section-header">Flashcard Settings</h3>
 
-	<div class="ka-form-fields">
+	<div class="ml-form-fields">
 		<Input
 			label="Flashcard directory"
 			value={settings.flashcard.watch.directory}
@@ -43,13 +43,13 @@
 </section>
 
 <style>
-	.ka-flashcard-config-section {
+	.ml-flashcard-config-section {
 		display: flex;
 		flex-direction: column;
 		gap: 1.25rem;
 	}
 
-	.ka-section-header {
+	.ml-section-header {
 		font-size: var(--font-ui-medium);
 		font-weight: var(--font-medium);
 		color: var(--text-normal);
@@ -59,7 +59,7 @@
 		border-bottom: 1px solid var(--background-modifier-border);
 	}
 
-	.ka-form-fields {
+	.ml-form-fields {
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
