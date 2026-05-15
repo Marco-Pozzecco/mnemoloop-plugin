@@ -33,6 +33,23 @@
 	});
 </script>
 
+{#snippet actions(className?: string)}
+	<div class="ml-header-actions {className}">
+		<Button
+			variant="secondary"
+			size="small"
+			disabled={!canUndo}
+			onclick={onUndo}
+			ariaLabel="Undo last rating"
+		>
+			<Icon name="undo" size={18} />
+		</Button>
+		<Button variant="secondary" size="small" onclick={onEndSession}>
+			<Icon name="x" size={18} />
+		</Button>
+	</div>
+{/snippet}
+
 <header class="ml-review-header">
 	<div class="ml-review-stats">
 		<span class="ml-stat-item ml-stat-primary">
@@ -49,26 +66,15 @@
 			<Icon name="timer" size={14} />
 			<span>{formattedTime()}</span>
 		</span>
+
+		{@render actions('ml-header-actions__mobile')}
 	</div>
 
 	<div class="ml-progress-wrapper">
 		<ProgressBar value={progress} />
 	</div>
 
-	<div class="ml-header-actions">
-		<Button
-			variant="secondary"
-			size="small"
-			disabled={!canUndo}
-			onclick={onUndo}
-			ariaLabel="Undo last rating"
-		>
-			<Icon name="undo" size={18} />
-		</Button>
-		<Button variant="secondary" size="small" onclick={onEndSession}>
-			<Icon name="x" size={18} />
-		</Button>
-	</div>
+	{@render actions()}
 </header>
 
 <style>
@@ -106,22 +112,46 @@
 		align-items: center;
 	}
 
+	.ml-header-actions__mobile {
+		display: none;
+	}
+
 	@media (max-width: 480px) {
+		.ml-review-header {
+			flex-wrap: wrap;
+			gap: 0.5rem;
+		}
+
 		.ml-review-stats {
 			font-size: 0.75rem;
 			gap: 0.5rem;
+			flex: 0 1 auto;
+			justify-content: start;
+			order: 1;
+			width: 100%;
 		}
 
-		.ml-stat-secondary {
-			display: none;
-		}
-
-		.ml-review-header {
-			gap: 0.5rem;
+		.ml-stat-item {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			gap: 0.4rem;
 		}
 
 		.ml-progress-wrapper {
-			max-width: 120px;
+			flex-basis: 100%;
+			max-width: none;
+			order: 3;
+			width: 100%;
+		}
+
+		.ml-header-actions {
+			display: none;
+		}
+
+		.ml-header-actions__mobile {
+			display: flex;
+			margin-left: auto;
 		}
 	}
 </style>
