@@ -16,7 +16,8 @@
 	"main": "main.js",
 	"scripts": {
 		"dev": "vite build --watch --mode development",
-		"build": "tsc && vite build --mode production",
+		"build": "tsc -p tsconfig.build.json && vite build --mode production",
+		"typecheck": "tsc --noEmit",
 		"test": "vitest",
 		"lint": "eslint src --ext .ts,.tsx && eslint .",
 		"lint:css-prefix": "python scripts/check-css-prefix.py",
@@ -32,6 +33,7 @@
 		"@types/uuid": "^10.0.0",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",
 		"@typescript-eslint/parser": "^6.0.0",
+		"@vitest/coverage-v8": "^1.6.1",
 		"builtin-modules": "^5.0.0",
 		"eslint": "^9.39.1",
 		"eslint-config-prettier": "^10.1.8",
