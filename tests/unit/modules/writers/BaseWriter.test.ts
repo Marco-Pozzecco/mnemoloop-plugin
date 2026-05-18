@@ -1,16 +1,18 @@
-import { describe, expect, it, beforeEach } from 'vitest';
-import { Plugin } from 'obsidian';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
+import { Plugin, parseYaml } from 'obsidian';
 import { z } from 'zod';
 import { BaseWriter } from '@/modules/writers/BaseWriter';
 import { BaseYamlEngine } from '@/modules/yaml-engines/BaseYamlEngine';
 import { createMockPlugin } from '../../../helpers/mock-obsidian';
 
 interface TestEntity {
+	[key: string]: unknown;
 	uuid: string;
 	content: string;
 }
 
 interface TestMetadata {
+	[key: string]: unknown;
 	uuid: string;
 	tags?: string[];
 }
@@ -22,7 +24,7 @@ interface TestBody {
 class TestYamlEngine extends BaseYamlEngine<TestMetadata> {
 	constructor(plugin: Plugin) {
 		super(plugin, z.object({
-			uuid: z.string().optional(),
+			uuid: z.string(),
 			tags: z.array(z.string()).optional(),
 		}));
 	}
@@ -44,6 +46,22 @@ describe('BaseWriter', () => {
 		plugin = createMockPlugin([{ path: 'test.md', content: '---\nuuid: old\n---\nold body' }]);
 		const yaml = new TestYamlEngine(plugin as unknown as Plugin);
 		writer = new TestWriter(plugin as unknown as Plugin, yaml);
+		vi.mocked(parseYaml).mockImplementation((yaml: string) => {
+			const result: Record<string, unknown> = {};
+			for (const line of yaml.split('\n')) {
+				const colonIndex = line.indexOf(':');
+				if (colonIndex > 0) {
+					const key = line.slice(0, colonIndex).trim();
+					const value = line.slice(colonIndex + 1).trim();
+					if (key) result[key] = value;
+				}
+			}
+			return result;
+		});
+	});
+
+	afterEach(() => {
+		vi.mocked(parseYaml).mockRestore();
 	});
 
 	describe('create', () => {

@@ -16,27 +16,36 @@ vi.mock('obsidian', () => ({
 		app = {
 			vault: {
 				adapter: {
-					read: vi.fn(),
-					write: vi.fn(),
-					exists: vi.fn(),
-					list: vi.fn(),
+					read: vi.fn<any, any>(),
+					write: vi.fn<any, any>(),
+					exists: vi.fn<any, any>(),
+					list: vi.fn<any, any>(),
 				},
-				getFileByPath: vi.fn(),
-				getAbstractFileByPath: vi.fn(),
-				delete: vi.fn(),
-				create: vi.fn(),
-				getRoot: vi.fn(),
-				on: vi.fn(),
+				getFileByPath: vi.fn<any, any>(),
+				getAbstractFileByPath: vi.fn<any, any>(),
+				delete: vi.fn<any, any>(),
+				create: vi.fn<any, any>(),
+				getRoot: vi.fn<any, any>(),
+				read: vi.fn<any, any>(),
+				write: vi.fn<any, any>(),
+				cachedRead: vi.fn<any, any>(),
+				append: vi.fn<any, any>(),
+				on: vi.fn<any, any>(),
 			},
 			workspace: {
-				getLeaf: vi.fn(),
-				getRightLeaf: vi.fn(),
-				on: vi.fn(),
-				revealLeaf: vi.fn(),
+				getLeaf: vi.fn<any, any>(),
+				getRightLeaf: vi.fn<any, any>(),
+				getActiveFile: vi.fn<any, any>(),
+				getLeavesOfType: vi.fn<any, any>(),
+				getMostRecentLeaf: vi.fn<any, any>(),
+				iterateRootLeaves: vi.fn<any, any>(),
+				createLeafInParent: vi.fn<any, any>(),
+				on: vi.fn<any, any>(),
+				revealLeaf: vi.fn<any, any>(),
 			},
 			metadataCache: {
-				getFileCache: vi.fn(),
-				getFirstLinkpathDest: vi.fn(),
+				getFileCache: vi.fn<any, any>(),
+				getFirstLinkpathDest: vi.fn<any, any>(),
 			},
 		};
 		registerEvent = vi.fn();
@@ -48,17 +57,21 @@ vi.mock('obsidian', () => ({
 	// Vault class
 	Vault: class MockVault {
 		adapter = {
-			read: vi.fn(),
-			write: vi.fn(),
-			exists: vi.fn(),
-			list: vi.fn(),
+			read: vi.fn<any, any>(),
+			write: vi.fn<any, any>(),
+			exists: vi.fn<any, any>(),
+			list: vi.fn<any, any>(),
 		};
-		getFileByPath = vi.fn();
-		getAbstractFileByPath = vi.fn();
-		delete = vi.fn();
-		create = vi.fn();
-		getRoot = vi.fn();
-		on = vi.fn();
+		getFileByPath = vi.fn<any, any>();
+		getAbstractFileByPath = vi.fn<any, any>();
+		delete = vi.fn<any, any>();
+		create = vi.fn<any, any>();
+		getRoot = vi.fn<any, any>();
+		read = vi.fn<any, any>();
+		write = vi.fn<any, any>();
+		cachedRead = vi.fn<any, any>();
+		append = vi.fn<any, any>();
+		on = vi.fn<any, any>();
 	},
 
 	// TFile class
@@ -81,10 +94,15 @@ vi.mock('obsidian', () => ({
 
 	// Workspace class
 	Workspace: class MockWorkspace {
-		getLeaf = vi.fn();
-		getRightLeaf = vi.fn();
-		on = vi.fn();
-		revealLeaf = vi.fn();
+		getLeaf = vi.fn<any, any>();
+		getRightLeaf = vi.fn<any, any>();
+		getActiveFile = vi.fn<any, any>();
+		getLeavesOfType = vi.fn<any, any>();
+		getMostRecentLeaf = vi.fn<any, any>();
+		iterateRootLeaves = vi.fn<any, any>();
+		createLeafInParent = vi.fn<any, any>();
+		on = vi.fn<any, any>();
+		revealLeaf = vi.fn<any, any>();
 	},
 
 	// WorkspaceLeaf class
@@ -111,6 +129,7 @@ vi.mock('obsidian', () => ({
 	MarkdownView: class MockMarkdownView {
 		file = null;
 		leaf = null;
+		constructor(_leaf?: unknown) {}
 	},
 
 	// MarkdownFileInfo interface (mocked as a plain object constructor)
@@ -126,7 +145,7 @@ vi.mock('obsidian', () => ({
 
 	// Utility functions
 	normalizePath: (path: string) => path,
-	parseYaml: (_yaml: string) => ({}),
+	parseYaml: vi.fn((_yaml: string) => ({})),
 
 	// Component base class
 	Component: class MockComponent {
