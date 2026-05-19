@@ -27,7 +27,7 @@ describe('CreateEmptyFlashcardCommand', () => {
 		const { addCommandSpy } = setup();
 		expect(addCommandSpy).toHaveBeenCalledWith(
 			expect.objectContaining({
-				id: 'ml-create-empty-flashcard',
+				id: 'create-empty-flashcard',
 				name: 'Create Empty Flashcard',
 			}),
 		);

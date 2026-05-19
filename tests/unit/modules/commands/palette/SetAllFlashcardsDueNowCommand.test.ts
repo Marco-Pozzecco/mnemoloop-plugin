@@ -34,8 +34,8 @@ describe('SetAllFlashcardsDueNowCommand', () => {
 
 		expect(addCommandSpy).toHaveBeenCalledWith(
 			expect.objectContaining({
-				id: 'ml-set-all-flashcards-due-now',
-				name: 'Debug: Set all flashcards due to now',
+				id: 'set-all-flashcards-due-now',
+				name: 'Set all flashcards due to now [DEBUG]',
 			}),
 		);
 	});
