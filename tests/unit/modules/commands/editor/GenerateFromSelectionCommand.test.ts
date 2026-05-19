@@ -58,7 +58,7 @@ describe('GenerateFromSelectionCommand', () => {
 	it('should add menu item with correct title and icon', () => {
 		const { plugin } = setup();
 		const editor = createMockEditor('content', 'selected text');
-		const view = new MarkdownView();
+		const view = new MarkdownView({} as any);
 		(view as any).file = { path: 'notes/test.md' };
 
 		const { menu } = triggerEditorMenu(plugin, editor, view);
@@ -72,7 +72,7 @@ describe('GenerateFromSelectionCommand', () => {
 	it('should show Notice when no selection', async () => {
 		const { plugin } = setup();
 		const editor = createMockEditor('content', '');
-		const view = new MarkdownView();
+		const view = new MarkdownView({} as any);
 		(view as any).file = { path: 'notes/test.md' };
 
 		const { item } = triggerEditorMenu(plugin, editor, view);
@@ -85,7 +85,7 @@ describe('GenerateFromSelectionCommand', () => {
 	it('should show Notice when no filepath', async () => {
 		const { plugin } = setup();
 		const editor = createMockEditor('content', 'selected text');
-		const view = new MarkdownView();
+		const view = new MarkdownView({} as any);
 		(view as any).file = null;
 
 		const { item } = triggerEditorMenu(plugin, editor, view);
@@ -98,7 +98,7 @@ describe('GenerateFromSelectionCommand', () => {
 	it('should open modal and subscribe to response on valid selection', async () => {
 		const { plugin } = setup();
 		const editor = createMockEditor('content', 'selected text');
-		const view = new MarkdownView();
+		const view = new MarkdownView({} as any);
 		(view as any).file = { path: 'notes/test.md' };
 
 		const { item } = triggerEditorMenu(plugin, editor, view);
@@ -121,14 +121,14 @@ describe('GenerateFromSelectionCommand', () => {
 	it('should open created file in right leaf on response', async () => {
 		const { plugin } = setup();
 		const editor = createMockEditor('content', 'selected text');
-		const view = new MarkdownView();
+		const view = new MarkdownView({} as any);
 		(view as any).file = { path: 'notes/test.md' };
 		(view as any).leaf = { id: 'original-leaf' };
 
 		const rightLeaf = { openFile: vi.fn().mockResolvedValue(undefined) };
 		plugin.app.workspace.getRightLeaf = vi.fn().mockReturnValue(rightLeaf);
 		plugin.app.workspace.revealLeaf = vi.fn();
-		plugin.app.vault.getAbstractFileByPath = vi.fn().mockReturnValue(new TFile('notes/test.md', 'test'));
+		plugin.app.vault.getAbstractFileByPath = vi.fn().mockReturnValue(new (TFile as any)('notes/test.md', 'test'));
 
 		const { item } = triggerEditorMenu(plugin, editor, view);
 		const onClickHandler = item.onClick.mock.calls[0][0];
@@ -151,7 +151,7 @@ describe('GenerateFromSelectionCommand', () => {
 	it('should not open file when response file is not a TFile', async () => {
 		const { plugin } = setup();
 		const editor = createMockEditor('content', 'selected text');
-		const view = new MarkdownView();
+		const view = new MarkdownView({} as any);
 		(view as any).file = { path: 'notes/test.md' };
 
 		const rightLeaf = { openFile: vi.fn() };

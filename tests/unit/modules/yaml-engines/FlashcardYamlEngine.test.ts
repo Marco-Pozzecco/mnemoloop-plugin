@@ -117,7 +117,7 @@ describe('FlashcardYamlEngine', () => {
 		it('should inherit removeFrontmatter behavior', () => {
 			const content = '---\nuuid: test\n---\nbody text';
 
-			const result = engine.removeFrontmatter(content);
+			const result = (engine as any).removeFrontmatter(content);
 
 			expect(result).toBe('body text');
 		});

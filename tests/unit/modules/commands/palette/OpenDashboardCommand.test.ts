@@ -38,7 +38,7 @@ describe('OpenDashboardCommand', () => {
 		plugin.app.workspace.getLeavesOfType = vi.fn().mockReturnValue([existingLeaf]);
 		plugin.app.workspace.revealLeaf = vi.fn();
 
-		const callback = addCommandSpy.mock.calls[0][0].callback;
+		const callback = (addCommandSpy.mock.calls[0][0] as { callback: () => unknown }).callback;
 		await callback();
 
 		expect(plugin.app.workspace.getLeavesOfType).toHaveBeenCalledWith(APP_VIEW);
@@ -53,7 +53,7 @@ describe('OpenDashboardCommand', () => {
 		plugin.app.workspace.getLeaf = vi.fn().mockReturnValue(newLeaf);
 		plugin.app.workspace.revealLeaf = vi.fn();
 
-		const callback = addCommandSpy.mock.calls[0][0].callback;
+		const callback = (addCommandSpy.mock.calls[0][0] as { callback: () => unknown }).callback;
 		await callback();
 
 		expect(plugin.app.workspace.getLeaf).toHaveBeenCalledWith(false);

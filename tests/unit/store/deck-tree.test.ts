@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildDeckTree } from '@/ui/store/deck-tree.store';
-import { FlashcardMetadata } from '@/schemas';
+import { CardStatus, FlashcardMetadata } from '@/schemas';
 import { DEFAULT_FSRS } from '@/utils/constants';
 
 function createCard(overrides: Partial<FlashcardMetadata> = {}): FlashcardMetadata {
@@ -138,8 +138,8 @@ describe('buildDeckTree', () => {
 
 	it('should exclude non-ACTIVE cards', () => {
 		const cards = [
-			createCard({ uuid: '1', decks: ['Maths'], status: 'DELETED' }),
-			createCard({ uuid: '2', decks: ['Maths'], status: 'ACTIVE' }),
+			createCard({ uuid: '1', decks: ['Maths'], status: CardStatus.DELETED }),
+			createCard({ uuid: '2', decks: ['Maths'], status: CardStatus.ACTIVE }),
 		];
 		const tree = buildDeckTree(cards);
 		expect(tree).toHaveLength(1);

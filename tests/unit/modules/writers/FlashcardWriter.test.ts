@@ -3,6 +3,7 @@ import { Plugin } from 'obsidian';
 import { FlashcardWriter } from '@/modules/writers/FlashcardWriter';
 import { IParser } from '@/interfaces/IParser';
 import { Flashcard, FlashcardYaml } from '@/schemas';
+import { CardStatus } from '@/schemas/flashcard';
 import { createMockPlugin } from '../../../helpers/mock-obsidian';
 import { createFlashcardYaml } from '../../../helpers/factories';
 
@@ -85,7 +86,7 @@ describe('FlashcardWriter', () => {
 	describe('updateFrontmatter', () => {
 		it('should update frontmatter while preserving body', async () => {
 			vi.spyOn(writer['_yaml'], 'extractFmFromContent').mockReturnValue({
-				fm: createFlashcardYaml({ status: 'ACTIVE' }),
+				fm: createFlashcardYaml({ status: CardStatus.ACTIVE }),
 				body: 'Front\n\n?\n\nBack',
 			});
 

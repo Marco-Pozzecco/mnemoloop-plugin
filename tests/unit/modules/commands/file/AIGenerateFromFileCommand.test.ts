@@ -34,7 +34,7 @@ describe('AIGenerateFromFileCommand', () => {
 
 	it('should add menu item for markdown TFile', () => {
 		const { plugin } = setup();
-		const file = new TFile('notes/test.md', 'test');
+		const file = new (TFile as any)('notes/test.md', 'test');
 
 		const { menu } = triggerFileMenu(plugin, file);
 
@@ -55,7 +55,7 @@ describe('AIGenerateFromFileCommand', () => {
 
 	it('should not add menu item for non-md file', () => {
 		const { plugin } = setup();
-		const file = new TFile('notes/test.txt', 'test');
+		const file = new (TFile as any)('notes/test.txt', 'test');
 
 		const { menu } = triggerFileMenu(plugin, file);
 
@@ -64,7 +64,7 @@ describe('AIGenerateFromFileCommand', () => {
 
 	it('should read file content on click', async () => {
 		const { plugin } = setup();
-		const file = new TFile('notes/test.md', 'test');
+		const file = new (TFile as any)('notes/test.md', 'test');
 		plugin.app.vault.read = vi.fn().mockResolvedValue('# Test content');
 
 		const { item } = triggerFileMenu(plugin, file);

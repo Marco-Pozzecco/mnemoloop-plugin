@@ -5,7 +5,8 @@ import { BaseYamlEngine } from '@/modules/yaml-engines/BaseYamlEngine';
 import { createMockPlugin } from '../../../helpers/mock-obsidian';
 
 interface TestEntity {
-	uuid: string;
+	[key: string]: unknown;
+	uuid?: string;
 	decks?: string[];
 	status?: string;
 }
@@ -103,14 +104,14 @@ describe('BaseYamlEngine.removeFrontmatter', () => {
 	it('should strip frontmatter from content', () => {
 		const engine = new TestEngineOptional();
 		const content = '---\nuuid: test\n---\nbody text';
-		const result = engine.removeFrontmatter(content);
+		const result = (engine as any).removeFrontmatter(content);
 		expect(result).toBe('body text');
 	});
 
 	it('should return full content when no frontmatter present', () => {
 		const engine = new TestEngineOptional();
 		const content = 'just body text';
-		const result = engine.removeFrontmatter(content);
+		const result = (engine as any).removeFrontmatter(content);
 		expect(result).toBe('just body text');
 	});
 });

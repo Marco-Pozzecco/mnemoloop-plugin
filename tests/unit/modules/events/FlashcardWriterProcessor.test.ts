@@ -8,6 +8,7 @@ import type { IWriter } from '@/interfaces/IWriter';
 import type { IAdapter } from '@/interfaces/IAdapter';
 import type { Flashcard, FlashcardYaml, FlashcardContent } from '@/schemas';
 import { DEFAULT_PLUGIN_SETTINGS, type PluginSettings } from '@/schemas/settings';
+import { CardStatus } from '@/schemas/flashcard';
 import {
 	FlashcardWriterCreateRequestEvent,
 	FlashcardWriterCreateResponseEvent,
@@ -60,7 +61,7 @@ describe('FlashcardWriterProcessor', () => {
 		capturedEvents = [];
 		EventBus.instance.subscribe((e) => capturedEvents.push(e));
 
-		loggerErrorSpy = vi.spyOn(Logger, 'error').mockImplementation(() => {});
+		loggerErrorSpy = (vi.spyOn(Logger, 'error') as any).mockImplementation(() => {});
 
 		processor = new FlashcardWriterProcessor(writer, settingsAdapter);
 	});
@@ -117,7 +118,9 @@ describe('FlashcardWriterProcessor', () => {
 				reps: 1,
 				lapses: 0,
 				state: 0,
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
+				learning_steps: 0,
+				source: null,
 				decks: [],
 			});
 

@@ -49,7 +49,7 @@ describe('SetAllFlashcardsDueNowCommand', () => {
 			parsers: new Map() as any,
 		});
 
-		const callback = addCommandSpy.mock.calls[0][0].callback;
+		const callback = (addCommandSpy.mock.calls[0][0] as { callback: () => unknown }).callback;
 		await callback();
 
 		expect(Notice).toHaveBeenCalledWith('Error: Flashcard dependencies not found');
@@ -66,7 +66,7 @@ describe('SetAllFlashcardsDueNowCommand', () => {
 			parsers: new Map() as any,
 		});
 
-		const callback = addCommandSpy.mock.calls[0][0].callback;
+		const callback = (addCommandSpy.mock.calls[0][0] as { callback: () => unknown }).callback;
 		await callback();
 
 		expect(Notice).toHaveBeenCalledWith('Error: Flashcard dependencies not found');
@@ -84,7 +84,7 @@ describe('SetAllFlashcardsDueNowCommand', () => {
 			parsers: new Map([[ParserKey.flashcard, mockParser]]) as any,
 		});
 
-		const callback = addCommandSpy.mock.calls[0][0].callback;
+		const callback = (addCommandSpy.mock.calls[0][0] as { callback: () => unknown }).callback;
 		await callback();
 
 		expect(Notice).toHaveBeenCalledWith('No flashcards found');
@@ -110,7 +110,7 @@ describe('SetAllFlashcardsDueNowCommand', () => {
 			parsers: new Map([[ParserKey.flashcard, mockParser]]) as any,
 		});
 
-		const callback = addCommandSpy.mock.calls[0][0].callback;
+		const callback = (addCommandSpy.mock.calls[0][0] as { callback: () => unknown }).callback;
 		await callback();
 
 		expect(mockIndex.getAll).toHaveBeenCalledTimes(1);
