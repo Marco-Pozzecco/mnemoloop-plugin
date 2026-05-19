@@ -4,12 +4,16 @@ import { ParserKey } from '@/types/parsers';
 import { FlashcardWriter } from '@/modules/writers/FlashcardWriter';
 import { FlashcardParser } from '@/modules/parsers/FlashcardParser';
 import { Notice } from 'obsidian';
+import { env } from '@/env';
 
 export class SetAllFlashcardsDueNowCommand extends BaseCommand {
-	readonly id = 'ml-set-all-flashcards-due-now';
-	readonly name = 'Debug: Set all flashcards due to now';
+	readonly id = 'set-all-flashcards-due-now';
+	readonly name = 'Set all flashcards due to now [DEBUG]';
 
 	protected onRegister(): void {
+		if (env.mode === 'production') {
+			return;
+		}
 		this.plugin.addCommand({
 			id: this.id,
 			name: this.name,
