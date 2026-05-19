@@ -8,7 +8,6 @@
 		progress,
 		onEndSession,
 		accuracy = 0,
-		remaining,
 		startTime,
 		onUndo,
 		canUndo,
@@ -34,34 +33,8 @@
 	});
 </script>
 
-<header class="ka-review-header">
-	<div class="ka-review-stats">
-		<span class="ka-stat-item ka-stat-primary">
-			<Icon name="layers" size={14} />
-			<span>{position}/{total}</span>
-		</span>
-
-		<span class="ka-stat-item ka-stat-secondary">
-			<Icon name="clock" size={14} />
-			<span>{remaining}</span>
-		</span>
-
-		<span class="ka-stat-item ka-stat-secondary">
-			<Icon name="percent" size={14} />
-			<span>{accuracyPercent()}</span>
-		</span>
-
-		<span class="ka-stat-item ka-stat-secondary">
-			<Icon name="timer" size={14} />
-			<span>{formattedTime()}</span>
-		</span>
-	</div>
-
-	<div class="ka-progress-wrapper">
-		<ProgressBar value={progress} />
-	</div>
-
-	<div class="ka-header-actions">
+{#snippet actions(className?: string)}
+	<div class="ml-header-actions {className}">
 		<Button
 			variant="secondary"
 			size="small"
@@ -75,51 +48,110 @@
 			<Icon name="x" size={18} />
 		</Button>
 	</div>
+{/snippet}
+
+<header class="ml-review-header">
+	<div class="ml-review-stats">
+		<span class="ml-stat-item ml-stat-primary">
+			<Icon name="layers" size={14} />
+			<span>{position}/{total}</span>
+		</span>
+
+		<span class="ml-stat-item ml-stat-secondary">
+			<Icon name="percent" size={14} />
+			<span>{accuracyPercent()}</span>
+		</span>
+
+		<span class="ml-stat-item ml-stat-secondary">
+			<Icon name="timer" size={14} />
+			<span>{formattedTime()}</span>
+		</span>
+
+		{@render actions('ml-header-actions__mobile')}
+	</div>
+
+	<div class="ml-progress-wrapper">
+		<ProgressBar value={progress} />
+	</div>
+
+	{@render actions()}
 </header>
 
 <style>
-	.ka-review-header {
+	.ml-review-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
 	}
 
-	.ka-review-stats {
+	.ml-review-stats {
 		display: flex;
 		gap: 1rem;
 		color: var(--text-muted);
 		font-size: 0.85rem;
 	}
 
-	.ka-stat-item {
+	.ml-stat-item {
 		display: flex;
 		align-items: center;
 		gap: 0.4rem;
 	}
 
-	.ka-progress-wrapper {
+	.ml-progress-wrapper {
 		flex: 1;
 	}
 
-	.ka-stat-secondary {
+	.ml-stat-secondary {
 		color: var(--text-muted);
 	}
 
-	.ka-header-actions {
+	.ml-header-actions {
 		display: flex;
 		gap: 0.5rem;
 		align-items: center;
 	}
 
+	.ml-header-actions__mobile {
+		display: none;
+	}
+
 	@media (max-width: 480px) {
-		.ka-review-stats {
-			font-size: 0.75rem;
+		.ml-review-header {
+			flex-wrap: wrap;
 			gap: 0.5rem;
 		}
 
-		.ka-stat-secondary {
+		.ml-review-stats {
+			font-size: 0.75rem;
+			gap: 0.5rem;
+			flex: 0 1 auto;
+			justify-content: start;
+			order: 1;
+			width: 100%;
+		}
+
+		.ml-stat-item {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			gap: 0.4rem;
+		}
+
+		.ml-progress-wrapper {
+			flex-basis: 100%;
+			max-width: none;
+			order: 3;
+			width: 100%;
+		}
+
+		.ml-header-actions {
 			display: none;
+		}
+
+		.ml-header-actions__mobile {
+			display: flex;
+			margin-left: auto;
 		}
 	}
 </style>

@@ -11,11 +11,12 @@ import type { HeatMapCell, YearStats } from './types';
 export function transformStatsToHeatmap(
 	stats: Stats,
 	year: number = new Date().getFullYear(),
+	customBounds?: { start: Date; end: Date },
 ): HeatMapCell[] {
 	const cells: HeatMapCell[] = [];
 
 	// Get the start of the year (first day)
-	const { start, end } = getYearBounds(year);
+	const { start, end } = customBounds ?? getYearBounds(year);
 
 	// Find first Monday before or on Jan 1st for consistent week alignment
 	const firstMonday = new Date(start);
@@ -55,6 +56,23 @@ export function getYearBounds(year: number): { start: Date; end: Date } {
 }
 
 /**
+ * Gets start and end dates for the last N months
+ * @param months - Number of months to include
+ * @returns Date range from 1st of (current month - (months-1)) to today
+ */
+export function getLastMonthsBounds(months: number): { start: Date; end: Date } {
+	const end = new Date();
+	end.setHours(23, 59, 59, 999);
+
+	const start = new Date(end);
+	start.setMonth(start.getMonth() - (months - 1));
+	start.setDate(1);
+	start.setHours(0, 0, 0, 0);
+
+	return { start, end };
+}
+
+/**
  * Returns color range array for threshold scale
  * Uses Obsidian CSS variables for theming
  */
@@ -73,7 +91,7 @@ export function getColorRange(): string[] {
  * @param year - Target year
  * @returns Year statistics summary
  */
-export function getYearStats(cells: HeatMapCell[], year: number): YearStats {
+export function getYearStats(cells: HeatMapCell[], year?: number): YearStats {
 	let totalCards = 0;
 	let activeDays = 0;
 	let currentStreak = 0;
@@ -81,10 +99,12 @@ export function getYearStats(cells: HeatMapCell[], year: number): YearStats {
 	let tempStreak = 0;
 
 	// Filter cells for the target year only
-	const yearCells = cells.filter((cell) => cell.date.getFullYear() === year);
+	const targetCells = year !== undefined
+		? cells.filter((cell) => cell.date.getFullYear() === year)
+		: cells;
 
 	// Calculate totals
-	for (const cell of yearCells) {
+	for (const cell of targetCells) {
 		if (cell.value > 0) {
 			totalCards += cell.value;
 			activeDays++;
@@ -96,7 +116,7 @@ export function getYearStats(cells: HeatMapCell[], year: number): YearStats {
 	}
 
 	// Calculate current streak (from most recent day backward)
-	const sortedCells = [...yearCells].sort((a, b) => b.date.getTime() - a.date.getTime());
+	const sortedCells = [...targetCells].sort((a, b) => b.date.getTime() - a.date.getTime());
 
 	const today = new Date();
 	const todayCell = sortedCells.find((c) => new Date(c.dateString).getTime() === today.getTime());

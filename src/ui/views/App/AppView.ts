@@ -4,7 +4,7 @@ import { mount, unmount } from 'svelte';
 import { default as Home } from './App.svelte';
 import { AppProps } from './types';
 
-export const APP_VIEW = 'knowledge-accelerator-home';
+export const APP_VIEW = 'mnemoloop-home';
 
 export class AppView extends ItemView {
 	private _app: App;
@@ -28,7 +28,7 @@ export class AppView extends ItemView {
 	 * Returns the display name for the view
 	 */
 	getDisplayText(): string {
-		return 'Knowledge Accelerator';
+		return 'Mnemoloop';
 	}
 
 	/**
@@ -53,7 +53,7 @@ export class AppView extends ItemView {
 			});
 		} catch (error) {
 			Logger.error('Failed to open Home view:', error);
-			this.containerEl.createEl('div', { text: 'Failed to load Knowledge Accelerator' });
+			this.containerEl.createEl('div', { text: 'Failed to load Mnemoloop' });
 		}
 	}
 

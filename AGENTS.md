@@ -1,4 +1,4 @@
-# AGENTS.md - Obsidian Knowledge Accelerator Plugin
+# AGENTS.md - Mnemoloop Plugin
 
 ## Instructions
 
@@ -10,9 +10,9 @@
 
 ## Project Overview
 
-**Obsidian Knowledge Accelerator** - A spaced repetition flashcard plugin for Obsidian built with TypeScript + Svelte 5 UI, bundled with Vite.
+**Mnemoloop** - A spaced repetition flashcard plugin for Obsidian built with TypeScript + Svelte 5 UI, bundled with Vite.
 
-- **Entry Point**: `src/main.ts` → exports `KnowledgeAcceleratorPlugin` class
+- **Entry Point**: `src/main.ts` → exports `MnemoloopPlugin` class
 - **Manifest**: `manifest.json` (version must match package.json)
 
 ---
@@ -109,7 +109,7 @@ src/
 - Organized by: `palette/` (command palette), `editor-menu/` (editor context menu), `file-menu/` (file context menu)
 - Registered via `CommandRegistry` in `main.ts`
 - Receive dependencies (plugin, adapters, indexes, parsers) via constructor
-- Example: `OpenDashboardCommand` registers the "Knowledge Accelerator: Open Dashboard" palette command
+- Example: `OpenDashboardCommand` registers the "Mnemoloop: Open Dashboard" palette command
 
 **UI Components** (`ui/components/`)
 - Use Svelte 5 runes syntax (`$props()`, `$state()`)
@@ -250,7 +250,7 @@ The following are marked as external in Vite and must exist in Obsidian:
 
 ```typescript
 // main.ts
-export default class KnowledgeAcceleratorPlugin extends Plugin {
+export default class MnemoloopPlugin extends Plugin {
   async onload() {
     // 1. Initialize ribbon icon
     // 2. Load adapters (settings, flashcards, stats)
@@ -270,9 +270,9 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 ### Commands Registered
 
 **Palette Commands:**
-- `ka-open-dashboard` - Open plugin dashboard
+- `ml-open-dashboard` - Open plugin dashboard
 - `open-settings` - Open plugin settings
-- `ka-create-empty-flashcard` - Create empty flashcard
+- `ml-create-empty-flashcard` - Create empty flashcard
 
 **Editor Menu Commands:**
 - "Generate flashcard from selection" - Creates flashcard from selected text

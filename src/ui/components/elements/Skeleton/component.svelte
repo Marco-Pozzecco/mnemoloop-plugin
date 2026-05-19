@@ -10,38 +10,38 @@
 </script>
 
 <div
-	class="ka-skeleton ka-skeleton--shimmer"
-	class:ka-skeleton--text={shape === 'text'}
-	class:ka-skeleton--circle={shape === 'circle'}
+	class="ml-skeleton ml-skeleton--shimmer"
+	class:ml-skeleton--text={shape === 'text'}
+	class:ml-skeleton--circle={shape === 'circle'}
 	style:width={width === 'full' ? undefined : width}
 	style:height={height === 'full' ? undefined : height}
 	style:border-radius={radius === 'full' ? undefined : radius}
 >
-	<div class="ka-skeleton__block"></div>
+	<div class="ml-skeleton__block"></div>
 </div>
 
 <style>
-	.ka-skeleton {
+	.ml-skeleton {
 		display: block;
 		width: 100%;
 		height: 100%;
 	}
 
-	.ka-skeleton--shimmer {
+	.ml-skeleton--shimmer {
 		border-radius: var(--radius-s, 4px);
 		overflow: hidden;
 	}
 
-	.ka-skeleton--text {
+	.ml-skeleton--text {
 		border-radius: 9999px;
 	}
 
-	.ka-skeleton--circle {
+	.ml-skeleton--circle {
 		border-radius: 50%;
 		aspect-ratio: 1 / 1;
 	}
 
-	.ka-skeleton__block {
+	.ml-skeleton__block {
 		width: 100%;
 		height: 100%;
 		border-radius: var(--radius-s, 4px);
@@ -50,15 +50,15 @@
 		overflow: hidden;
 	}
 
-	.ka-skeleton--text .ka-skeleton__block {
+	.ml-skeleton--text .ml-skeleton__block {
 		border-radius: 9999px;
 	}
 
-	.ka-skeleton--circle .ka-skeleton__block {
+	.ml-skeleton--circle .ml-skeleton__block {
 		border-radius: 50%;
 	}
 
-	.ka-skeleton__block::after {
+	.ml-skeleton__block::after {
 		content: '';
 		position: absolute;
 		inset: 0;

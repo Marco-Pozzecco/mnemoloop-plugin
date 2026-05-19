@@ -40,14 +40,14 @@
 	}
 </script>
 
-<div class="ka-settings">
-	<h1 class="ka-settings__title">Plugin Settings</h1>
+<div class="ml-settings">
+	<h1 class="ml-settings__title">Plugin Settings</h1>
 
 	{#if saveError}
-		<div class="ka-settings__error">{saveError}</div>
+		<div class="ml-settings__error">{saveError}</div>
 	{/if}
 
-	<div class="ka-settings__sections">
+	<div class="ml-settings__sections">
 		<FlashcardConfig
 			{settings}
 			onFieldChange={handleFieldChange}
@@ -63,12 +63,12 @@
 </div>
 
 <style>
-	.ka-settings {
+	.ml-settings {
 		padding: var(--size-4-3);
 		max-width: 800px;
 	}
 
-	.ka-settings__title {
+	.ml-settings__title {
 		font-size: var(--font-ui-large);
 		font-weight: var(--font-bold);
 		color: var(--text-normal);
@@ -77,7 +77,7 @@
 		border-bottom: 1px solid var(--background-modifier-border);
 	}
 
-	.ka-settings__error {
+	.ml-settings__error {
 		color: var(--text-error);
 		background-color: rgba(var(--text-error-rgb, 255, 0, 0), 0.1);
 		border: 1px solid var(--text-error);
@@ -87,7 +87,7 @@
 		font-size: var(--font-ui-small);
 	}
 
-	.ka-settings__sections {
+	.ml-settings__sections {
 		display: flex;
 		flex-direction: column;
 		gap: var(--size-4-4);

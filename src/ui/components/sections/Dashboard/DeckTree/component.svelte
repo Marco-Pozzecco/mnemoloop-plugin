@@ -20,20 +20,20 @@
 </script>
 
 <Card>
-	<div class="ka-deck-tree {className}">
+	<div class="ml-deck-tree {className}">
 		<div
-			class="ka-deck-tree__all-decks"
-			class:ka-deck-tree__all-decks--selected={isAllSelected}
+			class="ml-deck-tree__all-decks"
+			class:ml-deck-tree__all-decks--selected={isAllSelected}
 			onclick={handleSelectAll}
 			role="button"
 			tabindex="0"
 			onkeydown={handleAllKeydown}
 		>
 			<Icon name="layers" size={16} />
-			<span class="ka-deck-tree__all-decks-name">All Decks</span>
+			<span class="ml-deck-tree__all-decks-name">All Decks</span>
 		</div>
 
-		<div class="ka-deck-tree__nodes">
+		<div class="ml-deck-tree__nodes">
 			{#each nodes as node (node.fullPath)}
 				<DeckTreeNode {node} {selectedDeck} {onSelectDeck} {onToggleExpand} level={0} />
 			{/each}
@@ -42,14 +42,14 @@
 </Card>
 
 <style>
-	.ka-deck-tree {
+	.ml-deck-tree {
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
 		font-size: var(--font-ui-small);
 	}
 
-	.ka-deck-tree__all-decks {
+	.ml-deck-tree__all-decks {
 		display: flex;
 		align-items: center;
 		gap: 8px;
@@ -61,19 +61,19 @@
 		color: var(--text-normal);
 	}
 
-	.ka-deck-tree__all-decks:hover {
+	.ml-deck-tree__all-decks:hover {
 		background-color: var(--background-modifier-hover);
 	}
 
-	.ka-deck-tree__all-decks--selected {
+	.ml-deck-tree__all-decks--selected {
 		background-color: var(--background-modifier-active-hover);
 	}
 
-	.ka-deck-tree__all-decks-name {
+	.ml-deck-tree__all-decks-name {
 		flex: 1;
 	}
 
-	.ka-deck-tree__nodes {
+	.ml-deck-tree__nodes {
 		display: flex;
 		flex-direction: column;
 		gap: 2px;

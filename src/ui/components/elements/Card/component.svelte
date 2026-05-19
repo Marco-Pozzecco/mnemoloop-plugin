@@ -22,7 +22,7 @@
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 
 <div
-	class="ka-card {className}"
+	class="ml-card {className}"
 	class:has-border={hasBorder}
 	class:clickable
 	class:padding-none={padding === 'none'}
@@ -35,59 +35,58 @@
 	onkeydown={clickable ? (e) => e.key === 'Enter' && handleClick() : undefined}
 >
 	{#if title || icon}
-		<header class="ka-card-header">
+		<header class="ml-card-header">
 			{#if icon}
-				<div class="ka-card-icon">
+				<div class="ml-card-icon">
 					<Icon name={icon} size={20} />
 				</div>
 			{/if}
 			{#if title}
-				<h3 class="ka-card-title">{title}</h3>
+				<h3 class="ml-card-title">{title}</h3>
 			{/if}
 		</header>
 	{/if}
 
-	<div class="ka-card-content">
+	<div class="ml-card-content">
 		{#if children}
 			{@render children()}
 		{/if}
 	</div>
 
 	{#if footer}
-		<footer class="ka-card-footer">
+		<footer class="ml-card-footer">
 			{@render footer()}
 		</footer>
 	{/if}
 </div>
 
 <style>
-	.ka-card {
+	.ml-card {
 		background-color: var(--background-secondary);
 		border-radius: var(--card-radius, 8px);
-		overflow: hidden;
 		transition:
 			box-shadow 0.2s ease,
 			transform 0.2s ease;
 	}
 
-	.ka-card.has-border {
+	.ml-card.has-border {
 		border: 1px solid var(--background-modifier-border);
 	}
 
-	.ka-card.clickable {
+	.ml-card.clickable {
 		cursor: pointer;
 	}
 
-	.ka-card.clickable:hover {
+	.ml-card.clickable:hover {
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 		transform: translateY(-1px);
 	}
 
-	.ka-card.clickable:active {
+	.ml-card.clickable:active {
 		transform: translateY(0);
 	}
 
-	.ka-card-header {
+	.ml-card-header {
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
@@ -95,7 +94,7 @@
 		border-bottom: 1px solid var(--background-modifier-border);
 	}
 
-	.ka-card-icon {
+	.ml-card-icon {
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -103,7 +102,7 @@
 		flex-shrink: 0;
 	}
 
-	.ka-card-title {
+	.ml-card-title {
 		margin: 0;
 		font-size: var(--font-ui-medium);
 		font-weight: var(--font-semibold);
@@ -111,57 +110,56 @@
 		flex: 1;
 	}
 
-	.ka-card-content {
+	.ml-card-content {
 		padding: 1.25rem;
 		width: 100%;
 		height: fit-content;
 	}
 
-	.ka-card-footer {
+	.ml-card-footer {
 		padding: 1rem 1.25rem;
 		border-top: 1px solid var(--background-modifier-border);
 		background-color: var(--background-modifier-hover);
 	}
 
 	/* Padding variants */
-	.ka-card.padding-none .ka-card-content {
+	.ml-card.padding-none .ml-card-content {
 		padding: 0;
 	}
 
-	.ka-card.padding-small .ka-card-content {
+	.ml-card.padding-small .ml-card-content {
 		padding: 0.75rem;
 	}
 
-	.ka-card.padding-medium .ka-card-content {
+	.ml-card.padding-medium .ml-card-content {
 		padding: 1.25rem;
 	}
 
-	.ka-card.padding-large .ka-card-content {
+	.ml-card.padding-large .ml-card-content {
 		padding: 1.5rem;
 	}
 
-	.ka-card.padding-none .ka-card-header,
-	.ka-card.padding-none .ka-card-footer {
+	.ml-card.padding-none .ml-card-header,
+	.ml-card.padding-none .ml-card-footer {
 		padding: 0.5rem 0.75rem;
 	}
 
-	.ka-card.padding-small .ka-card-header,
-	.ka-card.padding-small .ka-card-footer {
+	.ml-card.padding-small .ml-card-header,
+	.ml-card.padding-small .ml-card-footer {
 		padding: 0.75rem 1rem;
 	}
 
-	.ka-card.padding-large .ka-card-header,
-	.ka-card.padding-large .ka-card-footer {
+	.ml-card.padding-large .ml-card-header,
+	.ml-card.padding-large .ml-card-footer {
 		padding: 1.25rem 1.5rem;
 	}
 
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
-		.ka-card-header,
-		.ka-card-content,
-		.ka-card-footer {
-			padding-left: 1rem;
-			padding-right: 1rem;
+		.ml-card-header,
+		.ml-card-content,
+		.ml-card-footer {
+			padding: 0.75rem 1rem;
 		}
 	}
 </style>

@@ -6,7 +6,7 @@ import { FlashcardParser } from '@/modules/parsers/FlashcardParser';
 import { Notice } from 'obsidian';
 
 export class SetAllFlashcardsDueNowCommand extends BaseCommand {
-	readonly id = 'ka-set-all-flashcards-due-now';
+	readonly id = 'ml-set-all-flashcards-due-now';
 	readonly name = 'Debug: Set all flashcards due to now';
 
 	protected onRegister(): void {

@@ -26,7 +26,7 @@ import { APP_VIEW, AppView } from './ui/views/App/AppView';
 import { SettingsView } from './ui/views/Settings/SettingsView';
 import { Logger } from './utils/Logger';
 
-export default class KnowledgeAcceleratorPlugin extends Plugin {
+export default class MnemoloopPlugin extends Plugin {
 	private _indexes: Indexes = new Map();
 	private _adapter: Adapters = new Map();
 	private _parsers: Parsers = new Map();
@@ -146,7 +146,7 @@ export default class KnowledgeAcceleratorPlugin extends Plugin {
 	}
 
 	private initializeRibbonIcon() {
-		this.ribbonIcon = this.addRibbonIcon('brain', 'Knowledge Accelerator', () => {
+		this.ribbonIcon = this.addRibbonIcon('brain', 'Mnemoloop', () => {
 			this.activateView();
 		});
 	}

@@ -37,7 +37,6 @@
 	const item = $derived(controller.current);
 	const position = $derived(controller.position);
 	const progress = $derived(controller.progress);
-	const remaining = $derived(controller.remaining);
 	const total = $derived(controller.total);
 
 	function handleKeyDown(event: KeyboardEvent) {
@@ -113,7 +112,6 @@
 	const headerProps: ReviewHeaderProps = $derived({
 		position,
 		total,
-		remaining,
 		progress,
 		accuracy:
 			sessionState.total_count > 0 ? sessionState.correct_count / sessionState.total_count : 0,
@@ -137,17 +135,17 @@
 	});
 </script>
 
-<div bind:this={containerRef} class="ka-review-container">
-	<Card className="ka-review-header">
+<div bind:this={containerRef} class="ml-review-container">
+	<Card className="ml-review-header">
 		<ReviewHeader {...headerProps} />
 	</Card>
 
-	<main class="ka-review-main">
+	<main class="ml-review-main">
 		{#if item}
 			<ReviewFlashCard {...flashCardProps} />
 
 			{#if showingAnswer}
-				<div class="ka-controls-wrapper">
+				<div class="ml-controls-wrapper">
 					<ReviewControls onSubmitRating={handleSubmitRating} />
 				</div>
 			{/if}
@@ -158,7 +156,7 @@
 </div>
 
 <style>
-	.ka-review-container {
+	.ml-review-container {
 		display: flex;
 		flex-direction: column;
 		height: 100%;
@@ -169,7 +167,7 @@
 		gap: 1.5rem;
 	}
 
-	.ka-review-main {
+	.ml-review-main {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
@@ -178,16 +176,24 @@
 		min-height: 0;
 	}
 
-	.ka-controls-wrapper {
+	.ml-controls-wrapper {
 		display: flex;
 		justify-content: center;
 		min-height: 100px;
 	}
 
 	@media (max-width: 480px) {
-		.ka-review-container {
+		.ml-review-container {
 			padding: 0.5rem;
+			gap: 0.75rem;
+		}
+
+		.ml-review-main {
 			gap: 1rem;
+		}
+
+		.ml-controls-wrapper {
+			min-height: auto;
 		}
 	}
 </style>
