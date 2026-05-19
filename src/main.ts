@@ -12,7 +12,6 @@ import {
 	CreateFlashcardFromFileCommand,
 	GenerateFromSelectionCommand,
 	OpenDashboardCommand,
-	OpenSettingsCommand,
 	SetAllFlashcardsDueNowCommand,
 } from './modules/commands';
 import { FlascardIndexer } from './modules/indexers/FlashcardIndexer';
@@ -117,7 +116,6 @@ export default class MnemoloopPlugin extends Plugin {
 
 	private loadCommands(): void {
 		this._commandRegistry.register(CommandKey.openDashboard, new OpenDashboardCommand());
-		this._commandRegistry.register(CommandKey.openSettings, new OpenSettingsCommand());
 		this._commandRegistry.register(
 			CommandKey.createEmptyFlashcard,
 			new CreateEmptyFlashcardCommand(),

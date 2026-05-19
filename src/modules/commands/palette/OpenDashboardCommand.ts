@@ -2,7 +2,7 @@ import { BaseCommand } from '@/modules/commands/BaseCommand';
 import { APP_VIEW } from '@/ui/views/App/AppView';
 
 export class OpenDashboardCommand extends BaseCommand {
-	readonly id = 'ml-open-dashboard';
+	readonly id = 'open-dashboard';
 	readonly name = 'Open Dashboard';
 
 	protected onRegister(): void {

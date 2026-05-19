@@ -1,5 +1,4 @@
 import { OpenDashboardCommand } from '@/modules/commands/palette/OpenDashboardCommand';
-import { OpenSettingsCommand } from '@/modules/commands/palette/OpenSettingsCommand';
 import { CreateEmptyFlashcardCommand } from '@/modules/commands/palette/CreateEmptyFlashcardCommand';
 import { SetAllFlashcardsDueNowCommand } from '@/modules/commands/palette/SetAllFlashcardsDueNowCommand';
 import { GenerateFromSelectionCommand } from '@/modules/commands/editor-menu/GenerateFromSelectionCommand';
@@ -9,7 +8,6 @@ import { CreateFlashcardFromFileCommand } from '@/modules/commands';
 export enum CommandKey {
 	// palette
 	openDashboard = 'openDashboard',
-	openSettings = 'openSettings',
 	createEmptyFlashcard = 'createEmptyFlashcard',
 	setAllFlashcardsDueNow = 'setAllFlashcardsDueNow',
 	// file menu
@@ -21,7 +19,6 @@ export enum CommandKey {
 
 interface CommandMap {
 	[CommandKey.openDashboard]: OpenDashboardCommand;
-	[CommandKey.openSettings]: OpenSettingsCommand;
 	[CommandKey.createEmptyFlashcard]: CreateEmptyFlashcardCommand;
 	[CommandKey.setAllFlashcardsDueNow]: SetAllFlashcardsDueNowCommand;
 	[CommandKey.generateFromSelection]: GenerateFromSelectionCommand;

@@ -3,7 +3,6 @@ export { CommandRegistry } from './CommandRegistry';
 
 // Palette commands
 export { OpenDashboardCommand } from './palette/OpenDashboardCommand';
-export { OpenSettingsCommand } from './palette/OpenSettingsCommand';
 export { CreateEmptyFlashcardCommand } from './palette/CreateEmptyFlashcardCommand';
 export { SetAllFlashcardsDueNowCommand } from './palette/SetAllFlashcardsDueNowCommand';
 
