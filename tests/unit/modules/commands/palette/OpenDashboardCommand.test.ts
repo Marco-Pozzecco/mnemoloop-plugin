@@ -26,7 +26,7 @@ describe('OpenDashboardCommand', () => {
 		const { addCommandSpy } = setup();
 		expect(addCommandSpy).toHaveBeenCalledWith(
 			expect.objectContaining({
-				id: 'ml-open-dashboard',
+				id: 'open-dashboard',
 				name: 'Open Dashboard',
 			}),
 		);
