@@ -30,7 +30,7 @@ function createMockSettingsAdapter(overrides: Partial<PluginSettings> = {}): IAd
 }
 
 describe('FileWatcherProcessor', () => {
-	let plugin: ReturnType<typeof createMockPlugin>;
+	let plugin: any;
 	let settingsAdapter: IAdapter<PluginSettings>;
 	let processor: FileWatcherProcessor;
 	let capturedEvents: Array<ReturnType<typeof EventBus.instance.publish> extends string ? unknown : unknown>;
@@ -42,7 +42,7 @@ describe('FileWatcherProcessor', () => {
 
 		vaultEventHandlers = new Map();
 		plugin = createMockPlugin([]);
-		plugin.app.vault.on = vi.fn().mockImplementation((eventName: string, callback: (...args: unknown[]) => void) => {
+		plugin.app.vault.on = vi.fn<any, any>().mockImplementation((eventName: string, callback: (...args: unknown[]) => void) => {
 			vaultEventHandlers.set(eventName, callback);
 			return { id: `evt-${eventName}` };
 		});
@@ -82,7 +82,7 @@ describe('FileWatcherProcessor', () => {
 	describe('_handleCreate', () => {
 		it('should publish FlashcardWatcherCreateEvent for markdown file in watched directory', () => {
 			const handler = vaultEventHandlers.get('create')!;
-			const file = new TFile('/flashcards/test.md', 'test');
+			const file = new (TFile as any)('/flashcards/test.md', 'test');
 
 			handler(file);
 
@@ -93,7 +93,7 @@ describe('FileWatcherProcessor', () => {
 
 		it('should ignore non-markdown files', () => {
 			const handler = vaultEventHandlers.get('create')!;
-			const file = new TFile('/flashcards/test.txt', 'test');
+			const file = new (TFile as any)('/flashcards/test.txt', 'test');
 
 			handler(file);
 
@@ -102,7 +102,7 @@ describe('FileWatcherProcessor', () => {
 
 		it('should ignore markdown files outside watched directory and without watched tags', () => {
 			const handler = vaultEventHandlers.get('create')!;
-			const file = new TFile('/other/test.md', 'test');
+			const file = new (TFile as any)('/other/test.md', 'test');
 
 			handler(file);
 
@@ -115,7 +115,7 @@ describe('FileWatcherProcessor', () => {
 			});
 
 			const handler = vaultEventHandlers.get('create')!;
-			const file = new TFile('/other/tagged.md', 'tagged');
+			const file = new (TFile as any)('/other/tagged.md', 'tagged');
 
 			handler(file);
 
@@ -127,7 +127,7 @@ describe('FileWatcherProcessor', () => {
 	describe('_handleModify', () => {
 		it('should debounce and publish FlashcardWatcherModifyEvent for watched files', () => {
 			const handler = vaultEventHandlers.get('modify')!;
-			const file = new TFile('/flashcards/test.md', 'test');
+			const file = new (TFile as any)('/flashcards/test.md', 'test');
 
 			handler(file);
 			expect(capturedEvents).toHaveLength(0);
@@ -141,7 +141,7 @@ describe('FileWatcherProcessor', () => {
 
 		it('should reset debounce timer on multiple modify events for same file', () => {
 			const handler = vaultEventHandlers.get('modify')!;
-			const file = new TFile('/flashcards/test.md', 'test');
+			const file = new (TFile as any)('/flashcards/test.md', 'test');
 
 			handler(file);
 			vi.advanceTimersByTime(300);
@@ -157,7 +157,7 @@ describe('FileWatcherProcessor', () => {
 
 		it('should ignore files outside watched area', () => {
 			const handler = vaultEventHandlers.get('modify')!;
-			const file = new TFile('/other/test.md', 'test');
+			const file = new (TFile as any)('/other/test.md', 'test');
 
 			handler(file);
 			vi.advanceTimersByTime(500);
@@ -171,7 +171,7 @@ describe('FileWatcherProcessor', () => {
 				frontmatter: { tags: ['flashcard'] },
 			});
 			const handler = vaultEventHandlers.get('modify')!;
-			const file = new TFile('/other/tagged.md', 'tagged');
+			const file = new (TFile as any)('/other/tagged.md', 'tagged');
 
 			handler(file);
 			expect(capturedEvents).toHaveLength(0);
@@ -190,7 +190,7 @@ describe('FileWatcherProcessor', () => {
 	describe('_handleDelete', () => {
 		it('should publish FlashcardWatcherDeleteEvent for watched markdown file', () => {
 			const handler = vaultEventHandlers.get('delete')!;
-			const file = new TFile('/flashcards/test.md', 'test');
+			const file = new (TFile as any)('/flashcards/test.md', 'test');
 
 			handler(file);
 
@@ -201,7 +201,7 @@ describe('FileWatcherProcessor', () => {
 
 		it('should ignore non-markdown files', () => {
 			const handler = vaultEventHandlers.get('delete')!;
-			const file = new TFile('/flashcards/test.txt', 'test');
+			const file = new (TFile as any)('/flashcards/test.txt', 'test');
 
 			handler(file);
 
@@ -210,7 +210,7 @@ describe('FileWatcherProcessor', () => {
 
 		it('should ignore markdown files outside watched area', () => {
 			const handler = vaultEventHandlers.get('delete')!;
-			const file = new TFile('/other/test.md', 'test');
+			const file = new (TFile as any)('/other/test.md', 'test');
 
 			handler(file);
 
@@ -220,7 +220,7 @@ describe('FileWatcherProcessor', () => {
 		it('should clear pending debounce timer for deleted file', () => {
 			const modifyHandler = vaultEventHandlers.get('modify')!;
 			const deleteHandler = vaultEventHandlers.get('delete')!;
-			const file = new TFile('/flashcards/test.md', 'test');
+			const file = new (TFile as any)('/flashcards/test.md', 'test');
 
 			modifyHandler(file);
 			deleteHandler(file);
@@ -234,7 +234,7 @@ describe('FileWatcherProcessor', () => {
 	describe('_handleRename', () => {
 		it('should publish FlashcardWatcherRenameEvent when old path was in watched directory', () => {
 			const handler = vaultEventHandlers.get('rename')!;
-			const file = new TFile('/flashcards/new.md', 'new');
+			const file = new (TFile as any)('/flashcards/new.md', 'new');
 
 			handler(file, '/flashcards/old.md');
 
@@ -246,7 +246,7 @@ describe('FileWatcherProcessor', () => {
 
 		it('should publish rename event when new path is in watched directory', () => {
 			const handler = vaultEventHandlers.get('rename')!;
-			const file = new TFile('/flashcards/moved.md', 'moved');
+			const file = new (TFile as any)('/flashcards/moved.md', 'moved');
 
 			handler(file, '/other/moved.md');
 
@@ -260,7 +260,7 @@ describe('FileWatcherProcessor', () => {
 			});
 
 			const handler = vaultEventHandlers.get('rename')!;
-			const file = new TFile('/other/tagged.md', 'tagged');
+			const file = new (TFile as any)('/other/tagged.md', 'tagged');
 
 			handler(file, '/other/old.md');
 
@@ -270,7 +270,7 @@ describe('FileWatcherProcessor', () => {
 
 		it('should ignore non-markdown files', () => {
 			const handler = vaultEventHandlers.get('rename')!;
-			const file = new TFile('/flashcards/test.txt', 'test');
+			const file = new (TFile as any)('/flashcards/test.txt', 'test');
 
 			handler(file, '/flashcards/old.txt');
 
@@ -280,7 +280,7 @@ describe('FileWatcherProcessor', () => {
 		it('should clear debounce timer for old path', () => {
 			const modifyHandler = vaultEventHandlers.get('modify')!;
 			const renameHandler = vaultEventHandlers.get('rename')!;
-			const file = new TFile('/flashcards/test.md', 'test');
+			const file = new (TFile as any)('/flashcards/test.md', 'test');
 
 			modifyHandler(file);
 			renameHandler(file, '/flashcards/test.md');
@@ -294,7 +294,7 @@ describe('FileWatcherProcessor', () => {
 	describe('_emit routing', () => {
 		it('should only publish events for Flashcard entity', () => {
 			const handler = vaultEventHandlers.get('create')!;
-			const file = new TFile('/flashcards/test.md', 'test');
+			const file = new (TFile as any)('/flashcards/test.md', 'test');
 
 			handler(file);
 
@@ -305,7 +305,7 @@ describe('FileWatcherProcessor', () => {
 
 	describe('_shouldWatchFile', () => {
 		it('should return false for TAbstractFile that is not TFile', () => {
-			const abstractFile = new TAbstractFile('/flashcards/test.md');
+			const abstractFile = new (TAbstractFile as any)('/flashcards/test.md');
 			const handler = vaultEventHandlers.get('create')!;
 
 			handler(abstractFile);
@@ -317,7 +317,7 @@ describe('FileWatcherProcessor', () => {
 	describe('dispose', () => {
 		it('should clear all debounce timers', () => {
 			const modifyHandler = vaultEventHandlers.get('modify')!;
-			const file = new TFile('/flashcards/test.md', 'test');
+			const file = new (TFile as any)('/flashcards/test.md', 'test');
 
 			modifyHandler(file);
 			processor.dispose();
@@ -334,7 +334,7 @@ describe('FileWatcherProcessor', () => {
 			processor = new FileWatcherProcessor(plugin as unknown as Plugin, settingsAdapter);
 
 			const handler = vaultEventHandlers.get('modify')!;
-			const file = new TFile('/flashcards/test.md', 'test');
+			const file = new (TFile as any)('/flashcards/test.md', 'test');
 
 			handler(file);
 			vi.advanceTimersByTime(500);

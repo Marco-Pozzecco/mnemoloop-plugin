@@ -16,7 +16,7 @@ import { resetSingletons } from '../../../helpers/reset-singletons';
 import { IEvent } from '@/interfaces/IEvent';
 
 describe('FlashcardAdapter', () => {
-	let plugin: ReturnType<typeof createMockPlugin>;
+	let plugin: any;
 	let adapter: FlashcardAdapter;
 	let capturedEvents: IEvent[];
 
@@ -77,8 +77,8 @@ describe('FlashcardAdapter', () => {
 		it('should parse existing JSON file via vault.read', async () => {
 			plugin.app.vault.getAbstractFileByPath = vi
 				.fn()
-				.mockReturnValue(new TFile('/test-plugin/flashcard-index.json'));
-			plugin.app.vault.read = vi.fn().mockResolvedValue('{"flashcards":[],"updated_at":null}');
+				.mockReturnValue(new (TFile as any)('/test-plugin/flashcard-index.json'));
+			plugin.app.vault.read = vi.fn<any, any>().mockResolvedValue('{"flashcards":[],"updated_at":null}');
 
 			const data = await (adapter as unknown as Record<string, () => Promise<unknown>>).loadData();
 
@@ -128,8 +128,8 @@ describe('FlashcardAdapter', () => {
 		it('should initialize with loaded data', async () => {
 			plugin.app.vault.getAbstractFileByPath = vi
 				.fn()
-				.mockReturnValue(new TFile('/test-plugin/flashcard-index.json'));
-			plugin.app.vault.read = vi.fn().mockResolvedValue('{"flashcards":[],"updated_at":null}');
+				.mockReturnValue(new (TFile as any)('/test-plugin/flashcard-index.json'));
+			plugin.app.vault.read = vi.fn<any, any>().mockResolvedValue('{"flashcards":[],"updated_at":null}');
 
 			await adapter.initialize();
 

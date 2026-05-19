@@ -9,50 +9,59 @@ export interface MockFile {
  * Create a mock Vault with configurable adapter methods.
  * A file map is maintained for convenient read/write/exists/list operations.
  */
-export function createMockVault(files: MockFile[] = []) {
+export function createMockVault(files: MockFile[] = []): any {
 	const fileMap = new Map<string, string>(files.map((f) => [f.path, f.content]));
 
 	return {
 		adapter: {
-			read: vi.fn().mockImplementation(async (path: string) => {
+			read: vi.fn<any, any>().mockImplementation(async (path: string) => {
 				const content = fileMap.get(path);
 				if (content === undefined) {
 					throw new Error(`File not found: ${path}`);
 				}
 				return content;
 			}),
-			write: vi.fn().mockImplementation(async (path: string, content: string) => {
+			write: vi.fn<any, any>().mockImplementation(async (path: string, content: string) => {
 				fileMap.set(path, content);
 			}),
-			exists: vi.fn().mockImplementation(async (path: string) => fileMap.has(path)),
-			list: vi.fn().mockImplementation(async (dirPath: string) => {
+			exists: vi.fn<any, any>().mockImplementation(async (path: string) => fileMap.has(path)),
+			list: vi.fn<any, any>().mockImplementation(async (dirPath: string) => {
 				const files = Array.from(fileMap.keys()).filter((f) => f.startsWith(dirPath));
 				return { files };
 			}),
 		},
-		getFileByPath: vi.fn(),
-		getAbstractFileByPath: vi.fn().mockImplementation((path: string) => {
+		getFileByPath: vi.fn<any, any>(),
+		getAbstractFileByPath: vi.fn<any, any>().mockImplementation((path: string) => {
 			if (!fileMap.has(path)) return null;
 			const basename = path.split('/').pop()?.replace('.md', '') || '';
 			return { path, basename };
 		}),
-		delete: vi.fn(),
-		create: vi.fn(),
-		getRoot: vi.fn(),
-		on: vi.fn(),
-	};
+		delete: vi.fn<any, any>(),
+		create: vi.fn<any, any>(),
+		getRoot: vi.fn<any, any>(),
+		read: vi.fn<any, any>(),
+		write: vi.fn<any, any>(),
+		cachedRead: vi.fn<any, any>(),
+		append: vi.fn<any, any>(),
+		on: vi.fn<any, any>(),
+	} as any;
 }
 
 /**
  * Create a mock Workspace with configurable spies.
  */
-export function createMockWorkspace() {
+export function createMockWorkspace(): any {
 	return {
-		getLeaf: vi.fn(),
-		getRightLeaf: vi.fn(),
-		on: vi.fn(),
-		revealLeaf: vi.fn(),
-	};
+		getLeaf: vi.fn<any, any>(),
+		getRightLeaf: vi.fn<any, any>(),
+		getActiveFile: vi.fn<any, any>(),
+		getLeavesOfType: vi.fn<any, any>(),
+		getMostRecentLeaf: vi.fn<any, any>(),
+		iterateRootLeaves: vi.fn<any, any>(),
+		createLeafInParent: vi.fn<any, any>(),
+		on: vi.fn<any, any>(),
+		revealLeaf: vi.fn<any, any>(),
+	} as any;
 }
 
 /**
@@ -72,11 +81,11 @@ export function createMockTFile(path: string, basename?: string) {
 /**
  * Create a mock Menu with configurable item callbacks.
  */
-export function createMockMenu() {
-	const items: Array<Record<string, unknown>> = [];
+export function createMockMenu(): any {
+	const items: any[] = [];
 
 	return {
-		addItem: vi.fn().mockImplementation((callback: (item: unknown) => void) => {
+		addItem: vi.fn().mockImplementation((callback: (item: any) => void) => {
 			const item = {
 				setTitle: vi.fn().mockReturnThis(),
 				setIcon: vi.fn().mockReturnThis(),
@@ -94,7 +103,7 @@ export function createMockMenu() {
 /**
  * Create a mock Editor with configurable selection and value.
  */
-export function createMockEditor(value: string = '', selection: string = '') {
+export function createMockEditor(value: string = '', selection: string = ''): any {
 	return {
 		getSelection: vi.fn().mockReturnValue(selection),
 		replaceSelection: vi.fn(),
@@ -105,7 +114,7 @@ export function createMockEditor(value: string = '', selection: string = '') {
 /**
  * Create a mock MetadataCache with configurable frontmatter.
  */
-export function createMockMetadataCache(frontmatter?: Record<string, unknown>) {
+export function createMockMetadataCache(frontmatter?: Record<string, unknown>): any {
 	return {
 		getFileCache: vi.fn().mockReturnValue(
 			frontmatter
@@ -128,7 +137,7 @@ export function createMockMetadataCache(frontmatter?: Record<string, unknown>) {
 /**
  * Create a mock Plugin with app property containing vault, workspace, and metadataCache.
  */
-export function createMockPlugin(files: MockFile[] = []) {
+export function createMockPlugin(files: MockFile[] = []): any {
 	const vault = createMockVault(files);
 	const workspace = createMockWorkspace();
 	const metadataCache = createMockMetadataCache();
@@ -139,5 +148,5 @@ export function createMockPlugin(files: MockFile[] = []) {
 		loadData: vi.fn(),
 		saveData: vi.fn(),
 		addCommand: vi.fn(),
-	};
+	} as any;
 }

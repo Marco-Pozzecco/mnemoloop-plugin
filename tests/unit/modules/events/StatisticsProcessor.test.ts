@@ -3,6 +3,7 @@ import { StatisticsProcessor } from '@/modules/events/processors/StatisticsProce
 import { EventBus } from '@/modules/events/core/EventBus';
 import { StatisticsAdapter } from '@/modules/adapters/StatisticsAdapter';
 import { resetSingletons } from '../../../helpers/reset-singletons';
+import { CardStatus } from '@/schemas';
 import { DEFAULT_STATISTICS, type Stats } from '@/schemas/statistics';
 import { createFlashcardMetadata } from '../../../helpers/factories';
 import {
@@ -84,12 +85,12 @@ describe('StatisticsProcessor', () => {
 
 	describe('streak calculation', () => {
 		it('should return zero streaks for empty progress', () => {
-			const result = (processor as unknown as Record<string, (p: Record<string, { total_count: number }>) => unknown>)._calculateStreaks({});
+			const result = (processor as any)._calculateStreaks({});
 			expect(result).toEqual({ current_streak: 0, longest_streak: 0 });
 		});
 
 		it('should calculate current streak of 1 for single day activity', () => {
-			const result = (processor as unknown as Record<string, (p: Record<string, { total_count: number }>) => unknown>)._calculateStreaks({
+			const result = (processor as any)._calculateStreaks({
 				[FIXED_DATE_STR]: { total_count: 5 },
 			});
 			expect(result.current_streak).toBe(1);
@@ -97,7 +98,7 @@ describe('StatisticsProcessor', () => {
 		});
 
 		it('should calculate longest streak across multiple days', () => {
-			const result = (processor as unknown as Record<string, (p: Record<string, { total_count: number }>) => unknown>)._calculateStreaks({
+			const result = (processor as any)._calculateStreaks({
 				'2026-05-15': { total_count: 5 },
 				'2026-05-16': { total_count: 3 },
 				'2026-05-17': { total_count: 4 },
@@ -108,7 +109,7 @@ describe('StatisticsProcessor', () => {
 		});
 
 		it('should break streak on missing day', () => {
-			const result = (processor as unknown as Record<string, (p: Record<string, { total_count: number }>) => unknown>)._calculateStreaks({
+			const result = (processor as any)._calculateStreaks({
 				'2026-05-15': { total_count: 5 },
 				'2026-05-16': { total_count: 0 },
 				'2026-05-17': { total_count: 4 },
@@ -119,7 +120,7 @@ describe('StatisticsProcessor', () => {
 		});
 
 		it('should reset current streak if last activity was more than one day ago', () => {
-			const result = (processor as unknown as Record<string, (p: Record<string, { total_count: number }>) => unknown>)._calculateStreaks({
+			const result = (processor as any)._calculateStreaks({
 				'2026-05-14': { total_count: 5 },
 				'2026-05-15': { total_count: 3 },
 			});
@@ -143,7 +144,9 @@ describe('StatisticsProcessor', () => {
 				reps: 1,
 				lapses: 0,
 				state: 0,
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
+				learning_steps: 0,
+				source: null,
 				decks: [],
 			});
 
@@ -187,7 +190,9 @@ describe('StatisticsProcessor', () => {
 				reps: 1,
 				lapses: 0,
 				state: 0,
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
+				learning_steps: 0,
+				source: null,
 				decks: [],
 			});
 
@@ -233,7 +238,9 @@ describe('StatisticsProcessor', () => {
 				reps: 1,
 				lapses: 0,
 				state: 0,
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
+				learning_steps: 0,
+				source: null,
 				decks: [],
 			});
 
@@ -259,7 +266,9 @@ describe('StatisticsProcessor', () => {
 				reps: 1,
 				lapses: 0,
 				state: 0,
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
+				learning_steps: 0,
+				source: null,
 				decks: [],
 			});
 
@@ -292,7 +301,9 @@ describe('StatisticsProcessor', () => {
 				reps: 1,
 				lapses: 0,
 				state: 0,
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
+				learning_steps: 0,
+				source: null,
 				decks: [],
 			});
 
@@ -318,7 +329,9 @@ describe('StatisticsProcessor', () => {
 				reps: 1,
 				lapses: 0,
 				state: 0,
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
+				learning_steps: 0,
+				source: null,
 				decks: [],
 			});
 
@@ -342,7 +355,9 @@ describe('StatisticsProcessor', () => {
 				reps: 1,
 				lapses: 0,
 				state: 0,
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
+				learning_steps: 0,
+				source: null,
 				decks: [],
 			});
 
@@ -382,7 +397,9 @@ describe('StatisticsProcessor', () => {
 				reps: 1,
 				lapses: 0,
 				state: 0,
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
+				learning_steps: 0,
+				source: null,
 				decks: [],
 			});
 
@@ -413,7 +430,7 @@ describe('StatisticsProcessor', () => {
 		it('should handle recalc response with only inactive flashcards', () => {
 			const recalcEvent = new FlashcardIndexRecalcResponseEvent({
 				flashcards: [
-					createFlashcardMetadata({ status: 'SUSPENDED', due: FIXED_DATE }),
+					createFlashcardMetadata({ status: CardStatus.PAUSED, due: FIXED_DATE }),
 				],
 				total: 1,
 			});
@@ -440,7 +457,9 @@ describe('StatisticsProcessor', () => {
 				reps: 1,
 				lapses: 0,
 				state: 0,
-				status: 'ACTIVE',
+				status: CardStatus.ACTIVE,
+				learning_steps: 0,
+				source: null,
 				decks: [],
 			});
 
@@ -517,7 +536,7 @@ describe('StatisticsProcessor', () => {
 
 			const recalcEvent = new FlashcardIndexRecalcResponseEvent({
 				flashcards: [
-					createFlashcardMetadata({ status: 'ACTIVE', due: futureDue.toISOString() }),
+					createFlashcardMetadata({ status: CardStatus.ACTIVE, due: futureDue.toISOString() }),
 				],
 				total: 1,
 			});
@@ -542,7 +561,7 @@ describe('StatisticsProcessor', () => {
 		it('should not schedule recalc when no future due cards exist', () => {
 			const recalcEvent = new FlashcardIndexRecalcResponseEvent({
 				flashcards: [
-					createFlashcardMetadata({ status: 'ACTIVE', due: FIXED_DATE }),
+					createFlashcardMetadata({ status: CardStatus.ACTIVE, due: FIXED_DATE }),
 				],
 				total: 1,
 			});
@@ -564,7 +583,7 @@ describe('StatisticsProcessor', () => {
 
 			const recalcEvent = new FlashcardIndexRecalcResponseEvent({
 				flashcards: [
-					createFlashcardMetadata({ status: 'ACTIVE', due: farFutureDue.toISOString() }),
+					createFlashcardMetadata({ status: CardStatus.ACTIVE, due: farFutureDue.toISOString() }),
 				],
 				total: 1,
 			});
@@ -658,7 +677,7 @@ describe('StatisticsProcessor', () => {
 
 			const recalcEvent = new FlashcardIndexRecalcResponseEvent({
 				flashcards: [
-					createFlashcardMetadata({ status: 'ACTIVE', due: pastDue.toISOString() }),
+					createFlashcardMetadata({ status: CardStatus.ACTIVE, due: pastDue.toISOString() }),
 				],
 				total: 1,
 			});
@@ -675,7 +694,7 @@ describe('StatisticsProcessor', () => {
 
 			const recalcEvent = new FlashcardIndexRecalcResponseEvent({
 				flashcards: [
-					createFlashcardMetadata({ status: 'ACTIVE', due: laterToday.toISOString() }),
+					createFlashcardMetadata({ status: CardStatus.ACTIVE, due: laterToday.toISOString() }),
 				],
 				total: 1,
 			});
@@ -689,9 +708,9 @@ describe('StatisticsProcessor', () => {
 		it('should calculate expected review time as 30 seconds per active card', () => {
 			const recalcEvent = new FlashcardIndexRecalcResponseEvent({
 				flashcards: [
-					createFlashcardMetadata({ status: 'ACTIVE', due: FIXED_DATE }),
-					createFlashcardMetadata({ status: 'ACTIVE', due: FIXED_DATE }),
-					createFlashcardMetadata({ status: 'SUSPENDED', due: FIXED_DATE }),
+					createFlashcardMetadata({ status: CardStatus.ACTIVE, due: FIXED_DATE }),
+					createFlashcardMetadata({ status: CardStatus.ACTIVE, due: FIXED_DATE }),
+					createFlashcardMetadata({ status: CardStatus.PAUSED, due: FIXED_DATE }),
 				],
 				total: 3,
 			});
@@ -710,7 +729,7 @@ describe('StatisticsProcessor', () => {
 
 			const recalcEvent = new FlashcardIndexRecalcResponseEvent({
 				flashcards: [
-					createFlashcardMetadata({ status: 'ACTIVE', due: futureDue.toISOString() }),
+					createFlashcardMetadata({ status: CardStatus.ACTIVE, due: futureDue.toISOString() }),
 				],
 				total: 1,
 			});

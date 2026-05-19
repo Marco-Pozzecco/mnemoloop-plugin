@@ -38,7 +38,7 @@ describe('CreateEmptyFlashcardCommand', () => {
 		const publishSpy = vi.spyOn(EventBus.instance, 'publish');
 		plugin.app.workspace.getActiveFile = vi.fn().mockReturnValue({ path: 'notes/test.md' });
 
-		const callback = addCommandSpy.mock.calls[0][0].callback;
+		const callback = (addCommandSpy.mock.calls[0][0] as { callback: () => unknown }).callback;
 		callback();
 
 		expect(publishSpy).toHaveBeenCalledTimes(1);
@@ -56,7 +56,7 @@ describe('CreateEmptyFlashcardCommand', () => {
 		const publishSpy = vi.spyOn(EventBus.instance, 'publish');
 		plugin.app.workspace.getActiveFile = vi.fn().mockReturnValue(null);
 
-		const callback = addCommandSpy.mock.calls[0][0].callback;
+		const callback = (addCommandSpy.mock.calls[0][0] as { callback: () => unknown }).callback;
 		callback();
 
 		expect(publishSpy).toHaveBeenCalledTimes(1);

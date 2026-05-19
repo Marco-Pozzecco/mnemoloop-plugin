@@ -28,7 +28,7 @@ describe('OpenSettingsCommand', () => {
 
 	it('should have empty callback that does not throw', async () => {
 		const { addCommandSpy } = setup();
-		const callback = addCommandSpy.mock.calls[0][0].callback;
+		const callback = (addCommandSpy.mock.calls[0][0] as { callback: () => unknown }).callback;
 		await expect(callback()).resolves.not.toThrow();
 	});
 });

@@ -39,6 +39,19 @@ export default defineConfig(
     },
   },
   {
+    files: ['tests/**/*.test.ts', 'tests/**/*.spec.ts', 'tests/setup.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
 
     languageOptions: {

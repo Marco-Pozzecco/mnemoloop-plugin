@@ -41,7 +41,7 @@ describe('CreateFlashcardFromFileCommand', () => {
 
 	it('should add menu item for markdown TFile', () => {
 		const { plugin } = setup();
-		const file = new TFile('notes/test.md', 'test');
+		const file = new (TFile as any)('notes/test.md', 'test');
 
 		const { menu } = triggerFileMenu(plugin, file);
 
@@ -62,7 +62,7 @@ describe('CreateFlashcardFromFileCommand', () => {
 
 	it('should not add menu item for non-md file', () => {
 		const { plugin } = setup();
-		const file = new TFile('notes/test.txt', 'test');
+		const file = new (TFile as any)('notes/test.txt', 'test');
 
 		const { menu } = triggerFileMenu(plugin, file);
 
@@ -71,7 +71,7 @@ describe('CreateFlashcardFromFileCommand', () => {
 
 	it('should publish FlashcardWriterCreateRequestEvent on click', async () => {
 		const { plugin } = setup();
-		const file = new TFile('notes/test.md', 'test');
+		const file = new (TFile as any)('notes/test.md', 'test');
 		const publishSpy = vi.spyOn(EventBus.instance, 'publish');
 
 		const { item } = triggerFileMenu(plugin, file);
@@ -90,13 +90,13 @@ describe('CreateFlashcardFromFileCommand', () => {
 
 	it('should open file in split leaf when one or fewer root leaves', async () => {
 		const { plugin } = setup();
-		const file = new TFile('notes/test.md', 'test');
+		const file = new (TFile as any)('notes/test.md', 'test');
 		const newLeaf = { openFile: vi.fn() };
 		plugin.app.workspace.iterateRootLeaves = vi.fn().mockImplementation((cb: (leaf: any) => void) => {
 			cb({ parent: { id: 'parent-1' } });
 		});
 		plugin.app.workspace.getLeaf = vi.fn().mockReturnValue(newLeaf);
-		plugin.app.vault.getFileByPath = vi.fn().mockReturnValue(new TFile('flashcards/new.md', 'new'));
+		plugin.app.vault.getFileByPath = vi.fn().mockReturnValue(new (TFile as any)('flashcards/new.md', 'new'));
 
 		const { item } = triggerFileMenu(plugin, file);
 		const onClickHandler = item.onClick.mock.calls[0][0];
@@ -116,7 +116,7 @@ describe('CreateFlashcardFromFileCommand', () => {
 
 	it('should open file in new leaf when more than one root leaves', async () => {
 		const { plugin } = setup();
-		const file = new TFile('notes/test.md', 'test');
+		const file = new (TFile as any)('notes/test.md', 'test');
 		const rightLeaf = { parent: { id: 'parent-right' } };
 		const newLeaf = { openFile: vi.fn() };
 		plugin.app.workspace.iterateRootLeaves = vi.fn().mockImplementation((cb: (leaf: any) => void) => {
@@ -124,7 +124,7 @@ describe('CreateFlashcardFromFileCommand', () => {
 			cb(rightLeaf);
 		});
 		plugin.app.workspace.createLeafInParent = vi.fn().mockReturnValue(newLeaf);
-		plugin.app.vault.getFileByPath = vi.fn().mockReturnValue(new TFile('flashcards/new.md', 'new'));
+		plugin.app.vault.getFileByPath = vi.fn().mockReturnValue(new (TFile as any)('flashcards/new.md', 'new'));
 
 		const { item } = triggerFileMenu(plugin, file);
 		const onClickHandler = item.onClick.mock.calls[0][0];
@@ -144,7 +144,7 @@ describe('CreateFlashcardFromFileCommand', () => {
 
 	it('should unsubscribe when file not found on response', async () => {
 		const { plugin } = setup();
-		const file = new TFile('notes/test.md', 'test');
+		const file = new (TFile as any)('notes/test.md', 'test');
 		plugin.app.vault.getFileByPath = vi.fn().mockReturnValue(null);
 
 		const { item } = triggerFileMenu(plugin, file);

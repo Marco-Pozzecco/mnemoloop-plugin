@@ -116,7 +116,7 @@ describe('FlashcardReviewQueue', () => {
 			const queue = new FlashcardReviewQueue((f) => new Date(f.due).getTime() <= Date.now());
 
 			expect(queue.size).toBe(1);
-			expect(queue.items[0].data?.file).toBe('past.md');
+			expect((queue.items[0].data as unknown as FlashcardMetadata)?.file).toBe('past.md');
 		});
 
 		it('should sort items by due date via engine', () => {
