@@ -14,7 +14,7 @@
 	setAppContext({ app: cApp, component: cComponent });
 </script>
 
-<div class="ka-modal-container">
+<div class="ml-modal-container">
 	{#if currentView === ModalViewEnum.flashcard}
 		<FlashcardModal {controller} {isLoading} {error} />
 	{/if}
@@ -22,7 +22,7 @@
 </div>
 
 <style>
-	.ka-modal-container {
+	.ml-modal-container {
 		background: var(--background-primary);
 		color: var(--text-normal);
 		border-radius: var(--radius-m);

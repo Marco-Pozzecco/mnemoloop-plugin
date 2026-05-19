@@ -1,24 +1,26 @@
 {
-	"name": "obs-knowledge-accelerator",
+	"name": "mnemoloop",
 	"version": "1.0.0",
 	"description": "An obsidian plugin for spaced repetition learning",
-	"homepage": "https://github.com/Marco-Pozzecco/obs-knowledge-accelerator#readme",
+	"homepage": "https://github.com/Marco-Pozzecco/obs-mnemoloop#readme",
 	"bugs": {
-		"url": "https://github.com/Marco-Pozzecco/obs-knowledge-accelerator/issues"
+		"url": "https://github.com/Marco-Pozzecco/obs-mnemoloop/issues"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+ssh://git@github.com/Marco-Pozzecco/obs-knowledge-accelerator.git"
+		"url": "git+ssh://git@github.com/Marco-Pozzecco/obs-mnemoloop.git"
 	},
-	"license": "ISC",
+	"license": "MIT",
 	"author": "Marco Pozzecco",
 	"type": "module",
 	"main": "main.js",
 	"scripts": {
 		"dev": "vite build --watch --mode development",
-		"build": "tsc && vite build --mode production",
+		"build": "tsc -p tsconfig.build.json && vite build --mode production",
+		"typecheck": "tsc --noEmit",
 		"test": "vitest",
 		"lint": "eslint src --ext .ts,.tsx && eslint .",
+		"lint:css-prefix": "python scripts/check-css-prefix.py",
 		"format": "prettier --write src/**/*.{ts,tsx,svelte}",
 		"generate-barrels": "python scripts/generate-barrels.py"
 	},
@@ -31,6 +33,7 @@
 		"@types/uuid": "^10.0.0",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",
 		"@typescript-eslint/parser": "^6.0.0",
+		"@vitest/coverage-v8": "^1.6.1",
 		"builtin-modules": "^5.0.0",
 		"eslint": "^9.39.1",
 		"eslint-config-prettier": "^10.1.8",

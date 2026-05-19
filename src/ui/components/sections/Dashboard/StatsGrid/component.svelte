@@ -8,42 +8,42 @@
 	}
 </script>
 
-<div class="ka-dashboard__stats-grid {className}">
-	<div class="ka-stat-card">
-		<span class="ka-stat-card__label">Due</span>
-		<span class="ka-stat-card__value">{stats.flashcard.due_now}</span>
-		<span class="ka-stat-card__description">cards to review</span>
+<div class="ml-dashboard__stats-grid {className}">
+	<div class="ml-stat-card">
+		<span class="ml-stat-card__label">Due</span>
+		<span class="ml-stat-card__value">{stats.flashcard.due_now}</span>
+		<span class="ml-stat-card__description">cards to review</span>
 	</div>
 
 	{#if config.showRetentionRate}
-		<div class="ka-stat-card">
-			<span class="ka-stat-card__label">Retention</span>
-			<span class="ka-stat-card__value">{formatPercent(stats.flashcard.retention_rate)}</span>
-			<span class="ka-stat-card__description">average accuracy</span>
+		<div class="ml-stat-card">
+			<span class="ml-stat-card__label">Retention</span>
+			<span class="ml-stat-card__value">{formatPercent(stats.flashcard.retention_rate)}</span>
+			<span class="ml-stat-card__description">average accuracy</span>
 		</div>
 	{/if}
 
-	<div class="ka-stat-card">
-		<span class="ka-stat-card__label">Streak</span>
-		<span class="ka-stat-card__value">{stats.flashcard.current_streak}</span>
-		<span class="ka-stat-card__description">days in a row</span>
+	<div class="ml-stat-card">
+		<span class="ml-stat-card__label">Streak</span>
+		<span class="ml-stat-card__value">{stats.flashcard.current_streak}</span>
+		<span class="ml-stat-card__description">days in a row</span>
 	</div>
 
-	<div class="ka-stat-card">
-		<span class="ka-stat-card__label">Total Cards</span>
-		<span class="ka-stat-card__value">{stats.flashcard.total_cards}</span>
-		<span class="ka-stat-card__description">in your vault</span>
+	<div class="ml-stat-card">
+		<span class="ml-stat-card__label">Total Cards</span>
+		<span class="ml-stat-card__value">{stats.flashcard.total_cards}</span>
+		<span class="ml-stat-card__description">in your vault</span>
 	</div>
 </div>
 
 <style>
-	.ka-dashboard__stats-grid {
+	.ml-dashboard__stats-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 		gap: 16px;
 	}
 
-	.ka-stat-card {
+	.ml-stat-card {
 		background-color: var(--background-secondary);
 		border: 1px solid var(--background-modifier-border);
 		border-radius: 8px;
@@ -55,13 +55,13 @@
 		transition: all 0.2s ease;
 	}
 
-	.ka-stat-card:hover {
+	.ml-stat-card:hover {
 		border-color: var(--interactive-accent);
 		transform: translateY(-2px);
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 	}
 
-	.ka-stat-card__label {
+	.ml-stat-card__label {
 		font-size: var(--font-ui-smaller);
 		color: var(--text-muted);
 		text-transform: uppercase;
@@ -69,7 +69,7 @@
 		margin-bottom: 8px;
 	}
 
-	.ka-stat-card__value {
+	.ml-stat-card__value {
 		font-size: 28px;
 		font-weight: var(--font-bold);
 		color: var(--interactive-accent);
@@ -77,23 +77,23 @@
 		line-height: 1.2;
 	}
 
-	.ka-stat-card__description {
+	.ml-stat-card__description {
 		font-size: var(--font-ui-smaller);
 		color: var(--text-faint);
 	}
 
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
-		.ka-dashboard__stats-grid {
+		.ml-dashboard__stats-grid {
 			grid-template-columns: 1fr 1fr;
 			gap: 12px;
 		}
 
-		.ka-stat-card {
+		.ml-stat-card {
 			padding: 16px 12px;
 		}
 
-		.ka-stat-card__value {
+		.ml-stat-card__value {
 			font-size: 22px;
 		}
 	}

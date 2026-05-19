@@ -3,7 +3,7 @@ import { Logger } from '@/utils/Logger';
 import { Menu, TAbstractFile, TFile } from 'obsidian';
 
 export class AIGenerateFromFileCommand extends BaseCommand {
-	readonly id = 'ka-generate-from-file';
+	readonly id = 'ml-generate-from-file';
 	readonly name = 'Generate flashcards from file';
 
 	protected onRegister(): void {

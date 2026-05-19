@@ -7,11 +7,23 @@ import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import ts from 'typescript-eslint';
 import svelteConfig from './svelte.config.js';
+import requireClassPrefix from './eslint-rules/require-class-prefix.js';
 
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
 export default defineConfig(
   includeIgnoreFile(gitignorePath),
+  {
+    // Patterns previously in .eslintignore (no longer supported in ESLint v9 flat config)
+    ignores: [
+      'node_modules/',
+      'dist/',
+      'build/',
+      'coverage/',
+      '*.min.js',
+      'main.js',
+    ],
+  },
   js.configs.recommended,
   ...ts.configs.recommended,
   ...svelte.configs.recommended,
@@ -27,15 +39,51 @@ export default defineConfig(
     },
   },
   {
+    files: ['tests/**/*.test.ts', 'tests/**/*.spec.ts', 'tests/setup.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
 
     languageOptions: {
       parserOptions: {
-        projectService: true,
+        // Note: projectService: true was removed because it causes duplicate
+        // diagnostics in VS Code's ESLint extension for .svelte files.
+        // ts.configs.recommended does not require type-aware linting.
         extraFileExtensions: ['.svelte'],
         parser: ts.parser,
         svelteConfig,
       },
+    },
+
+    plugins: {
+      local: {
+        rules: {
+          'require-class-prefix': requireClassPrefix,
+        },
+      },
+    },
+
+    rules: {
+      // Enforce ml- prefix on CSS classes in Svelte templates.
+      // Change 'warn' to 'error' once all violations are resolved.
+      'local/require-class-prefix': [
+        'warn',
+        {
+          prefix: 'ml-',
+          // Add any intentional exceptions here, e.g.:
+          // allow: ['has-error', 'disabled'],
+        },
+      ],
     },
   },
 );

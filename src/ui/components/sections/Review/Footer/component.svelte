@@ -5,8 +5,8 @@
 	const { position, total, onPrevious, onNext }: FooterProps = $props();
 </script>
 
-<footer class="ka-review-footer">
-	<div class="ka-navigation-controls">
+<footer class="ml-review-footer">
+	<div class="ml-navigation-controls">
 		<Button
 			variant="secondary"
 			size="small"
@@ -29,23 +29,23 @@
 </footer>
 
 <style>
-	.ka-review-footer {
+	.ml-review-footer {
 		display: flex;
 		justify-content: center;
 		padding-bottom: 1rem;
 	}
 
-	.ka-navigation-controls {
+	.ml-navigation-controls {
 		display: flex;
 		gap: 2rem;
 	}
 
 	@media (max-width: 480px) {
-		.ka-review-footer {
+		.ml-review-footer {
 			padding-bottom: 0.5rem;
 		}
 
-		.ka-navigation-controls {
+		.ml-navigation-controls {
 			gap: 1rem;
 		}
 	}

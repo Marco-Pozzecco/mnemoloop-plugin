@@ -378,29 +378,18 @@ export class StatisticsProcessor extends EventProcessor {
 			}
 		}
 
-		// Calculate current streak based on last activity date
+		// Current streak is the length of the contiguous block ending at the last active date.
+		// tempStreak already holds this from the forward pass. Use it if last activity is today/yesterday.
 		let currentStreak = 0;
 		const lastDate = dates[dates.length - 1];
-		const lastActivityDate = new Date(lastDate);
 		const lastActivityTotal = progress[lastDate]?.total_count || 0;
 
 		if (lastActivityTotal > 0) {
-			// Check if last activity was today or yesterday
 			const daysSinceLastActivity =
-				(new Date(today).getTime() - lastActivityDate.getTime()) / (1000 * 60 * 60 * 24);
+				(new Date(today).getTime() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24);
 
 			if (daysSinceLastActivity <= 1) {
-				// Count backwards from last activity date
-				currentStreak = 0;
-				for (let i = dates.length - 1; i >= 0; i--) {
-					const dateStr = dates[i];
-					const dayTotal = progress[dateStr]?.total_count || 0;
-					if (dayTotal > 0) {
-						currentStreak++;
-					} else {
-						break;
-					}
-				}
+				currentStreak = tempStreak;
 			}
 		}
 

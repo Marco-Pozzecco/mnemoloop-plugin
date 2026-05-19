@@ -65,7 +65,7 @@
 	maxRetries={3}
 	errorContext="DashboardView"
 >
-	<div class="ka-dashboard" role="main">
+	<div class="ml-dashboard" role="main">
 		<DashboardHeader {isLoading} {onRefresh} />
 		<DashboardStatsGrid {stats} {config} />
 		<DeckTree nodes={deckTree.nodes} {selectedDeck} {onSelectDeck} {onToggleExpand} />
@@ -83,7 +83,7 @@
 </ErrorWrapper>
 
 <style>
-	.ka-dashboard {
+	.ml-dashboard {
 		display: flex;
 		flex-direction: column;
 		gap: 24px;
@@ -92,10 +92,10 @@
 		max-width: 800px;
 		margin: 0 auto;
 		color: var(--text-normal);
-		animation: ka-fade-in 0.3s ease-out;
+		animation: ml-fade-in 0.3s ease-out;
 	}
 
-	@keyframes ka-fade-in {
+	@keyframes ml-fade-in {
 		from {
 			opacity: 0;
 			transform: translateY(10px);
@@ -108,7 +108,7 @@
 
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
-		.ka-dashboard {
+		.ml-dashboard {
 			padding: 16px;
 			gap: 16px;
 		}

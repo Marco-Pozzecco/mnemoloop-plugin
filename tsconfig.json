@@ -19,11 +19,12 @@
 		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
 		"isolatedModules": true,
+		"noEmit": true,
 		"paths": {
 			"@/*": ["./src/*"],
 			"@": ["./src"],
 		},
 	},
 	"include": ["**/*.svelte", "**/*.ts"],
-	"exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.js"],
+	"exclude": ["node_modules", "dist", "**/*.js"],
 }

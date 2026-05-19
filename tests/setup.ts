@@ -6,6 +6,152 @@ import { vi } from 'vitest';
 
 // Mock obsidian module
 vi.mock('obsidian', () => ({
-	Notice: vi.fn(),
-	Plugin: class {},
+	// Notice is a class: new Notice(message)
+	Notice: vi.fn().mockImplementation((message: string) => ({
+		message,
+	})),
+
+	// Plugin base class
+	Plugin: class MockPlugin {
+		app = {
+			vault: {
+				adapter: {
+					read: vi.fn<any, any>(),
+					write: vi.fn<any, any>(),
+					exists: vi.fn<any, any>(),
+					list: vi.fn<any, any>(),
+				},
+				getFileByPath: vi.fn<any, any>(),
+				getAbstractFileByPath: vi.fn<any, any>(),
+				delete: vi.fn<any, any>(),
+				create: vi.fn<any, any>(),
+				getRoot: vi.fn<any, any>(),
+				read: vi.fn<any, any>(),
+				write: vi.fn<any, any>(),
+				cachedRead: vi.fn<any, any>(),
+				append: vi.fn<any, any>(),
+				on: vi.fn<any, any>(),
+			},
+			workspace: {
+				getLeaf: vi.fn<any, any>(),
+				getRightLeaf: vi.fn<any, any>(),
+				getActiveFile: vi.fn<any, any>(),
+				getLeavesOfType: vi.fn<any, any>(),
+				getMostRecentLeaf: vi.fn<any, any>(),
+				iterateRootLeaves: vi.fn<any, any>(),
+				createLeafInParent: vi.fn<any, any>(),
+				on: vi.fn<any, any>(),
+				revealLeaf: vi.fn<any, any>(),
+			},
+			metadataCache: {
+				getFileCache: vi.fn<any, any>(),
+				getFirstLinkpathDest: vi.fn<any, any>(),
+			},
+		};
+		registerEvent = vi.fn();
+		loadData = vi.fn();
+		saveData = vi.fn();
+		addCommand = vi.fn();
+	},
+
+	// Vault class
+	Vault: class MockVault {
+		adapter = {
+			read: vi.fn<any, any>(),
+			write: vi.fn<any, any>(),
+			exists: vi.fn<any, any>(),
+			list: vi.fn<any, any>(),
+		};
+		getFileByPath = vi.fn<any, any>();
+		getAbstractFileByPath = vi.fn<any, any>();
+		delete = vi.fn<any, any>();
+		create = vi.fn<any, any>();
+		getRoot = vi.fn<any, any>();
+		read = vi.fn<any, any>();
+		write = vi.fn<any, any>();
+		cachedRead = vi.fn<any, any>();
+		append = vi.fn<any, any>();
+		on = vi.fn<any, any>();
+	},
+
+	// TFile class
+	TFile: class MockTFile {
+		extension: string;
+		stat: { ctime: number; mtime: number; size: number };
+		constructor(
+			public path: string,
+			public basename: string = '',
+		) {
+			this.extension = path.split('.').pop() || '';
+			this.stat = { ctime: Date.now(), mtime: Date.now(), size: 0 };
+		}
+	},
+
+	// TAbstractFile class
+	TAbstractFile: class MockTAbstractFile {
+		constructor(public path: string) {}
+	},
+
+	// Workspace class
+	Workspace: class MockWorkspace {
+		getLeaf = vi.fn<any, any>();
+		getRightLeaf = vi.fn<any, any>();
+		getActiveFile = vi.fn<any, any>();
+		getLeavesOfType = vi.fn<any, any>();
+		getMostRecentLeaf = vi.fn<any, any>();
+		iterateRootLeaves = vi.fn<any, any>();
+		createLeafInParent = vi.fn<any, any>();
+		on = vi.fn<any, any>();
+		revealLeaf = vi.fn<any, any>();
+	},
+
+	// WorkspaceLeaf class
+	WorkspaceLeaf: class MockWorkspaceLeaf {
+		setViewState = vi.fn();
+		getViewState = vi.fn();
+		openFile = vi.fn();
+	},
+
+	// Menu class
+	Menu: class MockMenu {
+		addItem = vi.fn().mockReturnThis();
+		showAtPosition = vi.fn();
+	},
+
+	// Editor class
+	Editor: class MockEditor {
+		getSelection = vi.fn().mockReturnValue('');
+		replaceSelection = vi.fn();
+		getValue = vi.fn().mockReturnValue('');
+	},
+
+	// MarkdownView class
+	MarkdownView: class MockMarkdownView {
+		file = null;
+		leaf = null;
+		constructor(_leaf?: unknown) {}
+	},
+
+	// MarkdownFileInfo interface (mocked as a plain object constructor)
+	MarkdownFileInfo: class MockMarkdownFileInfo {
+		file = null;
+	},
+
+	// MetadataCache class
+	MetadataCache: class MockMetadataCache {
+		getFileCache = vi.fn();
+		getFirstLinkpathDest = vi.fn();
+	},
+
+	// Utility functions
+	normalizePath: (path: string) => path,
+	parseYaml: vi.fn((_yaml: string) => ({})),
+
+	// Component base class
+	Component: class MockComponent {
+		registerEvent = vi.fn();
+	},
+
+	// Platform object
+	Platform: {},
 }));

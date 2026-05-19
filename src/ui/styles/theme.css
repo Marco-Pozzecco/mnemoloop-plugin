@@ -1,5 +1,5 @@
 /**
- * Theme CSS Variable Mappings for Knowledge Accelerator
+ * Theme CSS Variable Mappings for Mnemoloop
  *
  * Maps custom CSS properties to Obsidian's theme variables
  * for consistent styling across light and dark themes
@@ -8,249 +8,249 @@
 /* ==================== Base Theme Variables ==================== */
 :root {
   /* Text Colors */
-  --ka-text-normal: var(--text-normal);
-  --ka-text-muted: var(--text-muted);
-  --ka-text-faint: var(--text-faint);
-  --ka-text-accent: var(--text-accent);
-  --ka-text-error: var(--text-error);
-  --ka-text-warning: var(--text-warning);
-  --ka-text-success: var(--text-success);
+  --ml-text-normal: var(--text-normal);
+  --ml-text-muted: var(--text-muted);
+  --ml-text-faint: var(--text-faint);
+  --ml-text-accent: var(--text-accent);
+  --ml-text-error: var(--text-error);
+  --ml-text-warning: var(--text-warning);
+  --ml-text-success: var(--text-success);
 
   /* Background Colors */
-  --ka-background-primary: var(--background-primary);
-  --ka-background-secondary: var(--background-secondary);
-  --ka-background-tertiary: var(--background-tertiary);
-  --ka-background-modifier-border: var(--background-modifier-border);
-  --ka-background-modifier-hover: var(--background-modifier-hover);
-  --ka-background-modifier-active: var(--background-modifier-active);
-  --ka-background-modifier-selected: var(--background-modifier-selected);
+  --ml-background-primary: var(--background-primary);
+  --ml-background-secondary: var(--background-secondary);
+  --ml-background-tertiary: var(--background-tertiary);
+  --ml-background-modifier-border: var(--background-modifier-border);
+  --ml-background-modifier-hover: var(--background-modifier-hover);
+  --ml-background-modifier-active: var(--background-modifier-active);
+  --ml-background-modifier-selected: var(--background-modifier-selected);
 
   /* Interactive Colors */
-  --ka-interactive-accent: var(--interactive-accent);
-  --ka-interactive-accent-hover: var(--interactive-accent-hover);
-  --ka-interactive-normal: var(--interactive-normal);
-  --ka-interactive-hover: var(--interactive-hover);
+  --ml-interactive-accent: var(--interactive-accent);
+  --ml-interactive-accent-hover: var(--interactive-accent-hover);
+  --ml-interactive-normal: var(--interactive-normal);
+  --ml-interactive-hover: var(--interactive-hover);
 
   /* Border Colors */
-  --ka-border-color: var(--background-modifier-border);
-  --ka-border-color-focus: var(--background-modifier-border-focus);
+  --ml-border-color: var(--background-modifier-border);
+  --ml-border-color-focus: var(--background-modifier-border-focus);
 
   /* Status Colors */
-  --ka-status-info: var(--color-blue);
-  --ka-status-success: var(--color-green);
-  --ka-status-warning: var(--color-orange);
-  --ka-status-error: var(--color-red);
+  --ml-status-info: var(--color-blue);
+  --ml-status-success: var(--color-green);
+  --ml-status-warning: var(--color-orange);
+  --ml-status-error: var(--color-red);
 
   /* Spacing */
-  --ka-spacing-xs: 0.25rem;
-  --ka-spacing-sm: 0.5rem;
-  --ka-spacing-md: 1rem;
-  --ka-spacing-lg: 1.5rem;
-  --ka-spacing-xl: 2rem;
+  --ml-spacing-xs: 0.25rem;
+  --ml-spacing-sm: 0.5rem;
+  --ml-spacing-md: 1rem;
+  --ml-spacing-lg: 1.5rem;
+  --ml-spacing-xl: 2rem;
 
   /* Border Radius */
-  --ka-radius-sm: 4px;
-  --ka-radius-md: 8px;
-  --ka-radius-lg: 12px;
-  --ka-radius-xl: 16px;
+  --ml-radius-sm: 4px;
+  --ml-radius-md: 8px;
+  --ml-radius-lg: 12px;
+  --ml-radius-xl: 16px;
 
   /* Shadows */
-  --ka-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --ka-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --ka-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --ml-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --ml-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --ml-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
 
   /* Transitions */
-  --ka-transition-fast: 0.15s ease;
-  --ka-transition-normal: 0.2s ease;
-  --ka-transition-slow: 0.3s ease;
+  --ml-transition-fast: 0.15s ease;
+  --ml-transition-normal: 0.2s ease;
+  --ml-transition-slow: 0.3s ease;
 
   /* Animation Durations (Phase 0) */
-  --ka-animation-duration-fast: 150ms;
-  --ka-animation-duration-normal: 300ms;
-  --ka-animation-duration-slow: 400ms;
-  --ka-animation-duration-flip: 400ms;
-  --ka-animation-duration-slide: 300ms;
+  --ml-animation-duration-fast: 150ms;
+  --ml-animation-duration-normal: 300ms;
+  --ml-animation-duration-slow: 400ms;
+  --ml-animation-duration-flip: 400ms;
+  --ml-animation-duration-slide: 300ms;
 
   /* Animation Easings (Phase 0) */
-  --ka-easing-default: ease;
-  --ka-easing-in: ease-in;
-  --ka-easing-out: ease-out;
-  --ka-easing-in-out: ease-in-out;
-  --ka-easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ka-easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ml-easing-default: ease;
+  --ml-easing-in: ease-in;
+  --ml-easing-out: ease-out;
+  --ml-easing-in-out: ease-in-out;
+  --ml-easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ml-easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Z-Index */
-  --ka-z-base: 1;
-  --ka-z-dropdown: 100;
-  --ka-z-modal: 1000;
-  --ka-z-toast: 2000;
+  --ml-z-base: 1;
+  --ml-z-dropdown: 100;
+  --ml-z-modal: 1000;
+  --ml-z-toast: 2000;
 }
 
 /* ==================== Dark Theme Overrides ==================== */
 .theme-dark {
   /* Enhanced contrast for dark theme */
-  --ka-text-muted: rgba(255, 255, 255, 0.6);
-  --ka-text-faint: rgba(255, 255, 255, 0.4);
+  --ml-text-muted: rgba(255, 255, 255, 0.6);
+  --ml-text-faint: rgba(255, 255, 255, 0.4);
 
   /* Darker backgrounds for cards */
-  --ka-card-background: rgba(0, 0, 0, 0.2);
-  --ka-card-border: rgba(255, 255, 255, 0.1);
+  --ml-card-background: rgba(0, 0, 0, 0.2);
+  --ml-card-border: rgba(255, 255, 255, 0.1);
 
   /* Darker shadows */
-  --ka-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --ka-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
-  --ka-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+  --ml-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --ml-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --ml-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
 
   /* Adjusted status colors for dark theme */
-  --ka-status-info: #7dd3fc;
-  --ka-status-success: #4ade80;
-  --ka-status-warning: #fbbf24;
-  --ka-status-error: #f87171;
+  --ml-status-info: #7dd3fc;
+  --ml-status-success: #4ade80;
+  --ml-status-warning: #fbbf24;
+  --ml-status-error: #f87171;
 
   /* Card face hover effect */
-  --ka-card-hover-glow: rgba(255, 255, 255, 0.05);
+  --ml-card-hover-glow: rgba(255, 255, 255, 0.05);
 }
 
 /* ==================== Light Theme Overrides ==================== */
 .theme-light {
   /* Enhanced contrast for light theme */
-  --ka-text-muted: rgba(0, 0, 0, 0.6);
-  --ka-text-faint: rgba(0, 0, 0, 0.4);
+  --ml-text-muted: rgba(0, 0, 0, 0.6);
+  --ml-text-faint: rgba(0, 0, 0, 0.4);
 
   /* Lighter backgrounds for cards */
-  --ka-card-background: rgba(255, 255, 255, 0.5);
-  --ka-card-border: rgba(0, 0, 0, 0.1);
+  --ml-card-background: rgba(255, 255, 255, 0.5);
+  --ml-card-border: rgba(0, 0, 0, 0.1);
 
   /* Lighter shadows */
-  --ka-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --ka-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
-  --ka-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --ml-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --ml-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
+  --ml-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
 
   /* Adjusted status colors for light theme */
-  --ka-status-info: #0ea5e9;
-  --ka-status-success: #22c55e;
-  --ka-status-warning: #f59e0b;
-  --ka-status-error: #ef4444;
+  --ml-status-info: #0ea5e9;
+  --ml-status-success: #22c55e;
+  --ml-status-warning: #f59e0b;
+  --ml-status-error: #ef4444;
 
   /* Card face hover effect */
-  --ka-card-hover-glow: rgba(0, 0, 0, 0.03);
+  --ml-card-hover-glow: rgba(0, 0, 0, 0.03);
 }
 
 /* ==================== Component-Specific Variables ==================== */
 
 /* Card Face */
 :root {
-  --ka-card-min-height: 200px;
-  --ka-card-padding: 2rem;
-  --ka-card-transition: transform 0.2s ease, box-shadow 0.2s ease;
+  --ml-card-min-height: 200px;
+  --ml-card-padding: 2rem;
+  --ml-card-transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.theme-dark .ka-card-face-container:hover {
+.theme-dark .ml-card-face-container:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.theme-light .ka-card-face-container:hover {
+.theme-light .ml-card-face-container:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Rating Buttons */
 :root {
-  --ka-rating-button-height: 60px;
-  --ka-rating-button-gap: 1rem;
+  --ml-rating-button-height: 60px;
+  --ml-rating-button-gap: 1rem;
 
   /* Rating colors */
-  --ka-rating-again: var(--text-error);
-  --ka-rating-hard: var(--text-warning);
-  --ka-rating-good: var(--text-accent);
-  --ka-rating-easy: var(--text-success);
+  --ml-rating-again: var(--text-error);
+  --ml-rating-hard: var(--text-warning);
+  --ml-rating-good: var(--text-accent);
+  --ml-rating-easy: var(--text-success);
 
   /* Rating colors with alpha (Phase 0) - for borders, backgrounds */
-  --ka-rating-again-alpha: rgba(239, 68, 68, 0.2);
-  --ka-rating-hard-alpha: rgba(245, 158, 11, 0.2);
-  --ka-rating-good-alpha: rgba(59, 130, 246, 0.2);
-  --ka-rating-easy-alpha: rgba(34, 197, 94, 0.2);
+  --ml-rating-again-alpha: rgba(239, 68, 68, 0.2);
+  --ml-rating-hard-alpha: rgba(245, 158, 11, 0.2);
+  --ml-rating-good-alpha: rgba(59, 130, 246, 0.2);
+  --ml-rating-easy-alpha: rgba(34, 197, 94, 0.2);
 }
 
 .theme-dark {
-  --ka-rating-again: #f87171;
-  --ka-rating-hard: #fbbf24;
-  --ka-rating-good: #60a5fa;
-  --ka-rating-easy: #4ade80;
+  --ml-rating-again: #f87171;
+  --ml-rating-hard: #fbbf24;
+  --ml-rating-good: #60a5fa;
+  --ml-rating-easy: #4ade80;
 }
 
 .theme-light {
-  --ka-rating-again: #ef4444;
-  --ka-rating-hard: #f59e0b;
-  --ka-rating-good: #3b82f6;
-  --ka-rating-easy: #22c55e;
+  --ml-rating-again: #ef4444;
+  --ml-rating-hard: #f59e0b;
+  --ml-rating-good: #3b82f6;
+  --ml-rating-easy: #22c55e;
 }
 
 /* Progress Bar */
 :root {
-  --ka-progress-height: 4px;
-  --ka-progress-background: var(--background-modifier-border);
-  --ka-progress-fill: var(--interactive-accent);
+  --ml-progress-height: 4px;
+  --ml-progress-background: var(--background-modifier-border);
+  --ml-progress-fill: var(--interactive-accent);
 }
 
 /* Toast Notifications */
 :root {
-  --ka-toast-max-width: 400px;
-  --ka-toast-padding: 0.875rem 1rem;
-  --ka-toast-border-radius: 8px;
-  --ka-toast-shadow: var(--ka-shadow-lg);
+  --ml-toast-max-width: 400px;
+  --ml-toast-padding: 0.875rem 1rem;
+  --ml-toast-border-radius: 8px;
+  --ml-toast-shadow: var(--ml-shadow-lg);
 }
 
 /* Dashboard Stats */
 :root {
-  --ka-stat-card-padding: 1.25rem;
-  --ka-stat-card-border-radius: var(--ka-radius-md);
-  --ka-stat-value-font-size: 2rem;
-  --ka-stat-label-font-size: 0.85rem;
+  --ml-stat-card-padding: 1.25rem;
+  --ml-stat-card-border-radius: var(--ml-radius-md);
+  --ml-stat-value-font-size: 2rem;
+  --ml-stat-label-font-size: 0.85rem;
 }
 
 /* Buttons */
 :root {
-  --ka-button-height: 40px;
-  --ka-button-padding: 0.5rem 1rem;
-  --ka-button-border-radius: var(--ka-radius-sm);
-  --ka-button-transition: all 0.15s ease;
+  --ml-button-height: 40px;
+  --ml-button-padding: 0.5rem 1rem;
+  --ml-button-border-radius: var(--ml-radius-sm);
+  --ml-button-transition: all 0.15s ease;
 }
 
 /* ==================== Reduced Motion ==================== */
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --ka-transition-fast: 0s;
-    --ka-transition-normal: 0s;
-    --ka-transition-slow: 0s;
-    --ka-card-transition: none;
+    --ml-transition-fast: 0s;
+    --ml-transition-normal: 0s;
+    --ml-transition-slow: 0s;
+    --ml-card-transition: none;
   }
 }
 
 /* ==================== High Contrast Mode ==================== */
 @media (prefers-contrast: high) {
   :root {
-    --ka-border-color: currentColor;
-    --ka-card-border: 2px solid currentColor;
+    --ml-border-color: currentColor;
+    --ml-card-border: 2px solid currentColor;
   }
 
   .theme-dark {
-    --ka-text-muted: rgba(255, 255, 255, 0.8);
+    --ml-text-muted: rgba(255, 255, 255, 0.8);
   }
 
   .theme-light {
-    --ka-text-muted: rgba(0, 0, 0, 0.8);
+    --ml-text-muted: rgba(0, 0, 0, 0.8);
   }
 }
 
 /* ==================== Print Styles ==================== */
 @media print {
   :root {
-    --ka-background-primary: white;
-    --ka-text-normal: black;
-    --ka-text-muted: black;
-    --ka-interactive-accent: black;
-    --ka-shadow-sm: none;
-    --ka-shadow-md: none;
-    --ka-shadow-lg: none;
+    --ml-background-primary: white;
+    --ml-text-normal: black;
+    --ml-text-muted: black;
+    --ml-interactive-accent: black;
+    --ml-shadow-sm: none;
+    --ml-shadow-md: none;
+    --ml-shadow-lg: none;
   }
 }

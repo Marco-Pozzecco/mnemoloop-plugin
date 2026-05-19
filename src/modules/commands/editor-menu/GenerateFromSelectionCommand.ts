@@ -8,7 +8,7 @@ import { ModalClassNames } from '@/ui/views/Modal/types';
 import { Editor, MarkdownFileInfo, MarkdownView, Menu, Notice, TFile } from 'obsidian';
 
 export class GenerateFromSelectionCommand extends BaseCommand {
-	readonly id = 'ka-generate-from-selection';
+	readonly id = 'ml-generate-from-selection';
 	readonly name = 'Generate flashcard from selection';
 
 	protected onRegister(): void {
