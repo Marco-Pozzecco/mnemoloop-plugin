@@ -1,14 +1,15 @@
-name: CI
+name: Release Obsidian plugin
 
 on:
   push:
-    branches: [master]
-  pull_request:
-    branches: [master]
+    tags:
+      - 'v*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -29,5 +30,18 @@ jobs:
       - name: Test
         run: yarn test --run
 
-      - name: Build
+      - name: Build plugin
         run: yarn build
+
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+
+          gh release create "$tag" \
+            --title="$tag" \
+            --draft \
+            main.js \
+            manifest.json \
+            styles.css
