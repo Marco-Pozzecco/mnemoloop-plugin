@@ -11,6 +11,7 @@
 	let cardContainer: HTMLElement | undefined = $state();
 
 	let flashcard: Flashcard | null = $derived(item.data);
+	let timer: ReturnType<typeof setTimeout> | null = null;
 
 	$effect(() => {
 		// Watch for data changes
@@ -19,10 +20,17 @@
 				flashcard = item.data;
 			}
 			if (!flashcard) {
-				setTimeout(checkData, 1000); // Poll until ready
+				timer = setTimeout(checkData, 1000); // Poll until ready
 			}
 		};
 		checkData();
+
+		return () => {
+			if (timer) {
+				clearTimeout(timer);
+				timer = null;
+			}
+		};
 	});
 
 	// Options no longer need app - it's retrieved from context internally
@@ -85,7 +93,7 @@
 				onclick={onShowAnswer}
 				ariaLabel="Show answer"
 			>
-				Show Answer
+				Show answer
 				<span class="ml-key-hint">Space</span>
 			</Button>
 		</div>

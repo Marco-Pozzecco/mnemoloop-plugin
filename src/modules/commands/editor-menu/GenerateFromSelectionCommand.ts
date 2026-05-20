@@ -43,7 +43,7 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 			return;
 		}
 
-		const callback = (evt: IEvent) => {
+		const callback = async (evt: IEvent) => {
 			if (evt.type !== FlashcardWriterCreateResponseEvent.type) {
 				return;
 			}
@@ -62,11 +62,10 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 				return;
 			}
 
-			leaf.openFile(file).then(() => {
-				if (view instanceof MarkdownView && view.leaf) {
-					this.plugin.app.workspace.revealLeaf(view.leaf);
-				}
-			});
+			await leaf.openFile(file);
+			if (view instanceof MarkdownView && view.leaf) {
+				this.plugin.app.workspace.revealLeaf(view.leaf);
+			}
 		};
 
 		EventBus.instance.subscribe(callback);

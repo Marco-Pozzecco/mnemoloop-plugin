@@ -33,7 +33,6 @@ export default class MnemoloopPlugin extends Plugin {
 
 	settings!: PluginSettings;
 	private ribbonIcon?: HTMLElement;
-	settingsView: SettingsView | null = null;
 
 	async onload() {
 		Logger.info('Loading plugin');

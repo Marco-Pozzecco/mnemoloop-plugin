@@ -21,6 +21,10 @@ export class SettingsView extends PluginSettingTab {
 		});
 	}
 
+	hide(): void {
+		this.destroy();
+	}
+
 	/**
 	 * Unmount and cleanup
 	 */
