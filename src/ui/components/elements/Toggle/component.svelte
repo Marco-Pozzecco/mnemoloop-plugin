@@ -66,6 +66,7 @@
 		position: relative;
 		display: flex;
 		align-items: center;
+		justify-content: flex-start;
 		background-color: var(--background-modifier-border);
 		border-radius: 100px;
 		border: none;
@@ -145,7 +146,7 @@
 	}
 
 	.ml-toggle-wrapper--medium .ml-toggle-switch.checked .ml-toggle-thumb {
-		transform: translateX(18px);
+		transform: translateX(17px);
 	}
 
 	/* Size variants - large */
