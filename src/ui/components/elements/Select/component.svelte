@@ -152,11 +152,11 @@
 
 	.ml-select-wrapper.has-error :global(.ml-select) {
 		border-color: var(--text-error);
-		background-color: rgba(255, 0, 0, 0.05);
+		background-color: color-mix(in srgb, var(--text-error) 5%, transparent);
 	}
 
 	.ml-select-wrapper.has-error :global(.ml-select:focus-visible) {
-		box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
+		box-shadow: 0 0 0 2px color-mix(in srgb, var(--text-error) 10%, transparent);
 	}
 
 	/* Dropdown content styles */
@@ -164,7 +164,7 @@
 		background-color: var(--background-primary);
 		border: 1px solid var(--background-modifier-border);
 		border-radius: var(--input-radius, 4px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		box-shadow: 0 4px 12px color-mix(in srgb, var(--text-normal) 15%, transparent);
 		z-index: 50;
 		min-width: var(--bits-select-trigger-width);
 	}

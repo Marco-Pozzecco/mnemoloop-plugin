@@ -78,7 +78,7 @@
 	}
 
 	.ml-card.clickable:hover {
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 2px 8px var(--ml-shadow-color);
 		transform: translateY(-1px);
 	}
 

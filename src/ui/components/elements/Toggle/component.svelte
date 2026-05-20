@@ -77,9 +77,9 @@
 
 	.ml-toggle-thumb {
 		display: block;
-		background-color: white;
+		background-color: var(--text-on-accent);
 		border-radius: 50%;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 1px 3px color-mix(in srgb, var(--text-normal) 20%, transparent);
 		transition: transform 0.2s ease;
 		flex-shrink: 0;
 	}
