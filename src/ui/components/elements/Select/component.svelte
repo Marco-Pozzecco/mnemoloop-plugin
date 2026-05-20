@@ -49,11 +49,7 @@
 		{disabled}
 		required={required || false}
 	>
-		<Select.Trigger
-			{id}
-			aria-invalid={hasError}
-			aria-describedby={buildAriaDescribedBy()}
-		>
+		<Select.Trigger {id} aria-invalid={hasError} aria-describedby={buildAriaDescribedBy()}>
 			{#snippet child({ props })}
 				<button {...props} class="ml-select" type="button">
 					<Select.Value {placeholder} />
@@ -166,7 +162,7 @@
 		border-radius: var(--input-radius, 4px);
 		box-shadow: 0 4px 12px color-mix(in srgb, var(--text-normal) 15%, transparent);
 		z-index: 50;
-		min-width: var(--bits-select-trigger-width);
+		min-width: var(--bits-floating-anchor-width);
 	}
 
 	:global(.ml-select-viewport) {
