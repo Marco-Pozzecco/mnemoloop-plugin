@@ -28,7 +28,7 @@ describe('CreateEmptyFlashcardCommand', () => {
 		expect(addCommandSpy).toHaveBeenCalledWith(
 			expect.objectContaining({
 				id: 'create-empty-flashcard',
-				name: 'Create Empty Flashcard',
+				name: 'Create empty flashcard',
 			}),
 		);
 	});

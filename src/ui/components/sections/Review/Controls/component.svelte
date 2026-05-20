@@ -17,7 +17,6 @@
 <div class="ml-rating-controls" class:disabled>
 	{#each ratings as rating (rating.value)}
 		<div class="ml-rating-button-wrapper">
-			<!-- style="--button-color: {rating.color}" -->
 			<Button
 				variant="primary"
 				className="ml-rating-button"

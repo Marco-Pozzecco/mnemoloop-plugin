@@ -19,7 +19,7 @@
 </script>
 
 <section class="ml-flashcard-config-section">
-	<h3 class="ml-section-header">Flashcard Settings</h3>
+	<h3 class="ml-section-header">Flashcard configuration</h3>
 
 	<div class="ml-form-fields">
 		<Input
@@ -32,7 +32,7 @@
 		/>
 
 		<Input
-			label="Flashcard Marker"
+			label="Flashcard marker"
 			value={settings.flashcard.marker}
 			helperText="The marker that split front and back content"
 			hasError={hasError('flashcard.marker')}
@@ -50,12 +50,9 @@
 	}
 
 	.ml-section-header {
-		font-size: var(--font-ui-medium);
-		font-weight: var(--font-medium);
 		color: var(--text-normal);
 		margin: 0;
-		padding: 0;
-		padding-bottom: 0.5rem;
+		padding: 0 0 0.5rem 0;
 		border-bottom: 1px solid var(--background-modifier-border);
 	}
 

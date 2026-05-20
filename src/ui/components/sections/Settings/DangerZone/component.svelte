@@ -13,7 +13,7 @@
 <section class="ml-danger-zone">
 	<div class="ml-danger-zone__header">
 		<Icon name="alert-triangle" size={20} color="var(--text-error)" />
-		<h2 class="ml-danger-zone__title">Danger Zone</h2>
+		<h2 class="ml-danger-zone__title">Danger zone</h2>
 	</div>
 
 	<p class="ml-danger-zone__description">
@@ -24,21 +24,16 @@
 	<div class="ml-danger-zone__content">
 		<div class="ml-danger-zone__action">
 			<div class="ml-danger-zone__action-info">
-				<span class="ml-danger-zone__action-label">Reset Settings</span>
+				<span class="ml-danger-zone__action-label">Reset to defaults</span>
 				<span class="ml-danger-zone__action-helper">
 					This will revert all settings to their default values
 				</span>
 			</div>
-			<Button
-				variant="danger"
-				onclick={handleReset}
-				disabled={isLoading}
-				title="Reset all settings to defaults"
-			>
+			<Button variant="danger" onclick={handleReset} disabled={isLoading}>
 				{#if isLoading}
 					<span class="ml-danger-zone__loading">Resetting...</span>
 				{:else}
-					Reset to Defaults
+					Reset to defaults
 				{/if}
 			</Button>
 		</div>
@@ -49,7 +44,7 @@
 	.ml-danger-zone {
 		border: 1px solid var(--text-error);
 		border-radius: var(--radius-m);
-		background-color: rgba(var(--text-error-rgb, 255, 0, 0), 0.05);
+		background-color: color-mix(in srgb, var(--text-error) 5%, transparent);
 		padding: var(--size-4-3);
 	}
 
@@ -86,7 +81,7 @@
 		justify-content: space-between;
 		gap: var(--size-4-3);
 		padding-top: var(--size-4-2);
-		border-top: 1px solid rgba(var(--text-error-rgb, 255, 0, 0), 0.2);
+		border-top: 1px solid color-mix(in srgb, var(--text-error) 20%, transparent);
 	}
 
 	.ml-danger-zone__action-info {
