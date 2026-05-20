@@ -41,8 +41,6 @@
 </script>
 
 <div class="ml-settings">
-	<h1 class="ml-settings__title">Plugin Settings</h1>
-
 	{#if saveError}
 		<div class="ml-settings__error">{saveError}</div>
 	{/if}

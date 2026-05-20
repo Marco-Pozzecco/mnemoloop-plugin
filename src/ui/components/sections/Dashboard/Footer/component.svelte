@@ -62,10 +62,10 @@
 			<span>Review {selectedDeck.name} ({selectedDeck.dueNow} due now)</span>
 		{:else if hasDueCards}
 			<Icon name="play" size={20} />
-			<span>Start Review Session</span>
+			<span>Start review session</span>
 		{:else}
 			<Icon name="check-circle" size={20} />
-			<span>All Caught Up!</span>
+			<span>All caught up!</span>
 		{/if}
 	</Button>
 </div>
