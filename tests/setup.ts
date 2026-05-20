@@ -92,6 +92,14 @@ vi.mock('obsidian', () => ({
 		constructor(public path: string) {}
 	},
 
+	// TFolder class
+	TFolder: class MockTFolder {
+		constructor(
+			public path: string,
+			public children: any[] = [],
+		) {}
+	},
+
 	// Workspace class
 	Workspace: class MockWorkspace {
 		getLeaf = vi.fn<any, any>();
