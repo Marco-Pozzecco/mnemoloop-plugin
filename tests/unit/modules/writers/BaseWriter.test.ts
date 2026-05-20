@@ -65,11 +65,12 @@ describe('BaseWriter', () => {
 	});
 
 	describe('create', () => {
-		it('should write a new file with frontmatter and body', async () => {
+		it('should write a new file with body via vault.create and add frontmatter via processFrontMatter', async () => {
 			await writer.create('new.md', { uuid: 'new', content: 'hello world' });
-			const content = await plugin.app.vault.adapter.read('new.md');
-			expect(content).toContain('uuid: new');
-			expect(content).toContain('hello world');
+			expect(plugin.app.vault.create).toHaveBeenCalledWith('new.md', 'hello world');
+			expect(plugin.app.fileManager.processFrontMatter).toHaveBeenCalledTimes(1);
+			const [fileArg] = plugin.app.fileManager.processFrontMatter.mock.calls[0];
+			expect(fileArg.path).toBe('new.md');
 		});
 
 		it('should throw if file already exists', async () => {
@@ -80,11 +81,13 @@ describe('BaseWriter', () => {
 	});
 
 	describe('update', () => {
-		it('should overwrite an existing file with frontmatter and body', async () => {
+		it('should update frontmatter via processFrontMatter and body via vault.modify', async () => {
 			await writer.update('test.md', { uuid: 'updated', content: 'new body' });
-			const content = await plugin.app.vault.adapter.read('test.md');
-			expect(content).toContain('uuid: updated');
-			expect(content).toContain('new body');
+			expect(plugin.app.fileManager.processFrontMatter).toHaveBeenCalledTimes(2);
+			expect(plugin.app.vault.modify).toHaveBeenCalledWith(
+				expect.objectContaining({ path: 'test.md' }),
+				'new body',
+			);
 		});
 
 		it('should throw if file does not exist', async () => {
@@ -95,33 +98,23 @@ describe('BaseWriter', () => {
 	});
 
 	describe('updateFrontmatter', () => {
-		it('should update only frontmatter while preserving body', async () => {
+		it('should update only frontmatter via processFrontMatter while preserving body', async () => {
 			await writer.updateFrontmatter('test.md', { uuid: 'updated' });
-			const content = await plugin.app.vault.adapter.read('test.md');
-			expect(content).toContain('uuid: updated');
+			expect(plugin.app.fileManager.processFrontMatter).toHaveBeenCalledTimes(1);
+			const file = plugin.app.vault.getAbstractFileByPath('test.md');
+			const content = await plugin.app.vault.read(file);
 			expect(content).toContain('old body');
-		});
-
-		it('should wrap parse errors with friendly message', async () => {
-			await plugin.app.vault.adapter.write('corrupt.md', 'no frontmatter');
-			await expect(writer.updateFrontmatter('corrupt.md', { uuid: 'updated' })).rejects.toThrow(
-				'Failed to parse frontmatter',
-			);
 		});
 	});
 
 	describe('updateBody', () => {
-		it('should update only body while preserving frontmatter', async () => {
+		it('should update only body via vault.modify while preserving frontmatter', async () => {
 			await writer.updateBody('test.md', { content: 'new body' });
-			const content = await plugin.app.vault.adapter.read('test.md');
-			expect(content).toContain('new body');
-		});
-
-		it('should wrap parse errors with friendly message', async () => {
-			await plugin.app.vault.adapter.write('corrupt.md', 'no frontmatter');
-			await expect(writer.updateBody('corrupt.md', { content: 'new body' })).rejects.toThrow(
-				'Failed to parse frontmatter',
+			expect(plugin.app.vault.modify).toHaveBeenCalledWith(
+				expect.objectContaining({ path: 'test.md' }),
+				'new body',
 			);
+			expect(plugin.app.fileManager.processFrontMatter).toHaveBeenCalledTimes(1);
 		});
 	});
 

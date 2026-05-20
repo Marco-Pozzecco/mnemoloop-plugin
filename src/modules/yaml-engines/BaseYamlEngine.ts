@@ -18,13 +18,20 @@ export abstract class BaseYamlEngine<T extends Record<string, unknown>> implemen
 
 	async extractFmFromFile(filepath: string): Promise<T> {
 		const normalizedFilepath = normalizePath(filepath);
-		const content = await this._plugin.app.vault.adapter.read(normalizedFilepath);
+		const file = this._plugin.app.vault.getFileByPath(normalizedFilepath);
 
-		if (!content) {
+		if (!file) {
 			throw new Error('file not found');
 		}
 
-		const { fm } = this.extractFmFromContent(content);
+		let fm: T = {} as T;
+
+		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
+			Object.assign(fm, frontmatter);
+		});
+
+		fm = this.validate(fm);
+
 		return fm;
 	}
 
@@ -66,11 +73,15 @@ export abstract class BaseYamlEngine<T extends Record<string, unknown>> implemen
 
 	async write(filepath: string, data: T): Promise<void> {
 		const normalizedFilepath = normalizePath(filepath);
-		const fullContent = await this._plugin.app.vault.adapter.read(normalizedFilepath);
-		const bodyContent = this.removeFrontmatter(fullContent);
-		const yamlFrontmatter = this.encode(data);
-		const newContent = yamlFrontmatter + '\n' + bodyContent;
-		await this._plugin.app.vault.adapter.write(normalizedFilepath, newContent);
+		const file = this._plugin.app.vault.getFileByPath(normalizedFilepath);
+
+		if (!file) {
+			throw new Error('file not found');
+		}
+
+		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
+			Object.assign(frontmatter, data);
+		});
 	}
 
 	validate(data: Record<string, unknown>) {
