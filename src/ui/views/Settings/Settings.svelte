@@ -20,11 +20,13 @@
 	// Event handlers
 	function handleNestedFieldChange(path: string[], value: unknown) {
 		settingsStore.updateNestedField(path, value);
+		settingsStore.save();
 	}
 
 	function handleFieldChange(key: string, value: unknown) {
 		const typedValue = value as PluginSettings[keyof PluginSettings];
 		settingsStore.updateField(key as keyof PluginSettings, typedValue);
+		settingsStore.save();
 	}
 
 	async function handleReset() {
