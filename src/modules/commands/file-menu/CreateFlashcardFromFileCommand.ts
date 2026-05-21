@@ -22,7 +22,7 @@ export class CreateFlashcardFromFileCommand extends BaseCommand {
 				menu.addItem((item) => {
 					item
 						.setTitle(this.name)
-						.setIcon('brain')
+						.setIcon('file-plus')
 						.onClick(async () => {
 							await this.handleClick(file);
 						});
