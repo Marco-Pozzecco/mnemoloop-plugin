@@ -3,6 +3,7 @@ import { GenerateFromSelectionCommand } from '@/modules/commands/editor-menu/Gen
 import { EventBus } from '@/modules/events/core/EventBus';
 import { FlashcardWriterCreateResponseEvent } from '@/modules/events';
 import { TFile, MarkdownView, Notice } from 'obsidian';
+import { openInSplitMode } from '@/utils/Workspace';
 import { resetSingletons } from '../../../../helpers/reset-singletons';
 import { createMockPlugin, createMockEditor, createMockMenu } from '../../../../helpers/mock-obsidian';
 
@@ -22,9 +23,15 @@ vi.mock('@/ui/store/modal.store', () => ({
 	},
 }));
 
+vi.mock('@/utils/Workspace', () => ({
+	openInSplitMode: vi.fn(),
+}));
+
 describe('GenerateFromSelectionCommand', () => {
 	beforeEach(() => {
 		resetSingletons();
+		vi.mocked(openInSplitMode).mockReset();
+		vi.mocked(openInSplitMode).mockReturnValue({ openFile: vi.fn().mockResolvedValue(undefined) });
 	});
 
 	function setup() {
@@ -66,7 +73,7 @@ describe('GenerateFromSelectionCommand', () => {
 		expect(menu.addItem).toHaveBeenCalledTimes(1);
 		const item = menu._items[0];
 		expect(item.setTitle).toHaveBeenCalledWith('Generate flashcard from selection');
-		expect(item.setIcon).toHaveBeenCalledWith('brain');
+		expect(item.setIcon).toHaveBeenCalledWith('highlighter');
 	});
 
 	it('should show Notice when no selection', async () => {
@@ -118,15 +125,15 @@ describe('GenerateFromSelectionCommand', () => {
 		expect(SvelteModal).toHaveBeenCalledWith(plugin.app, 'ml-flashcard-modal');
 	});
 
-	it('should open created file in right leaf on response', async () => {
+	it('should open created file via openInSplitMode utility when single column', async () => {
 		const { plugin } = setup();
 		const editor = createMockEditor('content', 'selected text');
 		const view = new MarkdownView({} as any);
 		(view as any).file = { path: 'notes/test.md' };
 		(view as any).leaf = { id: 'original-leaf' };
 
-		const rightLeaf = { openFile: vi.fn().mockResolvedValue(undefined) };
-		plugin.app.workspace.getRightLeaf = vi.fn().mockReturnValue(rightLeaf);
+		const newLeaf = { openFile: vi.fn().mockResolvedValue(undefined) };
+		vi.mocked(openInSplitMode).mockReturnValue(newLeaf);
 		plugin.app.workspace.revealLeaf = vi.fn();
 		plugin.app.vault.getAbstractFileByPath = vi.fn().mockReturnValue(new (TFile as any)('notes/test.md', 'test'));
 
@@ -143,8 +150,38 @@ describe('GenerateFromSelectionCommand', () => {
 		EventBus.instance.publish(responseEvent);
 		await new Promise((resolve) => setTimeout(resolve, 0));
 
-		expect(plugin.app.workspace.getRightLeaf).toHaveBeenCalledWith(false);
-		expect(rightLeaf.openFile).toHaveBeenCalled();
+		expect(openInSplitMode).toHaveBeenCalledWith(plugin.app.workspace);
+		expect(newLeaf.openFile).toHaveBeenCalled();
+		expect(plugin.app.workspace.revealLeaf).toHaveBeenCalledWith((view as any).leaf);
+	});
+
+	it('should open created file via openInSplitMode utility when already split', async () => {
+		const { plugin } = setup();
+		const editor = createMockEditor('content', 'selected text');
+		const view = new MarkdownView({} as any);
+		(view as any).file = { path: 'notes/test.md' };
+		(view as any).leaf = { id: 'original-leaf' };
+
+		const newLeaf = { openFile: vi.fn().mockResolvedValue(undefined) };
+		vi.mocked(openInSplitMode).mockReturnValue(newLeaf);
+		plugin.app.workspace.revealLeaf = vi.fn();
+		plugin.app.vault.getAbstractFileByPath = vi.fn().mockReturnValue(new (TFile as any)('notes/test.md', 'test'));
+
+		const { item } = triggerEditorMenu(plugin, editor, view);
+		const onClickHandler = item.onClick.mock.calls[0][0];
+		await onClickHandler();
+
+		const responseEvent = new FlashcardWriterCreateResponseEvent({
+			uuid: 'test-uuid',
+			filepath: 'notes/test.md',
+			source: 'notes/test.md',
+			request_id: 'req-id',
+		});
+		EventBus.instance.publish(responseEvent);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		expect(openInSplitMode).toHaveBeenCalledWith(plugin.app.workspace);
+		expect(newLeaf.openFile).toHaveBeenCalled();
 		expect(plugin.app.workspace.revealLeaf).toHaveBeenCalledWith((view as any).leaf);
 	});
 
@@ -154,8 +191,6 @@ describe('GenerateFromSelectionCommand', () => {
 		const view = new MarkdownView({} as any);
 		(view as any).file = { path: 'notes/test.md' };
 
-		const rightLeaf = { openFile: vi.fn() };
-		plugin.app.workspace.getRightLeaf = vi.fn().mockReturnValue(rightLeaf);
 		plugin.app.vault.getAbstractFileByPath = vi.fn().mockReturnValue({ path: 'notes/test.md' });
 
 		const { item } = triggerEditorMenu(plugin, editor, view);
@@ -169,7 +204,77 @@ describe('GenerateFromSelectionCommand', () => {
 			request_id: 'req-id',
 		});
 		EventBus.instance.publish(responseEvent);
+		await new Promise((resolve) => setTimeout(resolve, 0));
 
-		expect(rightLeaf.openFile).not.toHaveBeenCalled();
+		expect(plugin.app.vault.getAbstractFileByPath).toHaveBeenCalledWith('notes/test.md');
+		expect(openInSplitMode).not.toHaveBeenCalled();
+	});
+
+	it('should not process unrelated event types', async () => {
+		const { plugin } = setup();
+		const editor = createMockEditor('content', 'selected text');
+		const view = new MarkdownView({} as any);
+		(view as any).file = { path: 'notes/test.md' };
+
+		const { item } = triggerEditorMenu(plugin, editor, view);
+		const onClickHandler = item.onClick.mock.calls[0][0];
+		await onClickHandler();
+
+		// Publish a fake unrelated event
+		const fakeEvent = {
+			id: 'fake-id',
+			type: 'some-unrelated-event',
+			time: new Date(),
+			data: undefined,
+			isType: () => false,
+			toJSON: () => ({ type: 'some-unrelated-event', data: undefined, timestamp: new Date().toISOString() }),
+		} as any;
+		EventBus.instance.publish(fakeEvent);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		// The callback should NOT have fired for this event type
+		expect(openInSplitMode).not.toHaveBeenCalled();
+	});
+
+	it('should unsubscribe after processing response event', async () => {
+		const { plugin } = setup();
+		const editor = createMockEditor('content', 'selected text');
+		const view = new MarkdownView({} as any);
+		(view as any).file = { path: 'notes/test.md' };
+		(view as any).leaf = { id: 'original-leaf' };
+
+		const newLeaf = { openFile: vi.fn().mockResolvedValue(undefined) };
+		vi.mocked(openInSplitMode).mockReturnValue(newLeaf);
+		plugin.app.workspace.revealLeaf = vi.fn();
+		plugin.app.vault.getAbstractFileByPath = vi.fn().mockReturnValue(new (TFile as any)('notes/test.md', 'test'));
+
+		const { item } = triggerEditorMenu(plugin, editor, view);
+		const onClickHandler = item.onClick.mock.calls[0][0];
+		await onClickHandler();
+
+		// First response event
+		const responseEvent1 = new FlashcardWriterCreateResponseEvent({
+			uuid: 'test-uuid-1',
+			filepath: 'notes/test.md',
+			source: 'notes/test.md',
+			request_id: 'req-id-1',
+		});
+		EventBus.instance.publish(responseEvent1);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		expect(newLeaf.openFile).toHaveBeenCalledTimes(1);
+
+		// Second response event - should NOT be processed
+		const responseEvent2 = new FlashcardWriterCreateResponseEvent({
+			uuid: 'test-uuid-2',
+			filepath: 'notes/test.md',
+			source: 'notes/test.md',
+			request_id: 'req-id-2',
+		});
+		EventBus.instance.publish(responseEvent2);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		// openFile should still only have been called once
+		expect(newLeaf.openFile).toHaveBeenCalledTimes(1);
 	});
 });

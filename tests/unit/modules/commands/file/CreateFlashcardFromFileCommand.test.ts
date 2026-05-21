@@ -3,12 +3,19 @@ import { CreateFlashcardFromFileCommand } from '@/modules/commands/file-menu/Cre
 import { EventBus } from '@/modules/events/core/EventBus';
 import { FlashcardWriterCreateRequestEvent, FlashcardWriterCreateResponseEvent } from '@/modules/events';
 import { TFile } from 'obsidian';
+import { openInSplitMode } from '@/utils/Workspace';
 import { resetSingletons } from '../../../../helpers/reset-singletons';
 import { createMockPlugin, createMockMenu } from '../../../../helpers/mock-obsidian';
+
+vi.mock('@/utils/Workspace', () => ({
+	openInSplitMode: vi.fn(),
+}));
 
 describe('CreateFlashcardFromFileCommand', () => {
 	beforeEach(() => {
 		resetSingletons();
+		vi.mocked(openInSplitMode).mockReset();
+		vi.mocked(openInSplitMode).mockReturnValue({ openFile: vi.fn().mockResolvedValue(undefined) });
 	});
 
 	function setup() {
@@ -48,7 +55,7 @@ describe('CreateFlashcardFromFileCommand', () => {
 		expect(menu.addItem).toHaveBeenCalledTimes(1);
 		const item = menu._items[0];
 		expect(item.setTitle).toHaveBeenCalledWith('Create flashcard from file');
-		expect(item.setIcon).toHaveBeenCalledWith('brain');
+		expect(item.setIcon).toHaveBeenCalledWith('file-plus');
 	});
 
 	it('should not add menu item for non-TFile', () => {
@@ -88,14 +95,14 @@ describe('CreateFlashcardFromFileCommand', () => {
 		});
 	});
 
-	it('should open file in split leaf when one or fewer root leaves', async () => {
+	it('should open file via openInSplitMode utility when single column', async () => {
 		const { plugin } = setup();
 		const file = new (TFile as any)('notes/test.md', 'test');
+		const mockSourceLeaf = { id: 'source-leaf' };
 		const newLeaf = { openFile: vi.fn() };
-		plugin.app.workspace.iterateRootLeaves = vi.fn().mockImplementation((cb: (leaf: any) => void) => {
-			cb({ parent: { id: 'parent-1' } });
-		});
-		plugin.app.workspace.getLeaf = vi.fn().mockReturnValue(newLeaf);
+		vi.mocked(openInSplitMode).mockReturnValue(newLeaf);
+		plugin.app.workspace.getMostRecentLeaf = vi.fn().mockReturnValue(mockSourceLeaf);
+		plugin.app.workspace.revealLeaf = vi.fn();
 		plugin.app.vault.getFileByPath = vi.fn().mockReturnValue(new (TFile as any)('flashcards/new.md', 'new'));
 
 		const { item } = triggerFileMenu(plugin, file);
@@ -109,21 +116,21 @@ describe('CreateFlashcardFromFileCommand', () => {
 			request_id: 'req-id',
 		});
 		EventBus.instance.publish(responseEvent);
+		await Promise.resolve();
 
-		expect(plugin.app.workspace.getLeaf).toHaveBeenCalledWith('split');
+		expect(openInSplitMode).toHaveBeenCalledWith(plugin.app.workspace);
 		expect(newLeaf.openFile).toHaveBeenCalled();
+		expect(plugin.app.workspace.revealLeaf).toHaveBeenCalledWith(mockSourceLeaf);
 	});
 
-	it('should open file in new leaf when more than one root leaves', async () => {
+	it('should open file via openInSplitMode utility when already split', async () => {
 		const { plugin } = setup();
 		const file = new (TFile as any)('notes/test.md', 'test');
-		const rightLeaf = { parent: { id: 'parent-right' } };
 		const newLeaf = { openFile: vi.fn() };
-		plugin.app.workspace.iterateRootLeaves = vi.fn().mockImplementation((cb: (leaf: any) => void) => {
-			cb({ id: 'leaf-1', parent: { id: 'parent-1' } });
-			cb(rightLeaf);
-		});
-		plugin.app.workspace.createLeafInParent = vi.fn().mockReturnValue(newLeaf);
+		const mockSourceLeaf = { id: 'source-leaf' };
+		vi.mocked(openInSplitMode).mockReturnValue(newLeaf);
+		plugin.app.workspace.getMostRecentLeaf = vi.fn().mockReturnValue(mockSourceLeaf);
+		plugin.app.workspace.revealLeaf = vi.fn();
 		plugin.app.vault.getFileByPath = vi.fn().mockReturnValue(new (TFile as any)('flashcards/new.md', 'new'));
 
 		const { item } = triggerFileMenu(plugin, file);
@@ -137,9 +144,11 @@ describe('CreateFlashcardFromFileCommand', () => {
 			request_id: 'req-id',
 		});
 		EventBus.instance.publish(responseEvent);
+		await Promise.resolve();
 
-		expect(plugin.app.workspace.createLeafInParent).toHaveBeenCalledWith(rightLeaf.parent, -1);
+		expect(openInSplitMode).toHaveBeenCalledWith(plugin.app.workspace);
 		expect(newLeaf.openFile).toHaveBeenCalled();
+		expect(plugin.app.workspace.revealLeaf).toHaveBeenCalledWith(mockSourceLeaf);
 	});
 
 	it('should unsubscribe when file not found on response', async () => {
