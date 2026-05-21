@@ -18,7 +18,7 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 				menu.addItem((item) => {
 					item
 						.setTitle(this.name)
-						.setIcon('brain')
+						.setIcon('highlighter')
 						.onClick(async () => {
 							await this.handleClick(editor, view);
 						});
