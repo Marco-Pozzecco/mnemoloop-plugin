@@ -68,15 +68,6 @@
 		max-width: 800px;
 	}
 
-	.ml-settings__title {
-		font-size: var(--font-ui-large);
-		font-weight: var(--font-bold);
-		color: var(--text-normal);
-		margin: 0 0 var(--size-4-3) 0;
-		padding-bottom: var(--size-2-3);
-		border-bottom: 1px solid var(--background-modifier-border);
-	}
-
 	.ml-settings__error {
 		color: var(--text-error);
 		background-color: rgba(var(--text-error-rgb, 255, 0, 0), 0.1);
