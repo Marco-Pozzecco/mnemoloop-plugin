@@ -19,7 +19,7 @@
 		"build": "tsc -p tsconfig.build.json && vite build --mode production",
 		"typecheck": "tsc --noEmit",
 		"test": "vitest",
-		"lint": "eslint src --ext .ts,.tsx && eslint .",
+		"lint": "eslint",
 		"lint:css-prefix": "python scripts/check-css-prefix.py",
 		"format": "prettier --write src/**/*.{ts,tsx,svelte}",
 		"generate-barrels": "python scripts/generate-barrels.py"
