@@ -29,11 +29,11 @@
 </script>
 
 <section class="ml-data-management-section">
-	<h3 class="ml-section-header">Data Management</h3>
+	<h3 class="ml-section-header">Data management</h3>
 
 	<div class="ml-field-group">
 		<Toggle
-			label="Enable Soft Delete"
+			label="Enable soft delete"
 			checked={settings.enable_soft_delete}
 			helperText="Keep deleted items recoverable for a period"
 			onchange={handleToggleChange}
@@ -42,7 +42,7 @@
 
 	<div class="ml-field-group">
 		<Select
-			label="Retention Period (hours)"
+			label="Retention period (hours)"
 			options={retentionOptions}
 			value={String(settings.soft_delete_hours)}
 			disabled={!settings.enable_soft_delete}
@@ -63,11 +63,9 @@
 	}
 
 	.ml-section-header {
-		font-size: var(--font-ui-medium);
-		font-weight: var(--font-bold);
 		color: var(--text-normal);
 		margin: 0;
-		padding-bottom: 0.5rem;
+		padding: 0 0 0.5rem 0;
 		border-bottom: 1px solid var(--background-modifier-border);
 	}
 

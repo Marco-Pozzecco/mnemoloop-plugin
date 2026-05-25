@@ -49,14 +49,9 @@
 		{disabled}
 		required={required || false}
 	>
-		<Select.Trigger
-			{id}
-			class="ml-select"
-			aria-invalid={hasError}
-			aria-describedby={buildAriaDescribedBy()}
-		>
+		<Select.Trigger {id} aria-invalid={hasError} aria-describedby={buildAriaDescribedBy()}>
 			{#snippet child({ props })}
-				<button {...props} type="button">
+				<button {...props} class="ml-select" type="button">
 					<Select.Value {placeholder} />
 				</button>
 			{/snippet}
@@ -91,6 +86,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+		width: 100%;
 	}
 
 	.ml-select-label {
@@ -108,7 +104,7 @@
 		font-weight: bold;
 	}
 
-	:global(.ml-select) {
+	.ml-select {
 		width: 100%;
 		padding: 0.625rem 0.75rem;
 		font-family: inherit;
@@ -128,35 +124,35 @@
 		justify-content: space-between;
 	}
 
-	:global(.ml-select:hover:not([data-disabled])) {
+	.ml-select:hover:not([data-disabled]) {
 		border-color: var(--background-modifier-border-hover);
 	}
 
-	:global(.ml-select[data-state='open']) {
+	.ml-select[data-state='open'] {
 		border-color: var(--interactive-accent);
 		box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
 	}
 
-	:global(.ml-select:focus-visible) {
+	.ml-select:focus-visible {
 		outline: none;
 		border-color: var(--interactive-accent);
 		box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
 	}
 
-	:global(.ml-select[data-disabled]) {
+	.ml-select[data-disabled] {
 		background-color: var(--background-secondary);
 		color: var(--text-muted);
 		cursor: not-allowed;
 		opacity: 0.6;
 	}
 
-	.ml-select-wrapper.has-error :global(.ml-select) {
+	.ml-select-wrapper.has-error .ml-select {
 		border-color: var(--text-error);
-		background-color: rgba(255, 0, 0, 0.05);
+		background-color: color-mix(in srgb, var(--text-error) 5%, transparent);
 	}
 
-	.ml-select-wrapper.has-error :global(.ml-select:focus-visible) {
-		box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
+	.ml-select-wrapper.has-error .ml-select:focus-visible {
+		box-shadow: 0 0 0 2px color-mix(in srgb, var(--text-error) 10%, transparent);
 	}
 
 	/* Dropdown content styles */
@@ -164,9 +160,9 @@
 		background-color: var(--background-primary);
 		border: 1px solid var(--background-modifier-border);
 		border-radius: var(--input-radius, 4px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		box-shadow: 0 4px 12px color-mix(in srgb, var(--text-normal) 15%, transparent);
 		z-index: 50;
-		min-width: var(--bits-select-trigger-width);
+		min-width: var(--bits-floating-anchor-width);
 	}
 
 	:global(.ml-select-viewport) {
@@ -227,7 +223,7 @@
 
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
-		:global(.ml-select) {
+		.ml-select {
 			padding: 0.5rem 0.625rem;
 			font-size: 1rem; /* Prevent iOS zoom */
 		}

@@ -20,11 +20,13 @@
 	// Event handlers
 	function handleNestedFieldChange(path: string[], value: unknown) {
 		settingsStore.updateNestedField(path, value);
+		settingsStore.save();
 	}
 
 	function handleFieldChange(key: string, value: unknown) {
 		const typedValue = value as PluginSettings[keyof PluginSettings];
 		settingsStore.updateField(key as keyof PluginSettings, typedValue);
+		settingsStore.save();
 	}
 
 	async function handleReset() {
@@ -41,8 +43,6 @@
 </script>
 
 <div class="ml-settings">
-	<h1 class="ml-settings__title">Plugin Settings</h1>
-
 	{#if saveError}
 		<div class="ml-settings__error">{saveError}</div>
 	{/if}
@@ -66,15 +66,6 @@
 	.ml-settings {
 		padding: var(--size-4-3);
 		max-width: 800px;
-	}
-
-	.ml-settings__title {
-		font-size: var(--font-ui-large);
-		font-weight: var(--font-bold);
-		color: var(--text-normal);
-		margin: 0 0 var(--size-4-3) 0;
-		padding-bottom: var(--size-2-3);
-		border-bottom: 1px solid var(--background-modifier-border);
 	}
 
 	.ml-settings__error {

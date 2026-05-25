@@ -3,7 +3,7 @@ import { EventBus, FlashcardWriterCreateRequestEvent } from '@/modules/events';
 
 export class CreateEmptyFlashcardCommand extends BaseCommand {
 	readonly id = 'create-empty-flashcard';
-	readonly name = 'Create Empty Flashcard';
+	readonly name = 'Create empty flashcard';
 
 	protected onRegister(): void {
 		this.plugin.addCommand({

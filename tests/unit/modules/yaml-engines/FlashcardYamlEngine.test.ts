@@ -15,17 +15,15 @@ describe('FlashcardYamlEngine', () => {
 	});
 
 	describe('recover', () => {
-		it('should write default YAML with UUID to file', async () => {
+		it('should call processFrontMatter with default YAML', async () => {
 			plugin = createMockPlugin([{ path: 'test.md', content: '' }]);
 			engine = new FlashcardYamlEngine(plugin as unknown as Plugin);
 
 			await engine.recover('test.md');
 
-			const written = await plugin.app.vault.adapter.read('test.md');
-			expect(written).toMatch(/^---\n/);
-			expect(written).toContain('uuid:');
-			expect(written).toContain('status: ACTIVE');
-			expect(written).toContain('decks: []');
+			expect(plugin.app.fileManager.processFrontMatter).toHaveBeenCalledTimes(1);
+			const [fileArg] = plugin.app.fileManager.processFrontMatter.mock.calls[0];
+			expect(fileArg.path).toBe('test.md');
 		});
 
 		it('should preserve body when recovering', async () => {
@@ -34,8 +32,9 @@ describe('FlashcardYamlEngine', () => {
 
 			await engine.recover('test.md');
 
-			const written = await plugin.app.vault.adapter.read('test.md');
-			expect(written).toContain('existing body');
+			const file = plugin.app.vault.getAbstractFileByPath('test.md');
+			const content = await plugin.app.vault.read(file);
+			expect(content).toContain('existing body');
 		});
 	});
 
@@ -59,36 +58,6 @@ describe('FlashcardYamlEngine', () => {
 		});
 	});
 
-	describe('encode', () => {
-		it('should produce valid frontmatter with all fields', () => {
-			const yaml = createFlashcardYaml({ decks: ['Math', 'CS'] });
-
-			const encoded = engine.encode(yaml);
-
-			expect(encoded).toMatch(/^---\n/);
-			expect(encoded).toMatch(/\n---$/);
-			expect(encoded).toContain('status: ACTIVE');
-			expect(encoded).toContain('decks: ["Math","CS"]');
-		});
-
-		it('should omit undefined values', () => {
-			const yaml = createFlashcardYaml({ source: null });
-			(yaml as Record<string, unknown>).extra = undefined;
-
-			const encoded = engine.encode(yaml);
-
-			expect(encoded).not.toContain('extra');
-		});
-
-		it('should include empty arrays', () => {
-			const yaml = createFlashcardYaml({ decks: [] });
-
-			const encoded = engine.encode(yaml);
-
-			expect(encoded).toContain('decks: []');
-		});
-	});
-
 	describe('decode', () => {
 		it('should throw when parseYaml returns empty object against strict schema', () => {
 			expect(() => engine.decode('---\n---\n')).toThrow();
@@ -104,14 +73,16 @@ describe('FlashcardYamlEngine', () => {
 			expect(() => engine.extractFmFromContent('no frontmatter')).toThrow('Invalid YAML frontmatter');
 		});
 
-		it('should write frontmatter while preserving body', async () => {
+		it('should call processFrontMatter while preserving body', async () => {
 			plugin = createMockPlugin([{ path: 'test.md', content: '---\nuuid: old\n---\nbody text' }]);
 			engine = new FlashcardYamlEngine(plugin as unknown as Plugin);
 
 			await engine.write('test.md', createFlashcardYaml());
 
-			const written = await plugin.app.vault.adapter.read('test.md');
-			expect(written).toContain('body text');
+			expect(plugin.app.fileManager.processFrontMatter).toHaveBeenCalledTimes(1);
+			const file = plugin.app.vault.getAbstractFileByPath('test.md');
+			const content = await plugin.app.vault.read(file);
+			expect(content).toContain('body text');
 		});
 
 		it('should inherit removeFrontmatter behavior', () => {

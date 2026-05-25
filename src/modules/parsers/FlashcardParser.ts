@@ -4,7 +4,7 @@ import { Flashcard, type FlashcardContent, type FlashcardYaml } from '@/schemas'
 import { PluginSettings } from '@/schemas/settings';
 import { ERROR_MESSAGES } from '@/utils/constants';
 import { Logger } from '@/utils/Logger';
-import { normalizePath, Plugin } from 'obsidian';
+import { normalizePath, Plugin, TFile, TFolder } from 'obsidian';
 import { FlashcardYamlEngine } from '../yaml-engines/FlashcardYamlEngine';
 import { BaseParser } from './BaseParser';
 
@@ -47,7 +47,11 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 
 	parse = async (filepath: string): Promise<ParseResult<Flashcard>> => {
 		const normalizedPath = normalizePath(filepath);
-		const content = await this._plugin.app.vault.adapter.read(normalizedPath);
+		const file = this._plugin.app.vault.getAbstractFileByPath(normalizedPath);
+		if (!(file instanceof TFile)) {
+			throw new Error(`File not found: ${normalizedPath}`);
+		}
+		const content = await this._plugin.app.vault.read(file);
 
 		try {
 			const result = this._yaml.extractFmFromContent(content);
@@ -62,7 +66,7 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 			await this._yaml.recover(filepath);
 			Logger.warn('Recovered flashcard with default metadata:', filepath);
 
-			const retryContent = await this._plugin.app.vault.adapter.read(normalizedPath);
+			const retryContent = await this._plugin.app.vault.read(file);
 
 			try {
 				const retryResult = this._yaml.extractFmFromContent(retryContent);
@@ -81,17 +85,18 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 
 	parseAll = async (dirPath: string): Promise<ParseResult<FlashcardYaml>[]> => {
 		const normalizedDir = normalizePath(dirPath);
-		const dirExists = await this._plugin.app.vault.adapter.exists(normalizedDir);
+		const folder = this._plugin.app.vault.getAbstractFileByPath(normalizedDir);
 
-		if (!dirExists) {
+		if (!(folder instanceof TFolder)) {
 			return [];
 		}
 
-		const { files } = await this._plugin.app.vault.adapter.list(normalizedDir);
-		const mdFiles = files.filter((f) => f.endsWith('.md'));
+		const mdFiles = folder.children.filter(
+			(f): f is TFile => f instanceof TFile && f.extension === 'md',
+		);
 
 		const promises = mdFiles.map(async (file) => {
-			return await this.parseMetadata(file);
+			return await this.parseMetadata(file.path);
 		});
 
 		return Promise.all(promises);

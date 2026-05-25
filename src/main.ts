@@ -1,7 +1,6 @@
 import './ui/styles/main.css';
 
 import { Plugin } from 'obsidian';
-import { EventRegistry } from './modules/events';
 import { IAdapter } from './interfaces/IAdapter';
 import { FlashcardAdapter } from './modules/adapters/FlashcardAdapter';
 import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
@@ -14,6 +13,7 @@ import {
 	OpenDashboardCommand,
 	SetAllFlashcardsDueNowCommand,
 } from './modules/commands';
+import { EventRegistry } from './modules/events';
 import { FlascardIndexer } from './modules/indexers/FlashcardIndexer';
 import { FlashcardParser } from './modules/parsers/FlashcardParser';
 import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from './schemas/settings';
@@ -33,7 +33,6 @@ export default class MnemoloopPlugin extends Plugin {
 
 	settings!: PluginSettings;
 	private ribbonIcon?: HTMLElement;
-	settingsView: SettingsView | null = null;
 
 	async onload() {
 		Logger.info('Loading plugin');
@@ -144,7 +143,7 @@ export default class MnemoloopPlugin extends Plugin {
 	}
 
 	private initializeRibbonIcon() {
-		this.ribbonIcon = this.addRibbonIcon('brain', 'Mnemoloop', () => {
+		this.ribbonIcon = this.addRibbonIcon('orbit', 'Mnemoloop', () => {
 			this.activateView();
 		});
 	}

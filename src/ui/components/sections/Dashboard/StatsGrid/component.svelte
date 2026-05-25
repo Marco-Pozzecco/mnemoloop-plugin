@@ -30,7 +30,7 @@
 	</div>
 
 	<div class="ml-stat-card">
-		<span class="ml-stat-card__label">Total Cards</span>
+		<span class="ml-stat-card__label">Total cards</span>
 		<span class="ml-stat-card__value">{stats.flashcard.total_cards}</span>
 		<span class="ml-stat-card__description">in your vault</span>
 	</div>
@@ -58,7 +58,7 @@
 	.ml-stat-card:hover {
 		border-color: var(--interactive-accent);
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 4px 12px var(--ml-shadow-color);
 	}
 
 	.ml-stat-card__label {

@@ -3,7 +3,7 @@ import { APP_VIEW } from '@/ui/views/App/AppView';
 
 export class OpenDashboardCommand extends BaseCommand {
 	readonly id = 'open-dashboard';
-	readonly name = 'Open Dashboard';
+	readonly name = 'Open dashboard';
 
 	protected onRegister(): void {
 		this.plugin.addCommand({

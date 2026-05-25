@@ -1,8 +1,39 @@
 import { vi } from 'vitest';
+import { TFile, TFolder } from 'obsidian';
 
 export interface MockFile {
 	path: string;
 	content: string;
+}
+
+function removeFrontmatter(content: string): string {
+	if (!content.startsWith('---\n')) {
+		return content;
+	}
+	const endIndex = content.indexOf('\n---\n', 4);
+	if (endIndex !== -1) {
+		return content.slice(endIndex + 5);
+	}
+	const altEndIndex = content.indexOf('\n---', 4);
+	if (altEndIndex !== -1) {
+		const body = content.slice(altEndIndex + 4);
+		return body.startsWith('\n') ? body.slice(1) : body;
+	}
+	return content;
+}
+
+function encodeFrontmatter(data: Record<string, unknown>): string {
+	const lines: string[] = ['---'];
+	for (const [key, value] of Object.entries(data)) {
+		if (value === undefined) continue;
+		if (typeof value === 'object') {
+			lines.push(`${key}: ${JSON.stringify(value)}`);
+		} else {
+			lines.push(`${key}: ${value}`);
+		}
+	}
+	lines.push('---\n');
+	return lines.join('\n');
 }
 
 /**
@@ -30,20 +61,64 @@ export function createMockVault(files: MockFile[] = []): any {
 				return { files };
 			}),
 		},
-		getFileByPath: vi.fn<any, any>(),
-		getAbstractFileByPath: vi.fn<any, any>().mockImplementation((path: string) => {
-			if (!fileMap.has(path)) return null;
-			const basename = path.split('/').pop()?.replace('.md', '') || '';
-			return { path, basename };
+		getFileByPath: vi.fn<any, any>().mockImplementation((path: string) => {
+			if (fileMap.has(path)) {
+				const basename = path.split('/').pop()?.replace('.md', '') || '';
+				return new TFile(path, basename);
+			}
+			return null;
 		}),
-		delete: vi.fn<any, any>(),
-		create: vi.fn<any, any>(),
+		getAbstractFileByPath: vi.fn<any, any>().mockImplementation((path: string) => {
+			if (fileMap.has(path)) {
+				const basename = path.split('/').pop()?.replace('.md', '') || '';
+				return new TFile(path, basename);
+			}
+
+			const prefix = path.endsWith('/') ? path : path + '/';
+			const children: any[] = [];
+			const seen = new Set<string>();
+			for (const [filePath] of fileMap.entries()) {
+				if (filePath.startsWith(prefix)) {
+					const relative = filePath.slice(prefix.length);
+					const firstSegment = relative.split('/')[0];
+					if (firstSegment && !seen.has(firstSegment)) {
+						seen.add(firstSegment);
+						const childPath = prefix + firstSegment;
+						const childBasename = firstSegment.replace('.md', '') || '';
+						children.push(new TFile(childPath, childBasename));
+					}
+				}
+			}
+
+			if (children.length > 0) {
+				return new TFolder(path, children);
+			}
+
+			return null;
+		}),
+		delete: vi.fn<any, any>().mockImplementation(async (file: any) => {
+			fileMap.delete(file.path);
+		}),
+		create: vi.fn<any, any>().mockImplementation(async (path: string, content: string) => {
+			fileMap.set(path, content);
+			const basename = path.split('/').pop()?.replace('.md', '') || '';
+			return new TFile(path, basename);
+		}),
 		getRoot: vi.fn<any, any>(),
-		read: vi.fn<any, any>(),
-		write: vi.fn<any, any>(),
+		read: vi.fn<any, any>().mockImplementation(async (file: any) => {
+			const content = fileMap.get(file.path);
+			if (content === undefined) {
+				throw new Error(`File not found: ${file.path}`);
+			}
+			return content;
+		}),
+		modify: vi.fn<any, any>().mockImplementation(async (file: any, content: string) => {
+			fileMap.set(file.path, content);
+		}),
 		cachedRead: vi.fn<any, any>(),
 		append: vi.fn<any, any>(),
 		on: vi.fn<any, any>(),
+		fileMap,
 	} as any;
 }
 
@@ -143,7 +218,24 @@ export function createMockPlugin(files: MockFile[] = []): any {
 	const metadataCache = createMockMetadataCache();
 
 	return {
-		app: { vault, workspace, metadataCache },
+		app: {
+			vault,
+			workspace,
+			metadataCache,
+			fileManager: {
+				processFrontMatter: vi
+					.fn()
+					.mockImplementation(async (file: any, fn: (frontmatter: any) => void) => {
+						const frontmatter: any = {};
+						fn(frontmatter);
+						// Persist frontmatter to file (simulates real Obsidian behavior)
+						const currentContent = vault.fileMap.get(file.path) || '';
+						const body = removeFrontmatter(currentContent);
+						const yaml = encodeFrontmatter(frontmatter);
+						vault.fileMap.set(file.path, yaml + body);
+					}),
+			},
+		},
 		registerEvent: vi.fn(),
 		loadData: vi.fn(),
 		saveData: vi.fn(),

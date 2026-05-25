@@ -12,7 +12,7 @@
 
 <section class="ml-dashboard__progress {className}" aria-labelledby="daily-goal-title">
 	<div class="ml-section-header">
-		<h2 id="daily-goal-title" class="ml-section-title">Daily Goal</h2>
+		<h2 id="daily-goal-title" class="ml-section-title">Daily goal</h2>
 		<span class="ml-section-value" aria-live="polite">
 			{todayProgress.total_count} / {stats.flashcard.daily_goal} cards
 		</span>
