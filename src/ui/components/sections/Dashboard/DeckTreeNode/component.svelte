@@ -7,8 +7,6 @@
 
 	let isSelected = $derived(selectedDeck?.fullPath === node.fullPath);
 	let hasChildren = $derived(node.children.length > 0);
-	let indentStyle = $derived(`padding-left: ${level * 8}px`);
-
 	function handleSelect() {
 		onSelectDeck(node.fullPath);
 	}
@@ -26,10 +24,13 @@
 	}
 </script>
 
-<div class="ml-deck-tree-node" class:ml-deck-tree-node--selected={isSelected}>
+<div
+	class="ml-deck-tree-node"
+	class:ml-deck-tree-node--selected={isSelected}
+	style="--indent: {level * 8}px"
+>
 	<div
 		class="ml-deck-tree-node__content"
-		style={indentStyle}
 		onclick={handleSelect}
 		role="button"
 		tabindex="0"
@@ -65,15 +66,12 @@
 </div>
 
 <style>
-	.ml-deck-tree-node {
-		--ml-deck-tree-indent: 16px;
-	}
-
 	.ml-deck-tree-node__content {
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		padding: 6px 8px;
+		padding: 2px 8px;
+		padding-left: var(--indent, 0px);
 		border-radius: 6px;
 		cursor: pointer;
 		transition: background-color 0.15s ease;
@@ -109,7 +107,7 @@
 	}
 
 	.ml-deck-tree-node__spacer {
-		width: 18px;
+		width: 28px;
 		flex-shrink: 0;
 	}
 

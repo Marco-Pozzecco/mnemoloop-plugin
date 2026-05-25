@@ -35,7 +35,7 @@ export class AppView extends ItemView {
 	 * Returns the icon for the view
 	 */
 	getIcon(): string {
-		return 'brain';
+		return 'orbit';
 	}
 
 	/**

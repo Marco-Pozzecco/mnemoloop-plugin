@@ -5,6 +5,7 @@ import {
 	FlashcardWriterCreateRequestEvent,
 	FlashcardWriterCreateResponseEvent,
 } from '@/modules/events';
+import { openInSplitMode } from '@/utils/Workspace';
 import { Menu, TAbstractFile, TFile, WorkspaceLeaf, normalizePath } from 'obsidian';
 
 export class CreateFlashcardFromFileCommand extends BaseCommand {
@@ -22,7 +23,7 @@ export class CreateFlashcardFromFileCommand extends BaseCommand {
 				menu.addItem((item) => {
 					item
 						.setTitle(this.name)
-						.setIcon('brain')
+						.setIcon('file-plus')
 						.onClick(async () => {
 							await this.handleClick(file);
 						});
@@ -35,6 +36,7 @@ export class CreateFlashcardFromFileCommand extends BaseCommand {
 
 	private async handleClick(file: TFile): Promise<void> {
 		const sourcePath = file.path;
+		const sourceLeaf = this.plugin.app.workspace.getMostRecentLeaf();
 
 		const callback = async (evt: IEvent) => {
 			if (!evt.isType(FlashcardWriterCreateResponseEvent.type)) {
@@ -56,16 +58,13 @@ export class CreateFlashcardFromFileCommand extends BaseCommand {
 				rootLeaves.push(leaf);
 			});
 
-			let leaf: WorkspaceLeaf;
+			const leaf = openInSplitMode(this.plugin.app.workspace);
+			await leaf.openFile(file);
 
-			if (rootLeaves.length > 1) {
-				const rightLeaf = rootLeaves[rootLeaves.length - 1];
-				leaf = this.plugin.app.workspace.createLeafInParent(rightLeaf.parent, -1);
-			} else {
-				leaf = this.plugin.app.workspace.getLeaf('split');
+			if (sourceLeaf) {
+				this.plugin.app.workspace.revealLeaf(sourceLeaf);
 			}
 
-			await leaf.openFile(file);
 			EventBus.instance.unsubscribe(callback);
 		};
 

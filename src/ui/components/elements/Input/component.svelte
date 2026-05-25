@@ -146,11 +146,11 @@
 
 	.ml-input-wrapper.has-error .ml-input {
 		border-color: var(--text-error);
-		background-color: rgba(255, 0, 0, 0.05);
+		background-color: color-mix(in srgb, var(--text-error) 5%, transparent);
 	}
 
 	.ml-input-wrapper.has-error .ml-input:focus {
-		box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
+		box-shadow: 0 0 0 2px color-mix(in srgb, var(--text-error) 10%, transparent);
 	}
 
 	.ml-input-error,

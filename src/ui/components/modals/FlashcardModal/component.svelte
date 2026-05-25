@@ -36,7 +36,7 @@
 </script>
 
 <div class="ml-flashcard-modal-content">
-	<h3 class="ml-modal-title">Create Flashcard</h3>
+	<h3 class="ml-modal-title">Create flashcard</h3>
 
 	{#if error}
 		<div class="ml-modal-error">{error}</div>

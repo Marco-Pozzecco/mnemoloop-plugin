@@ -66,6 +66,7 @@
 		position: relative;
 		display: flex;
 		align-items: center;
+		justify-content: flex-start;
 		background-color: var(--background-modifier-border);
 		border-radius: 100px;
 		border: none;
@@ -77,9 +78,9 @@
 
 	.ml-toggle-thumb {
 		display: block;
-		background-color: white;
+		background-color: var(--text-on-accent);
 		border-radius: 50%;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 1px 3px color-mix(in srgb, var(--text-normal) 20%, transparent);
 		transition: transform 0.2s ease;
 		flex-shrink: 0;
 	}
@@ -145,7 +146,7 @@
 	}
 
 	.ml-toggle-wrapper--medium .ml-toggle-switch.checked .ml-toggle-thumb {
-		transform: translateX(18px);
+		transform: translateX(17px);
 	}
 
 	/* Size variants - large */

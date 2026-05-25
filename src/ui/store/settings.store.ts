@@ -5,7 +5,9 @@ import {
 	SettingsAdapterResetRequestEvent,
 	SettingsAdapterResetResponseEvent,
 	SettingsAdapterSaveRequestEvent,
+	SettingsAdapterSaveResponseEvent,
 	SettingsAdapterSetRequestEvent,
+	SettingsAdapterSetResponseEvent,
 	SettingsAdapterUpdateRequestEvent,
 } from '@/modules/events';
 import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from '@/schemas/settings';
@@ -39,6 +41,8 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 			if (event.type === SettingsAdapterInitResponseEvent.type) {
 				const data = (event as SettingsAdapterInitResponseEvent).data;
 				this.settings.update(() => data);
+				this.saveError.update(() => null);
+				this.fieldErrors.update(() => ({}));
 				this.isLoading.update(() => false);
 				return;
 			}
@@ -50,10 +54,22 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 				this.isLoading.update(() => false);
 				return;
 			}
+			if (event.type === SettingsAdapterSetResponseEvent.type) {
+				const data = (event as SettingsAdapterSetResponseEvent).data;
+				this.settings.update(() => data);
+				this.saveError.update(() => null);
+				this.fieldErrors.update(() => ({}));
+				this.isLoading.update(() => false);
+				return;
+			}
+			if (event.type === SettingsAdapterSaveResponseEvent.type) {
+				this.saveError.update(() => null);
+				this.fieldErrors.update(() => ({}));
+				this.isLoading.update(() => false);
+				return;
+			}
 		};
-	}
 
-	initialize(): void {
 		EventBus.instance.subscribe(this.eventCallback);
 	}
 

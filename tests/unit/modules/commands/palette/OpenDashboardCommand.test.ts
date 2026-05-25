@@ -27,7 +27,7 @@ describe('OpenDashboardCommand', () => {
 		expect(addCommandSpy).toHaveBeenCalledWith(
 			expect.objectContaining({
 				id: 'open-dashboard',
-				name: 'Open Dashboard',
+				name: 'Open dashboard',
 			}),
 		);
 	});

@@ -54,10 +54,13 @@
   --ml-radius-lg: 12px;
   --ml-radius-xl: 16px;
 
+  /* Shadow base color derived from Obsidian text color */
+  --ml-shadow-color: color-mix(in srgb, var(--text-normal) 10%, transparent);
+
   /* Shadows */
-  --ml-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --ml-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --ml-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --ml-shadow-sm: 0 1px 3px var(--ml-shadow-color);
+  --ml-shadow-md: 0 4px 6px var(--ml-shadow-color);
+  --ml-shadow-lg: 0 10px 15px var(--ml-shadow-color);
 
   /* Transitions */
   --ml-transition-fast: 0.15s ease;
@@ -84,56 +87,23 @@
   --ml-z-dropdown: 100;
   --ml-z-modal: 1000;
   --ml-z-toast: 2000;
+
+  /* Card surface colors derived from Obsidian variables */
+  --ml-card-background: var(--background-secondary);
+  --ml-card-border: var(--background-modifier-border);
+  --ml-card-hover-glow: color-mix(in srgb, var(--text-normal) 5%, transparent);
 }
 
 /* ==================== Dark Theme Overrides ==================== */
 .theme-dark {
-  /* Enhanced contrast for dark theme */
-  --ml-text-muted: rgba(255, 255, 255, 0.6);
-  --ml-text-faint: rgba(255, 255, 255, 0.4);
-
-  /* Darker backgrounds for cards */
-  --ml-card-background: rgba(0, 0, 0, 0.2);
-  --ml-card-border: rgba(255, 255, 255, 0.1);
-
-  /* Darker shadows */
-  --ml-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --ml-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
-  --ml-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
-
-  /* Adjusted status colors for dark theme */
-  --ml-status-info: #7dd3fc;
-  --ml-status-success: #4ade80;
-  --ml-status-warning: #fbbf24;
-  --ml-status-error: #f87171;
-
-  /* Card face hover effect */
-  --ml-card-hover-glow: rgba(255, 255, 255, 0.05);
+  /* Enhanced shadow opacity for dark theme */
+  --ml-shadow-color: color-mix(in srgb, var(--text-normal) 30%, transparent);
 }
 
 /* ==================== Light Theme Overrides ==================== */
 .theme-light {
-  /* Enhanced contrast for light theme */
-  --ml-text-muted: rgba(0, 0, 0, 0.6);
-  --ml-text-faint: rgba(0, 0, 0, 0.4);
-
-  /* Lighter backgrounds for cards */
-  --ml-card-background: rgba(255, 255, 255, 0.5);
-  --ml-card-border: rgba(0, 0, 0, 0.1);
-
-  /* Lighter shadows */
-  --ml-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --ml-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
-  --ml-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-
-  /* Adjusted status colors for light theme */
-  --ml-status-info: #0ea5e9;
-  --ml-status-success: #22c55e;
-  --ml-status-warning: #f59e0b;
-  --ml-status-error: #ef4444;
-
-  /* Card face hover effect */
-  --ml-card-hover-glow: rgba(0, 0, 0, 0.03);
+  /* Reduced shadow opacity for light theme */
+  --ml-shadow-color: color-mix(in srgb, var(--text-normal) 8%, transparent);
 }
 
 /* ==================== Component-Specific Variables ==================== */
@@ -145,12 +115,8 @@
   --ml-card-transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.theme-dark .ml-card-face-container:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.theme-light .ml-card-face-container:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.ml-card-face-container:hover {
+  box-shadow: 0 4px 12px var(--ml-shadow-color);
 }
 
 /* Rating Buttons */
@@ -164,25 +130,11 @@
   --ml-rating-good: var(--text-accent);
   --ml-rating-easy: var(--text-success);
 
-  /* Rating colors with alpha (Phase 0) - for borders, backgrounds */
-  --ml-rating-again-alpha: rgba(239, 68, 68, 0.2);
-  --ml-rating-hard-alpha: rgba(245, 158, 11, 0.2);
-  --ml-rating-good-alpha: rgba(59, 130, 246, 0.2);
-  --ml-rating-easy-alpha: rgba(34, 197, 94, 0.2);
-}
-
-.theme-dark {
-  --ml-rating-again: #f87171;
-  --ml-rating-hard: #fbbf24;
-  --ml-rating-good: #60a5fa;
-  --ml-rating-easy: #4ade80;
-}
-
-.theme-light {
-  --ml-rating-again: #ef4444;
-  --ml-rating-hard: #f59e0b;
-  --ml-rating-good: #3b82f6;
-  --ml-rating-easy: #22c55e;
+  /* Rating colors with alpha (Phase 0) - derived from Obsidian variables */
+  --ml-rating-again-alpha: color-mix(in srgb, var(--text-error) 20%, transparent);
+  --ml-rating-hard-alpha: color-mix(in srgb, var(--text-warning) 20%, transparent);
+  --ml-rating-good-alpha: color-mix(in srgb, var(--text-accent) 20%, transparent);
+  --ml-rating-easy-alpha: color-mix(in srgb, var(--text-success) 20%, transparent);
 }
 
 /* Progress Bar */
@@ -231,24 +183,17 @@
   :root {
     --ml-border-color: currentColor;
     --ml-card-border: 2px solid currentColor;
-  }
-
-  .theme-dark {
-    --ml-text-muted: rgba(255, 255, 255, 0.8);
-  }
-
-  .theme-light {
-    --ml-text-muted: rgba(0, 0, 0, 0.8);
+    --ml-text-muted: color-mix(in srgb, var(--text-normal) 80%, transparent);
   }
 }
 
 /* ==================== Print Styles ==================== */
 @media print {
   :root {
-    --ml-background-primary: white;
-    --ml-text-normal: black;
-    --ml-text-muted: black;
-    --ml-interactive-accent: black;
+    --ml-background-primary: var(--background-primary);
+    --ml-text-normal: var(--text-normal);
+    --ml-text-muted: var(--text-normal);
+    --ml-interactive-accent: var(--text-normal);
     --ml-shadow-sm: none;
     --ml-shadow-md: none;
     --ml-shadow-lg: none;

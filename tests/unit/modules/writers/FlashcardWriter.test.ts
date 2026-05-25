@@ -3,7 +3,6 @@ import { Plugin } from 'obsidian';
 import { FlashcardWriter } from '@/modules/writers/FlashcardWriter';
 import { IParser } from '@/interfaces/IParser';
 import { Flashcard, FlashcardYaml } from '@/schemas';
-import { CardStatus } from '@/schemas/flashcard';
 import { createMockPlugin } from '../../../helpers/mock-obsidian';
 import { createFlashcardYaml } from '../../../helpers/factories';
 
@@ -18,9 +17,9 @@ describe('FlashcardWriter', () => {
 		]);
 		parser = {
 			marker: '?',
-			parseContent: vi
-				.fn()
-				.mockReturnValue({ entity: { front: 'Parsed Front', back: 'Parsed Back', uuid: 'parsed' } }),
+			parseContent: vi.fn().mockReturnValue({
+				entity: { front: 'Parsed Front', back: 'Parsed Back', uuid: 'parsed' },
+			}),
 			parse: vi.fn(),
 			parseMetadata: vi.fn(),
 			parseAll: vi.fn(),
@@ -85,12 +84,9 @@ describe('FlashcardWriter', () => {
 
 	describe('updateFrontmatter', () => {
 		it('should update frontmatter while preserving body', async () => {
-			vi.spyOn(writer['_yaml'], 'extractFmFromContent').mockReturnValue({
-				fm: createFlashcardYaml({ status: CardStatus.ACTIVE }),
-				body: 'Front\n\n?\n\nBack',
+			await writer.updateFrontmatter('existing.md', {
+				uuid: '00000000-0000-0000-0000-000000000000',
 			});
-
-			await writer.updateFrontmatter('existing.md', { uuid: '00000000-0000-0000-0000-000000000000' });
 
 			const content = await plugin.app.vault.adapter.read('existing.md');
 			expect(content).toContain('uuid: 00000000-0000-0000-0000-000000000000');
@@ -98,20 +94,24 @@ describe('FlashcardWriter', () => {
 			expect(content).toContain('Back');
 		});
 
-		it('should throw on parse error', async () => {
-			await plugin.app.vault.adapter.write('corrupt.md', 'no frontmatter');
-
-			await expect(writer.updateFrontmatter('corrupt.md', { uuid: '00000000-0000-0000-0000-000000000000' })).rejects.toThrow(
-				'Failed to parse frontmatter',
-			);
+		it('should throw if file does not exist', async () => {
+			await expect(
+				writer.updateFrontmatter('missing.md', { uuid: '00000000-0000-0000-0000-000000000000' }),
+			).rejects.toThrow('File not found');
 		});
 	});
 
 	describe('updateBody', () => {
 		it('should update body while preserving frontmatter', async () => {
-			vi.spyOn(writer['_yaml'], 'extractFmFromContent').mockReturnValue({
-				fm: createFlashcardYaml(),
-				body: 'Old Front\n\n?\n\nOld Back',
+			vi.spyOn(plugin.app.metadataCache, 'getFileCache').mockReturnValue({
+				frontmatter: createFlashcardYaml(),
+				frontmatterPosition: null,
+				headings: [],
+				links: [],
+				embeds: [],
+				tags: [],
+				blocks: {},
+				sections: [],
 			});
 
 			await writer.updateBody('existing.md', { front: 'New Front', back: 'New Back' });
@@ -122,11 +122,9 @@ describe('FlashcardWriter', () => {
 			expect(content).toContain('uuid: 00000000-0000-0000-0000-000000000000');
 		});
 
-		it('should throw on parse error', async () => {
-			await plugin.app.vault.adapter.write('corrupt.md', 'no frontmatter');
-
-			await expect(writer.updateBody('corrupt.md', { front: 'New', back: 'Body' })).rejects.toThrow(
-				'Failed to parse frontmatter',
+		it('should throw if file does not exist', async () => {
+			await expect(writer.updateBody('missing.md', { front: 'New', back: 'Body' })).rejects.toThrow(
+				'File not found',
 			);
 		});
 	});
@@ -173,11 +171,13 @@ describe('FlashcardWriter', () => {
 				back: 'Back',
 			};
 
-			const result = (writer as unknown as Record<string, (e: Flashcard) => unknown>).extractMetadata(
-				entity,
-			);
+			const result = (
+				writer as unknown as Record<string, (e: Flashcard) => unknown>
+			).extractMetadata(entity);
 
-			expect(result).toEqual(expect.objectContaining({ uuid: '00000000-0000-0000-0000-000000000000' }));
+			expect(result).toEqual(
+				expect.objectContaining({ uuid: '00000000-0000-0000-0000-000000000000' }),
+			);
 		});
 
 		it('should throw on invalid metadata', () => {
@@ -197,14 +197,18 @@ describe('FlashcardWriter', () => {
 				back: 'Back',
 			};
 
-			const result = (writer as unknown as Record<string, (e: Flashcard) => unknown>).extractBody(entity);
+			const result = (writer as unknown as Record<string, (e: Flashcard) => unknown>).extractBody(
+				entity,
+			);
 
 			expect(result).toEqual({ front: 'Front', back: 'Back' });
 		});
 
 		it('should throw on missing body fields', () => {
 			expect(() =>
-				(writer as unknown as Record<string, (e: unknown) => unknown>).extractBody({ uuid: 'test' }),
+				(writer as unknown as Record<string, (e: unknown) => unknown>).extractBody({
+					uuid: 'test',
+				}),
 			).toThrow();
 		});
 	});

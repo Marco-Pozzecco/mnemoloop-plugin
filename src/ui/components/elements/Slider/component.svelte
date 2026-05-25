@@ -49,12 +49,11 @@
 		aria-describedby={hasError ? `${id}-error` : helperText ? `${id}-helper` : undefined}
 	>
 		{#snippet child({ props, thumbItems })}
-			<div {...props} class="ml-slider-container">
+			<div {...props} class="ml-slider-container" style="--range-width: {((value - min) / (max - min)) * 100}%">
 				<div class="ml-slider-track">
 					<Slider.Range>
 						{#snippet child({ props: rangeProps })}
-							{@const rangeWidth = ((value - min) / (max - min)) * 100}
-							<div {...rangeProps} class="ml-slider-range" style="width: {rangeWidth}%"></div>
+							<div {...rangeProps} class="ml-slider-range"></div>
 						{/snippet}
 					</Slider.Range>
 				</div>
@@ -124,6 +123,7 @@
 		position: absolute;
 		left: 0;
 		top: 0;
+		width: var(--range-width);
 	}
 
 	.ml-slider-thumb {
@@ -132,7 +132,7 @@
 		background-color: var(--interactive-accent);
 		border-radius: 50%;
 		border: 2px solid var(--background-primary);
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 1px 3px color-mix(in srgb, var(--text-normal) 20%, transparent);
 		cursor: grab;
 		position: absolute;
 		top: 50%;
@@ -156,12 +156,12 @@
 	.ml-slider-thumb:active {
 		cursor: grabbing;
 		transform: translate(-50%, -50%) scale(0.95);
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+		box-shadow: 0 2px 6px color-mix(in srgb, var(--text-normal) 30%, transparent);
 	}
 
 	/* Error state */
 	.ml-slider-wrapper.has-error .ml-slider-track {
-		background-color: rgba(255, 0, 0, 0.2);
+		background-color: color-mix(in srgb, var(--text-error) 20%, transparent);
 	}
 
 	.ml-slider-wrapper.has-error .ml-slider-range {

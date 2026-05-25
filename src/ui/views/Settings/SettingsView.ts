@@ -21,6 +21,10 @@ export class SettingsView extends PluginSettingTab {
 		});
 	}
 
+	hide(): void {
+		this.destroy();
+	}
+
 	/**
 	 * Unmount and cleanup
 	 */
@@ -34,23 +38,11 @@ export class SettingsView extends PluginSettingTab {
 
 			this.containerEl.empty();
 			this.containerEl.removeClass('ml-settings-view');
-
-			// Dispose settings store
-			settingsStore.dispose();
 		} catch (error) {
 			Logger.error('Failed to destroy Settings view:', error);
-		}
-	}
-
-	/**
-	 * Force save current settings
-	 */
-	async save(): Promise<void> {
-		try {
-			await settingsStore.save();
-		} catch (error) {
-			Logger.error('Failed to save settings from SettingsView:', error);
-			throw error;
+		} finally {
+			// Dispose settings store
+			settingsStore.dispose();
 		}
 	}
 }

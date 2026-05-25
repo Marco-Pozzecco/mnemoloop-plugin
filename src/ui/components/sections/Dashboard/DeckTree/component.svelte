@@ -30,7 +30,7 @@
 			onkeydown={handleAllKeydown}
 		>
 			<Icon name="layers" size={16} />
-			<span class="ml-deck-tree__all-decks-name">All Decks</span>
+			<span class="ml-deck-tree__all-decks-name">All decks</span>
 		</div>
 
 		<div class="ml-deck-tree__nodes">
