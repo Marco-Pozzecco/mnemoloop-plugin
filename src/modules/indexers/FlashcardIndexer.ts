@@ -49,7 +49,7 @@ export class FlascardIndexer
 	extends BaseIndexer<Flashcard, FlashcardMetadata, FlashcardYaml, FlashcardIndex>
 	implements IEventEmitter<IndexAction>
 {
-	private _dirPath = this._settings.data.flashcard.watch.directory;
+	private _dirPath = normalizePath(this._settings.data.flashcard.watch.directory);
 
 	constructor(
 		parser: FlashcardParser,
@@ -108,8 +108,6 @@ export class FlascardIndexer
 	};
 
 	initialize: () => Promise<void> = async () => {
-		await this._adapter.initialize();
-
 		const entries = this._adapter.data.flashcards.reduce(
 			(acc, flashcard) => ({ ...acc, [flashcard.uuid]: flashcard }),
 			{} as Record<string, FlashcardMetadata>,
@@ -257,7 +255,6 @@ export class FlascardIndexer
 
 		return FlashcardMetadataSchema.parse(metadata);
 	};
-
 }
 
 export function buildFlashcardQueryPredicate(
