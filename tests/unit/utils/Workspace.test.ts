@@ -28,7 +28,7 @@ describe('Workspace utils', () => {
 		it('returns getLeaf(true) when no root leaves exist', () => {
 			const newLeaf = { id: 'new' };
 			const workspace = {
-				iterateRootLeaves: vi.fn((cb) => {}),
+				iterateRootLeaves: vi.fn(() => {}),
 				getLeaf: vi.fn().mockReturnValue(newLeaf),
 			};
 			const result = openInSplitMode(workspace as any);
