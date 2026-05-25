@@ -14,7 +14,6 @@ import {
 	Notice,
 	normalizePath,
 	TFile,
-	WorkspaceLeaf,
 } from 'obsidian';
 
 export class GenerateFromSelectionCommand extends BaseCommand {
