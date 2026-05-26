@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { sveltePreprocess } from 'svelte-preprocess';
-import builtins from 'builtin-modules';
 import { resolve } from 'path';
 import fs from 'fs';
 
@@ -67,7 +66,6 @@ export default defineConfig(({ mode }) => {
 					'@lezer/common',
 					'@lezer/highlight',
 					'@lezer/lr',
-					...builtins,
 				],
 				output: {
 					banner: banner,
