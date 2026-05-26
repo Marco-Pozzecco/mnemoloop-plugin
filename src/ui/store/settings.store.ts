@@ -1,6 +1,7 @@
 import { IEvent } from '@/interfaces/IEvent';
 import {
 	EventBus,
+	FlashcardIndexInitializeRequestEvent,
 	SettingsAdapterInitResponseEvent,
 	SettingsAdapterResetRequestEvent,
 	SettingsAdapterResetResponseEvent,
@@ -44,7 +45,6 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 				this.saveError.update(() => null);
 				this.fieldErrors.update(() => ({}));
 				this.isLoading.update(() => false);
-				return;
 			}
 			if (event.type === SettingsAdapterResetResponseEvent.type) {
 				const data = (event as SettingsAdapterResetResponseEvent).data;
@@ -52,7 +52,6 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 				this.saveError.update(() => null);
 				this.fieldErrors.update(() => ({}));
 				this.isLoading.update(() => false);
-				return;
 			}
 			if (event.type === SettingsAdapterSetResponseEvent.type) {
 				const data = (event as SettingsAdapterSetResponseEvent).data;
@@ -60,13 +59,14 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 				this.saveError.update(() => null);
 				this.fieldErrors.update(() => ({}));
 				this.isLoading.update(() => false);
-				return;
 			}
 			if (event.type === SettingsAdapterSaveResponseEvent.type) {
 				this.saveError.update(() => null);
 				this.fieldErrors.update(() => ({}));
 				this.isLoading.update(() => false);
-				return;
+
+				const event = new FlashcardIndexInitializeRequestEvent();
+				EventBus.instance.publish(event);
 			}
 		};
 

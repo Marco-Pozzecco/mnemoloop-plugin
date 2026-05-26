@@ -18,19 +18,20 @@
 	const fieldErrors = $derived($fieldErrorsWritable);
 
 	// Event handlers
-	function handleNestedFieldChange(path: string[], value: unknown) {
-		settingsStore.updateNestedField(path, value);
-		settingsStore.save();
+	async function handleNestedFieldChange(path: string[], value: unknown) {
+		await settingsStore.updateNestedField(path, value);
+		await settingsStore.save();
 	}
 
-	function handleFieldChange(key: string, value: unknown) {
+	async function handleFieldChange(key: string, value: unknown) {
 		const typedValue = value as PluginSettings[keyof PluginSettings];
-		settingsStore.updateField(key as keyof PluginSettings, typedValue);
-		settingsStore.save();
+		await settingsStore.updateField(key as keyof PluginSettings, typedValue);
+		await settingsStore.save();
 	}
 
 	async function handleReset() {
 		await settingsStore.reset();
+		await settingsStore.save();
 	}
 
 	function hasError(key: string): boolean {

@@ -69,8 +69,14 @@ export default class MnemoloopPlugin extends Plugin {
 		this._adapter.set(AdapterKey.settings, new SettingsAdapter(this));
 		this._adapter.set(AdapterKey.statistics, new StatisticsAdapter(this));
 		this._adapter.set(AdapterKey.flashcard, new FlashcardAdapter(this));
-		this._adapter.forEach(async (adapter) => await adapter.initialize());
-		Logger.info('adapters initialized');
+
+		const promises = Array.from(this._adapter.values()).map(async (adapter) => {
+			await adapter.initialize();
+		});
+
+		await Promise.all(promises);
+
+		Logger.info('adapters initialized', { count: promises.length });
 	}
 
 	private async loadParsers() {
@@ -90,7 +96,11 @@ export default class MnemoloopPlugin extends Plugin {
 			),
 		);
 
-		this._indexes.forEach(async (index) => await index.initialize());
+		const indexPromises = Array.from(this._indexes.values()).map(async (index) => {
+			await index.initialize();
+		});
+
+		await Promise.all(indexPromises);
 		Logger.info('indexes initialized');
 	}
 

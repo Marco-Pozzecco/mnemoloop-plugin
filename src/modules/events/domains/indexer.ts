@@ -135,3 +135,11 @@ export class FlashcardIndexGetAllEvent extends Event<FlashcardIndexGetAllEventDa
 		super(FlashcardIndexGetAllEvent.type, data);
 	}
 }
+
+export class FlashcardIndexInitializeRequestEvent extends Event<undefined> {
+	static readonly type: IndexEventType = 'Flashcard:Index:Initialize:Request';
+
+	constructor() {
+		super(FlashcardIndexInitializeRequestEvent.type, undefined);
+	}
+}
