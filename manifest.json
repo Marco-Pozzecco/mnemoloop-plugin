@@ -1,7 +1,7 @@
 {
 	"id": "mnemoloop",
 	"name": "Mnemoloop",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "1.4.0",
 	"description": "Local-first spaced repetition with FSRS scheduling that never touches your notes. Better retention without note pollution.",
 	"author": "Marco Pozzecco",
