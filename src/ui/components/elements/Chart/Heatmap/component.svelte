@@ -218,8 +218,8 @@
 	}
 
 	:global(.ml-heatmap__tooltip-font) {
-		font-family: var(--font-text) !important;
-		font-size: var(--font-ui-small) !important;
+		font-family: var(--font-text);
+		font-size: var(--font-ui-small);
 	}
 
 	/* Mobile adjustments */

@@ -152,11 +152,11 @@
 		padding: 1rem 0;
 	}
 
-	:global(.ml-show-answer-button) {
+	:global(button.ml-show-answer-button) {
 		width: 100%;
 		max-width: 300px;
-		height: 50px !important;
-		font-size: 1.1rem !important;
+		height: 50px;
+		font-size: 1.1rem;
 		position: relative;
 	}
 
@@ -175,8 +175,8 @@
 			display: none;
 		}
 
-		:global(.ml-show-answer-button) {
-			height: 44px !important;
+		:global(button.ml-show-answer-button) {
+			height: 44px;
 		}
 
 		.ml-show-answer-wrapper {
