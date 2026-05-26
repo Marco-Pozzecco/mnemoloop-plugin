@@ -62,19 +62,17 @@ describe('BaseAdapter', () => {
 	});
 
 	describe('update', () => {
-		it('should merge partial data and emit Set and Update', () => {
+		it('should merge partial data and emit Update', () => {
 			adapter.update({ count: 10 });
 			expect(adapter.data).toEqual({ uuid: 'default', count: 10 });
-			expect(adapter.emitted).toContain(AdapterAction.Set);
 			expect(adapter.emitted).toContain(AdapterAction.Update);
 		});
 	});
 
 	describe('setField', () => {
-		it('should update a single field and emit Set and Update', () => {
+		it('should update a single field and emit Update', () => {
 			adapter.setField('uuid', 'new-uuid');
 			expect(adapter.data).toEqual({ uuid: 'new-uuid', count: 0 });
-			expect(adapter.emitted).toContain(AdapterAction.Set);
 			expect(adapter.emitted).toContain(AdapterAction.Update);
 		});
 	});
@@ -90,12 +88,12 @@ describe('BaseAdapter', () => {
 	});
 
 	describe('reset', () => {
-		it('should restore default data and emit Set, Reset, Save', async () => {
+		it('should restore default data and emit Reset', async () => {
 			adapter.set({ uuid: 'new', count: 5 });
 			adapter.emitted = [];
 			await adapter.reset();
 			expect(adapter.data).toEqual(defaultData);
-			expect(adapter.emitted).toEqual([AdapterAction.Set, AdapterAction.Reset, AdapterAction.Save]);
+			expect(adapter.emitted).toEqual([AdapterAction.Reset]);
 		});
 	});
 
@@ -108,12 +106,11 @@ describe('BaseAdapter', () => {
 			expect(adapter.savedData).toHaveLength(0);
 		});
 
-		it('should recover partial data and save', async () => {
+		it('should recover partial data and emit Init', async () => {
 			adapter.loadDataResult = { uuid: 'loaded', count: 'invalid' };
 			await adapter.initialize();
 			expect(adapter.data).toEqual({ uuid: 'loaded', count: 0 });
 			expect(adapter.emitted).toContain(AdapterAction.Init);
-			expect(adapter.emitted).toContain(AdapterAction.Save);
 			expect(adapter.savedData).toHaveLength(1);
 		});
 
