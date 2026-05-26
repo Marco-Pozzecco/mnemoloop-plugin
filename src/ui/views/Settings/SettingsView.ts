@@ -1,4 +1,3 @@
-import { settingsStore } from '@/ui/store/settings.store';
 import { Logger } from '@/utils/Logger';
 import { Plugin, PluginSettingTab } from 'obsidian';
 import { mount, unmount } from 'svelte';
@@ -40,9 +39,6 @@ export class SettingsView extends PluginSettingTab {
 			this.containerEl.removeClass('ml-settings-view');
 		} catch (error) {
 			Logger.error('Failed to destroy Settings view:', error);
-		} finally {
-			// Dispose settings store
-			settingsStore.dispose();
 		}
 	}
 }
