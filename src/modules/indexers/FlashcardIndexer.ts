@@ -32,6 +32,7 @@ import {
 	FlashcardIndexRecalcRequestEvent,
 	FlashcardIndexRecalcResponseEvent,
 	FlashcardIndexSaveEvent,
+	FlashcardIndexInitializeRequestEvent,
 	FlashcardIndexUpdateEvent,
 	FlashcardIndexUpdateEventData,
 	FlashcardReviewSessionScoreEvent,
@@ -49,7 +50,7 @@ export class FlascardIndexer
 	extends BaseIndexer<Flashcard, FlashcardMetadata, FlashcardYaml, FlashcardIndex>
 	implements IEventEmitter<IndexAction>
 {
-	private _dirPath = normalizePath(this._settings.data.flashcard.watch.directory);
+	private _dirPath = () => this._settings.data.flashcard.watch.directory;
 
 	constructor(
 		parser: FlashcardParser,
@@ -65,6 +66,8 @@ export class FlascardIndexer
 				this.update(cardUUID, card);
 			} else if (event.isType(FlashcardIndexRecalcRequestEvent.type)) {
 				this.emit(IndexAction.Recalc);
+			} else if (event.isType(FlashcardIndexInitializeRequestEvent.type)) {
+				this.initialize().catch((err) => Logger.error('Reindex failed', err));
 			} else if (event.isType(FlashcardIndexQueryRequestEvent.type)) {
 				const data = (event as FlashcardIndexQueryRequestEvent).data;
 				const combinedPredicate = buildFlashcardQueryPredicate(data);
@@ -108,13 +111,9 @@ export class FlascardIndexer
 	};
 
 	initialize: () => Promise<void> = async () => {
-		const entries = this._adapter.data.flashcards.reduce(
-			(acc, flashcard) => ({ ...acc, [flashcard.uuid]: flashcard }),
-			{} as Record<string, FlashcardMetadata>,
-		);
-		this._cache.load(entries);
+		this._cache.clear();
 
-		const flashcards = await this._parser.parseAll(this._dirPath);
+		const flashcards = await this._parser.parseAll(this._dirPath());
 
 		for (const flashcard of flashcards) {
 			const metadata = this._generateMetadata(flashcard);
@@ -232,7 +231,7 @@ export class FlascardIndexer
 
 	private _isPathInWatchedDir(filepath: string): boolean {
 		const normalizedPath = normalizePath(filepath);
-		const normalizedDir = normalizePath(this._dirPath);
+		const normalizedDir = normalizePath(this._dirPath());
 		return normalizedPath.startsWith(normalizedDir + '/') || normalizedPath === normalizedDir;
 	}
 

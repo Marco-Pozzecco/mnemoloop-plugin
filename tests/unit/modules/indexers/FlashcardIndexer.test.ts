@@ -184,7 +184,7 @@ describe('FlascardIndexer', () => {
 	});
 
 	describe('initialize', () => {
-		it('should load adapter data into cache', async () => {
+		it('should not load adapter data into cache and rebuild from zero', async () => {
 			const initializeSpy = vi.spyOn(adapter, 'initialize');
 			const card = createFlashcardMetadata();
 			adapter.set({ flashcards: [card], updated_at: '2024-01-01T00:00:00.000Z' });
@@ -193,8 +193,8 @@ describe('FlascardIndexer', () => {
 			await indexer.initialize();
 
 			expect(initializeSpy).not.toHaveBeenCalled();
-			expect(indexer.getAll()).toHaveLength(1);
-			expect(indexer.get(card.uuid)).toEqual(expect.objectContaining({ uuid: card.uuid }));
+			expect(indexer.getAll()).toHaveLength(0);
+			expect(indexer.get(card.uuid)).toBeUndefined();
 		});
 
 		it('should parse all flashcards and merge into cache', async () => {
@@ -220,8 +220,9 @@ describe('FlascardIndexer', () => {
 			expect((event as unknown as { data: { total: number } }).data.total).toBe(0);
 		});
 
-		it('should preserve historical timestamps when re-parsing existing flashcards', async () => {
+		it('should use new timestamps when re-parsing existing flashcards', async () => {
 			const oldTimestamp = '2024-01-15T08:30:00.000Z';
+			const newTimestamp = '2026-05-18T10:00:00.000Z';
 			const existingCard = createFlashcardMetadata({
 				uuid: '11111111-1111-1111-a111-111111111111',
 				created_at: oldTimestamp,
@@ -239,8 +240,8 @@ describe('FlascardIndexer', () => {
 			await indexer.initialize();
 
 			const result = indexer.get(existingCard.uuid)!;
-			expect(result.created_at).toBe(oldTimestamp);
-			expect(result.updated_at).toBe(oldTimestamp);
+			expect(result.created_at).toBe(newTimestamp);
+			expect(result.updated_at).toBe(newTimestamp);
 		});
 	});
 
