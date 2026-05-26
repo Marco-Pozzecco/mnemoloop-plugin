@@ -3,6 +3,7 @@ import { IEventEmitter } from '@/interfaces/IEventEmitter';
 import { Logger } from '@/utils/Logger';
 import { ZodError, ZodType } from 'zod';
 import { AdapterAction } from '../events';
+import { simpleClone } from '@/utils/Clone';
 
 export abstract class BaseAdapter<T> implements IAdapter<T>, IEventEmitter<AdapterAction> {
 	protected _data: T;
@@ -12,7 +13,7 @@ export abstract class BaseAdapter<T> implements IAdapter<T>, IEventEmitter<Adapt
 		protected defaultData: T,
 		schema: ZodType<T>,
 	) {
-		this._data = defaultData;
+		this._data = simpleClone(defaultData);
 		this._schema = schema;
 	}
 
@@ -32,14 +33,13 @@ export abstract class BaseAdapter<T> implements IAdapter<T>, IEventEmitter<Adapt
 	};
 
 	update: (data: Partial<T>) => void = (data) => {
-		this.set({ ...this._data, ...data } as T);
+		this._data = this._schema.parse({ ...this._data, ...data } as T);
 		this.emit(AdapterAction.Update);
 	};
 
 	reset: () => Promise<void> = async () => {
-		this.set(this.defaultData);
+		this._data = simpleClone(this.defaultData);
 		this.emit(AdapterAction.Reset);
-		await this.save();
 	};
 
 	initialize: () => Promise<void> = async () => {
@@ -51,12 +51,12 @@ export abstract class BaseAdapter<T> implements IAdapter<T>, IEventEmitter<Adapt
 				this._data = result.data;
 			} else {
 				this._data = this.recoverPartialData(storedData, result.error);
-				await this.save();
+				await this.saveData(this._data);
 			}
 		} catch (error) {
 			Logger.error(`adapter failed to load data, using defaults`, error);
 			this._data = this.defaultData;
-			await this.save();
+			await this.saveData(this._data);
 		}
 		this.emit(AdapterAction.Init);
 	};
