@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 
 // Define build-time globals for tests
 (globalThis as Record<string, unknown>).__DEV__ = true;
+(globalThis as Record<string, unknown>).__LOG_LEVEL__ = 'OFF';
 
 // Mock obsidian module
 vi.mock('obsidian', () => ({
