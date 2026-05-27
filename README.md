@@ -8,7 +8,7 @@ TODO: Add hero screenshot or GIF here showing the dashboard + review interface
 Recommended: 800-1200px wide, light & dark theme variants
 -->
 
-Mnemoloop is a high-performance, local-first spaced repetition system built directly into Obsidian. Unlike plugins that embed flashcard syntax into your source notes, Mnemoloop stores every flashcard as its own Markdown file—portable, git-friendly, and completely isolated from your thinking space. It pairs this with the state-of-the-art **FSRS scheduling algorithm**, automatic stale-card detection, and a modern dashboard that makes tracking your learning progress genuinely motivating.
+Mnemoloop is a high-performance, local-first spaced repetition system built directly into Obsidian. Unlike plugins that embed flashcard syntax into your source notes, Mnemoloop stores every flashcard as its own Markdown file — portable, git-friendly, and completely isolated from your thinking space. It pairs this with the state-of-the-art **FSRS scheduling algorithm**, automatic stale-card detection, and a modern dashboard that makes tracking your learning progress genuinely motivating.
 
 Your notes stay pristine. Your retention improves. Your workflow never leaves Obsidian.
 
@@ -22,13 +22,10 @@ Every flashcard is a standalone Markdown file in a dedicated directory, linked b
 ### FSRS, Inside Obsidian
 Mnemoloop is the only Obsidian plugin with native FSRS scheduling—the same scientifically validated algorithm powering modern Anki. Better retention. Fewer reviews. Less frustration. No context switching.
 
-### Stale Card Detection
-When you edit a source note, Mnemoloop automatically flags linked flashcards as **STALE**, so you never accidentally review outdated information. 
-
 ### Built for Mobile from Day One
 Swipe to rate. Tap to flip. Responsive layouts. Mnemoloop works as beautifully on your phone as on your desktop—no separate app required, because it runs natively inside Obsidian Mobile.
 
-### Industrial-Grade Reliability
+### Reliability
 Dual-source truth: a fast JSON index for queries, plus human-readable YAML frontmatter on every card for transparency and recovery. Even if the index is corrupted, all your SRS data lives in Markdown and can rebuild everything. Error boundaries ensure the plugin never brings down Obsidian.
 
 ---
@@ -72,15 +69,11 @@ Dual-source truth: a fast JSON index for queries, plus human-readable YAML front
 2. Search for **"Mnemoloop"** and install
 3. Enable the plugin
 
-> For manual installation, download `main.js`, `manifest.json`, and `styles.css` from the latest release and place them in your vault's `.obsidian/plugins/knowledge-accelerator/` directory.
-
 ### Create Your First Flashcard
 
-Open the **Command Palette** (`Ctrl/Cmd + P`) and run:
-
-- **"Mnemoloop: Create Empty Flashcard"** — start from scratch
-- **"Mnemoloop: Generate Flashcard from Selection"** — turn selected text into a card
-- **"Mnemoloop: Generate Flashcards from File"** — bulk-create from a note (right-click file in explorer)
+- Open the **Command Palette** (`Ctrl/Cmd + P`) and run `Create empty flashcard`;
+- Select text in a note and right click then click `Generate flashcard from selection` to turn selected text into a card;
+- Click on the file menu then select `Generate flashcard from file` to create a empty flashcard linked to the source file.
 
 ### Review
 
@@ -114,17 +107,21 @@ Each flashcard is a Markdown file with YAML frontmatter:
 
 ```markdown
 ---
-id: abc-123-uuid
-created: 2026-05-15
+uuid: 550e8400-e29b-41d4-a716-446655440000
+source: "[[Biology/Cell biology.md]]"
+status: ACTIVE
 decks:
   - Biology::Cell structure
-tags:
-  - exam-prep
 stability: 4.5
 difficulty: 3.2
-state: 2
-last_review: 2026-05-10
-next_review: 2026-05-15
+elapsed_days: 3
+scheduled_days: 5
+learning_steps: 1
+reps: 4
+lapses: 0
+state: Review
+last_review: 2026-05-10T09:00:00Z
+due: 2026-05-15T09:00:00Z
 ---
 
 What is the powerhouse of the cell?
@@ -136,36 +133,16 @@ The mitochondrion.
 
 The `?` delimiter separates question from answer (configurable in settings). All SRS metadata lives in YAML—transparent, editable, and portable.
 
----
-
 ## Available Commands
 
-### Command Palette
-
-| Command | ID | Description |
-|---------|-----|-------------|
-| Open Dashboard | `mnemoloop-open-dashboard` | Open the learning dashboard |
-| Open Settings | `mnemoloop-open-settings` | Open plugin settings |
-| Create Empty Flashcard | `mnemoloop-create-empty-flashcard` | Create a new flashcard file |
-
-### Editor Context Menu
-
-- **Generate flashcard from selection** — Creates a flashcard from the currently selected text
-- **Create empty flashcard in side panel** — Opens a blank flashcard in the right sidebar
-
-### File Explorer Context Menu
-
-- **Generate flashcards from file** — Bulk-generates flashcards from the selected Markdown file
+| Context | Command |  Description |
+|--- | ---------|-------------|
+| Palette | Open Dashboard |  Open the learning dashboard |
+| Palette | Create Empty Flashcard |  Create a new empty flashcard linked to the current note |
+| Editor menu | Generate flashcard from selection | Creates a flashcard pre-filled with the currently selected text |
+| File menu | Create flashcard from file | Creates an empty flashcard linked to the selected Markdown file |
 
 ---
-
-<!--## Documentation
-
-For full documentation, tutorials, advanced configuration, and the complete command reference, visit:
-
-**[www.mnemoloop.app/docs](https://www.mnemoloop.app/docs)**
-
------>
 
 ## Contributing
 
