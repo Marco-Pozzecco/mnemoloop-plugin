@@ -328,6 +328,7 @@ export class StatisticsProcessor extends EventProcessor {
 				current_streak,
 				longest_streak,
 			},
+			progress,
 			updated_at: new Date().toISOString(),
 		});
 		this._statsAdapter.save();
