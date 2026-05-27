@@ -29,10 +29,12 @@ const copyToRoot = () => ({
 
 export default defineConfig(({ mode }) => {
 	const isProduction = mode === 'production';
+	const logLevel = isProduction ? 'OFF' : 'DEBUG';
 
 	return {
 		define: {
 			__DEV__: JSON.stringify(!isProduction),
+			__LOG_LEVEL__: JSON.stringify(logLevel),
 		},
 		resolve: {
 			alias: {
