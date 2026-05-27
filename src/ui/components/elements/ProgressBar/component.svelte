@@ -61,7 +61,7 @@
 	}
 
 	.ml-progress-fill--indeterminate {
-		width: 30% !important;
+		width: 30%;
 		position: absolute;
 		animation: indeterminate-progress 1.5s infinite linear;
 		transform-origin: 0% 50%;

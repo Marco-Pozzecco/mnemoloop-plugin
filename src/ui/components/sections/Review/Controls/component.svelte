@@ -55,17 +55,15 @@
 		gap: 0.5rem;
 	}
 
-	:global(.ml-rating-button) {
+	:global(button.ml-rating-button) {
 		width: 100%;
-		height: 60px !important;
-		border-color: var(--background-modifier-border) !important;
-		transition: all 0.2s ease !important;
+		height: 60px;
+		border-color: var(--background-modifier-border);
+		transition: all 0.2s ease;
 	}
 
 	:global(.ml-rating-button:hover) {
-		border-color: var(--button-color) !important;
-		background-color: var(--background-secondary) !important;
-		color: var(--button-color) !important;
+		background-color: var(--background-secondary);
 	}
 
 	.ml-rating-button-content {
@@ -97,9 +95,9 @@
 			margin-top: 1rem;
 		}
 
-		:global(.ml-rating-button) {
-			height: 56px !important;
-			padding: 0.5rem !important;
+		:global(button.ml-rating-button) {
+			height: 56px;
+			padding: 0.5rem;
 		}
 
 		.ml-rating-label {

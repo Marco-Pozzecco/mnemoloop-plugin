@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { sveltePreprocess } from 'svelte-preprocess';
-import builtins from 'builtin-modules';
 import { resolve } from 'path';
 import fs from 'fs';
 
@@ -30,10 +29,12 @@ const copyToRoot = () => ({
 
 export default defineConfig(({ mode }) => {
 	const isProduction = mode === 'production';
+	const logLevel = isProduction ? 'OFF' : 'DEBUG';
 
 	return {
 		define: {
 			__DEV__: JSON.stringify(!isProduction),
+			__LOG_LEVEL__: JSON.stringify(logLevel),
 		},
 		resolve: {
 			alias: {
@@ -67,7 +68,6 @@ export default defineConfig(({ mode }) => {
 					'@lezer/common',
 					'@lezer/highlight',
 					'@lezer/lr',
-					...builtins,
 				],
 				output: {
 					banner: banner,
