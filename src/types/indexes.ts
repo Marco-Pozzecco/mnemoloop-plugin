@@ -1,14 +1,25 @@
-import { IIndexer } from '@/interfaces/IIndexer';
-import { FlashcardMetadata } from '@/schemas';
+import { FlashcardIndexer } from '@/modules/indexers/FlashcardIndexer';
 
 export enum IndexKey {
 	flashcard = 'flashcard',
 }
 
 interface IndexMap {
-	[IndexKey.flashcard]: IIndexer<FlashcardMetadata>;
+	[IndexKey.flashcard]: FlashcardIndexer;
 }
 
 export type IndexType<K extends IndexKey = IndexKey> = IndexMap[K];
 
 export type Indexes = Map<IndexKey, IndexType>;
+
+export enum IndexAction {
+	Get = 'get',
+	GetAll = 'getAll',
+	Update = 'update',
+	Create = 'create',
+	Delete = 'delete',
+	Initialize = 'initialize',
+	Save = 'save',
+	Recalc = 'recalc',
+	Query = 'query',
+}
