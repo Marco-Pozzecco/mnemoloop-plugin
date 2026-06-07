@@ -14,3 +14,11 @@ interface AdapterMap {
 }
 
 export type Adapters = Map<AdapterKey, AdapterMap[AdapterKey]>;
+
+export enum AdapterAction {
+	Set = 'set',
+	Update = 'update',
+	Reset = 'reset',
+	Save = 'save',
+	Init = 'init',
+}

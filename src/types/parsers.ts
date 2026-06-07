@@ -9,3 +9,10 @@ interface ParserMap {
 }
 
 export type Parsers = Map<ParserKey, ParserMap[ParserKey]>;
+
+export enum ParserAction {
+	Parse = 'parse',
+	ParseContent = 'parseContent',
+	ParseMetadata = 'parseMetadata',
+	ParseAll = 'parseAll',
+}
