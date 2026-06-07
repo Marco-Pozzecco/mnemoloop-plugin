@@ -1,18 +1,8 @@
 import { FlashcardYaml } from '@/schemas';
 import { Event } from '../../core/Event';
 
-type ReviewSessionActions = 'QueueInit' | 'Start' | 'End' | 'Score' | 'Recalc';
+type ReviewSessionActions = 'Start' | 'End' | 'Score';
 type ReviewSessionEventType = `Flashcard:ReviewSession:${Capitalize<ReviewSessionActions>}`;
-
-type FlashcardReviewSessionInitData = null;
-
-export class FlashcardReviewSessionQueueInitEvent extends Event<null> {
-	static type: ReviewSessionEventType = 'Flashcard:ReviewSession:QueueInit';
-
-	constructor(data: FlashcardReviewSessionInitData) {
-		super(FlashcardReviewSessionQueueInitEvent.type, data);
-	}
-}
 
 type FlashcardReviewSessionStartData = {
 	session_id: string;
@@ -56,13 +46,5 @@ export class FlashcardReviewSessionScoreEvent extends Event<FlashcardReviewSessi
 
 	constructor(data: FlashcardReviewSessionScoreData) {
 		super(FlashcardReviewSessionScoreEvent.type, data);
-	}
-}
-
-export class FlashcardReviewSessionRecalcEvent extends Event<undefined> {
-	static type: ReviewSessionEventType = 'Flashcard:ReviewSession:Recalc';
-
-	constructor() {
-		super(FlashcardReviewSessionRecalcEvent.type, undefined);
 	}
 }
