@@ -1,11 +1,5 @@
+import { ParserAction } from '@/types/parsers';
 import { Event } from '../../core/Event';
-
-export enum ParserAction {
-	Parse = 'parse',
-	ParseContent = 'parseContent',
-	ParseMetadata = 'parseMetadata',
-	ParseAll = 'parseAll',
-}
 
 type ParserEntities = 'flashcard';
 type ParserEventType = `${Capitalize<ParserEntities>}:Parser:${Capitalize<ParserAction>}`;

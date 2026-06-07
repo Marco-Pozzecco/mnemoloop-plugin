@@ -1,15 +1,23 @@
 import { IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
 import { StatisticsAdapter } from '@/modules/adapters/StatisticsAdapter';
 import { FlashcardIndexer } from '@/modules/indexers/FlashcardIndexer';
+import { FlashcardMetadata } from '@/schemas';
 import { AdapterKey } from '@/types/adapters';
 import { IndexKey } from '@/types/indexes';
-import { computeFlashcardStats } from '@/utils/statistics-utils';
+import {
+	BUFFER_MS,
+	computeFlashcardStats,
+	computeNextRecalcDelay,
+	MAX_RECALC_DELAY_MS,
+} from '@/utils/statistics-utils';
 import { EventBus } from '../../core/EventBus';
 import { EventHandler } from '../../core/EventHandler';
 import { FlashcardStatisticsComputeEvent } from '../../domains';
 import { DashboardOpenEvent } from '../../domains/ui/dashboard';
 
 export class FlashcardStatisticsComputeHandler extends EventHandler<FlashcardStatisticsComputeEvent> {
+	private _nextCompute: ReturnType<typeof setTimeout> | null = null;
+
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
@@ -30,6 +38,28 @@ export class FlashcardStatisticsComputeHandler extends EventHandler<FlashcardSta
 			updated_at: new Date().toISOString(),
 		});
 		stats.save();
+
+		this._handleNextCompute(flashcards);
+	}
+
+	private _handleNextCompute(flashcards: FlashcardMetadata[]): void {
+		this._clearNextCompute();
+
+		const now = new Date();
+		const delay = computeNextRecalcDelay(flashcards, now, BUFFER_MS, MAX_RECALC_DELAY_MS);
+
+		if (delay === null) return;
+
+		this._nextCompute = setTimeout(() => {
+			EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
+		}, 0);
+	}
+
+	private _clearNextCompute(): void {
+		if (this._nextCompute !== null) {
+			clearTimeout(this._nextCompute);
+			this._nextCompute = null;
+		}
 	}
 }
 

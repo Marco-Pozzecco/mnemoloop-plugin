@@ -1,13 +1,6 @@
 import { Stats } from '@/schemas';
+import { AdapterAction } from '@/types/adapters';
 import { Event } from '../../core/Event';
-
-export enum AdapterAction {
-	Set = 'set',
-	Update = 'update',
-	Reset = 'reset',
-	Save = 'save',
-	Init = 'init',
-}
 
 type Adapters = 'Statistics';
 type AdapterEventType = `${Capitalize<Adapters>}:Adapter:${Capitalize<AdapterAction>}`;

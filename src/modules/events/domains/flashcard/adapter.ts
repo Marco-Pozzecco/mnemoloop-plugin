@@ -1,5 +1,5 @@
 import { FlashcardIndex } from '@/schemas';
-import { AdapterAction } from '../settings/adapter';
+import { AdapterAction } from '@/types/adapters';
 import { Event } from '../../core';
 
 type Adapters = 'flashcard';
