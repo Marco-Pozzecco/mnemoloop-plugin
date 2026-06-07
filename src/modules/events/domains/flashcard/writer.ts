@@ -1,8 +1,8 @@
 import { Flashcard, FlashcardContent, FlashcardYaml } from '@/schemas';
+import { WriterAction } from '@/types/writers';
 import { Event } from '../../core/Event';
 
 type Writers = 'flashcard';
-type WriterAction = 'create' | 'update' | 'fm' | 'body' | 'delete';
 type WriterEventType = `${Capitalize<Writers>}:Writer:${Capitalize<WriterAction>}`;
 
 // Flashcard Writer Action Events

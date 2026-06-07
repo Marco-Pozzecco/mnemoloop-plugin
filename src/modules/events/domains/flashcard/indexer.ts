@@ -1,17 +1,6 @@
 import { FlashcardMetadata } from '@/schemas';
+import { IndexAction } from '@/types/indexes';
 import { Event } from '../../core/Event';
-
-export enum IndexAction {
-	Get = 'get',
-	GetAll = 'getAll',
-	Update = 'update',
-	Create = 'create',
-	Delete = 'delete',
-	Initialize = 'initialize',
-	Save = 'save',
-	Recalc = 'recalc',
-	Query = 'query',
-}
 
 type IndexEventType = `Flashcard:Index:${Capitalize<IndexAction>}`;
 
