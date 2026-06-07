@@ -1,9 +1,10 @@
 import { IEvent } from './IEvent';
-import { IEventHandler } from './IEventHandler';
+
+export type EventHandlerCallback<TData> = (event: IEvent<TData>) => void | Promise<void>;
 
 export interface IEventBus {
-	subscribe<TData extends IEvent>(handler: IEventHandler<TData>): () => void;
-	subscribeOnce<TData extends IEvent>(handler: IEventHandler<TData>): () => void;
-	unsubscribe<TData extends IEvent>(handler: IEventHandler<TData>): void;
+	subscribe<TData>(eventType: string, handler: EventHandlerCallback<TData>): () => void;
+	subscribeOnce<TData>(eventType: string, handler: EventHandlerCallback<TData>): void;
+	unsubscribe<TData>(eventType: string, handler: EventHandlerCallback<TData>): void;
 	publish<TData>(event: IEvent<TData>): string;
 }

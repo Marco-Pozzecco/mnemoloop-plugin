@@ -1,6 +1,5 @@
 import { IEvent } from './IEvent';
 
-export interface IEventHandler<Event extends IEvent> {
-	readonly eventTypes: string[];
-	handle(event: Event): void | Promise<void>;
+export interface IEventHandler {
+	handle(event: IEvent): void | Promise<void>;
 }

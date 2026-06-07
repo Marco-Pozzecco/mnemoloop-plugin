@@ -1,9 +1,9 @@
 import { Plugin } from 'obsidian';
-import { IEvent } from './IEvent';
+import { IEventHandler } from './IEventHandler';
 import { Adapters } from '@/types/adapters';
 import { Indexes } from '@/types/indexes';
 import { Parsers } from '@/types/parsers';
-import { IEventHandler } from './IEventHandler';
+import { IEvent } from './IEvent';
 
 export interface IEventRegistryDependencies {
 	plugin: Plugin;
@@ -12,8 +12,17 @@ export interface IEventRegistryDependencies {
 	parsers: Parsers;
 }
 
+export type EventClass = {
+	new (...args: unknown[]): IEvent;
+	readonly type: string;
+};
+
+export type EventHandlerClass = {
+	new (deps: IEventRegistryDependencies): IEventHandler;
+};
+
 export interface IEventRegistry {
-	register(factory: (deps: IEventRegistryDependencies) => IEventHandler<IEvent>): void;
+	register(Event: EventClass, Handler: EventHandlerClass): void;
 	initialize(deps: IEventRegistryDependencies): void;
 	dispose(): void;
 }

@@ -1,168 +1,62 @@
-import { IEventRegistry, IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
-import { IEventProcessor } from '@/interfaces/IEventProcessor';
-import { Logger } from '@/utils/Logger';
+import { IEventBus } from '@/interfaces/IEventBus';
+import {
+	EventClass,
+	EventHandlerClass,
+	IEventRegistry,
+	IEventRegistryDependencies,
+} from '@/interfaces/IEventRegistry';
+import { EventBus } from './EventBus';
 
-/**
- * Singleton registry for managing EventProcessor lifecycle.
- *
- * - Registers processor factories (lazy instantiation)
- * - Initializes processors with dependencies when ready
- * - Provides dispose cleanup for all processors
- *
- * Pattern: Singleton with global access via EventRegistry.instance
- *
- * @example
- * ```typescript
- * // Register a processor factory:
- * EventRegistry.instance.register(ProcessorKey.statistics, (deps) => {
- *   return new StatisticsProcessor(deps.adapters.get(AdapterKey.statistics)!);
- * });
- *
- * // Initialize all registered processors:
- * EventRegistry.instance.initialize({ plugin, adapters, indexes, parsers });
- *
- * // Cleanup:
- * EventRegistry.instance.dispose();
- * ```
- */
 export class EventRegistry implements IEventRegistry {
-	private static _instance: EventRegistry;
+	private _factories: Set<() => void> = new Set();
+	private _unsubscribes: (() => void)[] = [];
+	private _isInitialized: boolean = false;
+	private _bus: IEventBus;
+	private _deps: IEventRegistryDependencies | null = null;
+	private static _instance: EventRegistry | null = null;
 
-	private _factories: Map<string, (deps: IEventRegistryDependencies) => IEventProcessor> =
-		new Map();
-	private _processors: Map<string, IEventProcessor> = new Map();
-
-	private constructor() {}
-
-	/**
-	 * Get the singleton instance of EventRegistry.
-	 */
-	public static get instance(): EventRegistry {
-		if (!EventRegistry._instance) {
-			EventRegistry._instance = new EventRegistry();
-		}
-		return EventRegistry._instance;
+	private constructor(bus: IEventBus = EventBus.instance) {
+		this._bus = bus;
 	}
 
-	/**
-	 * Register a processor factory with a unique key.
-	 * The factory receives dependencies and returns an IEventProcessor instance.
-	 */
-	public register<Key extends string>(
-		key: Key,
-		factory: (deps: IEventRegistryDependencies) => IEventProcessor,
-	): void {
-		if (this._factories.has(key)) {
-			throw new Error(`EventProcessor with key "${key}" is already registered`);
+	static get instance(): EventRegistry {
+		if (!this._instance) {
+			this._instance = new EventRegistry();
 		}
-		this._factories.set(key, factory);
-		Logger.debug(`EventRegistry: Registered processor factory "${key}"`);
+		return this._instance;
 	}
 
-	/**
-	 * Unregister a processor factory by key.
-	 * If the processor is already initialized, it will be disposed first.
-	 */
-	public unregister<Key extends string>(key: Key): void {
-		const processor = this._processors.get(key);
-		if (processor) {
-			processor.dispose();
-			this._processors.delete(key);
-		}
-		this._factories.delete(key);
-		Logger.debug(`EventRegistry: Unregistered processor "${key}"`);
-	}
+	register(Event: EventClass, Handler: EventHandlerClass): void {
+		const factory = () => {
+			if (!this._deps) throw new Error('EventRegistry is not initialized');
+			const handler = new Handler(this._deps);
+			const unsubscribe = this._bus.subscribe(Event.type, handler.handle);
+			this._unsubscribes.push(unsubscribe);
+		};
 
-	/**
-	 * Initialize all registered processors by calling their factories with dependencies.
-	 */
-	public initialize(deps: IEventRegistryDependencies): void {
-		for (const [key, factory] of this._factories) {
-			if (this._processors.has(key)) {
-				Logger.debug(`EventRegistry: Processor "${key}" already initialized, skipping`);
-				continue;
-			}
+		this._factories.add(factory);
 
-			try {
-				const processor = factory(deps);
-				this._processors.set(key, processor);
-				Logger.debug(`EventRegistry: Initialized processor "${key}"`);
-			} catch (error) {
-				Logger.error(`EventRegistry: Failed to initialize processor "${key}"`, error);
-			}
+		if (this._isInitialized) {
+			factory();
 		}
 	}
 
-	/**
-	 * Dispose all initialized processors and clear the registry.
-	 */
-	public dispose(): void {
-		for (const [key, processor] of this._processors) {
-			try {
-				processor.dispose();
-				Logger.debug(`EventRegistry: Disposed processor "${key}"`);
-			} catch (error) {
-				Logger.error(`EventRegistry: Error disposing processor "${key}"`, error);
-			}
+	initialize(deps: IEventRegistryDependencies): void {
+		this._deps = deps;
+
+		for (const factory of this._factories) {
+			factory();
 		}
 
-		this._processors.clear();
+		this._isInitialized = true;
+	}
+
+	dispose(): void {
+		for (const unsubscribe of this._unsubscribes) {
+			unsubscribe();
+		}
+		this._unsubscribes = [];
 		this._factories.clear();
-	}
-
-	/**
-	 * Get a processor by its key.
-	 */
-	public getProcessor<Key extends string>(key: Key): IEventProcessor | undefined {
-		return this._processors.get(key);
-	}
-
-	/**
-	 * Check if a processor is registered (factory) or initialized (instance).
-	 */
-	public hasProcessor(key: string): boolean {
-		return this._factories.has(key) || this._processors.has(key);
-	}
-
-	/**
-	 * Check if a processor factory is registered.
-	 */
-	public isRegistered(key: string): boolean {
-		return this._factories.has(key);
-	}
-
-	/**
-	 * Check if a processor is initialized (instance created).
-	 */
-	public isInitialized(key: string): boolean {
-		return this._processors.has(key);
-	}
-
-	/**
-	 * Get the count of registered processor factories.
-	 */
-	public get registeredCount(): number {
-		return this._factories.size;
-	}
-
-	/**
-	 * Get the count of initialized processors.
-	 */
-	public get initializedCount(): number {
-		return this._processors.size;
-	}
-
-	/**
-	 * Get all registered processor keys.
-	 */
-	public get registeredKeys(): string[] {
-		return Array.from(this._factories.keys());
-	}
-
-	/**
-	 * Get all initialized processor keys.
-	 */
-	public get initializedKeys(): string[] {
-		return Array.from(this._processors.keys());
+		this._isInitialized = false;
 	}
 }
