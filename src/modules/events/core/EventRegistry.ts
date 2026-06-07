@@ -1,54 +1,48 @@
 import { IEventBus } from '@/interfaces/IEventBus';
-import {
-	EventClass,
-	EventHandlerClass,
-	IEventRegistry,
-	IEventRegistryDependencies,
-} from '@/interfaces/IEventRegistry';
-import { EventBus } from './EventBus';
+import { IEventRegistry, IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
+import { IEventRouter } from '@/interfaces/IEventRouter';
+import { Logger } from '@/utils/Logger';
 
 export class EventRegistry implements IEventRegistry {
 	private _factories: Set<() => void> = new Set();
 	private _unsubscribes: (() => void)[] = [];
-	private _isInitialized: boolean = false;
 	private _bus: IEventBus;
-	private _deps: IEventRegistryDependencies | null = null;
-	private static _instance: EventRegistry | null = null;
+	private _deps: IEventRegistryDependencies;
+	private _router: IEventRouter;
 
-	private constructor(bus: IEventBus = EventBus.instance) {
+	constructor(bus: IEventBus, deps: IEventRegistryDependencies, router: IEventRouter) {
 		this._bus = bus;
-	}
-
-	static get instance(): EventRegistry {
-		if (!this._instance) {
-			this._instance = new EventRegistry();
-		}
-		return this._instance;
-	}
-
-	register(Event: EventClass, Handler: EventHandlerClass): void {
-		const factory = () => {
-			if (!this._deps) throw new Error('EventRegistry is not initialized');
-			const handler = new Handler(this._deps);
-			const unsubscribe = this._bus.subscribe(Event.type, handler.handle);
-			this._unsubscribes.push(unsubscribe);
-		};
-
-		this._factories.add(factory);
-
-		if (this._isInitialized) {
-			factory();
-		}
-	}
-
-	initialize(deps: IEventRegistryDependencies): void {
 		this._deps = deps;
+		this._router = router;
+	}
 
+	private _registerRouter(router: IEventRouter): void {
+		// Register each event handler factory from the router's routes
+		router.routes.forEach((handlers, event) => {
+			// Register each handler for the given event
+			handlers.forEach((handler) => {
+				// Create a factory function that will create and subscribe the event handler
+				const factory = () => {
+					const eventHandler = new handler(this._deps);
+					const unsubscribe = this._bus.subscribe(event.type, eventHandler.handle);
+					this._unsubscribes.push(unsubscribe);
+				};
+				// Add the factory to the set of factories to be initialized
+				this._factories.add(factory);
+			});
+		});
+	}
+
+	initialize(): void {
+		// Register the router and its routes
+		this._registerRouter(this._router);
+
+		Logger.info('n of registered handlers', this._factories.size);
+
+		// Initialize each factory
 		for (const factory of this._factories) {
 			factory();
 		}
-
-		this._isInitialized = true;
 	}
 
 	dispose(): void {
@@ -57,6 +51,5 @@ export class EventRegistry implements IEventRegistry {
 		}
 		this._unsubscribes = [];
 		this._factories.clear();
-		this._isInitialized = false;
 	}
 }
