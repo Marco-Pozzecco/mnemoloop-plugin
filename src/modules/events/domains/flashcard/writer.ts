@@ -48,10 +48,12 @@ export class FlashcardWriterFmEvent extends Event<FlashcardWriterFmEventData> {
 
 type FlashcardWriterBodyEventData = FlashcardContent;
 
-export class FlashcardWriterBodyEvent extends Event<FlashcardWriterBodyEventData> {
+export class FlashcardWriterBodyEvent extends Event<
+	FlashcardWriterBodyEventData & { filepath: string }
+> {
 	static readonly type: WriterEventType = 'Flashcard:Writer:Body';
 
-	constructor(data: FlashcardWriterBodyEventData) {
+	constructor(data: FlashcardWriterBodyEventData & { filepath: string }) {
 		super(FlashcardWriterBodyEvent.type, data);
 	}
 }
