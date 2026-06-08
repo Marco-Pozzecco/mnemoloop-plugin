@@ -1,9 +1,17 @@
 import { Event } from '../../core/Event';
 
-export class FlashcardStatisticsComputeEvent extends Event<undefined> {
-	static readonly type = 'Flashcard:Statistics:Compute';
+enum EventAction {
+	Compute = 'Compute',
+}
 
+type EventType = `Flashcard:Statistics:${EventAction}`;
+
+const t: Record<Uncapitalize<EventAction>, EventType> = {
+	compute: 'Flashcard:Statistics:Compute',
+};
+
+export class FlashcardStatisticsComputeEvent extends Event<void> {
 	constructor() {
-		super(FlashcardStatisticsComputeEvent.type, undefined);
+		super(t.compute);
 	}
 }

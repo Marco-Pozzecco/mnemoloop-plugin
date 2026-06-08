@@ -1,49 +1,59 @@
 import { PluginSettings } from '@/schemas';
 import { AdapterAction } from '@/types/adapters';
-import { Event } from '../../core/Event';
+import { Event, EventRequest, EventResponse } from '../../core/Event';
 
 type Adapters = 'settings';
 type AdapterEventType = `${Capitalize<Adapters>}:Adapter:${Capitalize<AdapterAction>}`;
 
-export class SettingsAdapterSetEvent extends Event<{
+const t: Record<AdapterAction, AdapterEventType> = {
+	set: 'Settings:Adapter:Set',
+	update: 'Settings:Adapter:Update',
+	reset: 'Settings:Adapter:Reset',
+	save: 'Settings:Adapter:Save',
+	init: 'Settings:Adapter:Init',
+};
+
+export class SettingsAdapterSetRequestEvent extends EventRequest<{
 	field: keyof PluginSettings;
 	value: unknown;
 }> {
-	static readonly type: AdapterEventType = 'Settings:Adapter:Set';
-
 	constructor(data: { field: keyof PluginSettings; value: unknown }) {
-		super(SettingsAdapterSetEvent.type, data);
+		super(t.set, data);
 	}
 }
 
-export class SettingsAdapterUpdateEvent extends Event<Partial<PluginSettings>> {
-	static readonly type: AdapterEventType = 'Settings:Adapter:Update';
+export class SettingsAdapterSetResponseEvent extends EventResponse<PluginSettings> {
+	constructor(data: PluginSettings) {
+		super(t.set, data);
+	}
+}
 
+export class SettingsAdapterUpdateRequestEvent extends EventRequest<Partial<PluginSettings>> {
 	constructor(data: Partial<PluginSettings>) {
-		super(SettingsAdapterUpdateEvent.type, data);
+		super(t.update, data);
+	}
+}
+
+export class SettingsAdapterUpdateResponseEvent extends EventResponse<PluginSettings> {
+	constructor(data: PluginSettings) {
+		super(t.update, data);
 	}
 }
 
 export class SettingsAdapterResetEvent extends Event<void> {
-	static readonly type: AdapterEventType = 'Settings:Adapter:Reset';
-
 	constructor() {
-		super(SettingsAdapterResetEvent.type, undefined);
+		super(t.reset);
 	}
 }
 
 export class SettingsAdapterSaveEvent extends Event<void> {
-	static readonly type: AdapterEventType = 'Settings:Adapter:Save';
-
 	constructor() {
-		super(SettingsAdapterSaveEvent.type, undefined);
+		super(t.save);
 	}
 }
 
 export class SettingsAdapterInitEvent extends Event<void> {
-	static readonly type: AdapterEventType = 'Settings:Adapter:Init';
-
 	constructor() {
-		super(SettingsAdapterInitEvent.type, undefined);
+		super(t.init, undefined);
 	}
 }
