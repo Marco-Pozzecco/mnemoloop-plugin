@@ -11,6 +11,7 @@ const t: Record<AdapterAction, AdapterEventType> = {
 	reset: 'Flashcard:Adapter:Reset',
 	save: 'Flashcard:Adapter:Save',
 	init: 'Flashcard:Adapter:Init',
+	state: 'Flashcard:Adapter:State',
 };
 
 export class FlashcardAdapterSetRequestEvent extends EventRequest<FlashcardIndex> {
@@ -37,26 +38,26 @@ export class FlashcardAdapterUpdateResponseEvent extends EventResponse<Flashcard
 	}
 }
 
-export class FlashcardAdapterResetEvent extends Event<undefined> {
-	static readonly type: AdapterEventType = 'Flashcard:Adapter:Reset';
-
+export class FlashcardAdapterResetEvent extends Event<void> {
 	constructor() {
-		super(t.reset, undefined);
+		super(t.reset);
 	}
 }
 
-export class FlashcardAdapterSaveEvent extends Event<undefined> {
-	static readonly type: AdapterEventType = 'Flashcard:Adapter:Save';
-
+export class FlashcardAdapterSaveEvent extends Event<void> {
 	constructor() {
-		super(t.save, undefined);
+		super(t.save);
 	}
 }
 
-export class FlashcardAdapterInitEvent extends Event<undefined> {
-	static readonly type: AdapterEventType = 'Flashcard:Adapter:Init';
-
+export class FlashcardAdapterInitEvent extends Event<void> {
 	constructor() {
-		super(t.init, undefined);
+		super(t.init);
+	}
+}
+
+export class FlashcardAdapterStateEvent extends Event<FlashcardIndex> {
+	constructor(data: FlashcardIndex) {
+		super(t.state, data);
 	}
 }

@@ -8,6 +8,7 @@ import {
 	FlashcardAdapterSaveEvent,
 	FlashcardAdapterSetRequestEvent,
 	FlashcardAdapterSetResponseEvent,
+	FlashcardAdapterStateEvent,
 	FlashcardAdapterUpdateRequestEvent,
 	FlashcardAdapterUpdateResponseEvent,
 } from '../../domains';
@@ -18,8 +19,10 @@ export class FlashcardAdapterInitHandler extends EventHandler<FlashcardAdapterIn
 	}
 
 	async handle(_event: FlashcardAdapterInitEvent): Promise<void> {
-		const adapter = this._adapters.get(AdapterKey.flashcard)!;
+		const adapter = this._adapters.get(AdapterKey.flashcard) as FlashcardAdapter;
 		await adapter.initialize();
+		// Publish the state change via the event bus
+		this._bus.publish(new FlashcardAdapterStateEvent(adapter.data));
 	}
 }
 
@@ -29,7 +32,10 @@ export class FlashcardAdapterResetHandler extends EventHandler<FlashcardAdapterR
 	}
 
 	async handle(_event: FlashcardAdapterResetEvent): Promise<void> {
-		await this._adapters.get(AdapterKey.flashcard)!.reset();
+		const adapter = this._adapters.get(AdapterKey.flashcard) as FlashcardAdapter;
+		await adapter.reset();
+		// Publish the state change via the event bus
+		this._bus.publish(new FlashcardAdapterStateEvent(adapter.data));
 	}
 }
 
@@ -39,7 +45,10 @@ export class FlashcardAdapterSaveHandler extends EventHandler<FlashcardAdapterSa
 	}
 
 	async handle(_event: FlashcardAdapterSaveEvent): Promise<void> {
-		await this._adapters.get(AdapterKey.flashcard)!.save();
+		const adapter = this._adapters.get(AdapterKey.flashcard) as FlashcardAdapter;
+		await adapter.save();
+		// Publish the state change via the event bus
+		this._bus.publish(new FlashcardAdapterStateEvent(adapter.data));
 	}
 }
 
@@ -57,6 +66,8 @@ export class FlashcardAdapterSetHandler extends EventHandler<FlashcardAdapterSet
 		const updated = adapter.data;
 		const response = new FlashcardAdapterSetResponseEvent(updated);
 		this._bus.publish(response);
+		// Publish the state change via the event bus
+		this._bus.publish(new FlashcardAdapterStateEvent(updated));
 	}
 }
 
@@ -74,5 +85,7 @@ export class FlashcardAdapterUpdateHandler extends EventHandler<FlashcardAdapter
 		const updated = adapter.data;
 		const response = new FlashcardAdapterUpdateResponseEvent(updated);
 		this._bus.publish(response);
+		// Publish the state change via the event bus
+		this._bus.publish(new FlashcardAdapterStateEvent(updated));
 	}
 }

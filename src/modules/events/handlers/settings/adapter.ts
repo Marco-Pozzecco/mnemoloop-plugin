@@ -2,12 +2,8 @@ import { IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
 import { AdapterKey } from '@/types/adapters';
 import { EventHandler } from '../../core/EventHandler';
 import {
-	SettingsAdapterInitRequestEvent,
-	SettingsAdapterInitResponseEvent,
-	SettingsAdapterResetRequestEvent,
-	SettingsAdapterResetResponseEvent,
-	SettingsAdapterSaveRequestEvent,
-	SettingsAdapterSaveResponseEvent,
+	SettingsAdapterInitEvent,
+	SettingsAdapterSaveEvent,
 	SettingsAdapterSetRequestEvent,
 	SettingsAdapterSetResponseEvent,
 	SettingsAdapterUpdateRequestEvent,
@@ -15,39 +11,36 @@ import {
 } from '../../domains/settings/adapter';
 import { SettingsAdapter } from '@/modules/adapters/SettingsAdapter';
 
-export class SettingsAdapterInitHandler extends EventHandler<SettingsAdapterInitRequestEvent> {
+export class SettingsAdapterInitHandler extends EventHandler<SettingsAdapterInitEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
 
-	async handle(_event: SettingsAdapterInitRequestEvent): Promise<void> {
+	async handle(_event: SettingsAdapterInitEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		await adapter.initialize();
-		this._bus.publish(new SettingsAdapterInitResponseEvent(adapter.data));
 	}
 }
 
-export class SettingsAdapterResetHandler extends EventHandler<SettingsAdapterResetRequestEvent> {
+export class SettingsAdapterResetHandler extends EventHandler<SettingsAdapterSetRequestEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
 
-	async handle(_event: SettingsAdapterResetRequestEvent): Promise<void> {
+	async handle(_event: SettingsAdapterSetRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		await adapter.reset();
-		this._bus.publish(new SettingsAdapterResetResponseEvent(adapter.data));
 	}
 }
 
-export class SettingsAdapterSaveHandler extends EventHandler<SettingsAdapterSaveRequestEvent> {
+export class SettingsAdapterSaveHandler extends EventHandler<SettingsAdapterSaveEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
 
-	async handle(_event: SettingsAdapterSaveRequestEvent): Promise<void> {
+	async handle(_event: SettingsAdapterSaveEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		await adapter.save();
-		this._bus.publish(new SettingsAdapterSaveResponseEvent(adapter.data));
 	}
 }
 
