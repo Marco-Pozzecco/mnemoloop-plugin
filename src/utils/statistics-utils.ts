@@ -1,26 +1,8 @@
-import {
-	FlashcardIndexCreateEvent,
-	FlashcardIndexDeleteEvent,
-	FlashcardIndexInitializeEvent,
-	FlashcardIndexSaveEvent,
-	FlashcardIndexUpdateResponseEvent,
-} from '@/modules/events/domains';
 import { FlashcardReviewSessionEndData } from '@/modules/events/domains/flashcard/review';
 import { DailyProgress, FlashcardMetadata, ReviewSession } from '@/schemas';
 
 export const MAX_RECALC_DELAY_MS = 24 * 60 * 60 * 1000; // 24 hours
 export const BUFFER_MS = 300;
-
-export function isIndexFlashcardEvent(eventType: string): boolean {
-	const indexTypes: string[] = [
-		FlashcardIndexCreateEvent.type,
-		FlashcardIndexDeleteEvent.type,
-		FlashcardIndexUpdateResponseEvent.type,
-		FlashcardIndexInitializeEvent.type,
-		FlashcardIndexSaveEvent.type,
-	];
-	return indexTypes.includes(eventType);
-}
 
 export function formatDate(date: Date): string {
 	return date.toISOString().split('T')[0];
