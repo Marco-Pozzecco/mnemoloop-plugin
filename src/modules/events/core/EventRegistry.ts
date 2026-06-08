@@ -24,7 +24,7 @@ export class EventRegistry implements IEventRegistry {
 				// Create a factory function that will create and subscribe the event handler
 				const factory = () => {
 					const eventHandler = new handler(this._deps);
-					const unsubscribe = this._bus.subscribe(event.type, eventHandler.handle);
+					const unsubscribe = this._bus.subscribe(event, eventHandler.handle);
 					this._unsubscribes.push(unsubscribe);
 				};
 				// Add the factory to the set of factories to be initialized

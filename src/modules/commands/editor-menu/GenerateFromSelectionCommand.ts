@@ -69,7 +69,7 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 		};
 
 		this._unsubscribe = EventBus.instance.subscribe(
-			FlashcardWriterCreateResponseEvent.type,
+			FlashcardWriterCreateResponseEvent,
 			responseHandler,
 		);
 

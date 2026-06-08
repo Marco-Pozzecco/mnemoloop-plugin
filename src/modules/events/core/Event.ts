@@ -7,12 +7,13 @@ export abstract class Event<TData> implements IEvent<TData> {
 	static type: string;
 
 	readonly id: string = uuid();
-	readonly type: string = Event.type;
+	readonly type: string;
 	readonly time: Date;
 	readonly data: TData;
 
 	constructor(type: string, data: TData) {
-		Event.type = type;
+		const ctor = this.constructor as typeof Event;
+		ctor.type = type;
 		this.type = type;
 		this.time = new Date();
 		this.data = data;
@@ -20,13 +21,13 @@ export abstract class Event<TData> implements IEvent<TData> {
 
 	/** Check if this event matches a type */
 	isType(type: string): boolean {
-		return Event.type === type;
+		return this.type === type;
 	}
 
 	/** Serialize to JSON-friendly format */
 	toJSON() {
 		return {
-			type: Event.type,
+			type: this.type,
 			timestamp: this.time.toISOString(),
 			data: this.data,
 		};

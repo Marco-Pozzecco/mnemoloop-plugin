@@ -15,7 +15,7 @@ export class StatsStore extends BaseStoreManager<Stats> {
 		const handler = (event: StatisticsAdapterStateEvent) => {
 			this.store.update(() => event.data);
 		};
-		this._unsubscribe = EventBus.instance.subscribe(StatisticsAdapterStateEvent.type, handler);
+		this._unsubscribe = EventBus.instance.subscribe(StatisticsAdapterStateEvent, handler);
 	}
 
 	get stats() {

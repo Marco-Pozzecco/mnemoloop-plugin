@@ -135,7 +135,7 @@ export class DeckTreeStore extends BaseStoreManager<DeckTreeState> {
 			this.store.update((state) => ({ ...state, nodes, nodeMap: map }));
 		};
 
-		this._unsubscribe = EventBus.instance.subscribe(FlashcardIndexStateEvent.type, responseHandler);
+		this._unsubscribe = EventBus.instance.subscribe(FlashcardIndexStateEvent, responseHandler);
 	}
 
 	selectDeck(fullPath: string | null): void {

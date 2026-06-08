@@ -57,7 +57,7 @@ export class CreateFlashcardFromFileCommand extends BaseCommand {
 		};
 
 		this._unsubscribe = EventBus.instance.subscribe(
-			FlashcardWriterCreateResponseEvent.type,
+			FlashcardWriterCreateResponseEvent,
 			responseHandler,
 		);
 

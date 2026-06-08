@@ -45,7 +45,7 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 			this.fieldErrors.update(() => ({}));
 			this.isLoading.update(() => false);
 		};
-		this._unsubscribe = EventBus.instance.subscribe(SettingsAdapterStateEvent.type, handler);
+		this._unsubscribe = EventBus.instance.subscribe(SettingsAdapterStateEvent, handler);
 	}
 
 	async updateField<K extends keyof PluginSettings>(
