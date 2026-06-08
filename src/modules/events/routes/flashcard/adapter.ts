@@ -7,7 +7,7 @@ const router = new EventRouter();
 router.route(events.FlashcardAdapterInitEvent, handlers.FlashcardAdapterInitHandler);
 router.route(events.FlashcardAdapterResetEvent, handlers.FlashcardAdapterResetHandler);
 router.route(events.FlashcardAdapterSaveEvent, handlers.FlashcardAdapterSaveHandler);
-router.route(events.FlashcardAdapterSetEvent, handlers.FlashcardAdapterSetHandler);
-router.route(events.FlashcardAdapterUpdateEvent, handlers.FlashcardAdapterUpdateHandler);
+router.route(events.FlashcardAdapterSetRequestEvent, handlers.FlashcardAdapterSetHandler);
+router.route(events.FlashcardAdapterUpdateRequestEvent, handlers.FlashcardAdapterUpdateHandler);
 
 export const FlashcardAdapterRouter = router;

@@ -4,10 +4,10 @@ import * as handlers from '../../handlers/flashcard/writer';
 
 const router = new EventRouter();
 
-router.route(events.FlashcardWriterCreateEvent, handlers.FlashcardWriterCreateHandler);
-router.route(events.FlashcardWriterUpdateEvent, handlers.FlashcardWriterUpdateHandler);
-router.route(events.FlashcardWriterDeleteEvent, handlers.FlashcardWriterDeleteHandler);
-router.route(events.FlashcardWriterFmEvent, handlers.FlashcardWriterFmHandler);
-router.route(events.FlashcardWriterBodyEvent, handlers.FlashcardWriterBodyHandler);
+router.route(events.FlashcardWriterCreateRequestEvent, handlers.FlashcardWriterCreateHandler);
+router.route(events.FlashcardWriterUpdateRequestEvent, handlers.FlashcardWriterUpdateHandler);
+router.route(events.FlashcardWriterDeleteRequestEvent, handlers.FlashcardWriterDeleteHandler);
+router.route(events.FlashcardWriterFmRequestEvent, handlers.FlashcardWriterFmHandler);
+router.route(events.FlashcardWriterBodyRequestEvent, handlers.FlashcardWriterBodyHandler);
 
 export const FlashcardWriterRouter = router;
