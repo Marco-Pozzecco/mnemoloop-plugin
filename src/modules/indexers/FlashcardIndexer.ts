@@ -71,10 +71,15 @@ export class FlashcardIndexer extends BaseIndexer<
 	}
 
 	public generateMetadata(data: ParseResult<FlashcardYaml>): FlashcardMetadata {
-		const metadata = FlashcardMetadataSchema.parse(data.entity);
-		return {
-			...metadata,
+		const now = new Date().toISOString();
+		const entity = data.entity as Record<string, unknown>;
+		const metadata = FlashcardMetadataSchema.parse({
+			...entity,
 			file: data.filepath,
-		};
+			created_at: entity.created_at ?? now,
+			updated_at: entity.updated_at ?? now,
+			deleted_at: entity.deleted_at ?? null,
+		});
+		return metadata;
 	}
 }
