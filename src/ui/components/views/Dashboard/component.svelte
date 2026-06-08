@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { IReviewEngine } from '@/interfaces/IReviewEngine';
+	import type { FlashcardYaml } from '@/schemas/flashcard';
 	import { EventBus } from '@/modules/events';
 	import { DashboardOpenEvent } from '@/modules/events/domains/ui/dashboard';
 	import { IndexKey } from '@/types/indexes';
@@ -17,12 +19,17 @@
 	import { onMount } from 'svelte';
 	import type { DashboardConfig } from './types';
 
+	interface Props {
+		reviewEngine: IReviewEngine<FlashcardYaml>;
+	}
+	const { reviewEngine }: Props = $props();
+
 	// Store references for automatic subscription with $ prefix
 	const statsStoreRef = statsStore.store;
 	const uiStoreRef = uiStore.store;
 	const deckTreeRef = deckTreeStore.store;
 
-	const controller = $derived(new DashboardController());
+	const controller = $derived(new DashboardController(reviewEngine));
 
 	// state - using $derived with $ prefix for automatic store subscription
 	let stats = $derived($statsStoreRef);
