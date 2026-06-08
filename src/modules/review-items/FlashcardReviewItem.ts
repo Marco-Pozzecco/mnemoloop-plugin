@@ -8,22 +8,23 @@ import {
 	FlashcardWriterFmRequestEvent,
 } from '../events';
 import { BaseReviewItem } from './BaseReviewItem';
-import { EventCallback } from '@/interfaces/IEventBus';
 
 export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml> {
-	private _callback: EventCallback;
+	private _unsubscribe: () => void;
 
 	constructor(filepath: string, engine: IReviewEngine<FlashcardYaml>) {
 		super(filepath, engine);
 
-		this._callback = EventBus.instance.subscribe((event) => {
-			if (event.isType(FlashcardParserParseResponseEvent.type)) {
-				const { data } = event as FlashcardParserParseResponseEvent;
-				if (data.filepath === filepath) {
-					this._data = data.entity;
-				}
+		const responseHandler = (event: FlashcardParserParseResponseEvent) => {
+			if (event.data.filepath === filepath) {
+				this._data = event.data.entity;
 			}
-		});
+		};
+
+		this._unsubscribe = EventBus.instance.subscribe(
+			FlashcardParserParseResponseEvent.type,
+			responseHandler,
+		);
 
 		EventBus.instance.publish(new FlashcardParserParseRequestEvent({ filepath }));
 	}
@@ -71,6 +72,6 @@ export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml
 	}
 
 	dispose(): void {
-		EventBus.instance.unsubscribe(this._callback);
+		this._unsubscribe();
 	}
 }
