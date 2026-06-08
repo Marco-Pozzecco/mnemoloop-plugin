@@ -7,52 +7,48 @@ import {
 import { FsrsEngine } from '../review-engines/FsrsEngine';
 import { FlashcardReviewItem } from '../review-items/FlashcardReviewItem';
 import { BaseReviewQueue } from './BaseReviewQueue';
-import { IEvent } from '@/interfaces/IEvent';
 
 export class FlashcardReviewQueue extends BaseReviewQueue<
 	Flashcard,
 	FlashcardMetadata,
 	FlashcardYaml
 > {
-	private _callback: (event: IEvent) => void;
+	private _unsubscribe?: () => void;
 
-	constructor(
-		predicate?: (entity: FlashcardMetadata) => boolean,
-		deckFilter?: string,
-	) {
+	constructor(predicate: (entity: FlashcardMetadata) => boolean) {
 		const engine = new FsrsEngine();
-		super(engine, predicate, deckFilter);
 
-		this._callback = (event) => {
-			if (event.isType(FlashcardIndexQueryResponseEvent.type)) {
-				const data = (event as FlashcardIndexQueryResponseEvent).data;
-				const sortedData = this._engine.sort(data);
-				this._items = sortedData.map((f) => new FlashcardReviewItem(f.file, engine));
-			}
+		super(engine, predicate);
+
+		const responseHandler = (event: FlashcardIndexQueryResponseEvent) => {
+			const sortedData = this._engine.sort(event.data);
+			this._items = sortedData.map((f) => new FlashcardReviewItem(f.file, engine));
 		};
 
-		EventBus.instance.request(
+		this._unsubscribe = EventBus.instance.subscribe(
+			FlashcardIndexQueryResponseEvent.type,
+			responseHandler,
+		);
+
+		EventBus.instance.publish(
 			new FlashcardIndexQueryRequestEvent({
-				predicate: predicate ?? (() => false),
-				deckFilter,
+				predicate: this._itemsQuery,
 			}),
-			this._callback,
 		);
 	}
 
 	recalc(): void {
-		EventBus.instance.request(
+		EventBus.instance.publish(
 			new FlashcardIndexQueryRequestEvent({
 				predicate: this._itemsQuery ?? (() => false),
-				deckFilter: this._deckFilter,
 			}),
-			this._callback,
 		);
 
 		this._position = 0;
 	}
 
 	dispose(): void {
+		this._unsubscribe?.();
 		for (const item of this._items) {
 			item.dispose();
 		}
