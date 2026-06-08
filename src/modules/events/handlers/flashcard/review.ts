@@ -21,7 +21,7 @@ import {
 	FlashcardReviewSessionScoreEvent,
 	FlashcardReviewSessionStartEvent,
 	FlashcardStatisticsComputeEvent,
-	FlashcardWriterFmEvent,
+	FlashcardWriterFmRequestEvent,
 } from '../../domains/flashcard';
 
 export class FlashcardReviewSessionStartHandler extends EventHandler<FlashcardReviewSessionStartEvent> {
@@ -86,8 +86,10 @@ export class FlashcardReviewSessionScoreHandler extends EventHandler<FlashcardRe
 		});
 		stats.save();
 
-		// 4. Publish FlashcardWriterFmEvent to update file on disk
-		EventBus.instance.publish(new FlashcardWriterFmEvent({ filepath: card.filepath, fm: card }));
+		// 4. Publish FlashcardWriterFmRequestEvent to update file on disk
+		EventBus.instance.publish(
+			new FlashcardWriterFmRequestEvent({ filepath: card.filepath, fm: card }),
+		);
 
 		// 5. Publish FlashcardStatisticsComputeEvent
 		EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
@@ -119,6 +121,8 @@ export class FlashcardReviewSessionEndHandler extends EventHandler<FlashcardRevi
 			updated_at: new Date().toISOString(),
 		});
 		stats.save();
+
+		// Publish statistics compute event to recalculate statistics
 		EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
 	}
 }

@@ -6,13 +6,20 @@ import { normalizePath } from 'obsidian';
 import { EventBus } from '../../core/EventBus';
 import { EventHandler } from '../../core/EventHandler';
 import {
-	FlashcardIndexGetAllEvent,
-	FlashcardIndexGetEvent,
+	FlashcardIndexCreateRequestEvent,
+	FlashcardIndexCreateResponseEvent,
+	FlashcardIndexDeleteRequestEvent,
+	FlashcardIndexDeleteResponseEvent,
+	FlashcardIndexGetAllRequestEvent,
+	FlashcardIndexGetAllResponseEvent,
+	FlashcardIndexGetRequestEvent,
+	FlashcardIndexGetResponseEvent,
 	FlashcardIndexInitializeEvent,
-	FlashcardIndexQueryEvent,
-	FlashcardIndexRecalcEvent,
+	FlashcardIndexQueryRequestEvent,
+	FlashcardIndexQueryResponseEvent,
 	FlashcardIndexSaveEvent,
-	FlashcardIndexUpdateEvent,
+	FlashcardIndexUpdateRequestEvent,
+	FlashcardIndexUpdateResponseEvent,
 	FlashcardStatisticsComputeEvent,
 } from '../../domains/flashcard';
 import {
@@ -28,74 +35,10 @@ export class FlashcardIndexInitializeHandler extends EventHandler<FlashcardIndex
 	}
 
 	async handle(_event: FlashcardIndexInitializeEvent): Promise<void> {
-		try {
-			const indexer = this._indexers.get(IndexKey.flashcard)!;
-			await indexer.initialize();
-		} catch (err) {
-			Logger.error('Reindex failed', err);
-		}
-		EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
-	}
-}
-
-export class FlashcardIndexGetHandler extends EventHandler<FlashcardIndexGetEvent> {
-	constructor(deps: IEventRegistryDependencies) {
-		super(deps);
-	}
-
-	async handle(event: FlashcardIndexGetEvent): Promise<void> {
-		try {
-			const indexer = this._indexers.get(IndexKey.flashcard)!;
-			indexer.get(event.data.id);
-		} catch (err) {
-			Logger.error('Failed to get flashcard', err);
-		}
-	}
-}
-
-export class FlashcardIndexGetAllHandler extends EventHandler<FlashcardIndexGetAllEvent> {
-	constructor(deps: IEventRegistryDependencies) {
-		super(deps);
-	}
-
-	async handle(_event: FlashcardIndexGetAllEvent): Promise<void> {
-		try {
-			const indexer = this._indexers.get(IndexKey.flashcard)!;
-			indexer.getAll();
-		} catch (err) {
-			Logger.error('Failed to get all flashcards', err);
-		}
-	}
-}
-
-export class FlashcardIndexQueryHandler extends EventHandler<FlashcardIndexQueryEvent> {
-	constructor(deps: IEventRegistryDependencies) {
-		super(deps);
-	}
-
-	async handle(event: FlashcardIndexQueryEvent): Promise<void> {
-		try {
-			const indexer = this._indexers.get(IndexKey.flashcard)!;
-			indexer.query(event.data.predicate);
-		} catch (err) {
-			Logger.error('Query failed', err);
-		}
-	}
-}
-
-export class FlashcardIndexUpdateHandler extends EventHandler<FlashcardIndexUpdateEvent> {
-	constructor(deps: IEventRegistryDependencies) {
-		super(deps);
-	}
-
-	async handle(event: FlashcardIndexUpdateEvent): Promise<void> {
-		try {
-			const indexer = this._indexers.get(IndexKey.flashcard)!;
-			indexer.update(event.data.uuid!, event.data);
-		} catch (err) {
-			Logger.error('Failed to handle update request', err);
-		}
-		EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
+		const indexer = this._indexers.get(IndexKey.flashcard)!;
+		await indexer.initialize();
+		// Update statistics
+		this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
 
@@ -107,21 +50,89 @@ export class FlashcardIndexSaveHandler extends EventHandler<FlashcardIndexSaveEv
 	async handle(_event: FlashcardIndexSaveEvent): Promise<void> {
 		const indexer = this._indexers.get(IndexKey.flashcard)!;
 		await indexer.save();
-		EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
 
-export class FlashcardIndexRecalcHandler extends EventHandler<FlashcardIndexRecalcEvent> {
+export class FlashcardIndexGetHandler extends EventHandler<FlashcardIndexGetRequestEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
 
-	async handle(_event: FlashcardIndexRecalcEvent): Promise<void> {
-		EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
+	async handle(event: FlashcardIndexGetRequestEvent): Promise<void> {
+		const indexer = this._indexers.get(IndexKey.flashcard)!;
+		const response = indexer.get(event.data.id);
+		this._bus.publish(new FlashcardIndexGetResponseEvent(response ?? null));
 	}
 }
 
-export class FlashcardIndexCreateHandler extends EventHandler<VaultCreateEvent> {
+export class FlashcardIndexGetAllHandler extends EventHandler<FlashcardIndexGetAllRequestEvent> {
+	constructor(deps: IEventRegistryDependencies) {
+		super(deps);
+	}
+
+	async handle(_event: FlashcardIndexGetAllRequestEvent): Promise<void> {
+		const indexer = this._indexers.get(IndexKey.flashcard)!;
+		const result = indexer.getAll();
+		this._bus.publish(new FlashcardIndexGetAllResponseEvent(result));
+	}
+}
+
+export class FlashcardIndexQueryHandler extends EventHandler<FlashcardIndexQueryRequestEvent> {
+	constructor(deps: IEventRegistryDependencies) {
+		super(deps);
+	}
+
+	async handle(event: FlashcardIndexQueryRequestEvent): Promise<void> {
+		const indexer = this._indexers.get(IndexKey.flashcard)!;
+		const result = indexer.query(event.data.predicate);
+		this._bus.publish(new FlashcardIndexQueryResponseEvent(result));
+	}
+}
+
+export class FlashcardIndexUpdateHandler extends EventHandler<FlashcardIndexUpdateRequestEvent> {
+	constructor(deps: IEventRegistryDependencies) {
+		super(deps);
+	}
+
+	async handle(event: FlashcardIndexUpdateRequestEvent): Promise<void> {
+		const indexer = this._indexers.get(IndexKey.flashcard)!;
+		const result = indexer.update(event.data.uuid!, event.data);
+
+		this._bus.publish(new FlashcardIndexUpdateResponseEvent(result));
+		this._bus.publish(new FlashcardStatisticsComputeEvent());
+	}
+}
+
+export class FlashcardIndexCreateHandler extends EventHandler<FlashcardIndexCreateRequestEvent> {
+	constructor(deps: IEventRegistryDependencies) {
+		super(deps);
+	}
+
+	async handle(event: FlashcardIndexCreateRequestEvent): Promise<void> {
+		const indexer = this._indexers.get(IndexKey.flashcard)!;
+		const result = indexer.create(event.data.uuid, event.data);
+		await indexer.save();
+
+		this._bus.publish(new FlashcardIndexCreateResponseEvent(result));
+	}
+}
+
+export class FlashcardIndexDeleteHandler extends EventHandler<FlashcardIndexDeleteRequestEvent> {
+	constructor(deps: IEventRegistryDependencies) {
+		super(deps);
+	}
+
+	async handle(event: FlashcardIndexDeleteRequestEvent): Promise<void> {
+		const indexer = this._indexers.get(IndexKey.flashcard)!;
+		const result = indexer.delete(event.data.uuid);
+		await indexer.save();
+
+		this._bus.publish(new FlashcardIndexDeleteResponseEvent(result ?? null));
+	}
+}
+
+// Vault events
+export class FlashcardIndexOnVaultCreateHandler extends EventHandler<VaultCreateEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
@@ -151,7 +162,7 @@ export class FlashcardIndexCreateHandler extends EventHandler<VaultCreateEvent> 
 	}
 }
 
-export class FlashcardIndexDeleteHandler extends EventHandler<VaultDeleteEvent> {
+export class FlashcardIndexOnVaultDeleteHandler extends EventHandler<VaultDeleteEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
@@ -177,7 +188,7 @@ export class FlashcardIndexDeleteHandler extends EventHandler<VaultDeleteEvent> 
 	}
 }
 
-export class FlashcardIndexModifyHandler extends EventHandler<VaultModifyEvent> {
+export class FlashcardIndexOnVaultModifyHandler extends EventHandler<VaultModifyEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
@@ -212,7 +223,7 @@ export class FlashcardIndexModifyHandler extends EventHandler<VaultModifyEvent> 
 	}
 }
 
-export class FlashcardIndexRenameHandler extends EventHandler<VaultRenameEvent> {
+export class FlashcardIndexOnVaultRenameHandler extends EventHandler<VaultRenameEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}

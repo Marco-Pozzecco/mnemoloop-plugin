@@ -2,56 +2,64 @@ import { IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
 import { ParserKey } from '@/types/parsers';
 import { EventHandler } from '../../core/EventHandler';
 import {
-	FlashcardParserParseEvent,
-	FlashcardParserParseContentEvent,
-	FlashcardParserParseMetadataEvent,
-	FlashcardParserParseAllEvent,
+	FlashcardParserParseAllRequestEvent,
+	FlashcardParserParseAllResponseEvent,
+	FlashcardParserParseContentRequestEvent,
+	FlashcardParserParseContentResponseEvent,
+	FlashcardParserParseMetadataRequestEvent,
+	FlashcardParserParseMetadataResponseEvent,
+	FlashcardParserParseRequestEvent,
+	FlashcardParserParseResponseEvent,
 } from '../../domains/flashcard/parsers';
 
-export class FlashcardParserParseHandler extends EventHandler<FlashcardParserParseEvent> {
+export class FlashcardParserParseHandler extends EventHandler<FlashcardParserParseRequestEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
 
-	async handle(event: FlashcardParserParseEvent): Promise<void> {
+	async handle(event: FlashcardParserParseRequestEvent): Promise<void> {
 		const parser = this._parsers.get(ParserKey.flashcard)!;
 		const { filepath } = event.data;
-		await parser.parse(filepath);
+		const result = await parser.parse(filepath);
+		this._bus.publish(new FlashcardParserParseResponseEvent(result));
 	}
 }
 
-export class FlashcardParserParseContentHandler extends EventHandler<FlashcardParserParseContentEvent> {
+export class FlashcardParserParseContentHandler extends EventHandler<FlashcardParserParseContentRequestEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
 
-	async handle(event: FlashcardParserParseContentEvent): Promise<void> {
+	async handle(event: FlashcardParserParseContentRequestEvent): Promise<void> {
 		const parser = this._parsers.get(ParserKey.flashcard)!;
 		const { content } = event.data;
-		parser.parseContent(content);
+		const result = parser.parseContent(content);
+		this._bus.publish(new FlashcardParserParseContentResponseEvent(result));
 	}
 }
 
-export class FlashcardParserParseMetadataHandler extends EventHandler<FlashcardParserParseMetadataEvent> {
+export class FlashcardParserParseMetadataHandler extends EventHandler<FlashcardParserParseMetadataRequestEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
 
-	async handle(event: FlashcardParserParseMetadataEvent): Promise<void> {
+	async handle(event: FlashcardParserParseMetadataRequestEvent): Promise<void> {
 		const parser = this._parsers.get(ParserKey.flashcard)!;
 		const { filepath } = event.data;
-		await parser.parseMetadata(filepath);
+		const result = await parser.parseMetadata(filepath);
+		this._bus.publish(new FlashcardParserParseMetadataResponseEvent(result));
 	}
 }
 
-export class FlashcardParserParseAllHandler extends EventHandler<FlashcardParserParseAllEvent> {
+export class FlashcardParserParseAllHandler extends EventHandler<FlashcardParserParseAllRequestEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
 
-	async handle(event: FlashcardParserParseAllEvent): Promise<void> {
+	async handle(event: FlashcardParserParseAllRequestEvent): Promise<void> {
 		const parser = this._parsers.get(ParserKey.flashcard)!;
 		const { dirPath } = event.data;
-		await parser.parseAll(dirPath);
+		const result = await parser.parseAll(dirPath);
+		this._bus.publish(new FlashcardParserParseAllResponseEvent(result));
 	}
 }
