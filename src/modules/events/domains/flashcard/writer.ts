@@ -1,59 +1,86 @@
 import { Flashcard, FlashcardContent, FlashcardYaml } from '@/schemas';
 import { WriterAction } from '@/types/writers';
-import { Event } from '../../core/Event';
+import { EventRequest, EventResponse } from '../../core/Event';
 
 type Writers = 'flashcard';
 type WriterEventType = `${Capitalize<Writers>}:Writer:${Capitalize<WriterAction>}`;
 
-// Flashcard Writer Action Events
+const t: Record<WriterAction, WriterEventType> = {
+	create: 'Flashcard:Writer:Create',
+	update: 'Flashcard:Writer:Update',
+	fm: 'Flashcard:Writer:Fm',
+	body: 'Flashcard:Writer:Body',
+	delete: 'Flashcard:Writer:Delete',
+};
+
 type FlashcardWriterCreateEventData = Pick<Flashcard, 'front' | 'back' | 'source'>;
 
-export class FlashcardWriterCreateEvent extends Event<FlashcardWriterCreateEventData> {
-	static readonly type: WriterEventType = 'Flashcard:Writer:Create';
-
+export class FlashcardWriterCreateRequestEvent extends EventRequest<FlashcardWriterCreateEventData> {
 	constructor(data: FlashcardWriterCreateEventData) {
-		super(FlashcardWriterCreateEvent.type, data);
+		super(t.create, data);
+	}
+}
+
+export class FlashcardWriterCreateResponseEvent extends EventResponse<{ filepath: string }> {
+	constructor(data: { filepath: string }) {
+		super(t.create, data);
 	}
 }
 
 type FlashcardWriterUpdateEventData = Pick<Flashcard, 'uuid' | 'front' | 'back' | 'source'>;
 
-export class FlashcardWriterUpdateEvent extends Event<FlashcardWriterUpdateEventData> {
-	static readonly type: WriterEventType = 'Flashcard:Writer:Update';
-
+export class FlashcardWriterUpdateRequestEvent extends EventRequest<FlashcardWriterUpdateEventData> {
 	constructor(data: FlashcardWriterUpdateEventData) {
-		super(FlashcardWriterUpdateEvent.type, data);
+		super(t.update, data);
+	}
+}
+
+export class FlashcardWriterUpdateResponseEvent extends EventResponse<{ filepath: string }> {
+	constructor(data: { filepath: string }) {
+		super(t.update, data);
 	}
 }
 
 type FlashcardWriterDeleteEventData = Pick<Flashcard, 'uuid'>;
 
-export class FlashcardWriterDeleteEvent extends Event<FlashcardWriterDeleteEventData> {
-	static readonly type: WriterEventType = 'Flashcard:Writer:Delete';
-
+export class FlashcardWriterDeleteRequestEvent extends EventRequest<FlashcardWriterDeleteEventData> {
 	constructor(data: FlashcardWriterDeleteEventData) {
-		super(FlashcardWriterDeleteEvent.type, data);
+		super(t.delete, data);
+	}
+}
+
+export class FlashcardWriterDeleteResponseEvent extends EventResponse<{ filepath: string }> {
+	constructor(data: { filepath: string }) {
+		super(t.delete, data);
 	}
 }
 
 type FlashcardWriterFmEventData = { fm: Partial<FlashcardYaml>; filepath: string };
 
-export class FlashcardWriterFmEvent extends Event<FlashcardWriterFmEventData> {
-	static readonly type: WriterEventType = 'Flashcard:Writer:Fm';
-
+export class FlashcardWriterFmRequestEvent extends EventRequest<FlashcardWriterFmEventData> {
 	constructor(data: FlashcardWriterFmEventData) {
-		super(FlashcardWriterFmEvent.type, data);
+		super(t.fm, data);
+	}
+}
+
+export class FlashcardWriterFmResponseEvent extends EventResponse<{ filepath: string }> {
+	constructor(data: { filepath: string }) {
+		super(t.fm, data);
 	}
 }
 
 type FlashcardWriterBodyEventData = FlashcardContent;
 
-export class FlashcardWriterBodyEvent extends Event<
+export class FlashcardWriterBodyRequestEvent extends EventRequest<
 	FlashcardWriterBodyEventData & { filepath: string }
 > {
-	static readonly type: WriterEventType = 'Flashcard:Writer:Body';
-
 	constructor(data: FlashcardWriterBodyEventData & { filepath: string }) {
-		super(FlashcardWriterBodyEvent.type, data);
+		super(t.body, data);
+	}
+}
+
+export class FlashcardWriterBodyResponseEvent extends EventResponse<{ filepath: string }> {
+	constructor(data: { filepath: string }) {
+		super(t.body, data);
 	}
 }

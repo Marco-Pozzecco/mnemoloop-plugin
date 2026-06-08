@@ -1,11 +1,13 @@
 import { Event } from '../../core/Event';
 
-export type NoData = undefined;
+export type NoData = void;
+
+const t = {
+	open: 'Dashboard:Open',
+} as const;
 
 export class DashboardOpenEvent extends Event<NoData> {
-	static readonly type = 'Dashboard:Open';
-
 	constructor() {
-		super(DashboardOpenEvent.type, undefined);
+		super(t.open);
 	}
 }

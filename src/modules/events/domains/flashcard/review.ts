@@ -1,8 +1,14 @@
 import { FlashcardYaml } from '@/schemas';
 import { Event } from '../../core/Event';
 
-type ReviewSessionActions = 'Start' | 'End' | 'Score';
+type ReviewSessionActions = 'start' | 'end' | 'score';
 type ReviewSessionEventType = `Flashcard:ReviewSession:${Capitalize<ReviewSessionActions>}`;
+
+const t: Record<ReviewSessionActions, ReviewSessionEventType> = {
+	start: 'Flashcard:ReviewSession:Start',
+	end: 'Flashcard:ReviewSession:End',
+	score: 'Flashcard:ReviewSession:Score',
+};
 
 type FlashcardReviewSessionStartData = {
 	session_id: string;
@@ -10,10 +16,8 @@ type FlashcardReviewSessionStartData = {
 };
 
 export class FlashcardReviewSessionStartEvent extends Event<FlashcardReviewSessionStartData> {
-	static type: ReviewSessionEventType = 'Flashcard:ReviewSession:Start';
-
 	constructor(data: FlashcardReviewSessionStartData) {
-		super(FlashcardReviewSessionStartEvent.type, data);
+		super(t.start, data);
 	}
 }
 
@@ -30,9 +34,8 @@ export type FlashcardReviewSessionEndData = {
 };
 
 export class FlashcardReviewSessionEndEvent extends Event<FlashcardReviewSessionEndData> {
-	static type: ReviewSessionEventType = 'Flashcard:ReviewSession:End';
 	constructor(data: FlashcardReviewSessionEndData) {
-		super(FlashcardReviewSessionEndEvent.type, data);
+		super(t.end, data);
 	}
 }
 
@@ -42,9 +45,7 @@ type FlashcardReviewSessionScoreData = FlashcardYaml & {
 };
 
 export class FlashcardReviewSessionScoreEvent extends Event<FlashcardReviewSessionScoreData> {
-	static type: ReviewSessionEventType = 'Flashcard:ReviewSession:Score';
-
 	constructor(data: FlashcardReviewSessionScoreData) {
-		super(FlashcardReviewSessionScoreEvent.type, data);
+		super(t.score, data);
 	}
 }

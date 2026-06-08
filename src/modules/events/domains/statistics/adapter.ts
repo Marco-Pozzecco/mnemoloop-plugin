@@ -1,49 +1,59 @@
 import { Stats } from '@/schemas';
 import { AdapterAction } from '@/types/adapters';
-import { Event } from '../../core/Event';
+import { Event, EventRequest, EventResponse } from '../../core/Event';
 
 type Adapters = 'Statistics';
 type AdapterEventType = `${Capitalize<Adapters>}:Adapter:${Capitalize<AdapterAction>}`;
 
-export class StatisticsAdapterSetEvent extends Event<{
+const t: Record<AdapterAction, AdapterEventType> = {
+	set: 'Statistics:Adapter:Set',
+	update: 'Statistics:Adapter:Update',
+	reset: 'Statistics:Adapter:Reset',
+	save: 'Statistics:Adapter:Save',
+	init: 'Statistics:Adapter:Init',
+};
+
+export class StatisticsAdapterSetRequestEvent extends EventRequest<{
 	field: keyof Stats;
 	value: unknown;
 }> {
-	static readonly type: AdapterEventType = 'Statistics:Adapter:Set';
-
 	constructor(data: { field: keyof Stats; value: unknown }) {
-		super(StatisticsAdapterSetEvent.type, data);
+		super(t.set, data);
 	}
 }
 
-export class StatisticsAdapterUpdateEvent extends Event<Partial<Stats>> {
-	static readonly type: AdapterEventType = 'Statistics:Adapter:Update';
+export class StatisticsAdapterSetResponseEvent extends EventResponse<Stats> {
+	constructor(data: Stats) {
+		super(t.set, data);
+	}
+}
 
+export class StatisticsAdapterUpdateRequestEvent extends EventRequest<Partial<Stats>> {
 	constructor(data: Partial<Stats>) {
-		super(StatisticsAdapterUpdateEvent.type, data);
+		super(t.update, data);
+	}
+}
+
+export class StatisticsAdapterUpdateResponseEvent extends EventResponse<Stats> {
+	constructor(data: Stats) {
+		super(t.update, data);
 	}
 }
 
 export class StatisticsAdapterResetEvent extends Event<void> {
-	static readonly type: AdapterEventType = 'Statistics:Adapter:Reset';
-
 	constructor() {
-		super(StatisticsAdapterResetEvent.type, undefined);
+		super(t.reset, undefined);
 	}
 }
 
 export class StatisticsAdapterSaveEvent extends Event<void> {
-	static readonly type: AdapterEventType = 'Statistics:Adapter:Save';
-
 	constructor() {
-		super(StatisticsAdapterSaveEvent.type, undefined);
+		super(t.save);
 	}
 }
 
 export class StatisticsAdapterInitEvent extends Event<void> {
-	static readonly type: AdapterEventType = 'Statistics:Adapter:Init';
-
 	constructor() {
-		super(StatisticsAdapterInitEvent.type, undefined);
+		super(t.init);
 	}
 }
