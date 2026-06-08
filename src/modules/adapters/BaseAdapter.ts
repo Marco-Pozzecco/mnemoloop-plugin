@@ -105,17 +105,14 @@ export abstract class BaseAdapter<T> implements IAdapter<T> {
 	}
 
 	private recoverPartialData(storedData: unknown, error: ZodError): T {
-		const partialData: Record<string, unknown> = {};
+		const partialData: Record<string, unknown> = { ...(storedData as Record<string, unknown>) };
 		for (const issue of error.issues) {
 			if (issue.path.length > 0) {
 				const path = issue.path.filter((p): p is string | number => typeof p !== 'symbol');
-				const value = this.getValueAtPath(storedData as Record<string, unknown>, path);
-				if (value !== undefined) {
-					this.setValueAtPath(partialData, path, value);
-				}
+				const defaultValue = this.getValueAtPath(this.defaultData as Record<string, unknown>, path);
+				this.setValueAtPath(partialData, path, defaultValue);
 			}
 		}
-		const merged = { ...this.defaultData, ...partialData };
-		return this._schema.parse(merged);
+		return this._schema.parse(partialData);
 	}
 }
