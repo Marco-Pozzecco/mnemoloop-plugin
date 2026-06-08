@@ -1,8 +1,8 @@
 import { BaseCommand } from '@/modules/commands/BaseCommand';
+import { EventBus, FlashcardIndexUpdateRequestEvent } from '@/modules/events';
 import { IndexKey } from '@/types/indexes';
 import { ParserKey } from '@/types/parsers';
-import { FlashcardWriter } from '@/modules/writers/FlashcardWriter';
-import { FlashcardParser } from '@/modules/parsers/FlashcardParser';
+import { WriterKey } from '@/types/writers';
 import { Notice } from 'obsidian';
 import { env } from '@/env';
 
@@ -26,8 +26,9 @@ export class SetAllFlashcardsDueNowCommand extends BaseCommand {
 	private async execute(): Promise<void> {
 		const flashcardIndex = this.indexes.get(IndexKey.flashcard);
 		const parser = this.parsers.get(ParserKey.flashcard);
+		const writer = this.writers.get(WriterKey.flashcard);
 
-		if (!flashcardIndex || !parser) {
+		if (!flashcardIndex || !parser || !writer) {
 			new Notice('Error: Flashcard dependencies not found');
 			return;
 		}
@@ -39,19 +40,19 @@ export class SetAllFlashcardsDueNowCommand extends BaseCommand {
 			return;
 		}
 
-		// Create writer instance to update frontmatter in files
-		const writer = new FlashcardWriter(this.plugin, parser as FlashcardParser);
 		const now = new Date().toISOString();
 		let updatedCount = 0;
 
 		try {
 			for (const flashcard of allFlashcards) {
 				// Update in index (FlashcardMetadata has due and updated_at)
-				flashcardIndex.update(flashcard.uuid, {
+				const updated = {
 					...flashcard,
 					due: now,
 					updated_at: now,
-				});
+				};
+
+				EventBus.instance.publish(new FlashcardIndexUpdateRequestEvent(updated));
 
 				// Update in actual file (FlashcardYaml only has due, not updated_at)
 				await writer.updateFrontmatter(flashcard.file, {
