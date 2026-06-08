@@ -41,9 +41,12 @@ export function buildDeckTree(flashcards: FlashcardMetadata[]): DeckNode[] {
 	// Step 1: Aggregate counts for every deck path
 	for (const card of flashcards) {
 		if (card.status === 'DELETED') continue;
-		for (const cardDeck of card.decks) {
-			const decks = getParentDecks(cardDeck);
-			for (const deck of decks) {
+
+		const decks = !card.decks || card.decks.length === 0 ? ['Uncategorized'] : card.decks;
+
+		for (const cardDeck of decks) {
+			const allDecks = [...getParentDecks(cardDeck), cardDeck];
+			for (const deck of allDecks) {
 				const existing = counts.get(deck);
 				if (existing) {
 					existing.totalCards++;
@@ -80,7 +83,7 @@ export function buildDeckTree(flashcards: FlashcardMetadata[]): DeckNode[] {
 
 	// Wire parent-child relationships
 	for (const [fullPath, node] of nodeMap) {
-		const parentPath = getParentDecks(fullPath).slice(0, -1).pop();
+		const parentPath = getParentDecks(fullPath).pop();
 		if (parentPath) {
 			const parent = nodeMap.get(parentPath);
 			if (parent) {
@@ -88,6 +91,7 @@ export function buildDeckTree(flashcards: FlashcardMetadata[]): DeckNode[] {
 			}
 		} else {
 			roots.push(node);
+			node.isExpanded = true;
 		}
 	}
 
