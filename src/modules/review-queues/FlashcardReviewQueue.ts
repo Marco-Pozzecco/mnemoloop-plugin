@@ -26,7 +26,7 @@ export class FlashcardReviewQueue extends BaseReviewQueue<
 		};
 
 		this._unsubscribe = EventBus.instance.subscribe(
-			FlashcardIndexQueryResponseEvent.type,
+			FlashcardIndexQueryResponseEvent,
 			responseHandler,
 		);
 

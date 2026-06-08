@@ -22,7 +22,7 @@ export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml
 		};
 
 		this._unsubscribe = EventBus.instance.subscribe(
-			FlashcardParserParseResponseEvent.type,
+			FlashcardParserParseResponseEvent,
 			responseHandler,
 		);
 

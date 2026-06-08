@@ -1,6 +1,7 @@
 import { IEvent } from '@/interfaces/IEvent';
 import { EventHandlerCallback, IEventBus } from '@/interfaces/IEventBus';
 import { IEventHandler } from '@/interfaces/IEventHandler';
+import { EventClass } from '@/interfaces/IEventRegistry';
 import { Logger } from '@/utils/Logger';
 
 export class EventBus implements IEventBus {
@@ -33,33 +34,43 @@ export class EventBus implements IEventBus {
 		return event.id;
 	}
 
-	subscribe<TData>(eventType: string, handler: EventHandlerCallback<TData>): () => void {
-		if (!this._registry.has(eventType)) {
-			this._registry.set(eventType, new Set());
+	subscribe<TData>(
+		eventClass: EventClass<TData>,
+		handler: EventHandlerCallback<TData>,
+	): () => void {
+		if (!eventClass.type)
+			throw new Error(`EventClass must have a type: ${eventClass.constructor.name}`);
+		if (!this._registry.has(eventClass.type)) {
+			this._registry.set(eventClass.type, new Set());
 		}
-		const set = this._registry.get(eventType)!;
+		const set = this._registry.get(eventClass.type)!;
 		set.add(handler);
 
 		return () => {
-			this.unsubscribe(eventType, handler);
+			this.unsubscribe(eventClass, handler);
 		};
 	}
 
-	subscribeOnce<TData>(eventType: string, handler: EventHandlerCallback<TData>): void {
+	subscribeOnce<TData>(eventClass: EventClass<TData>, handler: EventHandlerCallback<TData>): void {
+		if (!eventClass.type)
+			throw new Error(`EventClass must have a type: ${eventClass.constructor.name}`);
+
 		const onceHandler: EventHandlerCallback<TData> = (event) => {
-			this.unsubscribe(eventType, onceHandler);
+			this.unsubscribe(eventClass, onceHandler);
 			return handler(event);
 		};
 
-		this.subscribe(eventType, onceHandler);
+		this.subscribe(eventClass, onceHandler);
 	}
 
-	unsubscribe<TData>(eventType: string, handler: EventHandlerCallback<TData>): void {
-		const set = this._registry.get(eventType);
+	unsubscribe<TData>(eventClass: EventClass<TData>, handler: EventHandlerCallback<TData>): void {
+		if (!eventClass.type)
+			throw new Error(`EventClass must have a type: ${eventClass.constructor.name}`);
+		const set = this._registry.get(eventClass.type);
 		if (set) {
 			set.delete(handler);
 			if (set.size === 0) {
-				this._registry.delete(eventType);
+				this._registry.delete(eventClass.type);
 			}
 		}
 	}
