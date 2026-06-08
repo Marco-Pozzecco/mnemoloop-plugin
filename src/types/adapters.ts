@@ -21,4 +21,5 @@ export enum AdapterAction {
 	Reset = 'reset',
 	Save = 'save',
 	Init = 'init',
+	State = 'state',
 }

@@ -5,6 +5,7 @@ import { Writers } from '@/types/writers';
 import { Plugin } from 'obsidian';
 import { IEvent } from './IEvent';
 import { IEventHandler } from './IEventHandler';
+import { EventBus } from '@/modules/events';
 
 export interface IEventRegistryDependencies {
 	plugin: Plugin;
@@ -12,6 +13,7 @@ export interface IEventRegistryDependencies {
 	indexes: Indexes;
 	parsers: Parsers;
 	writers: Writers;
+	bus: EventBus;
 }
 
 export type EventClass<T> = {

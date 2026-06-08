@@ -1,5 +1,6 @@
 export interface IIndexer<EntityMetadata> {
 	readonly index: Record<string, EntityMetadata>;
+	readonly size: number;
 
 	initialize: () => Promise<void>;
 	save: () => Promise<void>;
@@ -9,6 +10,9 @@ export interface IIndexer<EntityMetadata> {
 	query: (predicate: (entity: EntityMetadata) => boolean) => EntityMetadata[];
 	create: (id: string, data: EntityMetadata) => EntityMetadata;
 	update: (id: string, data: Partial<EntityMetadata>) => EntityMetadata;
-	upsert: (id: string, data: EntityMetadata) => EntityMetadata;
-	delete: (id: string) => void;
+	upsert: (
+		id: string,
+		data: EntityMetadata,
+	) => { result: EntityMetadata; operation: 'create' | 'update' };
+	delete: (id: string) => EntityMetadata | undefined;
 }
