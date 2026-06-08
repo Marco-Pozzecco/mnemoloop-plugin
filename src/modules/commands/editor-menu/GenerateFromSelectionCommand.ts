@@ -1,4 +1,3 @@
-import { IEvent } from '@/interfaces/IEvent';
 import { BaseCommand } from '@/modules/commands/BaseCommand';
 import { EventBus, FlashcardWriterCreateResponseEvent } from '@/modules/events';
 import { FlashcardModalData } from '@/ui/components/modals/FlashcardModal/types';
@@ -11,14 +10,15 @@ import {
 	MarkdownFileInfo,
 	MarkdownView,
 	Menu,
-	Notice,
 	normalizePath,
+	Notice,
 	TFile,
 } from 'obsidian';
 
 export class GenerateFromSelectionCommand extends BaseCommand {
-	readonly id = 'ml-generate-from-selection';
+	readonly id = 'generate-from-selection';
 	readonly name = 'Generate flashcard from selection';
+	private _unsubscribe?: () => void;
 
 	protected onRegister(): void {
 		const eventRef = this.plugin.app.workspace.on(
@@ -52,29 +52,26 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 			return;
 		}
 
-		const callback = async (evt: IEvent) => {
-			if (!evt.isType(FlashcardWriterCreateResponseEvent.type)) {
-				return;
-			}
-
-			EventBus.instance.unsubscribe(callback);
-
-			const data = (evt as FlashcardWriterCreateResponseEvent).data;
-			const path = normalizePath(data.filepath);
+		const responseHandler = (event: FlashcardWriterCreateResponseEvent) => {
+			this._unsubscribe?.();
+			const path = normalizePath(event.data.filepath);
 			const file = this.plugin.app.vault.getAbstractFileByPath(path);
 			if (!(file instanceof TFile)) {
 				return;
 			}
 
 			const leaf = openInSplitMode(this.plugin.app.workspace);
-			await leaf.openFile(file);
+			void leaf.openFile(file);
 
 			if (view instanceof MarkdownView && view.leaf) {
 				this.plugin.app.workspace.revealLeaf(view.leaf);
 			}
 		};
 
-		EventBus.instance.subscribe(callback);
+		this._unsubscribe = EventBus.instance.subscribe(
+			FlashcardWriterCreateResponseEvent.type,
+			responseHandler,
+		);
 
 		modalStore.open(ModalViewEnum.flashcard, {
 			front: '',
@@ -85,5 +82,9 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 
 		const modal = new SvelteModal(this.plugin.app, ModalClassNames.flashcard);
 		modal.open();
+	}
+
+	override onUnregister(): void {
+		this._unsubscribe?.();
 	}
 }
