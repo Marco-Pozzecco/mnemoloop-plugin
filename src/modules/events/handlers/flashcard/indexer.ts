@@ -3,7 +3,6 @@ import { IndexKey } from '@/types/indexes';
 import { ParserKey } from '@/types/parsers';
 import { Logger } from '@/utils/Logger';
 import { normalizePath } from 'obsidian';
-import { EventBus } from '../../core/EventBus';
 import { EventHandler } from '../../core/EventHandler';
 import {
 	FlashcardIndexCreateRequestEvent,
@@ -18,6 +17,7 @@ import {
 	FlashcardIndexQueryRequestEvent,
 	FlashcardIndexQueryResponseEvent,
 	FlashcardIndexSaveEvent,
+	FlashcardIndexStateEvent,
 	FlashcardIndexUpdateRequestEvent,
 	FlashcardIndexUpdateResponseEvent,
 	FlashcardStatisticsComputeEvent,
@@ -99,6 +99,9 @@ export class FlashcardIndexUpdateHandler extends EventHandler<FlashcardIndexUpda
 		const result = indexer.update(event.data.uuid!, event.data);
 
 		this._bus.publish(new FlashcardIndexUpdateResponseEvent(result));
+		this._bus.publish(
+			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
+		);
 		this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
@@ -114,6 +117,10 @@ export class FlashcardIndexCreateHandler extends EventHandler<FlashcardIndexCrea
 		await indexer.save();
 
 		this._bus.publish(new FlashcardIndexCreateResponseEvent(result));
+		this._bus.publish(
+			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
+		);
+		this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
 
@@ -128,6 +135,10 @@ export class FlashcardIndexDeleteHandler extends EventHandler<FlashcardIndexDele
 		await indexer.save();
 
 		this._bus.publish(new FlashcardIndexDeleteResponseEvent(result ?? null));
+		this._bus.publish(
+			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
+		);
+		this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
 
@@ -158,7 +169,10 @@ export class FlashcardIndexOnVaultCreateHandler extends EventHandler<VaultCreate
 		} catch (error) {
 			Logger.error(`Watcher: failed to create flashcard from ${data.path}`, error);
 		}
-		EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
+		this._bus.publish(
+			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
+		);
+		this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
 
@@ -184,7 +198,10 @@ export class FlashcardIndexOnVaultDeleteHandler extends EventHandler<VaultDelete
 			indexer.delete(existing.uuid);
 			await indexer.save();
 		}
-		EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
+		this._bus.publish(
+			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
+		);
+		this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
 
@@ -219,7 +236,10 @@ export class FlashcardIndexOnVaultModifyHandler extends EventHandler<VaultModify
 				await indexer.save();
 			}
 		}
-		EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
+		this._bus.publish(
+			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
+		);
+		this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
 
@@ -255,6 +275,9 @@ export class FlashcardIndexOnVaultRenameHandler extends EventHandler<VaultRename
 		} catch (error) {
 			Logger.error(`Watcher: failed to create flashcard from ${data.path} after rename`, error);
 		}
-		EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
+		this._bus.publish(
+			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
+		);
+		this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }

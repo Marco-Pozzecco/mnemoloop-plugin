@@ -12,7 +12,7 @@ const t: Record<IndexAction, IndexEventType> = {
 	delete: 'Flashcard:Index:Delete',
 	initialize: 'Flashcard:Index:Initialize',
 	save: 'Flashcard:Index:Save',
-	recalc: 'Flashcard:Index:Recalc',
+	state: 'Flashcard:Index:State',
 	query: 'Flashcard:Index:Query',
 };
 
@@ -84,9 +84,9 @@ export class FlashcardIndexGetResponseEvent extends EventResponse<FlashcardMetad
 	}
 }
 
-export class FlashcardIndexGetAllRequestEvent extends EventRequest<undefined> {
+export class FlashcardIndexGetAllRequestEvent extends EventRequest<void> {
 	constructor() {
-		super(t.getAll, undefined);
+		super(t.getAll);
 	}
 }
 
@@ -96,14 +96,22 @@ export class FlashcardIndexGetAllResponseEvent extends EventResponse<FlashcardMe
 	}
 }
 
-export class FlashcardIndexInitializeEvent extends Event<FlashcardIndexEventData> {
-	constructor(data: FlashcardIndexEventData) {
-		super(t.initialize, data);
+export class FlashcardIndexInitializeEvent extends Event<void> {
+	constructor() {
+		super(t.initialize);
 	}
 }
 
 export class FlashcardIndexSaveEvent extends Event<FlashcardIndexEventData> {
 	constructor(data: FlashcardIndexEventData) {
 		super(t.save, data);
+	}
+}
+
+// Subscribers subscribe to this event to receive updates about the flashcard index state.
+// This event is published whenever the flashcard index state changes.
+export class FlashcardIndexStateEvent extends Event<FlashcardIndexEventData> {
+	constructor(data: FlashcardIndexEventData) {
+		super(t.state, data);
 	}
 }

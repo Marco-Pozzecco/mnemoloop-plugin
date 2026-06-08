@@ -11,6 +11,7 @@ const t: Record<AdapterAction, AdapterEventType> = {
 	reset: 'Settings:Adapter:Reset',
 	save: 'Settings:Adapter:Save',
 	init: 'Settings:Adapter:Init',
+	state: 'Settings:Adapter:State',
 };
 
 export class SettingsAdapterSetRequestEvent extends EventRequest<{
@@ -55,5 +56,11 @@ export class SettingsAdapterSaveEvent extends Event<void> {
 export class SettingsAdapterInitEvent extends Event<void> {
 	constructor() {
 		super(t.init, undefined);
+	}
+}
+
+export class SettingsAdapterStateEvent extends Event<PluginSettings> {
+	constructor(data: PluginSettings) {
+		super(t.state, data);
 	}
 }

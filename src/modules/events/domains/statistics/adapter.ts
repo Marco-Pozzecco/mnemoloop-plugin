@@ -11,6 +11,7 @@ const t: Record<AdapterAction, AdapterEventType> = {
 	reset: 'Statistics:Adapter:Reset',
 	save: 'Statistics:Adapter:Save',
 	init: 'Statistics:Adapter:Init',
+	state: 'Statistics:Adapter:State',
 };
 
 export class StatisticsAdapterSetRequestEvent extends EventRequest<{
@@ -55,5 +56,11 @@ export class StatisticsAdapterSaveEvent extends Event<void> {
 export class StatisticsAdapterInitEvent extends Event<void> {
 	constructor() {
 		super(t.init);
+	}
+}
+
+export class StatisticsAdapterStateEvent extends Event<Stats> {
+	constructor(data: Stats) {
+		super(t.state, data);
 	}
 }
