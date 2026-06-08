@@ -4,12 +4,11 @@ import * as handlers from '../../handlers/flashcard/indexer';
 
 const router = new EventRouter();
 
-router.route(events.FlashcardIndexGetAllEvent, handlers.FlashcardIndexGetAllHandler);
-router.route(events.FlashcardIndexGetEvent, handlers.FlashcardIndexGetHandler);
+router.route(events.FlashcardIndexGetAllRequestEvent, handlers.FlashcardIndexGetAllHandler);
+router.route(events.FlashcardIndexGetRequestEvent, handlers.FlashcardIndexGetHandler);
 router.route(events.FlashcardIndexInitializeEvent, handlers.FlashcardIndexInitializeHandler);
-router.route(events.FlashcardIndexQueryEvent, handlers.FlashcardIndexQueryHandler);
-router.route(events.FlashcardIndexRecalcEvent, handlers.FlashcardIndexRecalcHandler);
+router.route(events.FlashcardIndexQueryRequestEvent, handlers.FlashcardIndexQueryHandler);
 router.route(events.FlashcardIndexSaveEvent, handlers.FlashcardIndexSaveHandler);
-router.route(events.FlashcardIndexUpdateEvent, handlers.FlashcardIndexUpdateHandler);
+router.route(events.FlashcardIndexUpdateRequestEvent, handlers.FlashcardIndexUpdateHandler);
 
 export const FlashcardIndexerRouter = router;
