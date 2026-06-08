@@ -20,6 +20,6 @@ export enum IndexAction {
 	Delete = 'delete',
 	Initialize = 'initialize',
 	Save = 'save',
-	Recalc = 'recalc',
+	State = 'state',
 	Query = 'query',
 }
