@@ -11,8 +11,12 @@ import { BaseParser } from './BaseParser';
 export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 	private _settings: IAdapter<PluginSettings>;
 
-	constructor(plugin: Plugin, settings: IAdapter<PluginSettings>) {
-		super(plugin, new FlashcardYamlEngine(plugin));
+	constructor(
+		plugin: Plugin,
+		settings: IAdapter<PluginSettings>,
+		yamlEngine?: FlashcardYamlEngine,
+	) {
+		super(plugin, yamlEngine ?? new FlashcardYamlEngine(plugin));
 		this._settings = settings;
 	}
 
