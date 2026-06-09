@@ -1,8 +1,25 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('@/modules/events/core/EventBus', () => {
+	const bus = {
+		_registry: new Map(),
+		subscribe: vi.fn(() => () => {}),
+		unsubscribe: vi.fn(),
+		publish: vi.fn((event: { id: string }) => event.id),
+		subscribeOnce: vi.fn(),
+	};
+	return {
+		EventBus: {
+			get instance() {
+				return bus;
+			},
+			_instance: undefined,
+		},
+	};
+});
 import { buildDeckTree } from '@/ui/store/deck-tree.store';
 import { CardStatus, FlashcardMetadata } from '@/schemas';
 import { DEFAULT_FSRS } from '@/utils/constants';
-
 function createCard(overrides: Partial<FlashcardMetadata> = {}): FlashcardMetadata {
 	const now = new Date().toISOString();
 	const future = new Date(Date.now() + 86400000).toISOString();
@@ -16,6 +33,7 @@ function createCard(overrides: Partial<FlashcardMetadata> = {}): FlashcardMetada
 		created_at: now,
 		updated_at: now,
 		deleted_at: null,
+		decks: [],
 		...overrides,
 	} as FlashcardMetadata;
 }
