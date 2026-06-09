@@ -1,5 +1,6 @@
+import { IEvent } from '@/interfaces/IEvent';
 import { FlashcardYaml } from '@/schemas';
-import { Event } from '../../core/Event';
+import { EventFactory } from '../../core/Event';
 
 type ReviewSessionActions = 'start' | 'end' | 'score';
 type ReviewSessionEventType = `Flashcard:ReviewSession:${Capitalize<ReviewSessionActions>}`;
@@ -15,11 +16,8 @@ type FlashcardReviewSessionStartData = {
 	start_time: number;
 };
 
-export class FlashcardReviewSessionStartEvent extends Event<FlashcardReviewSessionStartData> {
-	constructor(data: FlashcardReviewSessionStartData) {
-		super(t.start, data);
-	}
-}
+const FlashcardReviewSessionStartEvent = EventFactory.createEvent<FlashcardReviewSessionStartData>(t.start);
+type FlashcardReviewSessionStartEvent = IEvent<FlashcardReviewSessionStartData>;
 
 export type FlashcardReviewSessionEndData = {
 	session_id: string;
@@ -33,19 +31,19 @@ export type FlashcardReviewSessionEndData = {
 	incorrect_count: number;
 };
 
-export class FlashcardReviewSessionEndEvent extends Event<FlashcardReviewSessionEndData> {
-	constructor(data: FlashcardReviewSessionEndData) {
-		super(t.end, data);
-	}
-}
+const FlashcardReviewSessionEndEvent = EventFactory.createEvent<FlashcardReviewSessionEndData>(t.end);
+type FlashcardReviewSessionEndEvent = IEvent<FlashcardReviewSessionEndData>;
 
 type FlashcardReviewSessionScoreData = FlashcardYaml & {
 	filepath: string;
 	rating: number;
 };
 
-export class FlashcardReviewSessionScoreEvent extends Event<FlashcardReviewSessionScoreData> {
-	constructor(data: FlashcardReviewSessionScoreData) {
-		super(t.score, data);
-	}
-}
+const FlashcardReviewSessionScoreEvent = EventFactory.createEvent<FlashcardReviewSessionScoreData>(t.score);
+type FlashcardReviewSessionScoreEvent = IEvent<FlashcardReviewSessionScoreData>;
+
+export {
+	FlashcardReviewSessionEndEvent,
+	FlashcardReviewSessionScoreEvent,
+	FlashcardReviewSessionStartEvent,
+};

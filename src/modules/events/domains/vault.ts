@@ -1,55 +1,23 @@
-import { Event } from '../core';
-
-export enum VaultAction {
-	Create = 'create',
-	Modify = 'modify',
-	Delete = 'delete',
-	Rename = 'rename',
-}
-
-type VaultEventName = `Vault:${Capitalize<VaultAction>}`;
+import { IEvent } from '@/interfaces/IEvent';
+import { EventFactory } from '../core/Event';
 
 type VaultEventData = {
 	path: string;
 	entity: string;
 };
 
-export class VaultCreateEvent extends Event<VaultEventData> {
-	static readonly type: VaultEventName = 'Vault:Create';
+const VaultCreateEvent = EventFactory.createEvent<VaultEventData>('Vault:Create');
+type VaultCreateEvent = IEvent<VaultEventData>;
 
-	constructor(data: VaultEventData) {
-		super(VaultCreateEvent.type, data);
-	}
-}
+const VaultModifyEvent = EventFactory.createEvent<VaultEventData>('Vault:Modify');
+type VaultModifyEvent = IEvent<VaultEventData>;
 
-export type VaultCreateEventData = VaultCreateEvent['data'];
+const VaultDeleteEvent = EventFactory.createEvent<VaultEventData>('Vault:Delete');
+type VaultDeleteEvent = IEvent<VaultEventData>;
 
-export class VaultModifyEvent extends Event<VaultEventData> {
-	static readonly type: VaultEventName = 'Vault:Modify';
+const VaultRenameEvent = EventFactory.createEvent<VaultEventData & { oldPath: string }>(
+	'Vault:Rename',
+);
+type VaultRenameEvent = IEvent<VaultEventData & { oldPath: string }>;
 
-	constructor(data: VaultEventData) {
-		super(VaultModifyEvent.type, data);
-	}
-}
-
-export type VaultModifyEventData = VaultModifyEvent['data'];
-
-export class VaultDeleteEvent extends Event<VaultEventData> {
-	static readonly type: VaultEventName = 'Vault:Delete';
-
-	constructor(data: VaultEventData) {
-		super(VaultDeleteEvent.type, data);
-	}
-}
-
-export type VaultDeleteEventData = VaultDeleteEvent['data'];
-
-export class VaultRenameEvent extends Event<VaultEventData & { oldPath: string }> {
-	static readonly type: VaultEventName = 'Vault:Rename';
-
-	constructor(data: VaultEventData & { oldPath: string }) {
-		super(VaultRenameEvent.type, data);
-	}
-}
-
-export type VaultRenameEventData = VaultRenameEvent['data'];
+export { VaultCreateEvent, VaultDeleteEvent, VaultModifyEvent, VaultRenameEvent };

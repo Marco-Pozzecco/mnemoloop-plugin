@@ -1,6 +1,7 @@
+import { IEvent } from '@/interfaces/IEvent';
 import { PluginSettings } from '@/schemas';
 import { AdapterAction } from '@/types/adapters';
-import { Event, EventRequest, EventResponse } from '../../core/Event';
+import { EventFactory } from '../../core/Event';
 
 type Adapters = 'settings';
 type AdapterEventType = `${Capitalize<Adapters>}:Adapter:${Capitalize<AdapterAction>}`;
@@ -14,53 +15,40 @@ const t: Record<AdapterAction, AdapterEventType> = {
 	state: 'Settings:Adapter:State',
 };
 
-export class SettingsAdapterSetRequestEvent extends EventRequest<{
+const SettingsAdapterSetRequestEvent = EventFactory.createRequest<{
 	field: keyof PluginSettings;
 	value: unknown;
-}> {
-	constructor(data: { field: keyof PluginSettings; value: unknown }) {
-		super(t.set, data);
-	}
-}
+}>(t.set);
+type SettingsAdapterSetRequestEvent = IEvent<{ field: keyof PluginSettings; value: unknown }>;
 
-export class SettingsAdapterSetResponseEvent extends EventResponse<PluginSettings> {
-	constructor(data: PluginSettings) {
-		super(t.set, data);
-	}
-}
+const SettingsAdapterSetResponseEvent = EventFactory.createResponse<PluginSettings>(t.set);
+type SettingsAdapterSetResponseEvent = IEvent<PluginSettings>;
 
-export class SettingsAdapterUpdateRequestEvent extends EventRequest<Partial<PluginSettings>> {
-	constructor(data: Partial<PluginSettings>) {
-		super(t.update, data);
-	}
-}
+const SettingsAdapterUpdateRequestEvent = EventFactory.createRequest<Partial<PluginSettings>>(t.update);
+type SettingsAdapterUpdateRequestEvent = IEvent<Partial<PluginSettings>>;
 
-export class SettingsAdapterUpdateResponseEvent extends EventResponse<PluginSettings> {
-	constructor(data: PluginSettings) {
-		super(t.update, data);
-	}
-}
+const SettingsAdapterUpdateResponseEvent = EventFactory.createResponse<PluginSettings>(t.update);
+type SettingsAdapterUpdateResponseEvent = IEvent<PluginSettings>;
 
-export class SettingsAdapterResetEvent extends Event<void> {
-	constructor() {
-		super(t.reset);
-	}
-}
+const SettingsAdapterResetEvent = EventFactory.createEvent<void>(t.reset);
+type SettingsAdapterResetEvent = IEvent<void>;
 
-export class SettingsAdapterSaveEvent extends Event<void> {
-	constructor() {
-		super(t.save);
-	}
-}
+const SettingsAdapterSaveEvent = EventFactory.createEvent<void>(t.save);
+type SettingsAdapterSaveEvent = IEvent<void>;
 
-export class SettingsAdapterInitEvent extends Event<void> {
-	constructor() {
-		super(t.init, undefined);
-	}
-}
+const SettingsAdapterInitEvent = EventFactory.createEvent<void>(t.init);
+type SettingsAdapterInitEvent = IEvent<void>;
 
-export class SettingsAdapterStateEvent extends Event<PluginSettings> {
-	constructor(data: PluginSettings) {
-		super(t.state, data);
-	}
-}
+const SettingsAdapterStateEvent = EventFactory.createEvent<PluginSettings>(t.state);
+type SettingsAdapterStateEvent = IEvent<PluginSettings>;
+
+export {
+	SettingsAdapterInitEvent,
+	SettingsAdapterResetEvent,
+	SettingsAdapterSaveEvent,
+	SettingsAdapterSetRequestEvent,
+	SettingsAdapterSetResponseEvent,
+	SettingsAdapterStateEvent,
+	SettingsAdapterUpdateRequestEvent,
+	SettingsAdapterUpdateResponseEvent,
+};

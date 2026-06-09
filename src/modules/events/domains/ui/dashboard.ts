@@ -1,13 +1,7 @@
-import { Event } from '../../core/Event';
+import { IEvent } from '@/interfaces/IEvent';
+import { EventFactory } from '../../core/Event';
 
-export type NoData = void;
+const DashboardOpenEvent = EventFactory.createEvent<void>('Dashboard:Open');
+type DashboardOpenEvent = IEvent<void>;
 
-const t = {
-	open: 'Dashboard:Open',
-} as const;
-
-export class DashboardOpenEvent extends Event<NoData> {
-	constructor() {
-		super(t.open);
-	}
-}
+export { DashboardOpenEvent };
