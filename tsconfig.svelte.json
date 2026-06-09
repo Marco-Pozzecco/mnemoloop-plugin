@@ -4,6 +4,8 @@
     "target": "es2022",
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
+    "inlineSourceMap": false,
+    "inlineSources": false
   },
   "include": [
     "**/*.svelte",
