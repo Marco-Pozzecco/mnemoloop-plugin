@@ -1,7 +1,6 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { z } from 'zod';
 import { BaseAdapter } from '@/modules/adapters/BaseAdapter';
-import { AdapterAction } from '@/modules/events/domains/adapter';
 
 interface TestData {
 	uuid: string;
@@ -15,14 +14,9 @@ const schema = z.object({
 });
 
 class TestAdapter extends BaseAdapter<TestData> {
-	emitted: AdapterAction[] = [];
 	savedData: TestData[] = [];
 	loadDataResult: unknown = null;
 	loadDataShouldThrow = false;
-
-	emit = (action: AdapterAction) => {
-		this.emitted.push(action);
-	};
 
 	loadData = async () => {
 		if (this.loadDataShouldThrow) {
@@ -50,10 +44,9 @@ describe('BaseAdapter', () => {
 	});
 
 	describe('set', () => {
-		it('should update data and emit Set', () => {
+		it('should update data', () => {
 			adapter.set({ uuid: 'new', count: 5 });
 			expect(adapter.data).toEqual({ uuid: 'new', count: 5 });
-			expect(adapter.emitted).toContain(AdapterAction.Set);
 		});
 
 		it('should throw on invalid data', () => {
@@ -62,55 +55,48 @@ describe('BaseAdapter', () => {
 	});
 
 	describe('update', () => {
-		it('should merge partial data and emit Update', () => {
+		it('should merge partial data', () => {
 			adapter.update({ count: 10 });
 			expect(adapter.data).toEqual({ uuid: 'default', count: 10 });
-			expect(adapter.emitted).toContain(AdapterAction.Update);
 		});
 	});
 
 	describe('setField', () => {
-		it('should update a single field and emit Update', () => {
+		it('should update a single field', () => {
 			adapter.setField('uuid', 'new-uuid');
 			expect(adapter.data).toEqual({ uuid: 'new-uuid', count: 0 });
-			expect(adapter.emitted).toContain(AdapterAction.Update);
 		});
 	});
 
 	describe('save', () => {
-		it('should persist data and emit Save', async () => {
+		it('should persist data', async () => {
 			adapter.set({ uuid: 'new', count: 5 });
 			await adapter.save();
 			expect(adapter.savedData).toHaveLength(1);
 			expect(adapter.savedData[0]).toEqual({ uuid: 'new', count: 5 });
-			expect(adapter.emitted).toContain(AdapterAction.Save);
 		});
 	});
 
 	describe('reset', () => {
-		it('should restore default data and emit Reset', async () => {
+		it('should restore default data', async () => {
 			adapter.set({ uuid: 'new', count: 5 });
-			adapter.emitted = [];
 			await adapter.reset();
 			expect(adapter.data).toEqual(defaultData);
-			expect(adapter.emitted).toEqual([AdapterAction.Reset]);
 		});
 	});
 
 	describe('initialize', () => {
-		it('should load valid data and emit Init', async () => {
+		it('should load valid data', async () => {
 			adapter.loadDataResult = { uuid: 'loaded', count: 5 };
 			await adapter.initialize();
 			expect(adapter.data).toEqual({ uuid: 'loaded', count: 5 });
-			expect(adapter.emitted).toContain(AdapterAction.Init);
 			expect(adapter.savedData).toHaveLength(0);
 		});
 
-		it('should recover partial data and emit Init', async () => {
+		it('should recover partial data', async () => {
 			adapter.loadDataResult = { uuid: 'loaded', count: 'invalid' };
 			await adapter.initialize();
 			expect(adapter.data).toEqual({ uuid: 'loaded', count: 0 });
-			expect(adapter.emitted).toContain(AdapterAction.Init);
 			expect(adapter.savedData).toHaveLength(1);
 		});
 
@@ -118,7 +104,6 @@ describe('BaseAdapter', () => {
 			adapter.loadDataShouldThrow = true;
 			await adapter.initialize();
 			expect(adapter.data).toEqual(defaultData);
-			expect(adapter.emitted).toContain(AdapterAction.Init);
 			expect(adapter.savedData).toHaveLength(1);
 			expect(adapter.savedData[0]).toEqual(defaultData);
 		});
