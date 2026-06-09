@@ -43,12 +43,11 @@ export class FsrsEngine extends BaseReviewEngine<FlashcardYaml> {
 		const card: Card = this.mapToFsrsCard(params);
 		const reviewTime = new Date();
 
-		const record = this.fsrs.repeat(card, reviewTime);
-		const updatedCard = record[score].card;
+		const record = this.fsrs.next(card, reviewTime, score);
 
 		return {
 			...item,
-			...this.mapFromFsrsCard(updatedCard),
+			...this.mapFromFsrsCard(record.card),
 		};
 	};
 
