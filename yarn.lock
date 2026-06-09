@@ -792,6 +792,11 @@
   resolved "https://registry.yarnpkg.com/@sveltejs/acorn-typescript/-/acorn-typescript-1.0.10.tgz#72376d9f46c04be82b714b1c33f0956911a7a6d6"
   integrity sha512-4WfKk68eTih+MiJD4fSbxN7E8kVBmTMPWHUPYjvl2N0rMs53YLTT8/YjKU5Dtnz5LqDjl7LEw4U7lXR2W3J5WA==
 
+"@sveltejs/load-config@0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@sveltejs/load-config/-/load-config-0.1.1.tgz#e9d103e4f20ef2f317e735272d51d5ae33f807e1"
+  integrity sha512-BXXm+VOH/9X4N7Dd1iZ2MqA1h7M+9i2noI8QYuLDY8QcN2WHYn7D/VK/+IJNfcAmRw7ACNJ538UT9GXIhnBTiA==
+
 "@sveltejs/vite-plugin-svelte-inspector@^4.0.1":
   version "4.0.1"
   resolved "https://registry.npmjs.org/@sveltejs/vite-plugin-svelte-inspector/-/vite-plugin-svelte-inspector-4.0.1.tgz"
@@ -1769,10 +1774,10 @@ esquery@^1.5.0:
   dependencies:
     estraverse "^5.1.0"
 
-esrap@^2.2.9:
-  version "2.2.9"
-  resolved "https://registry.yarnpkg.com/esrap/-/esrap-2.2.9.tgz#97b7939015dccfb8c00b0d3e1a2c8735ba46bac9"
-  integrity sha512-4KijP+NxCWthMCUC3qHbE6n4vCjqgJS1uAYKhuT/GWfFTf1Qyive2TgOjep+gzbSzRfnNyaN/UU9YmdOt8Eg0A==
+esrap@^2.2.11:
+  version "2.2.11"
+  resolved "https://registry.yarnpkg.com/esrap/-/esrap-2.2.11.tgz#8cdff4ea4f7132dadb4da896f7af858b281c5a5e"
+  integrity sha512-gPdx+I+BjYEinNMQaBXFjbaJVyoPMU4ZODg5mE+M4DqVG9VusAVHHjcBX+zqyITlI0DIARwDMMzZwAWj36dRoQ==
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.4.15"
 
@@ -2767,11 +2772,12 @@ supports-color@^7.1.0:
     has-flag "^4.0.0"
 
 svelte-check@^4.4.5:
-  version "4.4.8"
-  resolved "https://registry.yarnpkg.com/svelte-check/-/svelte-check-4.4.8.tgz#9fc6ae31722c2489c7e1c3cd63cd5ac25593cc52"
-  integrity sha512-67adfgBox5eNSNIvIIwgFizKGdcRrGpiMoNO2obHcYuLz7iTa8Xgm/NGU3ntMFnNm8K1grFOIG6HhMLX/vcN8w==
+  version "4.6.0"
+  resolved "https://registry.yarnpkg.com/svelte-check/-/svelte-check-4.6.0.tgz#3022cc03ce84016f715495901f0cdde25ad00515"
+  integrity sha512-KhVnDFDSid57mmZtHz8gfW8AAGylOZ0vPnOIzVmAL+urzwK8sBYXRss953gD8T0OdgAQ11mdWhE6uadmtOz8TQ==
   dependencies:
     "@jridgewell/trace-mapping" "^0.3.25"
+    "@sveltejs/load-config" "0.1.1"
     chokidar "^4.0.1"
     fdir "^6.2.0"
     picocolors "^1.0.0"
@@ -2805,9 +2811,9 @@ svelte-toolbelt@^0.10.6:
     style-to-object "^1.0.8"
 
 svelte@^5.48.2:
-  version "5.55.9"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.55.9.tgz#ebefa195db723c9732910d8fd17f8514105b688d"
-  integrity sha512-fTjjT8cHLDwigcu2j3pv7Jq04LklXevPB8uBgyHNiTXv+RMNvVnrjS4UEYrLMkhuq1vpCodHjiW+z/95SDs/fg==
+  version "5.56.3"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.56.3.tgz#5cd7c11f738930e4c500c57e31827888168ba6e4"
+  integrity sha512-w7JvrM5IFl5cmfbY0TLik9o7mjRUJmRMhOR51tBPu708Gr/MjbGs7VnJnr/B0CaXeI4vtnOh7RKxDr0cwhMdDA==
   dependencies:
     "@jridgewell/remapping" "^2.3.4"
     "@jridgewell/sourcemap-codec" "^1.5.0"
@@ -2820,7 +2826,7 @@ svelte@^5.48.2:
     clsx "^2.1.1"
     devalue "^5.8.1"
     esm-env "^1.2.1"
-    esrap "^2.2.9"
+    esrap "^2.2.11"
     is-reference "^3.0.3"
     locate-character "^3.0.0"
     magic-string "^0.30.11"
