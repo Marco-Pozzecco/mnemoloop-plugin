@@ -1,6 +1,7 @@
+import { IEvent } from '@/interfaces/IEvent';
 import { Flashcard, FlashcardContent, FlashcardYaml } from '@/schemas';
 import { WriterAction } from '@/types/writers';
-import { EventRequest, EventResponse } from '../../core/Event';
+import { EventFactory } from '../../core/Event';
 
 type Writers = 'flashcard';
 type WriterEventType = `${Capitalize<Writers>}:Writer:${Capitalize<WriterAction>}`;
@@ -15,72 +16,64 @@ const t: Record<WriterAction, WriterEventType> = {
 
 type FlashcardWriterCreateEventData = Pick<Flashcard, 'front' | 'back' | 'source'>;
 
-export class FlashcardWriterCreateRequestEvent extends EventRequest<FlashcardWriterCreateEventData> {
-	constructor(data: FlashcardWriterCreateEventData) {
-		super(t.create, data);
-	}
-}
+const FlashcardWriterCreateRequestEvent =
+	EventFactory.createRequest<FlashcardWriterCreateEventData>(t.create);
+type FlashcardWriterCreateRequestEvent = IEvent<FlashcardWriterCreateEventData>;
 
-export class FlashcardWriterCreateResponseEvent extends EventResponse<{ filepath: string }> {
-	constructor(data: { filepath: string }) {
-		super(t.create, data);
-	}
-}
+const FlashcardWriterCreateResponseEvent = EventFactory.createResponse<{ filepath: string }>(
+	t.create,
+);
+type FlashcardWriterCreateResponseEvent = IEvent<{ filepath: string }>;
 
 type FlashcardWriterUpdateEventData = Pick<Flashcard, 'uuid' | 'front' | 'back' | 'source'>;
 
-export class FlashcardWriterUpdateRequestEvent extends EventRequest<FlashcardWriterUpdateEventData> {
-	constructor(data: FlashcardWriterUpdateEventData) {
-		super(t.update, data);
-	}
-}
+const FlashcardWriterUpdateRequestEvent =
+	EventFactory.createRequest<FlashcardWriterUpdateEventData>(t.update);
+type FlashcardWriterUpdateRequestEvent = IEvent<FlashcardWriterUpdateEventData>;
 
-export class FlashcardWriterUpdateResponseEvent extends EventResponse<{ filepath: string }> {
-	constructor(data: { filepath: string }) {
-		super(t.update, data);
-	}
-}
+const FlashcardWriterUpdateResponseEvent = EventFactory.createResponse<{ filepath: string }>(
+	t.update,
+);
+type FlashcardWriterUpdateResponseEvent = IEvent<{ filepath: string }>;
 
 type FlashcardWriterDeleteEventData = Pick<Flashcard, 'uuid'>;
 
-export class FlashcardWriterDeleteRequestEvent extends EventRequest<FlashcardWriterDeleteEventData> {
-	constructor(data: FlashcardWriterDeleteEventData) {
-		super(t.delete, data);
-	}
-}
+const FlashcardWriterDeleteRequestEvent =
+	EventFactory.createRequest<FlashcardWriterDeleteEventData>(t.delete);
+type FlashcardWriterDeleteRequestEvent = IEvent<FlashcardWriterDeleteEventData>;
 
-export class FlashcardWriterDeleteResponseEvent extends EventResponse<{ filepath: string }> {
-	constructor(data: { filepath: string }) {
-		super(t.delete, data);
-	}
-}
+const FlashcardWriterDeleteResponseEvent = EventFactory.createResponse<{ filepath: string }>(
+	t.delete,
+);
+type FlashcardWriterDeleteResponseEvent = IEvent<{ filepath: string }>;
 
 type FlashcardWriterFmEventData = { fm: Partial<FlashcardYaml>; filepath: string };
 
-export class FlashcardWriterFmRequestEvent extends EventRequest<FlashcardWriterFmEventData> {
-	constructor(data: FlashcardWriterFmEventData) {
-		super(t.fm, data);
-	}
-}
+const FlashcardWriterFmRequestEvent = EventFactory.createRequest<FlashcardWriterFmEventData>(t.fm);
+type FlashcardWriterFmRequestEvent = IEvent<FlashcardWriterFmEventData>;
 
-export class FlashcardWriterFmResponseEvent extends EventResponse<{ filepath: string }> {
-	constructor(data: { filepath: string }) {
-		super(t.fm, data);
-	}
-}
+const FlashcardWriterFmResponseEvent = EventFactory.createResponse<{ filepath: string }>(t.fm);
+type FlashcardWriterFmResponseEvent = IEvent<{ filepath: string }>;
 
 type FlashcardWriterBodyEventData = FlashcardContent;
 
-export class FlashcardWriterBodyRequestEvent extends EventRequest<
+const FlashcardWriterBodyRequestEvent = EventFactory.createRequest<
 	FlashcardWriterBodyEventData & { filepath: string }
-> {
-	constructor(data: FlashcardWriterBodyEventData & { filepath: string }) {
-		super(t.body, data);
-	}
-}
+>(t.body);
+type FlashcardWriterBodyRequestEvent = IEvent<FlashcardWriterBodyEventData & { filepath: string }>;
 
-export class FlashcardWriterBodyResponseEvent extends EventResponse<{ filepath: string }> {
-	constructor(data: { filepath: string }) {
-		super(t.body, data);
-	}
-}
+const FlashcardWriterBodyResponseEvent = EventFactory.createResponse<{ filepath: string }>(t.body);
+type FlashcardWriterBodyResponseEvent = IEvent<{ filepath: string }>;
+
+export {
+	FlashcardWriterBodyRequestEvent,
+	FlashcardWriterBodyResponseEvent,
+	FlashcardWriterCreateRequestEvent,
+	FlashcardWriterCreateResponseEvent,
+	FlashcardWriterDeleteRequestEvent,
+	FlashcardWriterDeleteResponseEvent,
+	FlashcardWriterFmRequestEvent,
+	FlashcardWriterFmResponseEvent,
+	FlashcardWriterUpdateRequestEvent,
+	FlashcardWriterUpdateResponseEvent,
+};

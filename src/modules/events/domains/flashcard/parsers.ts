@@ -1,7 +1,8 @@
+import { IEvent } from '@/interfaces/IEvent';
 import { ParseResult } from '@/interfaces/IParser';
 import { Flashcard, FlashcardYaml } from '@/schemas';
 import { ParserAction } from '@/types/parsers';
-import { EventRequest, EventResponse } from '../../core/Event';
+import { EventFactory } from '../../core/Event';
 
 type ParserEntities = 'flashcard';
 type ParserEventType = `${Capitalize<ParserEntities>}:Parser:${Capitalize<ParserAction>}`;
@@ -13,73 +14,55 @@ const t: Record<ParserAction, ParserEventType> = {
 	parseAll: 'Flashcard:Parser:ParseAll',
 };
 
-// Flashcard Parser Action Events
-export type FlashcardParserParseEventData = {
+type FlashcardParserParseEventData = {
 	filepath: string;
 };
 
-export class FlashcardParserParseRequestEvent extends EventRequest<FlashcardParserParseEventData> {
-	constructor(data: FlashcardParserParseEventData) {
-		super(t.parse, data);
-	}
-}
+const FlashcardParserParseRequestEvent = EventFactory.createRequest<FlashcardParserParseEventData>(t.parse);
+type FlashcardParserParseRequestEvent = IEvent<FlashcardParserParseEventData>;
 
-export class FlashcardParserParseResponseEvent extends EventResponse<ParseResult<Flashcard>> {
-	constructor(data: ParseResult<Flashcard>) {
-		super(t.parse, data);
-	}
-}
+const FlashcardParserParseResponseEvent = EventFactory.createResponse<ParseResult<Flashcard>>(t.parse);
+type FlashcardParserParseResponseEvent = IEvent<ParseResult<Flashcard>>;
 
-export type FlashcardParserParseContentEventData = {
+type FlashcardParserParseContentEventData = {
 	content: string;
 };
 
-export class FlashcardParserParseContentRequestEvent extends EventRequest<FlashcardParserParseContentEventData> {
-	constructor(data: FlashcardParserParseContentEventData) {
-		super(t.parseContent, data);
-	}
-}
+const FlashcardParserParseContentRequestEvent = EventFactory.createRequest<FlashcardParserParseContentEventData>(t.parseContent);
+type FlashcardParserParseContentRequestEvent = IEvent<FlashcardParserParseContentEventData>;
 
-export class FlashcardParserParseContentResponseEvent extends EventResponse<
+const FlashcardParserParseContentResponseEvent = EventFactory.createResponse<
 	Omit<ParseResult<Flashcard>, 'filepath'>
-> {
-	constructor(data: Omit<ParseResult<Flashcard>, 'filepath'>) {
-		super(t.parseContent, data);
-	}
-}
+>(t.parseContent);
+type FlashcardParserParseContentResponseEvent = IEvent<Omit<ParseResult<Flashcard>, 'filepath'>>;
 
-export type FlashcardParserParseMetadataEventData = {
+type FlashcardParserParseMetadataEventData = {
 	filepath: string;
 };
 
-export class FlashcardParserParseMetadataRequestEvent extends EventRequest<FlashcardParserParseMetadataEventData> {
-	constructor(data: FlashcardParserParseMetadataEventData) {
-		super(t.parseMetadata, data);
-	}
-}
+const FlashcardParserParseMetadataRequestEvent = EventFactory.createRequest<FlashcardParserParseMetadataEventData>(t.parseMetadata);
+type FlashcardParserParseMetadataRequestEvent = IEvent<FlashcardParserParseMetadataEventData>;
 
-export class FlashcardParserParseMetadataResponseEvent extends EventResponse<
-	ParseResult<FlashcardYaml>
-> {
-	constructor(data: ParseResult<FlashcardYaml>) {
-		super(t.parseMetadata, data);
-	}
-}
+const FlashcardParserParseMetadataResponseEvent = EventFactory.createResponse<ParseResult<FlashcardYaml>>(t.parseMetadata);
+type FlashcardParserParseMetadataResponseEvent = IEvent<ParseResult<FlashcardYaml>>;
 
-export type FlashcardParserParseAllEventData = {
+type FlashcardParserParseAllEventData = {
 	dirPath: string;
 };
 
-export class FlashcardParserParseAllRequestEvent extends EventRequest<FlashcardParserParseAllEventData> {
-	constructor(data: FlashcardParserParseAllEventData) {
-		super(t.parseAll, data);
-	}
-}
+const FlashcardParserParseAllRequestEvent = EventFactory.createRequest<FlashcardParserParseAllEventData>(t.parseAll);
+type FlashcardParserParseAllRequestEvent = IEvent<FlashcardParserParseAllEventData>;
 
-export class FlashcardParserParseAllResponseEvent extends EventResponse<
-	ParseResult<FlashcardYaml>[]
-> {
-	constructor(data: ParseResult<FlashcardYaml>[]) {
-		super(t.parseAll, data);
-	}
-}
+const FlashcardParserParseAllResponseEvent = EventFactory.createResponse<ParseResult<FlashcardYaml>[]>(t.parseAll);
+type FlashcardParserParseAllResponseEvent = IEvent<ParseResult<FlashcardYaml>[]>;
+
+export {
+	FlashcardParserParseAllRequestEvent,
+	FlashcardParserParseAllResponseEvent,
+	FlashcardParserParseContentRequestEvent,
+	FlashcardParserParseContentResponseEvent,
+	FlashcardParserParseMetadataRequestEvent,
+	FlashcardParserParseMetadataResponseEvent,
+	FlashcardParserParseRequestEvent,
+	FlashcardParserParseResponseEvent,
+};

@@ -1,6 +1,7 @@
+import { IEvent } from '@/interfaces/IEvent';
 import { Stats } from '@/schemas';
 import { AdapterAction } from '@/types/adapters';
-import { Event, EventRequest, EventResponse } from '../../core/Event';
+import { EventFactory } from '../../core/Event';
 
 type Adapters = 'Statistics';
 type AdapterEventType = `${Capitalize<Adapters>}:Adapter:${Capitalize<AdapterAction>}`;
@@ -14,53 +15,40 @@ const t: Record<AdapterAction, AdapterEventType> = {
 	state: 'Statistics:Adapter:State',
 };
 
-export class StatisticsAdapterSetRequestEvent extends EventRequest<{
+const StatisticsAdapterSetRequestEvent = EventFactory.createRequest<{
 	field: keyof Stats;
 	value: unknown;
-}> {
-	constructor(data: { field: keyof Stats; value: unknown }) {
-		super(t.set, data);
-	}
-}
+}>(t.set);
+type StatisticsAdapterSetRequestEvent = IEvent<{ field: keyof Stats; value: unknown }>;
 
-export class StatisticsAdapterSetResponseEvent extends EventResponse<Stats> {
-	constructor(data: Stats) {
-		super(t.set, data);
-	}
-}
+const StatisticsAdapterSetResponseEvent = EventFactory.createResponse<Stats>(t.set);
+type StatisticsAdapterSetResponseEvent = IEvent<Stats>;
 
-export class StatisticsAdapterUpdateRequestEvent extends EventRequest<Partial<Stats>> {
-	constructor(data: Partial<Stats>) {
-		super(t.update, data);
-	}
-}
+const StatisticsAdapterUpdateRequestEvent = EventFactory.createRequest<Partial<Stats>>(t.update);
+type StatisticsAdapterUpdateRequestEvent = IEvent<Partial<Stats>>;
 
-export class StatisticsAdapterUpdateResponseEvent extends EventResponse<Stats> {
-	constructor(data: Stats) {
-		super(t.update, data);
-	}
-}
+const StatisticsAdapterUpdateResponseEvent = EventFactory.createResponse<Stats>(t.update);
+type StatisticsAdapterUpdateResponseEvent = IEvent<Stats>;
 
-export class StatisticsAdapterResetEvent extends Event<void> {
-	constructor() {
-		super(t.reset, undefined);
-	}
-}
+const StatisticsAdapterResetEvent = EventFactory.createEvent<void>(t.reset);
+type StatisticsAdapterResetEvent = IEvent<void>;
 
-export class StatisticsAdapterSaveEvent extends Event<void> {
-	constructor() {
-		super(t.save);
-	}
-}
+const StatisticsAdapterSaveEvent = EventFactory.createEvent<void>(t.save);
+type StatisticsAdapterSaveEvent = IEvent<void>;
 
-export class StatisticsAdapterInitEvent extends Event<void> {
-	constructor() {
-		super(t.init);
-	}
-}
+const StatisticsAdapterInitEvent = EventFactory.createEvent<void>(t.init);
+type StatisticsAdapterInitEvent = IEvent<void>;
 
-export class StatisticsAdapterStateEvent extends Event<Stats> {
-	constructor(data: Stats) {
-		super(t.state, data);
-	}
-}
+const StatisticsAdapterStateEvent = EventFactory.createEvent<Stats>(t.state);
+type StatisticsAdapterStateEvent = IEvent<Stats>;
+
+export {
+	StatisticsAdapterInitEvent,
+	StatisticsAdapterResetEvent,
+	StatisticsAdapterSaveEvent,
+	StatisticsAdapterSetRequestEvent,
+	StatisticsAdapterSetResponseEvent,
+	StatisticsAdapterStateEvent,
+	StatisticsAdapterUpdateRequestEvent,
+	StatisticsAdapterUpdateResponseEvent,
+};

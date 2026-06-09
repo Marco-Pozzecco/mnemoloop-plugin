@@ -1,6 +1,7 @@
+import { IEvent } from '@/interfaces/IEvent';
 import { FlashcardIndex } from '@/schemas';
 import { AdapterAction } from '@/types/adapters';
-import { Event, EventRequest, EventResponse } from '../../core';
+import { EventFactory } from '../../core/Event';
 
 type Adapters = 'flashcard';
 type AdapterEventType = `${Capitalize<Adapters>}:Adapter:${Capitalize<AdapterAction>}`;
@@ -14,50 +15,37 @@ const t: Record<AdapterAction, AdapterEventType> = {
 	state: 'Flashcard:Adapter:State',
 };
 
-export class FlashcardAdapterSetRequestEvent extends EventRequest<FlashcardIndex> {
-	constructor(data: FlashcardIndex) {
-		super(t.set, data);
-	}
-}
+const FlashcardAdapterSetRequestEvent = EventFactory.createRequest<FlashcardIndex>(t.set);
+type FlashcardAdapterSetRequestEvent = IEvent<FlashcardIndex>;
 
-export class FlashcardAdapterSetResponseEvent extends EventResponse<FlashcardIndex> {
-	constructor(data: FlashcardIndex) {
-		super(t.set, data);
-	}
-}
+const FlashcardAdapterSetResponseEvent = EventFactory.createResponse<FlashcardIndex>(t.set);
+type FlashcardAdapterSetResponseEvent = IEvent<FlashcardIndex>;
 
-export class FlashcardAdapterUpdateRequestEvent extends EventRequest<FlashcardIndex> {
-	constructor(data: FlashcardIndex) {
-		super(t.update, data);
-	}
-}
+const FlashcardAdapterUpdateRequestEvent = EventFactory.createRequest<FlashcardIndex>(t.update);
+type FlashcardAdapterUpdateRequestEvent = IEvent<FlashcardIndex>;
 
-export class FlashcardAdapterUpdateResponseEvent extends EventResponse<FlashcardIndex> {
-	constructor(data: FlashcardIndex) {
-		super(t.update, data);
-	}
-}
+const FlashcardAdapterUpdateResponseEvent = EventFactory.createResponse<FlashcardIndex>(t.update);
+type FlashcardAdapterUpdateResponseEvent = IEvent<FlashcardIndex>;
 
-export class FlashcardAdapterResetEvent extends Event<void> {
-	constructor() {
-		super(t.reset);
-	}
-}
+const FlashcardAdapterResetEvent = EventFactory.createEvent<FlashcardIndex>(t.reset);
+type FlashcardAdapterResetEvent = IEvent<FlashcardIndex>;
 
-export class FlashcardAdapterSaveEvent extends Event<void> {
-	constructor() {
-		super(t.save);
-	}
-}
+const FlashcardAdapterInitEvent = EventFactory.createEvent<FlashcardIndex>(t.init);
+type FlashcardAdapterInitEvent = IEvent<FlashcardIndex>;
 
-export class FlashcardAdapterInitEvent extends Event<void> {
-	constructor() {
-		super(t.init);
-	}
-}
+const FlashcardAdapterSaveEvent = EventFactory.createEvent<void>(t.save);
+type FlashcardAdapterSaveEvent = IEvent<void>;
 
-export class FlashcardAdapterStateEvent extends Event<FlashcardIndex> {
-	constructor(data: FlashcardIndex) {
-		super(t.state, data);
-	}
-}
+const FlashcardAdapterStateEvent = EventFactory.createEvent<FlashcardIndex>(t.state);
+type FlashcardAdapterStateEvent = IEvent<FlashcardIndex>;
+
+export {
+	FlashcardAdapterInitEvent,
+	FlashcardAdapterResetEvent,
+	FlashcardAdapterSaveEvent,
+	FlashcardAdapterSetRequestEvent,
+	FlashcardAdapterSetResponseEvent,
+	FlashcardAdapterStateEvent,
+	FlashcardAdapterUpdateRequestEvent,
+	FlashcardAdapterUpdateResponseEvent,
+};

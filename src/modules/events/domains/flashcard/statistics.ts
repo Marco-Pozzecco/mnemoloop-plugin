@@ -1,17 +1,7 @@
-import { Event } from '../../core/Event';
+import { IEvent } from '@/interfaces/IEvent';
+import { EventFactory } from '../../core/Event';
 
-enum EventAction {
-	Compute = 'Compute',
-}
+const FlashcardStatisticsComputeEvent = EventFactory.createEvent<void>('Flashcard:Statistics:Compute');
+type FlashcardStatisticsComputeEvent = IEvent<void>;
 
-type EventType = `Flashcard:Statistics:${EventAction}`;
-
-const t: Record<Uncapitalize<EventAction>, EventType> = {
-	compute: 'Flashcard:Statistics:Compute',
-};
-
-export class FlashcardStatisticsComputeEvent extends Event<void> {
-	constructor() {
-		super(t.compute);
-	}
-}
+export { FlashcardStatisticsComputeEvent };

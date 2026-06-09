@@ -1,117 +1,89 @@
+import { IEvent } from '@/interfaces/IEvent';
 import { FlashcardMetadata } from '@/schemas';
 import { IndexAction } from '@/types/indexes';
-import { Event, EventRequest, EventResponse } from '../../core/Event';
+import { EventFactory } from '../../core/Event';
 
 type IndexEventType = `Flashcard:Index:${Capitalize<IndexAction>}`;
 
 const t: Record<IndexAction, IndexEventType> = {
-	get: 'Flashcard:Index:Get',
-	getAll: 'Flashcard:Index:GetAll',
-	update: 'Flashcard:Index:Update',
 	create: 'Flashcard:Index:Create',
 	delete: 'Flashcard:Index:Delete',
+	update: 'Flashcard:Index:Update',
+	query: 'Flashcard:Index:Query',
+	get: 'Flashcard:Index:Get',
+	getAll: 'Flashcard:Index:GetAll',
 	initialize: 'Flashcard:Index:Initialize',
 	save: 'Flashcard:Index:Save',
 	state: 'Flashcard:Index:State',
-	query: 'Flashcard:Index:Query',
 };
 
-export type FlashcardIndexEventData = { flashcards: FlashcardMetadata[]; total: number };
+type FlashcardIndexEventData = { flashcards: FlashcardMetadata[]; total: number };
 
-export class FlashcardIndexCreateRequestEvent extends EventRequest<FlashcardMetadata> {
-	constructor(data: FlashcardMetadata) {
-		super(t.create, data);
-	}
-}
+const FlashcardIndexCreateRequestEvent = EventFactory.createRequest<FlashcardMetadata>(t.create);
+type FlashcardIndexCreateRequestEvent = IEvent<FlashcardMetadata>;
 
-export class FlashcardIndexCreateResponseEvent extends EventResponse<FlashcardMetadata> {
-	constructor(data: FlashcardMetadata) {
-		super(t.create, data);
-	}
-}
+const FlashcardIndexCreateResponseEvent = EventFactory.createResponse<FlashcardMetadata>(t.create);
+type FlashcardIndexCreateResponseEvent = IEvent<FlashcardMetadata>;
 
-export class FlashcardIndexDeleteRequestEvent extends EventRequest<FlashcardMetadata> {
-	constructor(data: FlashcardMetadata) {
-		super(t.delete, data);
-	}
-}
+const FlashcardIndexDeleteRequestEvent = EventFactory.createRequest<FlashcardMetadata>(t.delete);
+type FlashcardIndexDeleteRequestEvent = IEvent<FlashcardMetadata>;
 
-export class FlashcardIndexDeleteResponseEvent extends EventResponse<FlashcardMetadata | null> {
-	constructor(data: FlashcardMetadata | null) {
-		super(t.delete, data);
-	}
-}
+const FlashcardIndexDeleteResponseEvent = EventFactory.createResponse<FlashcardMetadata | null>(t.delete);
+type FlashcardIndexDeleteResponseEvent = IEvent<FlashcardMetadata | null>;
 
-export class FlashcardIndexUpdateRequestEvent extends EventRequest<Partial<FlashcardMetadata>> {
-	constructor(data: Partial<FlashcardMetadata>) {
-		super(t.update, data);
-	}
-}
+const FlashcardIndexUpdateRequestEvent = EventFactory.createRequest<Partial<FlashcardMetadata>>(t.update);
+type FlashcardIndexUpdateRequestEvent = IEvent<Partial<FlashcardMetadata>>;
 
-export class FlashcardIndexUpdateResponseEvent extends EventResponse<FlashcardMetadata> {
-	constructor(data: FlashcardMetadata) {
-		super(t.update, data);
-	}
-}
+const FlashcardIndexUpdateResponseEvent = EventFactory.createResponse<FlashcardMetadata>(t.update);
+type FlashcardIndexUpdateResponseEvent = IEvent<FlashcardMetadata>;
 
 type FlashcardIndexQueryEventData = {
 	predicate: (f: FlashcardMetadata) => boolean;
 };
 
-export class FlashcardIndexQueryRequestEvent extends EventRequest<FlashcardIndexQueryEventData> {
-	constructor(data: FlashcardIndexQueryEventData) {
-		super(t.query, data);
-	}
-}
+const FlashcardIndexQueryRequestEvent = EventFactory.createRequest<FlashcardIndexQueryEventData>(t.query);
+type FlashcardIndexQueryRequestEvent = IEvent<FlashcardIndexQueryEventData>;
 
-export class FlashcardIndexQueryResponseEvent extends EventResponse<FlashcardMetadata[]> {
-	constructor(data: FlashcardMetadata[]) {
-		super(t.query, data);
-	}
-}
+const FlashcardIndexQueryResponseEvent = EventFactory.createResponse<FlashcardMetadata[]>(t.query);
+type FlashcardIndexQueryResponseEvent = IEvent<FlashcardMetadata[]>;
 
 type FlashcardIndexGetEventData = { id: string };
 
-export class FlashcardIndexGetRequestEvent extends EventRequest<FlashcardIndexGetEventData> {
-	constructor(data: FlashcardIndexGetEventData) {
-		super(t.get, data);
-	}
-}
+const FlashcardIndexGetRequestEvent = EventFactory.createRequest<FlashcardIndexGetEventData>(t.get);
+type FlashcardIndexGetRequestEvent = IEvent<FlashcardIndexGetEventData>;
 
-export class FlashcardIndexGetResponseEvent extends EventResponse<FlashcardMetadata | null> {
-	constructor(data: FlashcardMetadata | null) {
-		super(t.get, data);
-	}
-}
+const FlashcardIndexGetResponseEvent = EventFactory.createResponse<FlashcardMetadata | null>(t.get);
+type FlashcardIndexGetResponseEvent = IEvent<FlashcardMetadata | null>;
 
-export class FlashcardIndexGetAllRequestEvent extends EventRequest<void> {
-	constructor() {
-		super(t.getAll);
-	}
-}
+const FlashcardIndexGetAllRequestEvent = EventFactory.createRequest<void>(t.getAll);
+type FlashcardIndexGetAllRequestEvent = IEvent<void>;
 
-export class FlashcardIndexGetAllResponseEvent extends EventResponse<FlashcardMetadata[]> {
-	constructor(data: FlashcardMetadata[]) {
-		super(t.getAll, data);
-	}
-}
+const FlashcardIndexGetAllResponseEvent = EventFactory.createResponse<FlashcardMetadata[]>(t.getAll);
+type FlashcardIndexGetAllResponseEvent = IEvent<FlashcardMetadata[]>;
 
-export class FlashcardIndexInitializeEvent extends Event<void> {
-	constructor() {
-		super(t.initialize);
-	}
-}
+const FlashcardIndexInitializeEvent = EventFactory.createEvent<void>(t.initialize);
+type FlashcardIndexInitializeEvent = IEvent<void>;
 
-export class FlashcardIndexSaveEvent extends Event<FlashcardIndexEventData> {
-	constructor(data: FlashcardIndexEventData) {
-		super(t.save, data);
-	}
-}
+const FlashcardIndexSaveEvent = EventFactory.createEvent<FlashcardIndexEventData>(t.save);
+type FlashcardIndexSaveEvent = IEvent<FlashcardIndexEventData>;
 
-// Subscribers subscribe to this event to receive updates about the flashcard index state.
-// This event is published whenever the flashcard index state changes.
-export class FlashcardIndexStateEvent extends Event<FlashcardIndexEventData> {
-	constructor(data: FlashcardIndexEventData) {
-		super(t.state, data);
-	}
-}
+const FlashcardIndexStateEvent = EventFactory.createEvent<FlashcardIndexEventData>(t.state);
+type FlashcardIndexStateEvent = IEvent<FlashcardIndexEventData>;
+
+export {
+	FlashcardIndexCreateRequestEvent,
+	FlashcardIndexCreateResponseEvent,
+	FlashcardIndexDeleteRequestEvent,
+	FlashcardIndexDeleteResponseEvent,
+	FlashcardIndexGetAllRequestEvent,
+	FlashcardIndexGetAllResponseEvent,
+	FlashcardIndexGetRequestEvent,
+	FlashcardIndexGetResponseEvent,
+	FlashcardIndexInitializeEvent,
+	FlashcardIndexQueryRequestEvent,
+	FlashcardIndexQueryResponseEvent,
+	FlashcardIndexSaveEvent,
+	FlashcardIndexStateEvent,
+	FlashcardIndexUpdateRequestEvent,
+	FlashcardIndexUpdateResponseEvent,
+};
