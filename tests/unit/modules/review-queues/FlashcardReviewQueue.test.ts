@@ -11,58 +11,53 @@ import { Flashcard, FlashcardMetadata } from '@/schemas';
 import { createFlashcardMetadata } from '../../../helpers/factories';
 import { useFixedDate, restoreRealTimers } from '../../../helpers/date-fixtures';
 import { resetSingletons } from '../../../helpers/reset-singletons';
-
 import { State } from 'ts-fsrs';
 
+// Initialize static type properties on event classes before tests
+new FlashcardIndexQueryRequestEvent({ predicate: () => true });
+new FlashcardIndexQueryResponseEvent([]);
+new FlashcardParserParseRequestEvent({ filepath: '' });
+new FlashcardParserParseResponseEvent({ entity: {} as Flashcard, filepath: '' });
 describe('FlashcardReviewQueue', () => {
 	let mockFlashcards: FlashcardMetadata[];
-	let indexerHandler: ReturnType<typeof EventBus.instance.subscribe>;
-	let parserHandler: ReturnType<typeof EventBus.instance.subscribe>;
+	let indexerHandler: (() => void) | undefined;
+	let parserHandler: (() => void) | undefined;
 
 	beforeEach(() => {
 		useFixedDate();
 		resetSingletons();
 
 		// Set up mock indexer that responds to query requests
-		indexerHandler = EventBus.instance.subscribe((event) => {
-			if (event.isType(FlashcardIndexQueryRequestEvent.type)) {
-				const req = event as unknown as {
-					data: { predicate: (f: FlashcardMetadata) => boolean; deckFilter?: string };
-				};
-				const { predicate, deckFilter } = req.data;
-				const filtered = mockFlashcards.filter((f) => {
-					const passesPredicate = predicate(f);
-					const passesDeck = !deckFilter || f.decks.includes(deckFilter);
-					return passesPredicate && passesDeck;
-				});
-				EventBus.instance.publish(new FlashcardIndexQueryResponseEvent(filtered));
-			}
+		indexerHandler = EventBus.instance.subscribe(FlashcardIndexQueryRequestEvent, (event) => {
+			const req = event as unknown as {
+				data: { predicate: (f: FlashcardMetadata) => boolean };
+			};
+			const { predicate } = req.data;
+			const filtered = mockFlashcards.filter((f) => predicate(f));
+			EventBus.instance.publish(new FlashcardIndexQueryResponseEvent(filtered));
 		});
 
 		// Set up mock parser that responds to parse requests
-		parserHandler = EventBus.instance.subscribe((event) => {
-			if (event.isType(FlashcardParserParseRequestEvent.type)) {
-				const req = event as unknown as { data: { filepath: string } };
-				const filepath = req.data.filepath;
-				const meta = mockFlashcards.find((f) => f.file === filepath);
-				const flashcard = {
-					...createFlashcardMetadata(),
-					...meta,
-					front: 'Front',
-					back: 'Back',
-				} as Flashcard;
-				EventBus.instance.publish(
-					new FlashcardParserParseResponseEvent({ entity: flashcard, filepath }),
-				);
-			}
+		parserHandler = EventBus.instance.subscribe(FlashcardParserParseRequestEvent, (event) => {
+			const filepath = event.data.filepath;
+			const meta = mockFlashcards.find((f) => f.file === filepath);
+			const flashcard = {
+				...createFlashcardMetadata(),
+				...meta,
+				front: 'Front',
+				back: 'Back',
+			} as Flashcard;
+			EventBus.instance.publish(
+				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath }),
+			);
 		});
 
 		mockFlashcards = [];
 	});
 
 	afterEach(() => {
-		EventBus.instance.unsubscribe(indexerHandler);
-		EventBus.instance.unsubscribe(parserHandler);
+		indexerHandler?.();
+		parserHandler?.();
 		restoreRealTimers();
 	});
 
@@ -92,13 +87,13 @@ describe('FlashcardReviewQueue', () => {
 			expect(queue.items[0].data?.status).toBe('ACTIVE');
 		});
 
-		it('should apply deck filter', () => {
+		it('should apply deck filter via predicate', () => {
 			mockFlashcards = [
 				createFlashcardMetadata({ file: 'math.md', decks: ['Math'] }),
 				createFlashcardMetadata({ file: 'science.md', decks: ['Science'] }),
 			];
 
-			const queue = new FlashcardReviewQueue(() => true, 'Math');
+			const queue = new FlashcardReviewQueue((f) => f.decks.includes('Math'));
 
 			expect(queue.size).toBe(1);
 			expect(queue.items[0].data?.decks).toContain('Math');
