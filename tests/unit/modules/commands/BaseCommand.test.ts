@@ -31,6 +31,9 @@ class TestCommand extends BaseCommand {
 	getParsers() {
 		return this.parsers;
 	}
+	getWriters() {
+		return this.writers;
+	}
 }
 
 function createMockDeps(plugin: Plugin): ICommandDependencies {
@@ -39,6 +42,7 @@ function createMockDeps(plugin: Plugin): ICommandDependencies {
 		adapters: new Map() as any,
 		indexes: new Map() as any,
 		parsers: new Map() as any,
+		writers: new Map() as any,
 	};
 }
 
@@ -49,6 +53,7 @@ describe('BaseCommand', () => {
 		expect(() => cmd.getAdapters()).toThrow('Command dependencies not initialized');
 		expect(() => cmd.getIndexes()).toThrow('Command dependencies not initialized');
 		expect(() => cmd.getParsers()).toThrow('Command dependencies not initialized');
+		expect(() => cmd.getWriters()).toThrow('Command dependencies not initialized');
 	});
 
 	it('should set deps and call onRegister during register', () => {
