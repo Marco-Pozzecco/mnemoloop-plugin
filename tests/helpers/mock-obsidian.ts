@@ -64,14 +64,14 @@ export function createMockVault(files: MockFile[] = []): any {
 		getFileByPath: vi.fn<any, any>().mockImplementation((path: string) => {
 			if (fileMap.has(path)) {
 				const basename = path.split('/').pop()?.replace('.md', '') || '';
-				return new TFile(path, basename);
+				return new (TFile as any)(path, basename);
 			}
 			return null;
 		}),
 		getAbstractFileByPath: vi.fn<any, any>().mockImplementation((path: string) => {
 			if (fileMap.has(path)) {
 				const basename = path.split('/').pop()?.replace('.md', '') || '';
-				return new TFile(path, basename);
+				return new (TFile as any)(path, basename);
 			}
 
 			const prefix = path.endsWith('/') ? path : path + '/';
@@ -85,13 +85,13 @@ export function createMockVault(files: MockFile[] = []): any {
 						seen.add(firstSegment);
 						const childPath = prefix + firstSegment;
 						const childBasename = firstSegment.replace('.md', '') || '';
-						children.push(new TFile(childPath, childBasename));
+						children.push(new (TFile as any)(childPath, childBasename));
 					}
 				}
 			}
 
 			if (children.length > 0) {
-				return new TFolder(path, children);
+				return new (TFolder as any)(path, children);
 			}
 
 			return null;
@@ -102,7 +102,7 @@ export function createMockVault(files: MockFile[] = []): any {
 		create: vi.fn<any, any>().mockImplementation(async (path: string, content: string) => {
 			fileMap.set(path, content);
 			const basename = path.split('/').pop()?.replace('.md', '') || '';
-			return new TFile(path, basename);
+			return new (TFile as any)(path, basename);
 		}),
 		getRoot: vi.fn<any, any>(),
 		read: vi.fn<any, any>().mockImplementation(async (file: any) => {
