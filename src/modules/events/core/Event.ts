@@ -1,4 +1,5 @@
 import { IEvent } from '@/interfaces/IEvent';
+import { EventClass } from '@/interfaces/IEventRegistry';
 import { v4 as uuid } from 'uuid';
 
 // Standard event base class
@@ -12,8 +13,6 @@ export abstract class Event<TData> implements IEvent<TData> {
 	readonly data: TData;
 
 	constructor(type: string, data: TData) {
-		const ctor = this.constructor as typeof Event;
-		ctor.type = type;
 		this.type = type;
 		this.time = new Date();
 		this.data = data;
@@ -49,6 +48,35 @@ export abstract class EventResponse<TData> extends Event<TData> {
 	constructor(type: string, data: TData) {
 		type = `${type}:Response`;
 		super(type, data);
+	}
+}
+
+export class EventFactory {
+	static createEvent<TData>(type: string): EventClass<TData> {
+		return class extends Event<TData> {
+			static type: string = type;
+			constructor(data: TData) {
+				super(type, data);
+			}
+		};
+	}
+
+	static createRequest<TData>(type: string): EventClass<TData> {
+		return class extends EventRequest<TData> implements IEvent<TData> {
+			static type: string = type + ':Request';
+			constructor(data: TData) {
+				super(type, data);
+			}
+		};
+	}
+
+	static createResponse<TData>(type: string): EventClass<TData> {
+		return class extends EventResponse<TData> implements IEvent<TData> {
+			static type: string = type + ':Response';
+			constructor(data: TData) {
+				super(type, data);
+			}
+		};
 	}
 }
 
