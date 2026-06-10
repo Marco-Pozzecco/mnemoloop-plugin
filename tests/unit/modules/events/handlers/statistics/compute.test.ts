@@ -79,6 +79,52 @@ describe('FlashcardStatisticsComputeHandler', () => {
 			updated_at: '2026-06-08T12:00:00.000Z',
 		});
 		expect(mockStats.save).toHaveBeenCalledTimes(1);
-		expect(bus.publish).not.toHaveBeenCalled();
+		expect(bus.publish).toHaveBeenCalledTimes(1);
+		expect(bus.publish).toHaveBeenCalledWith(
+			expect.objectContaining({ type: 'Statistics:Adapter:State' }),
+		);
+	});
+	it('should schedule next compute when future due cards exist', async () => {
+		const handler = new FlashcardStatisticsComputeHandler(mockDeps);
+		const event = new FlashcardStatisticsComputeEvent();
+
+		// One card due in 30 seconds
+		mockIndexer.getAll = vi
+			.fn()
+			.mockReturnValue([
+				{ status: 'ACTIVE', due: '2026-06-08T12:00:30.000Z' },
+			] as unknown as FlashcardMetadata[]);
+
+		await handler.handle(event);
+
+		expect(bus.publish).toHaveBeenCalledTimes(1);
+
+		// Advance by 30 seconds + BUFFER_MS (300ms)
+		await vi.advanceTimersByTimeAsync(30_000 + 300);
+
+		expect(bus.publish).toHaveBeenCalledTimes(2);
+		const secondCall = vi.mocked(bus.publish).mock.calls[1][0] as { type: string };
+		expect(secondCall.type).toBe('Flashcard:Statistics:Compute');
+	});
+
+	it('should not schedule next compute when no future due cards exist', async () => {
+		const handler = new FlashcardStatisticsComputeHandler(mockDeps);
+		const event = new FlashcardStatisticsComputeEvent();
+
+		// All cards already due (no future due cards)
+		mockIndexer.getAll = vi
+			.fn()
+			.mockReturnValue([
+				{ status: 'ACTIVE', due: '2026-06-08T11:00:00.000Z' },
+			] as unknown as FlashcardMetadata[]);
+
+		await handler.handle(event);
+
+		expect(bus.publish).toHaveBeenCalledTimes(1);
+
+		// Advance beyond MAX_RECALC_DELAY_MS (24 hours) + 1
+		await vi.advanceTimersByTimeAsync(24 * 60 * 60 * 1000 + 1);
+
+		expect(bus.publish).toHaveBeenCalledTimes(1);
 	});
 });
