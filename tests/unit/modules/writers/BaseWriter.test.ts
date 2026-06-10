@@ -73,6 +73,11 @@ describe('BaseWriter', () => {
 			expect(fileArg.path).toBe('new.md');
 		});
 
+		it('should call vault.create when file does not exist', async () => {
+			await writer.create('new.md', { uuid: 'test', content: 'body' });
+			expect(plugin.app.vault.create).toHaveBeenCalledWith('new.md', expect.any(String));
+		});
+
 		it('should throw if file already exists', async () => {
 			await expect(writer.create('test.md', { uuid: 'new', content: 'hello' })).rejects.toThrow(
 				'File already exists',
@@ -126,6 +131,13 @@ describe('BaseWriter', () => {
 
 		it('should throw if file not found', async () => {
 			await expect(writer.delete('missing.md')).rejects.toThrow('File not found');
+		});
+	});
+	describe('removeFrontmatter', () => {
+		it('should handle frontmatter ending with --- and no trailing newline', () => {
+			const content = '---\nkey: val\n---more body';
+			const result = (writer as any).removeFrontmatter(content);
+			expect(result).toBe('more body');
 		});
 	});
 });
