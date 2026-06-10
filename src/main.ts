@@ -2,6 +2,8 @@ import './ui/styles/main.css';
 
 import { Plugin } from 'obsidian';
 import { IAdapter } from './interfaces/IAdapter';
+import { IEvent } from './interfaces/IEvent';
+import { IEventRegistryDependencies } from './interfaces/IEventRegistry';
 import { FlashcardAdapter } from './modules/adapters/FlashcardAdapter';
 import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
 import { StatisticsAdapter } from './modules/adapters/StatisticsAdapter';
@@ -13,7 +15,15 @@ import {
 	OpenDashboardCommand,
 	SetAllFlashcardsDueNowCommand,
 } from './modules/commands';
-import { EventBus, EventRegistry, IndexRouter } from './modules/events';
+import {
+	EventBus,
+	EventRegistry,
+	FlashcardAdapterInitEvent,
+	FlashcardIndexInitEvent,
+	IndexRouter,
+	SettingsAdapterInitEvent,
+	StatisticsAdapterInitEvent,
+} from './modules/events';
 import { FlashcardIndexer } from './modules/indexers/FlashcardIndexer';
 import { FlashcardParser } from './modules/parsers/FlashcardParser';
 import { FlashcardWriter } from './modules/writers/FlashcardWriter';
@@ -25,9 +35,7 @@ import { ParserKey, Parsers } from './types/parsers';
 import { WriterKey, Writers } from './types/writers';
 import { APP_VIEW, AppView } from './ui/views/App/AppView';
 import { SettingsView } from './ui/views/Settings/SettingsView';
-import { Logger } from './utils/Logger';
 import { VaultWatcher } from './utils/VaultWatcher';
-import { IEventRegistryDependencies } from './interfaces/IEventRegistry';
 
 export default class MnemoloopPlugin extends Plugin {
 	private _vaultWatcher?: VaultWatcher;
@@ -37,6 +45,7 @@ export default class MnemoloopPlugin extends Plugin {
 	private _writers: Writers = new Map();
 	private _commandRegistry: CommandRegistry = new CommandRegistry();
 	private _eventRegistry!: EventRegistry;
+	private _initializationEvents: IEvent[] = [];
 
 	settings!: PluginSettings;
 	private ribbonIcon?: HTMLElement;
@@ -80,13 +89,13 @@ export default class MnemoloopPlugin extends Plugin {
 		this._adapter.set(AdapterKey.statistics, new StatisticsAdapter(this));
 		this._adapter.set(AdapterKey.flashcard, new FlashcardAdapter(this));
 
-		const promises = Array.from(this._adapter.values()).map(async (adapter) => {
-			await adapter.initialize();
-		});
+		const events = [
+			new FlashcardAdapterInitEvent(),
+			new SettingsAdapterInitEvent(),
+			new StatisticsAdapterInitEvent(),
+		];
 
-		await Promise.all(promises);
-
-		Logger.info('adapters initialized', { count: promises.length });
+		this._initializationEvents.push(...events);
 	}
 
 	private async loadParsers() {
@@ -110,11 +119,8 @@ export default class MnemoloopPlugin extends Plugin {
 				this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>,
 			),
 		);
-		const indexPromises = Array.from(this._indexes.values()).map(async (index) => {
-			await index.initialize();
-		});
-		await Promise.all(indexPromises);
-		Logger.info('indexes initialized');
+
+		this._initializationEvents.push(new FlashcardIndexInitEvent());
 	}
 
 	/**
@@ -131,6 +137,10 @@ export default class MnemoloopPlugin extends Plugin {
 		};
 		this._eventRegistry = new EventRegistry(EventBus.instance, deps, IndexRouter);
 		this._eventRegistry.initialize();
+
+		for (const event of this._initializationEvents) {
+			EventBus.instance.publish(event);
+		}
 	}
 
 	private async initializeViews() {
@@ -165,8 +175,6 @@ export default class MnemoloopPlugin extends Plugin {
 			parsers: this._parsers,
 			writers: this._writers,
 		});
-
-		Logger.info('commands initialized');
 	}
 
 	private initializeRibbonIcon() {
