@@ -16,6 +16,7 @@
 		helperText,
 		className = '',
 		onchange,
+		tooltip,
 	}: SliderProps = $props();
 
 	function handleValueChange(newValue: number) {
@@ -44,12 +45,16 @@
 		{max}
 		{step}
 		{disabled}
-		onValueChange={handleValueChange}
+		onValueCommit={handleValueChange}
 		aria-invalid={hasError}
 		aria-describedby={hasError ? `${id}-error` : helperText ? `${id}-helper` : undefined}
 	>
 		{#snippet child({ props, thumbItems })}
-			<div {...props} class="ml-slider-container" style="--range-width: {((value - min) / (max - min)) * 100}%">
+			<div
+				{...props}
+				class="ml-slider-container"
+				style="--range-width: {((value - min) / (max - min)) * 100}%"
+			>
 				<div class="ml-slider-track">
 					<Slider.Range>
 						{#snippet child({ props: rangeProps })}
@@ -63,6 +68,13 @@
 							<div {...thumbProps} class="ml-slider-thumb"></div>
 						{/snippet}
 					</Slider.Thumb>
+					{#if tooltip}
+						<Slider.ThumbLabel index={thumb.index} position="bottom">
+							{#snippet child({ props: labelProps })}
+								<span {...labelProps} class="ml-slider-thumb-label">{thumb.value}</span>
+							{/snippet}
+						</Slider.ThumbLabel>
+					{/if}
 				{/each}
 			</div>
 		{/snippet}
@@ -133,10 +145,7 @@
 		border-radius: 50%;
 		border: 2px solid var(--background-primary);
 		box-shadow: 0 1px 3px color-mix(in srgb, var(--text-normal) 20%, transparent);
-		cursor: grab;
 		position: absolute;
-		top: 50%;
-		transform: translate(-50%, -50%);
 		transition:
 			background-color 0.15s ease,
 			transform 0.15s ease,
@@ -145,20 +154,34 @@
 
 	.ml-slider-thumb:hover {
 		background-color: var(--interactive-accent-hover);
-		transform: translate(-50%, -50%) scale(1.1);
-	}
-
-	.ml-slider-thumb:focus-visible {
-		outline: 2px solid var(--interactive-accent);
-		outline-offset: 2px;
+		transform: scale(1.2);
 	}
 
 	.ml-slider-thumb:active {
 		cursor: grabbing;
-		transform: translate(-50%, -50%) scale(0.95);
+		transform: scale(0.95);
 		box-shadow: 0 2px 6px color-mix(in srgb, var(--text-normal) 30%, transparent);
 	}
 
+	.ml-slider-thumb-label {
+		display: none;
+		z-index: 999;
+		border: 1px solid;
+		border-color: var(--background-modifier-border);
+		background-color: var(--background-primary);
+		color: var(--text-normal);
+		padding: 4px 8px;
+		border-radius: 4px;
+		font-size: 0.875rem;
+	}
+
+	.ml-slider-thumb:active + .ml-slider-thumb-label {
+		display: block;
+	}
+
+	.ml-slider-thumb:hover + .ml-slider-thumb-label {
+		display: block;
+	}
 	/* Error state */
 	.ml-slider-wrapper.has-error .ml-slider-track {
 		background-color: color-mix(in srgb, var(--text-error) 20%, transparent);
