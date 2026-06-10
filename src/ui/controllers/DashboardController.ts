@@ -2,10 +2,10 @@ import { IReviewQueue } from '@/interfaces/IReviewQueue';
 import { EventBus, FlashcardReviewSessionStartEvent } from '@/modules/events';
 import { FlashcardReviewQueue } from '@/modules/review-queues/FlashcardReviewQueue';
 import { CardStatus, FlashcardMetadata } from '@/schemas';
-import { FSRSParameters } from 'ts-fsrs';
 import { IndexKey } from '@/types/indexes';
-import { uiStore, UIStore } from '@/ui/store/ui.store';
 import { settingsStore } from '@/ui/store/settings.store';
+import { uiStore, UIStore } from '@/ui/store/ui.store';
+import { FSRSParameters } from 'ts-fsrs';
 import { sessionStore, SessionStore } from '../store/session.store';
 
 interface IDashboardController {
@@ -37,7 +37,7 @@ export class DashboardController implements IDashboardController {
 			const conditions = [entity.status === CardStatus.ACTIVE, new Date(entity.due) <= new Date()];
 
 			if (deckFilter) {
-				conditions.push(entity.decks.includes(deckFilter));
+				conditions.push(entity.decks.some((deck) => deck.includes(deckFilter)));
 			}
 
 			return conditions.every((v) => v === true);
