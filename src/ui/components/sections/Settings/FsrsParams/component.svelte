@@ -71,7 +71,7 @@
 
 	<div class="ml-form-fields">
 		<Slider
-			label="Request retention"
+			label="Retention rate"
 			value={settings.flashcard.fsrs.request_retention}
 			min={0.8}
 			max={1}
@@ -80,6 +80,7 @@
 			helperText="Target probability of recall (0.8–1)"
 			hasError={hasError('flashcard.fsrs.request_retention')}
 			errorMessage={getError('flashcard.fsrs.request_retention')}
+			tooltip
 		/>
 
 		<Input
