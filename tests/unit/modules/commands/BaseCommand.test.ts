@@ -64,6 +64,16 @@ describe('BaseCommand', () => {
 		expect(cmd.registered).toBe(true);
 		expect(cmd.getPlugin()).toBe(plugin);
 	});
+	it('should allow accessing all getters after register', () => {
+		const cmd = new TestCommand();
+		const plugin = createMockPlugin() as unknown as Plugin;
+		const deps = createMockDeps(plugin);
+		cmd.register(deps);
+		expect(cmd.getAdapters()).toBe(deps.adapters);
+		expect(cmd.getIndexes()).toBe(deps.indexes);
+		expect(cmd.getParsers()).toBe(deps.parsers);
+		expect(cmd.getWriters()).toBe(deps.writers);
+	});
 
 	it('should call onUnregister and clear deps during unregister', () => {
 		const cmd = new TestCommand();
