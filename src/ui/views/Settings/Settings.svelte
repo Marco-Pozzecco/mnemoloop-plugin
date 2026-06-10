@@ -2,6 +2,7 @@
 	import { settingsStore } from '@/ui/store/settings.store';
 	import type { PluginSettings } from '@/schemas/settings';
 	import FlashcardConfig from '@/ui/components/sections/Settings/FlashcardConfig/component.svelte';
+	import FsrsParams from '@/ui/components/sections/Settings/FsrsParams/component.svelte';
 	import DataManagement from '@/ui/components/sections/Settings/DataManagement/component.svelte';
 	import DangerZone from '@/ui/components/sections/Settings/DangerZone/component.svelte';
 
@@ -47,7 +48,6 @@
 	{#if saveError}
 		<div class="ml-settings__error">{saveError}</div>
 	{/if}
-
 	<div class="ml-settings__sections">
 		<FlashcardConfig
 			{settings}
@@ -56,6 +56,8 @@
 			{hasError}
 			{getError}
 		/>
+
+		<FsrsParams {settings} onNestedFieldChange={handleNestedFieldChange} {hasError} {getError} />
 
 		<DataManagement {settings} onFieldChange={handleFieldChange} {hasError} {getError} />
 

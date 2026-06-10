@@ -13,6 +13,20 @@ describe('FsrsEngine', () => {
 		restoreRealTimers();
 	});
 
+	describe('constructor', () => {
+		it('should accept custom parameters', () => {
+			const engine = new FsrsEngine({ request_retention: 0.8, maximum_interval: 100 });
+			const card = createFlashcardYaml({ due: new Date().toISOString(), state: State.New });
+			const result = engine.calculate(card, Rating.Easy);
+
+			const defaultEngine = new FsrsEngine();
+			const defaultCard = createFlashcardYaml({ due: new Date().toISOString(), state: State.New });
+			const defaultResult = defaultEngine.calculate(defaultCard, Rating.Easy);
+
+			expect(result.scheduled_days).not.toBe(defaultResult.scheduled_days);
+		});
+	});
+
 	describe('calculate', () => {
 		it('should update card with Again rating', () => {
 			const engine = new FsrsEngine();

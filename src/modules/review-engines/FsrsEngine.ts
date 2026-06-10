@@ -13,9 +13,9 @@ export class FsrsEngine extends BaseReviewEngine<FlashcardYaml> {
 
 	private fsrs: FSRS;
 
-	constructor() {
+	constructor(params?: Partial<FSRSParameters>) {
 		super();
-		this.fsrs = new FSRS(generatorParameters());
+		this.fsrs = new FSRS(generatorParameters(params));
 	}
 
 	/**
