@@ -18,6 +18,7 @@ export class EventBus implements IEventBus {
 	}
 
 	publish<TData>(event: IEvent<TData>): string {
+		Logger.debug(`Event: ${event.type}`, event);
 		const handlers = this._registry.get(event.type);
 		if (!handlers) {
 			return event.id;

@@ -16,6 +16,7 @@ describe('SettingsAdapter', () => {
 	describe('constructor', () => {
 		it('should initialize with default settings', () => {
 			expect(adapter.data).toEqual(DEFAULT_PLUGIN_SETTINGS);
+			expect(adapter.data.flashcard.fsrs).toEqual(DEFAULT_PLUGIN_SETTINGS.flashcard.fsrs);
 		});
 	});
 
