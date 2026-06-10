@@ -6,6 +6,7 @@ import { Logger } from '@/utils/Logger';
 export class EventRegistry implements IEventRegistry {
 	private _factories: Set<() => void> = new Set();
 	private _unsubscribes: (() => void)[] = [];
+	private _initialized = false;
 	private _bus: IEventBus;
 	private _deps: IEventRegistryDependencies;
 	private _router: IEventRouter;
@@ -24,7 +25,7 @@ export class EventRegistry implements IEventRegistry {
 				// Create a factory function that will create and subscribe the event handler
 				const factory = () => {
 					const eventHandler = new handler(this._deps);
-					const unsubscribe = this._bus.subscribe(event, eventHandler.handle);
+					const unsubscribe = this._bus.subscribe(event, eventHandler.handle.bind(eventHandler));
 					this._unsubscribes.push(unsubscribe);
 				};
 				// Add the factory to the set of factories to be initialized
@@ -34,6 +35,11 @@ export class EventRegistry implements IEventRegistry {
 	}
 
 	initialize(): void {
+		if (this._initialized) {
+			return;
+		}
+		this._initialized = true;
+
 		// Register the router and its routes
 		this._registerRouter(this._router);
 
@@ -51,5 +57,6 @@ export class EventRegistry implements IEventRegistry {
 		}
 		this._unsubscribes = [];
 		this._factories.clear();
+		this._initialized = false;
 	}
 }

@@ -3,10 +3,11 @@ import type { IEventHandler } from '@/interfaces/IEventHandler';
 import type { IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
 import { Event } from '@/modules/events/core/Event';
 import { EventBus } from '@/modules/events/core/EventBus';
+import { EventHandler } from '@/modules/events/core/EventHandler';
 import { EventRegistry } from '@/modules/events/core/EventRegistry';
 import { EventRouter } from '@/modules/events/core/EventRouter';
 import { Plugin } from 'obsidian';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetSingletons } from '../../../../helpers/reset-singletons';
 
 class TestEvent extends Event<{ value: number }> {
@@ -90,6 +91,32 @@ describe('EventRegistry', () => {
 			);
 			expect(handlers).toBeDefined();
 			expect(handlers!.size).toBe(1);
+		});
+
+		it('should bind handler methods so this is preserved', () => {
+			const bus = EventBus.instance;
+			const deps = createMockDeps();
+			const router = new EventRouter();
+			const registry = new EventRegistry(bus, deps, router);
+
+			class BoundCheckHandler extends EventHandler<TestEvent> {
+				wasCalled = false;
+				handle(_event: TestEvent): void {
+					this.wasCalled = true;
+					// Accessing a protected property from the base class proves this is bound
+					expect(this._bus).toBe(bus);
+				}
+			}
+
+			router.route(TestEvent, BoundCheckHandler);
+			registry.initialize();
+
+			const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+			const event = new TestEvent({ value: 42 });
+			bus.publish(event);
+
+			expect(errorSpy).not.toHaveBeenCalled();
+			errorSpy.mockRestore();
 		});
 	});
 

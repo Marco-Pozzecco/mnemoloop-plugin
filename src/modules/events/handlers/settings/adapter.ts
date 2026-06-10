@@ -6,6 +6,7 @@ import {
 	SettingsAdapterSaveEvent,
 	SettingsAdapterSetRequestEvent,
 	SettingsAdapterSetResponseEvent,
+	SettingsAdapterStateEvent,
 	SettingsAdapterUpdateRequestEvent,
 	SettingsAdapterUpdateResponseEvent,
 } from '../../domains/settings/adapter';
@@ -19,6 +20,7 @@ export class SettingsAdapterInitHandler extends EventHandler<SettingsAdapterInit
 	async handle(_event: SettingsAdapterInitEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		await adapter.initialize();
+		this._bus.publish(new SettingsAdapterStateEvent(adapter.data));
 	}
 }
 
@@ -30,6 +32,7 @@ export class SettingsAdapterResetHandler extends EventHandler<SettingsAdapterSet
 	async handle(_event: SettingsAdapterSetRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		await adapter.reset();
+		this._bus.publish(new SettingsAdapterStateEvent(adapter.data));
 	}
 }
 
@@ -54,6 +57,7 @@ export class SettingsAdapterSetHandler extends EventHandler<SettingsAdapterSetRe
 		const { field, value } = event.data;
 		adapter.setField(field, value);
 		this._bus.publish(new SettingsAdapterSetResponseEvent(adapter.data));
+		this._bus.publish(new SettingsAdapterStateEvent(adapter.data));
 	}
 }
 
@@ -66,5 +70,6 @@ export class SettingsAdapterUpdateHandler extends EventHandler<SettingsAdapterUp
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		adapter.update(event.data);
 		this._bus.publish(new SettingsAdapterUpdateResponseEvent(adapter.data));
+		this._bus.publish(new SettingsAdapterStateEvent(adapter.data));
 	}
 }

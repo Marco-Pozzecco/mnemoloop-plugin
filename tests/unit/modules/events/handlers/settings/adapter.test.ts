@@ -8,6 +8,7 @@ import {
 	SettingsAdapterInitEvent,
 	SettingsAdapterSetRequestEvent,
 	SettingsAdapterSetResponseEvent,
+	SettingsAdapterStateEvent,
 } from '@/modules/events/domains/settings/adapter';
 import { SettingsAdapter } from '@/modules/adapters/SettingsAdapter';
 import { AdapterKey } from '@/types/adapters';
@@ -95,11 +96,16 @@ describe('SettingsAdapterSetHandler', () => {
 
 		expect(mockAdapter.setField).toHaveBeenCalledTimes(1);
 		expect(mockAdapter.setField).toHaveBeenCalledWith('debounce_timeout_ms', 1000);
-		expect(bus.publish).toHaveBeenCalledTimes(1);
+		expect(bus.publish).toHaveBeenCalledTimes(2);
 		expect(bus.publish).toHaveBeenCalledWith(
 			expect.any(SettingsAdapterSetResponseEvent),
 		);
+		expect(bus.publish).toHaveBeenCalledWith(
+			expect.any(SettingsAdapterStateEvent),
+		);
 		const publishedEvent = vi.mocked(bus.publish).mock.calls[0][0] as SettingsAdapterSetResponseEvent;
 		expect(publishedEvent.data).toEqual(mockAdapter.data);
+		const stateEvent = vi.mocked(bus.publish).mock.calls[1][0] as SettingsAdapterStateEvent;
+		expect(stateEvent.data).toEqual(mockAdapter.data);
 	});
 });
