@@ -28,10 +28,14 @@ type FlashcardIndexCreateResponseEvent = IEvent<FlashcardMetadata>;
 const FlashcardIndexDeleteRequestEvent = EventFactory.createRequest<FlashcardMetadata>(t.delete);
 type FlashcardIndexDeleteRequestEvent = IEvent<FlashcardMetadata>;
 
-const FlashcardIndexDeleteResponseEvent = EventFactory.createResponse<FlashcardMetadata | null>(t.delete);
+const FlashcardIndexDeleteResponseEvent = EventFactory.createResponse<FlashcardMetadata | null>(
+	t.delete,
+);
 type FlashcardIndexDeleteResponseEvent = IEvent<FlashcardMetadata | null>;
 
-const FlashcardIndexUpdateRequestEvent = EventFactory.createRequest<Partial<FlashcardMetadata>>(t.update);
+const FlashcardIndexUpdateRequestEvent = EventFactory.createRequest<Partial<FlashcardMetadata>>(
+	t.update,
+);
 type FlashcardIndexUpdateRequestEvent = IEvent<Partial<FlashcardMetadata>>;
 
 const FlashcardIndexUpdateResponseEvent = EventFactory.createResponse<FlashcardMetadata>(t.update);
@@ -41,7 +45,9 @@ type FlashcardIndexQueryEventData = {
 	predicate: (f: FlashcardMetadata) => boolean;
 };
 
-const FlashcardIndexQueryRequestEvent = EventFactory.createRequest<FlashcardIndexQueryEventData>(t.query);
+const FlashcardIndexQueryRequestEvent = EventFactory.createRequest<FlashcardIndexQueryEventData>(
+	t.query,
+);
 type FlashcardIndexQueryRequestEvent = IEvent<FlashcardIndexQueryEventData>;
 
 const FlashcardIndexQueryResponseEvent = EventFactory.createResponse<FlashcardMetadata[]>(t.query);
@@ -58,11 +64,13 @@ type FlashcardIndexGetResponseEvent = IEvent<FlashcardMetadata | null>;
 const FlashcardIndexGetAllRequestEvent = EventFactory.createRequest<void>(t.getAll);
 type FlashcardIndexGetAllRequestEvent = IEvent<void>;
 
-const FlashcardIndexGetAllResponseEvent = EventFactory.createResponse<FlashcardMetadata[]>(t.getAll);
+const FlashcardIndexGetAllResponseEvent = EventFactory.createResponse<FlashcardMetadata[]>(
+	t.getAll,
+);
 type FlashcardIndexGetAllResponseEvent = IEvent<FlashcardMetadata[]>;
 
-const FlashcardIndexInitializeEvent = EventFactory.createEvent<void>(t.initialize);
-type FlashcardIndexInitializeEvent = IEvent<void>;
+const FlashcardIndexInitEvent = EventFactory.createEvent<void>(t.initialize);
+type FlashcardIndexInitEvent = IEvent<void>;
 
 const FlashcardIndexSaveEvent = EventFactory.createEvent<FlashcardIndexEventData>(t.save);
 type FlashcardIndexSaveEvent = IEvent<FlashcardIndexEventData>;
@@ -79,7 +87,7 @@ export {
 	FlashcardIndexGetAllResponseEvent,
 	FlashcardIndexGetRequestEvent,
 	FlashcardIndexGetResponseEvent,
-	FlashcardIndexInitializeEvent,
+	FlashcardIndexInitEvent,
 	FlashcardIndexQueryRequestEvent,
 	FlashcardIndexQueryResponseEvent,
 	FlashcardIndexSaveEvent,

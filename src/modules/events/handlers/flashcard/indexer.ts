@@ -13,7 +13,7 @@ import {
 	FlashcardIndexGetAllResponseEvent,
 	FlashcardIndexGetRequestEvent,
 	FlashcardIndexGetResponseEvent,
-	FlashcardIndexInitializeEvent,
+	FlashcardIndexInitEvent,
 	FlashcardIndexQueryRequestEvent,
 	FlashcardIndexQueryResponseEvent,
 	FlashcardIndexSaveEvent,
@@ -29,16 +29,19 @@ import {
 	VaultRenameEvent,
 } from '../../domains/vault';
 
-export class FlashcardIndexInitializeHandler extends EventHandler<FlashcardIndexInitializeEvent> {
+export class FlashcardIndexInitializeHandler extends EventHandler<FlashcardIndexInitEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
 
-	async handle(_event: FlashcardIndexInitializeEvent): Promise<void> {
+	async handle(_event: FlashcardIndexInitEvent): Promise<void> {
 		const indexer = this._indexers.get(IndexKey.flashcard)!;
 		await indexer.initialize();
 		// Update statistics
 		this._bus.publish(new FlashcardStatisticsComputeEvent());
+		this._bus.publish(
+			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
+		);
 	}
 }
 

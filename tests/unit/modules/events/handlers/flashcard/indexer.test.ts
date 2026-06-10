@@ -6,7 +6,7 @@ import {
 	FlashcardIndexCreateHandler,
 } from '@/modules/events/handlers/flashcard/indexer';
 import {
-	FlashcardIndexInitializeEvent,
+	FlashcardIndexInitEvent,
 	FlashcardIndexGetRequestEvent,
 	FlashcardIndexGetResponseEvent,
 	FlashcardIndexCreateRequestEvent,
@@ -57,6 +57,8 @@ describe('FlashcardIndexInitializeHandler', () => {
 
 		mockIndexer = {
 			initialize: vi.fn().mockResolvedValue(undefined),
+			getAll: vi.fn().mockReturnValue([]),
+			size: 0,
 		} as unknown as FlashcardIndexer;
 
 		mockDeps = {
@@ -71,13 +73,14 @@ describe('FlashcardIndexInitializeHandler', () => {
 
 	it('should call indexer.initialize and publish FlashcardStatisticsComputeEvent', async () => {
 		const handler = new FlashcardIndexInitializeHandler(mockDeps);
-		const event = new FlashcardIndexInitializeEvent();
+		const event = new FlashcardIndexInitEvent();
 
 		await handler.handle(event);
 
 		expect(mockIndexer.initialize).toHaveBeenCalledTimes(1);
-		expect(bus.publish).toHaveBeenCalledTimes(1);
+		expect(bus.publish).toHaveBeenCalledTimes(2);
 		expect(bus.publish).toHaveBeenCalledWith(expect.any(FlashcardStatisticsComputeEvent));
+		expect(bus.publish).toHaveBeenCalledWith(expect.any(FlashcardIndexStateEvent));
 	});
 });
 
