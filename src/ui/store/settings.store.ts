@@ -9,6 +9,7 @@ import {
 } from '@/modules/events';
 import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from '@/schemas/settings';
 import { writable, Writable } from 'svelte/store';
+import { simpleClone } from '@/utils/Clone';
 import { BaseStoreManager } from './base.store';
 
 const settingsWritable = writable(DEFAULT_PLUGIN_SETTINGS);
@@ -36,7 +37,7 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 			this.settings.update((state) => {
 				const updated = { ...state, ...event.data };
 				// If the watch config has changed, trigger a flashcard index re-initialize
-				if (state.flashcard.watch !== updated.flashcard.watch) {
+				if (state.flashcard.watch.directory !== updated.flashcard.watch.directory) {
 					EventBus.instance.publish(new FlashcardIndexInitializeEvent());
 				}
 				return updated;
@@ -63,10 +64,7 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this.isLoading.update(() => true);
 		this.saveError.update(() => null);
 
-		// Get current settings and create a deep copy
-		const currentSettings: PluginSettings = this.currentSettings;
-
-		// Set value at nested path
+		const currentSettings = simpleClone(this.currentSettings);
 		this.setValueAtPath(currentSettings, path, value);
 
 		const request = new SettingsAdapterUpdateRequestEvent(currentSettings);

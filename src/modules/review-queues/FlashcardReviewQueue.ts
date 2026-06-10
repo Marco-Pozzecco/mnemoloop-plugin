@@ -1,11 +1,12 @@
 import { Flashcard, FlashcardMetadata, FlashcardYaml } from '@/schemas';
+import { FSRSParameters } from 'ts-fsrs';
+import { FsrsEngine } from '../review-engines/FsrsEngine';
+import { FlashcardReviewItem } from '../review-items/FlashcardReviewItem';
 import {
 	EventBus,
 	FlashcardIndexQueryRequestEvent,
 	FlashcardIndexQueryResponseEvent,
 } from '../events';
-import { FsrsEngine } from '../review-engines/FsrsEngine';
-import { FlashcardReviewItem } from '../review-items/FlashcardReviewItem';
 import { BaseReviewQueue } from './BaseReviewQueue';
 
 export class FlashcardReviewQueue extends BaseReviewQueue<
@@ -15,8 +16,8 @@ export class FlashcardReviewQueue extends BaseReviewQueue<
 > {
 	private _unsubscribe?: () => void;
 
-	constructor(predicate: (entity: FlashcardMetadata) => boolean) {
-		const engine = new FsrsEngine();
+	constructor(predicate: (entity: FlashcardMetadata) => boolean, fsrsConfig?: Partial<FSRSParameters>) {
+		const engine = new FsrsEngine(fsrsConfig);
 
 		super(engine, predicate);
 

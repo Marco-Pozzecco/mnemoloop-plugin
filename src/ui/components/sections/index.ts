@@ -1,5 +1,9 @@
 export { default as DashboardChart } from './Dashboard/Chart/component.svelte';
 export type { default as DashboardChartProps } from './Dashboard/Chart/types';
+export { default as DashboardDeckTree } from './Dashboard/DeckTree/component.svelte';
+export type { default as DashboardDeckTreeProps } from './Dashboard/DeckTree/types';
+export { default as DashboardDeckTreeNode } from './Dashboard/DeckTreeNode/component.svelte';
+export type { default as DashboardDeckTreeNodeProps } from './Dashboard/DeckTreeNode/types';
 export { default as DashboardFooter } from './Dashboard/Footer/component.svelte';
 export type { default as DashboardFooterProps } from './Dashboard/Footer/types';
 export { default as DashboardHeader } from './Dashboard/Header/component.svelte';
@@ -8,10 +12,6 @@ export { default as DashboardProgress } from './Dashboard/Progress/component.sve
 export type { default as DashboardProgressProps } from './Dashboard/Progress/types';
 export { default as DashboardStatsGrid } from './Dashboard/StatsGrid/component.svelte';
 export type { default as DashboardStatsGridProps } from './Dashboard/StatsGrid/types';
-export { default as DeckTree } from './Dashboard/DeckTree/component.svelte';
-export type { default as DeckTreeProps } from './Dashboard/DeckTree/types';
-export { default as DeckTreeNode } from './Dashboard/DeckTreeNode/component.svelte';
-export type { default as DeckTreeNodeProps } from './Dashboard/DeckTreeNode/types';
 export { default as ModalControls } from './Modal/Controls/component.svelte';
 export type { default as ModalControlsProps } from './Modal/Controls/types';
 export { default as ReviewControls } from './Review/Controls/component.svelte';
@@ -30,3 +30,5 @@ export { default as SettingsDataManagement } from './Settings/DataManagement/com
 export type { default as SettingsDataManagementProps } from './Settings/DataManagement/types';
 export { default as SettingsFlashcardConfig } from './Settings/FlashcardConfig/component.svelte';
 export type { default as SettingsFlashcardConfigProps } from './Settings/FlashcardConfig/types';
+export { default as SettingsFsrsParams } from './Settings/FsrsParams/component.svelte';
+export type { default as SettingsFsrsParamsProps } from './Settings/FsrsParams/types';
