@@ -52,7 +52,7 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 			return;
 		}
 
-		const responseHandler = (event: FlashcardWriterCreateResponseEvent) => {
+		const responseHandler = async (event: FlashcardWriterCreateResponseEvent) => {
 			this._unsubscribe?.();
 			const path = normalizePath(event.data.filepath);
 			const file = this.plugin.app.vault.getAbstractFileByPath(path);
