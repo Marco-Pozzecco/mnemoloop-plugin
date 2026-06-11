@@ -25,5 +25,5 @@ export abstract class EventHandler<E extends IEvent> implements IEventHandler {
 		this._bus = deps.bus;
 	}
 
-	abstract handle(_event: E): void | Promise<void>;
+	abstract handle(_event: E): Promise<void>;
 }
