@@ -68,6 +68,13 @@ describe('BaseIndexer', () => {
 			expect(indexer.index).toEqual({});
 		});
 	});
+	describe('size getter', () => {
+		it('should return cache size', () => {
+			expect(indexer.size).toBe(0);
+			indexer.create('1', { uuid: '1', name: 'Test' });
+			expect(indexer.size).toBe(1);
+		});
+	});
 
 	describe('get', () => {
 		it('should return undefined for missing id', () => {
@@ -107,6 +114,17 @@ describe('BaseIndexer', () => {
 			expect(result).toEqual({ uuid: '1', name: 'Test' });
 			expect(indexer.get('1')).toEqual({ uuid: '1', name: 'Test' });
 		});
+		it('should throw FAILED_TO_CREATE when cache.get returns undefined after set', () => {
+			const failingCache = {
+				set: vi.fn(),
+				get: vi.fn().mockReturnValue(undefined),
+				delete: vi.fn(),
+				has: vi.fn().mockReturnValue(false),
+			};
+			const failingIndexer = new TestIndexer(mockParser, mockSettingsAdapter, mockIndexAdapter);
+			failingIndexer['_cache'] = failingCache as any;
+			expect(() => failingIndexer.create('id', { uuid: 'id', name: 'Test' })).toThrow('Failed to create entity');
+		});
 	});
 
 	describe('update', () => {
@@ -118,6 +136,19 @@ describe('BaseIndexer', () => {
 
 		it('should throw NOT_FOUND for missing entity', () => {
 			expect(() => indexer.update('missing', { name: 'New' })).toThrow('Entity not found in index');
+		});
+		it('should throw FAILED_TO_UPDATE when cache.get returns undefined after set', () => {
+			const failingCache = {
+				set: vi.fn(),
+				get: vi.fn()
+					.mockReturnValueOnce({ uuid: 'id', name: 'Test' }) // first get in update
+					.mockReturnValueOnce(undefined), // second get after set
+				delete: vi.fn(),
+				has: vi.fn().mockReturnValue(true),
+			};
+			const failingIndexer = new TestIndexer(mockParser, mockSettingsAdapter, mockIndexAdapter);
+			failingIndexer['_cache'] = failingCache as any;
+			expect(() => failingIndexer.update('id', { name: 'Updated' })).toThrow('Failed to update entity');
 		});
 	});
 

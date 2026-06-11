@@ -1,6 +1,6 @@
 import { IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
 import { StatisticsAdapter } from '@/modules/adapters/StatisticsAdapter';
-import { FlashcardMetadata } from '@/schemas';
+import { FlashcardYamlSchema } from '@/schemas';
 import { AdapterKey } from '@/types/adapters';
 import { IndexKey } from '@/types/indexes';
 import {
@@ -45,7 +45,7 @@ export class FlashcardReviewSessionScoreHandler extends EventHandler<FlashcardRe
 		const stats = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
 
 		// 1. Update card in indexer
-		indexer.update(card.uuid, card as unknown as Partial<FlashcardMetadata>);
+		indexer.update(card.uuid, FlashcardYamlSchema.parse(card));
 
 		// 2. Save indexer
 		await indexer.save();

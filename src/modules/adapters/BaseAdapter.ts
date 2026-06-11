@@ -97,9 +97,11 @@ export abstract class BaseAdapter<T> implements IAdapter<T> {
 		const [head, ...tail] = path;
 		let next = obj[head!];
 		if (next === undefined || next === null || typeof next !== 'object') {
-			tail[0] !== undefined && typeof tail[0] === 'number'
-				? (next = obj[head!] = new Array(tail[0] + 1).fill(null))
-				: (next = obj[head!] = {});
+			if (tail[0] !== undefined && typeof tail[0] === 'number') {
+				next = obj[head!] = new Array(tail[0] + 1).fill(null);
+			} else {
+				next = obj[head!] = {};
+			}
 		}
 		this.setValueAtPath(next as Record<string, unknown>, tail, value);
 	}

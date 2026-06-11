@@ -13,4 +13,5 @@ export default interface SliderProps {
 	className?: string;
 	onchange?: (value: number) => void;
 	tooltip?: boolean;
+	tooltipPosition?: 'top' | 'bottom' | 'left' | 'right';
 }

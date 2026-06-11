@@ -3,6 +3,7 @@
 	import Select from '@/ui/components/elements/Select/component.svelte';
 	import { RETENTION_PERIOD_OPTIONS } from '@/schemas/settings';
 	import type DataManagementProps from './types';
+	import { Card } from '@/ui/components/elements';
 
 	let {
 		settings,
@@ -31,42 +32,40 @@
 <section class="ml-data-management-section">
 	<h3 class="ml-section-header">Data management</h3>
 
-	<div class="ml-field-group">
-		<Toggle
-			label="Enable soft delete"
-			checked={settings.enable_soft_delete}
-			helperText="Keep deleted items recoverable for a period"
-			onchange={handleToggleChange}
-		/>
-	</div>
+	<Card className="ml-settings-card">
+		<div class="ml-field-group ml-settings-group">
+			<Toggle
+				label="Enable soft delete"
+				checked={settings.enable_soft_delete}
+				helperText="Keep deleted items recoverable for a period"
+				onchange={handleToggleChange}
+			/>
+		</div>
 
-	<div class="ml-field-group">
-		<Select
-			label="Retention period (hours)"
-			options={retentionOptions}
-			value={String(settings.soft_delete_hours)}
-			disabled={!settings.enable_soft_delete}
-			helperText="How long to keep deleted items before permanent removal"
-			hasError={hasError('soft_delete_hours')}
-			errorMessage={getError('soft_delete_hours')}
-			onchange={handleRetentionChange}
-		/>
-	</div>
+		<div class="ml-field-group ml-settings-group">
+			<Select
+				label="Retention period (hours)"
+				options={retentionOptions}
+				value={String(settings.soft_delete_hours)}
+				disabled={!settings.enable_soft_delete}
+				helperText="How long to keep deleted items before permanent removal"
+				hasError={hasError('soft_delete_hours')}
+				errorMessage={getError('soft_delete_hours')}
+				onchange={handleRetentionChange}
+			/>
+		</div>
+	</Card>
 </section>
 
 <style>
 	.ml-data-management-section {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-		padding: 1rem 0;
+		margin-top: var(--size-2-2);
 	}
 
 	.ml-section-header {
 		color: var(--text-normal);
 		margin: 0;
-		padding: 0 0 0.5rem 0;
-		border-bottom: 1px solid var(--background-modifier-border);
+		margin-bottom: var(--size-4-4);
 	}
 
 	.ml-field-group {

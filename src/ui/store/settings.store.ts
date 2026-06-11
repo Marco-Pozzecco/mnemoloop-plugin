@@ -1,6 +1,6 @@
 import {
 	EventBus,
-	FlashcardIndexInitializeEvent,
+	FlashcardIndexInitEvent,
 	SettingsAdapterResetEvent,
 	SettingsAdapterSaveEvent,
 	SettingsAdapterSetRequestEvent,
@@ -38,7 +38,7 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 				const updated = { ...state, ...event.data };
 				// If the watch config has changed, trigger a flashcard index re-initialize
 				if (state.flashcard.watch.directory !== updated.flashcard.watch.directory) {
-					EventBus.instance.publish(new FlashcardIndexInitializeEvent());
+					EventBus.instance.publish(new FlashcardIndexInitEvent());
 				}
 				return updated;
 			});

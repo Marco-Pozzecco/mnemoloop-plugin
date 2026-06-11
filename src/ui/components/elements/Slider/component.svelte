@@ -17,6 +17,7 @@
 		className = '',
 		onchange,
 		tooltip,
+		tooltipPosition = 'top',
 	}: SliderProps = $props();
 
 	function handleValueChange(newValue: number) {
@@ -69,7 +70,7 @@
 						{/snippet}
 					</Slider.Thumb>
 					{#if tooltip}
-						<Slider.ThumbLabel index={thumb.index} position="bottom">
+						<Slider.ThumbLabel index={thumb.index} position={tooltipPosition}>
 							{#snippet child({ props: labelProps })}
 								<span {...labelProps} class="ml-slider-thumb-label">{thumb.value}</span>
 							{/snippet}
