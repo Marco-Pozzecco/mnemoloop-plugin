@@ -87,6 +87,7 @@ describe('FlashcardIndexer', () => {
 				{
 					entity: createFlashcardYaml({ uuid: existingCard.uuid }),
 					filepath: '/flashcards/1.md',
+					success: true,
 				},
 			]);
 
