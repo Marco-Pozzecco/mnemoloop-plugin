@@ -9,7 +9,6 @@ import {
 } from '@/modules/events/handlers/settings/adapter';
 import {
 	SettingsAdapterInitEvent,
-	SettingsAdapterResetEvent,
 	SettingsAdapterSaveEvent,
 	SettingsAdapterSetRequestEvent,
 	SettingsAdapterSetResponseEvent,
@@ -104,13 +103,10 @@ describe('SettingsAdapterSetHandler', () => {
 		expect(mockAdapter.setField).toHaveBeenCalledTimes(1);
 		expect(mockAdapter.setField).toHaveBeenCalledWith('debounce_timeout_ms', 1000);
 		expect(bus.publish).toHaveBeenCalledTimes(2);
-		expect(bus.publish).toHaveBeenCalledWith(
-			expect.any(SettingsAdapterSetResponseEvent),
-		);
-		expect(bus.publish).toHaveBeenCalledWith(
-			expect.any(SettingsAdapterStateEvent),
-		);
-		const publishedEvent = vi.mocked(bus.publish).mock.calls[0][0] as SettingsAdapterSetResponseEvent;
+		expect(bus.publish).toHaveBeenCalledWith(expect.any(SettingsAdapterSetResponseEvent));
+		expect(bus.publish).toHaveBeenCalledWith(expect.any(SettingsAdapterStateEvent));
+		const publishedEvent = vi.mocked(bus.publish).mock
+			.calls[0][0] as SettingsAdapterSetResponseEvent;
 		expect(publishedEvent.data).toEqual(mockAdapter.data);
 		const stateEvent = vi.mocked(bus.publish).mock.calls[1][0] as SettingsAdapterStateEvent;
 		expect(stateEvent.data).toEqual(mockAdapter.data);
@@ -163,9 +159,7 @@ describe('SettingsAdapterResetHandler', () => {
 
 		expect(mockAdapter.reset).toHaveBeenCalledTimes(1);
 		expect(bus.publish).toHaveBeenCalledTimes(1);
-		expect(bus.publish).toHaveBeenCalledWith(
-			expect.any(SettingsAdapterStateEvent),
-		);
+		expect(bus.publish).toHaveBeenCalledWith(expect.any(SettingsAdapterStateEvent));
 		const stateEvent = vi.mocked(bus.publish).mock.calls[0][0] as SettingsAdapterStateEvent;
 		expect(stateEvent.data).toEqual(mockAdapter.data);
 	});
@@ -267,13 +261,10 @@ describe('SettingsAdapterUpdateHandler', () => {
 			debounce_timeout_ms: 1000,
 		});
 		expect(bus.publish).toHaveBeenCalledTimes(2);
-		expect(bus.publish).toHaveBeenCalledWith(
-			expect.any(SettingsAdapterUpdateResponseEvent),
-		);
-		expect(bus.publish).toHaveBeenCalledWith(
-			expect.any(SettingsAdapterStateEvent),
-		);
-		const responseEvent = vi.mocked(bus.publish).mock.calls[0][0] as SettingsAdapterUpdateResponseEvent;
+		expect(bus.publish).toHaveBeenCalledWith(expect.any(SettingsAdapterUpdateResponseEvent));
+		expect(bus.publish).toHaveBeenCalledWith(expect.any(SettingsAdapterStateEvent));
+		const responseEvent = vi.mocked(bus.publish).mock
+			.calls[0][0] as SettingsAdapterUpdateResponseEvent;
 		expect(responseEvent.data).toEqual(mockAdapter.data);
 		const stateEvent = vi.mocked(bus.publish).mock.calls[1][0] as SettingsAdapterStateEvent;
 		expect(stateEvent.data).toEqual(mockAdapter.data);
