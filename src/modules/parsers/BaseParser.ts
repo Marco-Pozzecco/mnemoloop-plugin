@@ -1,4 +1,4 @@
-import { IParser, ParseResult } from '@/interfaces/IParser';
+import { IParser, ParseContentResult, ParseResult } from '@/interfaces/IParser';
 import { IYamlEngine } from '@/interfaces/IYamlEngine';
 import { Plugin } from 'obsidian';
 
@@ -16,7 +16,7 @@ export abstract class BaseParser<Entity extends EntityMetadata, EntityMetadata> 
 
 	abstract marker: string;
 	abstract parse: (filepath: string) => Promise<ParseResult<Entity>>;
-	abstract parseContent: (content: string) => Omit<ParseResult<Entity>, 'filepath'>;
+	abstract parseContent: (content: string) => ParseContentResult<Entity>;
 	abstract parseMetadata: (filepath: string) => Promise<ParseResult<EntityMetadata>>;
 	abstract parseAll: (dirPath: string) => Promise<ParseResult<EntityMetadata>[]>;
 }
