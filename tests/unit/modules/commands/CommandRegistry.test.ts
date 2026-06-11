@@ -19,6 +19,7 @@ function createMockDeps(plugin: Plugin): ICommandDependencies {
 		adapters: new Map() as any,
 		indexes: new Map() as any,
 		parsers: new Map() as any,
+		writers: new Map() as any,
 	};
 }
 

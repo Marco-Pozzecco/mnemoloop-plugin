@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
 import { BaseStoreManager } from './base.store';
-import { EventBus, FlashcardIndexRecalcResponseEvent } from '@/modules/events';
+import { EventBus, FlashcardIndexStateEvent } from '@/modules/events';
 import { FlashcardMetadata } from '@/schemas';
 import { getParentDecks, splitDeckPath } from '@/utils/deck-utils';
 
@@ -40,24 +40,25 @@ export function buildDeckTree(flashcards: FlashcardMetadata[]): DeckNode[] {
 
 	// Step 1: Aggregate counts for every deck path
 	for (const card of flashcards) {
-		if (card.status !== 'ACTIVE') continue;
-		const isDue = new Date(card.due) <= now;
+		if (card.status === 'DELETED') continue;
 
-		// VIRTUAL NORMALIZATION: empty/missing decks → 'Uncategorized'
-		const effectiveDecks = card.decks?.length ? card.decks : ['Uncategorized'];
+		const decks = !card.decks || card.decks.length === 0 ? ['Uncategorized'] : card.decks;
 
-		for (const deck of effectiveDecks) {
-			const existing = counts.get(deck) ?? { dueNow: 0, totalCards: 0 };
-			existing.totalCards++;
-			if (isDue) existing.dueNow++;
-			counts.set(deck, existing);
-
-			// Increment all parent decks (prefix match semantics)
-			for (const parent of getParentDecks(deck)) {
-				const p = counts.get(parent) ?? { dueNow: 0, totalCards: 0 };
-				p.totalCards++;
-				if (isDue) p.dueNow++;
-				counts.set(parent, p);
+		for (const cardDeck of decks) {
+			const allDecks = [...getParentDecks(cardDeck), cardDeck];
+			for (const deck of allDecks) {
+				const existing = counts.get(deck);
+				if (existing) {
+					existing.totalCards++;
+					if (new Date(card.due) <= now) {
+						existing.dueNow++;
+					}
+				} else {
+					counts.set(deck, {
+						totalCards: 1,
+						dueNow: new Date(card.due) <= now ? 1 : 0,
+					});
+				}
 			}
 		}
 	}
@@ -68,15 +69,14 @@ export function buildDeckTree(flashcards: FlashcardMetadata[]): DeckNode[] {
 
 	// Create all nodes
 	for (const [fullPath, { dueNow, totalCards }] of counts) {
-		const parts = splitDeckPath(fullPath);
-		const name = parts[parts.length - 1];
+		const name = splitDeckPath(fullPath).pop() ?? fullPath;
 		const node: DeckNode = {
 			name,
 			fullPath,
 			dueNow,
 			totalCards,
 			children: [],
-			isExpanded: parts.length === 1, // expand top-level by default
+			isExpanded: false,
 		};
 		nodeMap.set(fullPath, node);
 	}
@@ -84,10 +84,14 @@ export function buildDeckTree(flashcards: FlashcardMetadata[]): DeckNode[] {
 	// Wire parent-child relationships
 	for (const [fullPath, node] of nodeMap) {
 		const parentPath = getParentDecks(fullPath).pop();
-		if (parentPath && nodeMap.has(parentPath)) {
-			nodeMap.get(parentPath)!.children.push(node);
+		if (parentPath) {
+			const parent = nodeMap.get(parentPath);
+			if (parent) {
+				parent.children.push(node);
+			}
 		} else {
 			roots.push(node);
+			node.isExpanded = true;
 		}
 	}
 
@@ -114,28 +118,28 @@ function toggleNodeExpand(nodes: DeckNode[], fullPath: string): DeckNode[] {
 
 function buildNodeMap(nodes: DeckNode[]): Map<string, DeckNode> {
 	const map = new Map<string, DeckNode>();
-	function walk(ns: DeckNode[]) {
-		for (const n of ns) {
-			map.set(n.fullPath, n);
-			walk(n.children);
+	for (const node of nodes) {
+		map.set(node.fullPath, node);
+		for (const child of buildNodeMap(node.children).values()) {
+			map.set(child.fullPath, child);
 		}
 	}
-	walk(nodes);
 	return map;
 }
 
 export class DeckTreeStore extends BaseStoreManager<DeckTreeState> {
+	private _unsubscribe?: () => void;
+
 	constructor() {
 		super(DEFAULT_STATE, store);
 
-		EventBus.instance.subscribe((event) => {
-			if (event.isType(FlashcardIndexRecalcResponseEvent.type)) {
-				const data = (event as FlashcardIndexRecalcResponseEvent).data;
-				const nodes = buildDeckTree(data.flashcards);
-				const map = buildNodeMap(nodes);
-				this.store.update((state) => ({ ...state, nodes, nodeMap: map }));
-			}
-		});
+		const responseHandler = (event: FlashcardIndexStateEvent) => {
+			const nodes = buildDeckTree(event.data.flashcards);
+			const map = buildNodeMap(nodes);
+			this.store.update((state) => ({ ...state, nodes, nodeMap: map }));
+		};
+
+		this._unsubscribe = EventBus.instance.subscribe(FlashcardIndexStateEvent, responseHandler);
 	}
 
 	selectDeck(fullPath: string | null): void {
@@ -156,6 +160,10 @@ export class DeckTreeStore extends BaseStoreManager<DeckTreeState> {
 			const nodes = toggleNodeExpand(state.nodes, fullPath);
 			return { ...state, nodes };
 		});
+	}
+
+	dispose(): void {
+		this._unsubscribe?.();
 	}
 }
 

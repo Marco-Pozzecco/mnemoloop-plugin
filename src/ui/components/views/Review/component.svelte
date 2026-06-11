@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Flashcard } from '@/schemas';
+	import { type Flashcard } from '@/schemas';
 	import {
 		ReviewControls,
 		ReviewEmptyState,

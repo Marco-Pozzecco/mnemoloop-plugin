@@ -8,7 +8,7 @@
 		DashboardFooter,
 		DashboardHeader,
 		DashboardStatsGrid,
-		DeckTree,
+		DashboardDeckTree,
 	} from '@/ui/components/sections';
 	import { DashboardController } from '@/ui/controllers/DashboardController';
 	import { deckTreeStore } from '@/ui/store/deck-tree.store';
@@ -68,7 +68,7 @@
 	<div class="ml-dashboard" role="main">
 		<DashboardHeader {isLoading} {onRefresh} />
 		<DashboardStatsGrid {stats} {config} />
-		<DeckTree nodes={deckTree.nodes} {selectedDeck} {onSelectDeck} {onToggleExpand} />
+		<DashboardDeckTree nodes={deckTree.nodes} {selectedDeck} {onSelectDeck} {onToggleExpand} />
 		{#if showChart}
 			<DashboardChart {stats} chartType={config.chartType} />
 		{/if}

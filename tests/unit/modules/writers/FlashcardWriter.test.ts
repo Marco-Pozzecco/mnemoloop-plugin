@@ -1,10 +1,10 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { Plugin } from 'obsidian';
-import { FlashcardWriter } from '@/modules/writers/FlashcardWriter';
 import { IParser } from '@/interfaces/IParser';
+import { FlashcardWriter } from '@/modules/writers/FlashcardWriter';
 import { Flashcard, FlashcardYaml } from '@/schemas';
-import { createMockPlugin } from '../../../helpers/mock-obsidian';
+import { Plugin } from 'obsidian';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createFlashcardYaml } from '../../../helpers/factories';
+import { createMockPlugin } from '../../../helpers/mock-obsidian';
 
 describe('FlashcardWriter', () => {
 	let plugin: ReturnType<typeof createMockPlugin>;

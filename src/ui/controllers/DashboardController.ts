@@ -2,8 +2,10 @@ import { IReviewQueue } from '@/interfaces/IReviewQueue';
 import { EventBus, FlashcardReviewSessionStartEvent } from '@/modules/events';
 import { FlashcardReviewQueue } from '@/modules/review-queues/FlashcardReviewQueue';
 import { CardStatus, FlashcardMetadata } from '@/schemas';
+import { FSRSParameters } from 'ts-fsrs';
 import { IndexKey } from '@/types/indexes';
 import { uiStore, UIStore } from '@/ui/store/ui.store';
+import { settingsStore } from '@/ui/store/settings.store';
 import { sessionStore, SessionStore } from '../store/session.store';
 
 interface IDashboardController {
@@ -16,7 +18,10 @@ export class DashboardController implements IDashboardController {
 
 	constructor() {}
 
-	startReview: (type: IndexKey, deckFilter?: string) => Promise<void> = async (type, deckFilter) => {
+	startReview: (type: IndexKey, deckFilter?: string) => Promise<void> = async (
+		type,
+		deckFilter,
+	) => {
 		switch (type) {
 			case IndexKey.flashcard:
 				return await this.startFlashcardReview(deckFilter);
@@ -26,9 +31,21 @@ export class DashboardController implements IDashboardController {
 	private async startFlashcardReview(deckFilter?: string) {
 		this._uiStore.isLoading = true;
 
-		const predicate = (entity: FlashcardMetadata) =>
-			entity.status === CardStatus.ACTIVE && new Date(entity.due) <= new Date();
-		const list = new FlashcardReviewQueue(predicate, deckFilter);
+		const fsrsParams = settingsStore.currentSettings.flashcard.fsrs;
+
+		const predicate = (entity: FlashcardMetadata) => {
+			const conditions = [entity.status === CardStatus.ACTIVE, new Date(entity.due) <= new Date()];
+
+			if (deckFilter) {
+				conditions.push(entity.decks.includes(deckFilter));
+			}
+
+			return conditions.every((v) => v === true);
+		};
+		const list = new FlashcardReviewQueue(
+			predicate,
+			fsrsParams as unknown as Partial<FSRSParameters>,
+		);
 
 		this._sessionStore.queue = list as IReviewQueue<unknown>;
 

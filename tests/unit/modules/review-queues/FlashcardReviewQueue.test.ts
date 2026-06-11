@@ -11,58 +11,53 @@ import { Flashcard, FlashcardMetadata } from '@/schemas';
 import { createFlashcardMetadata } from '../../../helpers/factories';
 import { useFixedDate, restoreRealTimers } from '../../../helpers/date-fixtures';
 import { resetSingletons } from '../../../helpers/reset-singletons';
-
 import { State } from 'ts-fsrs';
 
+// Initialize static type properties on event classes before tests
+new FlashcardIndexQueryRequestEvent({ predicate: () => true });
+new FlashcardIndexQueryResponseEvent([]);
+new FlashcardParserParseRequestEvent({ filepath: '' });
+new FlashcardParserParseResponseEvent({ entity: {} as Flashcard, filepath: '' });
 describe('FlashcardReviewQueue', () => {
 	let mockFlashcards: FlashcardMetadata[];
-	let indexerHandler: ReturnType<typeof EventBus.instance.subscribe>;
-	let parserHandler: ReturnType<typeof EventBus.instance.subscribe>;
+	let indexerHandler: (() => void) | undefined;
+	let parserHandler: (() => void) | undefined;
 
 	beforeEach(() => {
 		useFixedDate();
 		resetSingletons();
 
 		// Set up mock indexer that responds to query requests
-		indexerHandler = EventBus.instance.subscribe((event) => {
-			if (event.isType(FlashcardIndexQueryRequestEvent.type)) {
-				const req = event as unknown as {
-					data: { predicate: (f: FlashcardMetadata) => boolean; deckFilter?: string };
-				};
-				const { predicate, deckFilter } = req.data;
-				const filtered = mockFlashcards.filter((f) => {
-					const passesPredicate = predicate(f);
-					const passesDeck = !deckFilter || f.decks.includes(deckFilter);
-					return passesPredicate && passesDeck;
-				});
-				EventBus.instance.publish(new FlashcardIndexQueryResponseEvent(filtered));
-			}
+		indexerHandler = EventBus.instance.subscribe(FlashcardIndexQueryRequestEvent, (event) => {
+			const req = event as unknown as {
+				data: { predicate: (f: FlashcardMetadata) => boolean };
+			};
+			const { predicate } = req.data;
+			const filtered = mockFlashcards.filter((f) => predicate(f));
+			EventBus.instance.publish(new FlashcardIndexQueryResponseEvent(filtered));
 		});
 
 		// Set up mock parser that responds to parse requests
-		parserHandler = EventBus.instance.subscribe((event) => {
-			if (event.isType(FlashcardParserParseRequestEvent.type)) {
-				const req = event as unknown as { data: { filepath: string } };
-				const filepath = req.data.filepath;
-				const meta = mockFlashcards.find((f) => f.file === filepath);
-				const flashcard = {
-					...createFlashcardMetadata(),
-					...meta,
-					front: 'Front',
-					back: 'Back',
-				} as Flashcard;
-				EventBus.instance.publish(
-					new FlashcardParserParseResponseEvent({ entity: flashcard, filepath }),
-				);
-			}
+		parserHandler = EventBus.instance.subscribe(FlashcardParserParseRequestEvent, (event) => {
+			const filepath = event.data.filepath;
+			const meta = mockFlashcards.find((f) => f.file === filepath);
+			const flashcard = {
+				...createFlashcardMetadata(),
+				...meta,
+				front: 'Front',
+				back: 'Back',
+			} as Flashcard;
+			EventBus.instance.publish(
+				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath }),
+			);
 		});
 
 		mockFlashcards = [];
 	});
 
 	afterEach(() => {
-		EventBus.instance.unsubscribe(indexerHandler);
-		EventBus.instance.unsubscribe(parserHandler);
+		indexerHandler?.();
+		parserHandler?.();
 		restoreRealTimers();
 	});
 
@@ -73,7 +68,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'card2.md' }),
 			];
 
-			const queue = new FlashcardReviewQueue(() => true);
+			const queue = new FlashcardReviewQueue(() => true, undefined);
 
 			expect(queue.size).toBe(2);
 			expect(queue.items[0].data).not.toBeNull();
@@ -86,19 +81,19 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'paused.md', status: 'PAUSED' as never }),
 			];
 
-			const queue = new FlashcardReviewQueue((f) => f.status === 'ACTIVE');
+			const queue = new FlashcardReviewQueue((f) => f.status === 'ACTIVE', undefined);
 
 			expect(queue.size).toBe(1);
 			expect(queue.items[0].data?.status).toBe('ACTIVE');
 		});
 
-		it('should apply deck filter', () => {
+		it('should apply deck filter via predicate', () => {
 			mockFlashcards = [
 				createFlashcardMetadata({ file: 'math.md', decks: ['Math'] }),
 				createFlashcardMetadata({ file: 'science.md', decks: ['Science'] }),
 			];
 
-			const queue = new FlashcardReviewQueue(() => true, 'Math');
+			const queue = new FlashcardReviewQueue((f) => f.decks.includes('Math'), undefined);
 
 			expect(queue.size).toBe(1);
 			expect(queue.items[0].data?.decks).toContain('Math');
@@ -113,7 +108,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'future.md', due: future, state: State.Review }),
 			];
 
-			const queue = new FlashcardReviewQueue((f) => new Date(f.due).getTime() <= Date.now());
+			const queue = new FlashcardReviewQueue((f) => new Date(f.due).getTime() <= Date.now(), undefined);
 
 			expect(queue.size).toBe(1);
 			expect((queue.items[0].data as unknown as FlashcardMetadata)?.file).toBe('past.md');
@@ -128,7 +123,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'yesterday.md', due: yesterday, state: State.Review }),
 			];
 
-			const queue = new FlashcardReviewQueue(() => true);
+			const queue = new FlashcardReviewQueue(() => true, undefined);
 
 			expect(queue.items[0].data?.due).toBe(yesterday);
 			expect(queue.items[1].data?.due).toBe(tomorrow);
@@ -137,7 +132,7 @@ describe('FlashcardReviewQueue', () => {
 		it('should return empty queue when no cards match', () => {
 			mockFlashcards = [createFlashcardMetadata({ file: 'card.md' })];
 
-			const queue = new FlashcardReviewQueue(() => false);
+			const queue = new FlashcardReviewQueue(() => false, undefined);
 
 			expect(queue.size).toBe(0);
 			expect(queue.current).toBeUndefined();
@@ -148,7 +143,7 @@ describe('FlashcardReviewQueue', () => {
 		it('should repopulate items from indexer', () => {
 			mockFlashcards = [createFlashcardMetadata({ file: 'card.md' })];
 
-			const queue = new FlashcardReviewQueue(() => true);
+			const queue = new FlashcardReviewQueue(() => true, undefined);
 			expect(queue.size).toBe(1);
 
 			// Update mock data and recalc
@@ -167,7 +162,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'b.md' }),
 			];
 
-			const queue = new FlashcardReviewQueue(() => true);
+			const queue = new FlashcardReviewQueue(() => true, undefined);
 			queue.next(); // Move to position 1
 			expect(queue.position).toBe(1);
 
@@ -185,7 +180,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'yesterday.md', due: yesterday, state: State.Review }),
 			];
 
-			const queue = new FlashcardReviewQueue(() => true);
+			const queue = new FlashcardReviewQueue(() => true, undefined);
 			queue.next(); // position = 1
 
 			// Swap order in mock data
@@ -207,7 +202,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'b.md' }),
 			];
 
-			const queue = new FlashcardReviewQueue(() => true);
+			const queue = new FlashcardReviewQueue(() => true, undefined);
 			const items = [...queue.items];
 
 			queue.dispose();
@@ -230,7 +225,7 @@ describe('FlashcardReviewQueue', () => {
 		it('should return first item initially', () => {
 			mockFlashcards = [createFlashcardMetadata({ file: 'card.md' })];
 
-			const queue = new FlashcardReviewQueue(() => true);
+			const queue = new FlashcardReviewQueue(() => true, undefined);
 
 			expect(queue.current).toBeDefined();
 			expect(queue.current?.data).not.toBeNull();
@@ -242,7 +237,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'b.md' }),
 			];
 
-			const queue = new FlashcardReviewQueue(() => true);
+			const queue = new FlashcardReviewQueue(() => true, undefined);
 			const first = queue.current;
 			const next = queue.next();
 

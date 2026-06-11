@@ -1,25 +1,31 @@
-import { Plugin } from 'obsidian';
 import { Adapters } from '@/types/adapters';
 import { Indexes } from '@/types/indexes';
 import { Parsers } from '@/types/parsers';
-import { IEventProcessor } from './IEventProcessor';
+import { Writers } from '@/types/writers';
+import { Plugin } from 'obsidian';
+import { IEvent } from './IEvent';
+import { IEventHandler } from './IEventHandler';
+import { EventBus } from '@/modules/events';
 
 export interface IEventRegistryDependencies {
 	plugin: Plugin;
 	adapters: Adapters;
 	indexes: Indexes;
 	parsers: Parsers;
+	writers: Writers;
+	bus: EventBus;
 }
 
+export type EventClass<T> = {
+	new (data: T): IEvent<T>;
+	readonly type: string;
+};
+
+export type EventHandlerClass = {
+	new (deps: IEventRegistryDependencies): IEventHandler;
+};
+
 export interface IEventRegistry {
-	register<Key extends string>(
-		key: Key,
-		factory: (deps: IEventRegistryDependencies) => IEventProcessor,
-	): void;
-
-	initialize(deps: IEventRegistryDependencies): void;
+	initialize(): void;
 	dispose(): void;
-
-	getProcessor<Key extends string>(key: Key): IEventProcessor | undefined;
-	hasProcessor(key: string): boolean;
 }

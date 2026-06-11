@@ -14,6 +14,12 @@ import { useFixedDate, restoreRealTimers } from '../../../helpers/date-fixtures'
 import { resetSingletons } from '../../../helpers/reset-singletons';
 import { IEvent } from '@/interfaces/IEvent';
 
+// Initialize static type properties on event classes before tests
+new FlashcardParserParseRequestEvent({ filepath: '' });
+new FlashcardParserParseResponseEvent({ entity: {} as Flashcard, filepath: '' });
+new FlashcardReviewSessionScoreEvent({ filepath: '', rating: 0, ...createFlashcardYaml() });
+new FlashcardWriterFmRequestEvent({ fm: {}, filepath: '' });
+
 function createMockEngine(): IReviewEngine<FlashcardYaml> {
 	return {
 		sort: vi.fn((list) => list),
@@ -23,13 +29,13 @@ function createMockEngine(): IReviewEngine<FlashcardYaml> {
 
 function createFlashcard(overrides: Partial<Flashcard> = {}): Flashcard {
 	return {
-		...createFlashcardYaml(),
 		front: 'Front',
 		back: 'Back',
+		...createFlashcardYaml(),
 		...overrides,
+		uuid: 'test-uuid',
 	} as Flashcard;
 }
-
 describe('FlashcardReviewItem', () => {
 	beforeEach(() => {
 		useFixedDate();
@@ -43,14 +49,20 @@ describe('FlashcardReviewItem', () => {
 	describe('initialize', () => {
 		it('should publish parse request on construction', () => {
 			const capturedEvents: IEvent[] = [];
-			EventBus.instance.subscribe((e) => capturedEvents.push(e));
+			EventBus.instance.subscribe(FlashcardParserParseRequestEvent, (e) => {
+				capturedEvents.push(e);
+			});
 
 			const engine = createMockEngine();
 			new FlashcardReviewItem('test.md', engine);
 
-			const parseRequest = capturedEvents.find((e) => e.isType(FlashcardParserParseRequestEvent.type));
+			const parseRequest = capturedEvents.find((e) =>
+				e.isType(FlashcardParserParseRequestEvent.type),
+			);
 			expect(parseRequest).toBeDefined();
-			expect((parseRequest as unknown as { data: { filepath: string } }).data.filepath).toBe('test.md');
+			expect((parseRequest as unknown as { data: { filepath: string } }).data.filepath).toBe(
+				'test.md',
+			);
 		});
 
 		it('should receive data from parse response', () => {
@@ -135,8 +147,9 @@ describe('FlashcardReviewItem', () => {
 
 		it('should publish FlashcardReviewSessionScoreEvent', () => {
 			const capturedEvents: IEvent[] = [];
-			EventBus.instance.subscribe((e) => capturedEvents.push(e));
-
+			EventBus.instance.subscribe(FlashcardReviewSessionScoreEvent, (e) => {
+				capturedEvents.push(e);
+			});
 			const engine = createMockEngine();
 			const item = new FlashcardReviewItem('test.md', engine);
 
@@ -148,22 +161,31 @@ describe('FlashcardReviewItem', () => {
 			capturedEvents.length = 0;
 			item.review(4);
 
-			const scoreEvent = capturedEvents.find((e) => e.isType(FlashcardReviewSessionScoreEvent.type));
+			const scoreEvent = capturedEvents.find((e) =>
+				e.isType(FlashcardReviewSessionScoreEvent.type),
+			);
 			expect(scoreEvent).toBeDefined();
 			expect((scoreEvent as unknown as { data: { rating: number } }).data.rating).toBe(4);
-			expect((scoreEvent as unknown as { data: { filepath: string } }).data.filepath).toBe('test.md');
+			expect((scoreEvent as unknown as { data: { filepath: string } }).data.filepath).toBe(
+				'test.md',
+			);
 		});
 	});
 
 	describe('restore', () => {
 		it('should publish FlashcardWriterFmRequestEvent', () => {
 			const capturedEvents: IEvent[] = [];
-			EventBus.instance.subscribe((e) => capturedEvents.push(e));
-
+			EventBus.instance.subscribe(FlashcardWriterFmRequestEvent, (e) => {
+				capturedEvents.push(e);
+			});
 			const engine = createMockEngine();
 			const item = new FlashcardReviewItem('test.md', engine);
 
-			const flashcard = createFlashcard({ due: '2026-05-18T10:00:00.000Z', stability: 2, difficulty: 3 });
+			const flashcard = createFlashcard({
+				due: '2026-05-18T10:00:00.000Z',
+				stability: 2,
+				difficulty: 3,
+			});
 			EventBus.instance.publish(
 				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'test.md' }),
 			);
@@ -173,12 +195,16 @@ describe('FlashcardReviewItem', () => {
 
 			const fmEvent = capturedEvents.find((e) => e.isType(FlashcardWriterFmRequestEvent.type));
 			expect(fmEvent).toBeDefined();
-			expect((fmEvent as unknown as { data: { fm: { due: string } } }).data.fm.due).toBe('2026-01-01T00:00:00.000Z');
+			expect((fmEvent as unknown as { data: { fm: { due: string } } }).data.fm.due).toBe(
+				'2026-01-01T00:00:00.000Z',
+			);
 		});
 
 		it('should not publish event when data is null', () => {
 			const capturedEvents: IEvent[] = [];
-			EventBus.instance.subscribe((e) => capturedEvents.push(e));
+			EventBus.instance.subscribe(FlashcardWriterFmRequestEvent, (e) => {
+				capturedEvents.push(e);
+			});
 
 			const engine = createMockEngine();
 			const item = new FlashcardReviewItem('test.md', engine);

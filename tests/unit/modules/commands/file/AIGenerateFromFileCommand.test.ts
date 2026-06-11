@@ -13,6 +13,7 @@ describe('AIGenerateFromFileCommand', () => {
 			adapters: new Map() as any,
 			indexes: new Map() as any,
 			parsers: new Map() as any,
+			writers: new Map() as any,
 		});
 		return { cmd, plugin, workspaceOnSpy };
 	}

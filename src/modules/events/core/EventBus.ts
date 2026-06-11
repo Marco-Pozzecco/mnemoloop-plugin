@@ -1,45 +1,78 @@
 import { IEvent } from '@/interfaces/IEvent';
-import type { IEventBus } from '@/interfaces/IEventBus';
+import { EventHandlerCallback, IEventBus } from '@/interfaces/IEventBus';
+import { IEventHandler } from '@/interfaces/IEventHandler';
+import { EventClass } from '@/interfaces/IEventRegistry';
 import { Logger } from '@/utils/Logger';
 
-/**
- * Central event bus using singleton pattern
- */
 export class EventBus implements IEventBus {
-	private static _instance: EventBus;
-	private _subscribers: Set<(event: IEvent) => void>;
+	private _registry: Map<string, Set<IEventHandler['handle']>> = new Map();
+	private static _instance: EventBus | undefined;
 
-	private constructor() {
-		this._subscribers = new Set();
-	}
+	private constructor() {}
 
-	public static get instance(): EventBus {
+	static get instance(): EventBus {
 		if (!EventBus._instance) {
 			EventBus._instance = new EventBus();
 		}
 		return EventBus._instance;
 	}
 
-	public subscribe(callback: (event: IEvent) => void) {
-		this._subscribers.add(callback);
-		return callback;
-	}
+	publish<TData>(event: IEvent<TData>): string {
+		Logger.debug(`Event: ${event.type}`, event);
+		const handlers = this._registry.get(event.type);
+		if (!handlers) {
+			return event.id;
+		}
 
-	public unsubscribe(callback: (event: IEvent) => void): void {
-		this._subscribers.delete(callback);
-	}
+		for (const handler of handlers) {
+			try {
+				handler(event as IEvent<unknown>);
+			} catch (err) {
+				Logger.error(`EventBus: error in handler for ${event.type}`, err);
+			}
+		}
 
-	public publish(event: IEvent): string {
-		Logger.debug('Event:', event.type, 'Data:', event.data);
-		this._subscribers.forEach((callback) => {
-			callback(event);
-		});
 		return event.id;
 	}
 
-	public request(event: IEvent, callback: (event: IEvent) => void): void {
-		this.subscribe(callback);
-		this.publish(event);
-		this.unsubscribe(callback);
+	subscribe<TData>(
+		eventClass: EventClass<TData>,
+		handler: EventHandlerCallback<TData>,
+	): () => void {
+		if (!eventClass.type)
+			throw new Error(`EventClass must have a type: ${eventClass.constructor.name}`);
+		if (!this._registry.has(eventClass.type)) {
+			this._registry.set(eventClass.type, new Set());
+		}
+		const set = this._registry.get(eventClass.type)!;
+		set.add(handler);
+
+		return () => {
+			this.unsubscribe(eventClass, handler);
+		};
+	}
+
+	subscribeOnce<TData>(eventClass: EventClass<TData>, handler: EventHandlerCallback<TData>): void {
+		if (!eventClass.type)
+			throw new Error(`EventClass must have a type: ${eventClass.constructor.name}`);
+
+		const onceHandler: EventHandlerCallback<TData> = (event) => {
+			this.unsubscribe(eventClass, onceHandler);
+			return handler(event);
+		};
+
+		this.subscribe(eventClass, onceHandler);
+	}
+
+	unsubscribe<TData>(eventClass: EventClass<TData>, handler: EventHandlerCallback<TData>): void {
+		if (!eventClass.type)
+			throw new Error(`EventClass must have a type: ${eventClass.constructor.name}`);
+		const set = this._registry.get(eventClass.type);
+		if (set) {
+			set.delete(handler);
+			if (set.size === 0) {
+				this._registry.delete(eventClass.type);
+			}
+		}
 	}
 }
