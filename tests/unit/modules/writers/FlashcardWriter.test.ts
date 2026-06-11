@@ -19,6 +19,7 @@ describe('FlashcardWriter', () => {
 			marker: '?',
 			parseContent: vi.fn().mockReturnValue({
 				entity: { front: 'Parsed Front', back: 'Parsed Back', uuid: 'parsed' },
+				success: true,
 			}),
 			parse: vi.fn(),
 			parseMetadata: vi.fn(),

@@ -167,7 +167,7 @@ export class FlashcardIndexOnVaultCreateHandler extends EventHandler<VaultCreate
 			const parser = this._parsers.get(ParserKey.flashcard)!;
 			const result = await parser.parseMetadata(data.path);
 			const entity = indexer.generateMetadata(result);
-			indexer.upsert(result.entity.uuid, entity);
+			indexer.upsert(entity.uuid, entity);
 			await indexer.save();
 		} catch (error) {
 			Logger.error(`Watcher: failed to create flashcard from ${data.path}`, error);
@@ -272,7 +272,7 @@ export class FlashcardIndexOnVaultRenameHandler extends EventHandler<VaultRename
 				const parser = this._parsers.get(ParserKey.flashcard)!;
 				const result = await parser.parseMetadata(data.path);
 				const entity = indexer.generateMetadata(result);
-				indexer.upsert(result.entity.uuid, entity);
+				indexer.upsert(entity.uuid, entity);
 				await indexer.save();
 			}
 		} catch (error) {
