@@ -33,6 +33,7 @@
     [
       "@semantic-release/github",
       {
+        "draft": true,
         "assets": [
           { "path": "main.js", "label": "main.js" },
           { "path": "manifest.json", "label": "manifest.json" },
