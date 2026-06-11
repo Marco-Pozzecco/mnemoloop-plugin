@@ -88,7 +88,10 @@ export class FlashcardReviewSessionScoreHandler extends EventHandler<FlashcardRe
 
 		// 4. Publish FlashcardWriterFmRequestEvent to update file on disk
 		EventBus.instance.publish(
-			new FlashcardWriterFmRequestEvent({ filepath: card.filepath, fm: card }),
+			new FlashcardWriterFmRequestEvent({
+				filepath: card.filepath,
+				fm: FlashcardYamlSchema.parse(card),
+			}),
 		);
 
 		// 5. Publish FlashcardStatisticsComputeEvent
