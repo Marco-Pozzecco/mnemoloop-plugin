@@ -3,7 +3,7 @@
 	import Toggle from '@/ui/components/elements/Toggle/component.svelte';
 	import Preview from './Preview.svelte';
 	import type FsrsParamsProps from './types';
-	import { Slider } from '@/ui/components/elements';
+	import { Card, Slider } from '@/ui/components/elements';
 
 	let {
 		settings,
@@ -69,65 +69,77 @@
 <section class="ml-fsrs-params-section">
 	<h3 class="ml-section-header">FSRS Parameters</h3>
 
-	<div class="ml-form-fields">
-		<Slider
-			label="Retention rate"
-			value={settings.flashcard.fsrs.request_retention}
-			min={0.8}
-			max={1}
-			step={0.01}
-			onchange={handleRequestRetentionChange}
-			helperText="Target probability of recall (0.8–1)"
-			hasError={hasError('flashcard.fsrs.request_retention')}
-			errorMessage={getError('flashcard.fsrs.request_retention')}
-			tooltip
-		/>
+	<Card className="ml-settings-card">
+		<div class="ml-settings-group">
+			<Slider
+				label="Retention rate"
+				value={settings.flashcard.fsrs.request_retention}
+				min={0.8}
+				max={1}
+				step={0.01}
+				onchange={handleRequestRetentionChange}
+				helperText="Target probability of recall (0.8–1)"
+				hasError={hasError('flashcard.fsrs.request_retention')}
+				errorMessage={getError('flashcard.fsrs.request_retention')}
+				tooltip
+			/>
+		</div>
 
-		<Input
-			label="Maximum interval"
-			type="number"
-			value={settings.flashcard.fsrs.maximum_interval.toString()}
-			min={1}
-			helperText="Maximum number of days between reviews"
-			hasError={hasError('flashcard.fsrs.maximum_interval')}
-			errorMessage={getError('flashcard.fsrs.maximum_interval')}
-			onchange={handleMaximumIntervalChange}
-		/>
+		<div class="ml-settings-group">
+			<Input
+				label="Maximum interval"
+				type="number"
+				value={settings.flashcard.fsrs.maximum_interval.toString()}
+				min={1}
+				helperText="Maximum number of days between reviews"
+				hasError={hasError('flashcard.fsrs.maximum_interval')}
+				errorMessage={getError('flashcard.fsrs.maximum_interval')}
+				onchange={handleMaximumIntervalChange}
+			/>
+		</div>
 
-		<Toggle
-			label="Enable fuzz"
-			checked={settings.flashcard.fsrs.enable_fuzz}
-			helperText="Add small random variations to intervals"
-			onchange={handleEnableFuzzChange}
-		/>
+		<div class="ml-settings-group">
+			<Toggle
+				label="Enable fuzz"
+				checked={settings.flashcard.fsrs.enable_fuzz}
+				helperText="Add small random variations to intervals"
+				onchange={handleEnableFuzzChange}
+			/>
+		</div>
 
-		<Toggle
-			label="Enable short term"
-			checked={settings.flashcard.fsrs.enable_short_term}
-			helperText="Allow learning/relearning steps in minutes/hours"
-			onchange={handleEnableShortTermChange}
-		/>
+		<div class="ml-settings-group">
+			<Toggle
+				label="Enable short term"
+				checked={settings.flashcard.fsrs.enable_short_term}
+				helperText="Allow learning/relearning steps in minutes/hours"
+				onchange={handleEnableShortTermChange}
+			/>
+		</div>
 
-		<Input
-			label="Learning steps"
-			type="text"
-			value={settings.flashcard.fsrs.learning_steps.join(', ')}
-			helperText="Comma-separated steps (e.g. 1m, 10m)"
-			hasError={!!stepsError}
-			errorMessage={stepsError}
-			onchange={handleLearningStepsChange}
-		/>
+		<div class="ml-settings-group">
+			<Input
+				label="Learning steps"
+				type="text"
+				value={settings.flashcard.fsrs.learning_steps.join(', ')}
+				helperText="Comma-separated steps (e.g. 1m, 10m)"
+				hasError={!!stepsError}
+				errorMessage={stepsError}
+				onchange={handleLearningStepsChange}
+			/>
+		</div>
 
-		<Input
-			label="Relearning steps"
-			type="text"
-			value={settings.flashcard.fsrs.relearning_steps.join(', ')}
-			helperText="Comma-separated steps (e.g. 10m)"
-			hasError={!!relearningStepsError}
-			errorMessage={relearningStepsError}
-			onchange={handleRelearningStepsChange}
-		/>
-	</div>
+		<div class="ml-settings-group">
+			<Input
+				label="Relearning steps"
+				type="text"
+				value={settings.flashcard.fsrs.relearning_steps.join(', ')}
+				helperText="Comma-separated steps (e.g. 10m)"
+				hasError={!!relearningStepsError}
+				errorMessage={relearningStepsError}
+				onchange={handleRelearningStepsChange}
+			/>
+		</div>
+	</Card>
 
 	<div class="ml-fsrs-preview-wrapper">
 		<Preview {config} />
@@ -136,22 +148,11 @@
 
 <style>
 	.ml-fsrs-params-section {
-		display: flex;
-		flex-direction: column;
-		gap: 1.25rem;
+		margin-top: var(--size-2-2);
 	}
 
 	.ml-section-header {
 		color: var(--text-normal);
-		margin: 0;
-		padding: 0 0 0.5rem 0;
-		border-bottom: 1px solid var(--background-modifier-border);
-	}
-
-	.ml-form-fields {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
 	}
 
 	.ml-fsrs-preview-wrapper {

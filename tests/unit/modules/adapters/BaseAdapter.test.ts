@@ -67,6 +67,20 @@ describe('BaseAdapter', () => {
 			expect(adapter.data).toEqual({ uuid: 'new-uuid', count: 0 });
 		});
 	});
+	describe('setValueAtPath array creation', () => {
+		it('should create array when path index is numeric', () => {
+			const adapter = new TestAdapter(
+				{ uuid: 'default', count: 0 },
+				z.object({
+					uuid: z.string(),
+					count: z.number(),
+					tags: z.array(z.string()).optional(),
+				}) as any,
+			);
+			(adapter as any).setValueAtPath(adapter.data, ['tags', 0], 'urgent');
+			expect(adapter.data).toEqual({ uuid: 'default', count: 0, tags: ['urgent'] });
+		});
+	});
 
 	describe('save', () => {
 		it('should persist data', async () => {

@@ -12,7 +12,7 @@ import {
 } from '@/utils/statistics-utils';
 import { EventBus } from '../../core/EventBus';
 import { EventHandler } from '../../core/EventHandler';
-import { FlashcardStatisticsComputeEvent } from '../../domains';
+import { FlashcardStatisticsComputeEvent, StatisticsAdapterStateEvent } from '../../domains';
 import { DashboardOpenEvent } from '../../domains/ui/dashboard';
 
 export class FlashcardStatisticsComputeHandler extends EventHandler<FlashcardStatisticsComputeEvent> {
@@ -40,6 +40,7 @@ export class FlashcardStatisticsComputeHandler extends EventHandler<FlashcardSta
 		stats.save();
 
 		this._handleNextCompute(flashcards);
+		this._bus.publish(new StatisticsAdapterStateEvent(stats.data));
 	}
 
 	private _handleNextCompute(flashcards: FlashcardMetadata[]): void {
@@ -52,7 +53,7 @@ export class FlashcardStatisticsComputeHandler extends EventHandler<FlashcardSta
 
 		this._nextCompute = setTimeout(() => {
 			EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
-		}, 0);
+		}, delay);
 	}
 
 	private _clearNextCompute(): void {

@@ -30,8 +30,8 @@ type FlashcardAdapterUpdateResponseEvent = IEvent<FlashcardIndex>;
 const FlashcardAdapterResetEvent = EventFactory.createEvent<FlashcardIndex>(t.reset);
 type FlashcardAdapterResetEvent = IEvent<FlashcardIndex>;
 
-const FlashcardAdapterInitEvent = EventFactory.createEvent<FlashcardIndex>(t.init);
-type FlashcardAdapterInitEvent = IEvent<FlashcardIndex>;
+const FlashcardAdapterInitEvent = EventFactory.createEvent<void>(t.init);
+type FlashcardAdapterInitEvent = IEvent<void>;
 
 const FlashcardAdapterSaveEvent = EventFactory.createEvent<void>(t.save);
 type FlashcardAdapterSaveEvent = IEvent<void>;
