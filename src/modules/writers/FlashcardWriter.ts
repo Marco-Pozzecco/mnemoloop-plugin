@@ -35,4 +35,7 @@ export class FlashcardWriter extends BaseWriter<Flashcard, FlashcardYaml, Flashc
 	protected extractBody(entity: Flashcard): FlashcardContent {
 		return FlashcardContentSchema.parse(entity);
 	}
+	protected getMetadataKeys(): string[] {
+		return Object.keys(FlashcardYamlSchema.shape);
+	}
 }

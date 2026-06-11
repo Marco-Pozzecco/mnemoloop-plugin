@@ -36,6 +36,7 @@ class TestWriter extends BaseWriter<TestEntity, TestMetadata, TestBody> {
 	deserializeBody = (content: string) => ({ content });
 	extractMetadata = (entity: TestEntity) => ({ uuid: entity.uuid });
 	extractBody = (entity: TestEntity) => ({ content: entity.content });
+	getMetadataKeys = () => ['uuid', 'tags'];
 }
 
 describe('BaseWriter', () => {
