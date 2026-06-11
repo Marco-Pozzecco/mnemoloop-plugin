@@ -162,4 +162,31 @@
 			padding: 0.75rem 1rem;
 		}
 	}
+
+	/*Global styles*/
+	:global(.ml-card.ml-settings-card) {
+		background-color: var(--setting-items-background);
+		border-radius: var(--setting-items-radius);
+		corner-shape: var(--corner-shape);
+		border: var(--setting-items-border-width) solid var(--setting-items-border-color);
+	}
+
+	:global(.ml-card.has-border.ml-settings-card) {
+		border: var(--setting-items-border-width) solid var(--setting-items-border-color);
+	}
+
+	:global(.ml-card.ml-card.padding-medium.ml-settings-card .ml-card-content) {
+		padding: var(--setting-items-padding);
+	}
+
+	:global(.ml-card.ml-settings-card .ml-card-content) {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-4-4);
+	}
+
+	:global(.ml-card.ml-settings-card .ml-card-content .ml-settings-group:not(:last-child)) {
+		padding-bottom: var(--size-4-4);
+		border-bottom: var(--border-width) solid var(--background-modifier-border);
+	}
 </style>
