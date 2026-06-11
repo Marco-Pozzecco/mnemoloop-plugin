@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { Plugin } from 'obsidian';
 import { FlashcardParser } from '@/modules/parsers/FlashcardParser';
+import { FlashcardYamlEngine } from '@/modules/yaml-engines/FlashcardYamlEngine';
 import { IAdapter } from '@/interfaces/IAdapter';
 import { PluginSettings } from '@/schemas/settings';
 import { createMockPlugin } from '../../../helpers/mock-obsidian';
@@ -11,6 +12,7 @@ describe('FlashcardParser', () => {
 	let plugin: ReturnType<typeof createMockPlugin>;
 	let settings: IAdapter<PluginSettings>;
 	let parser: FlashcardParser;
+	let yamlEngine: FlashcardYamlEngine;
 
 	beforeEach(() => {
 		plugin = createMockPlugin([]);
@@ -25,7 +27,8 @@ describe('FlashcardParser', () => {
 				soft_delete_hours: 24,
 			},
 		} as IAdapter<PluginSettings>;
-		parser = new FlashcardParser(plugin as unknown as Plugin, settings);
+		yamlEngine = new FlashcardYamlEngine(plugin as unknown as Plugin);
+		parser = new FlashcardParser(plugin as unknown as Plugin, settings, yamlEngine);
 	});
 
 	describe('marker', () => {
@@ -96,7 +99,7 @@ describe('FlashcardParser', () => {
 
 		it('should handle marker with regex special characters like *', () => {
 			settings.data.flashcard.marker = '**';
-			parser = new FlashcardParser(plugin as unknown as Plugin, settings);
+			parser = new FlashcardParser(plugin as unknown as Plugin, settings, yamlEngine);
 			vi.spyOn(parser['_yaml'], 'extractFmFromContent').mockReturnValue({
 				fm: createFlashcardYaml(),
 				body: 'Front\n\n**\n\nBack',
@@ -110,7 +113,7 @@ describe('FlashcardParser', () => {
 
 		it('should handle marker with regex special characters like [', () => {
 			settings.data.flashcard.marker = '[split]';
-			parser = new FlashcardParser(plugin as unknown as Plugin, settings);
+			parser = new FlashcardParser(plugin as unknown as Plugin, settings, yamlEngine);
 			vi.spyOn(parser['_yaml'], 'extractFmFromContent').mockReturnValue({
 				fm: createFlashcardYaml(),
 				body: 'Front\n\n[split]\n\nBack',
@@ -135,7 +138,7 @@ describe('FlashcardParser', () => {
 	describe('parse', () => {
 		it('should parse file with frontmatter and body', async () => {
 			plugin = createMockPlugin([{ path: 'test.md', content: 'any' }]);
-			parser = new FlashcardParser(plugin as unknown as Plugin, settings);
+			parser = new FlashcardParser(plugin as unknown as Plugin, settings, yamlEngine);
 			const yaml = createFlashcardYaml({ uuid: 'abc' });
 			vi.spyOn(parser['_yaml'], 'extractFmFromContent').mockReturnValue({
 				fm: yaml,
@@ -152,7 +155,7 @@ describe('FlashcardParser', () => {
 
 		it('should recover and retry on first failure', async () => {
 			plugin = createMockPlugin([{ path: 'test.md', content: 'any' }]);
-			parser = new FlashcardParser(plugin as unknown as Plugin, settings);
+			parser = new FlashcardParser(plugin as unknown as Plugin, settings, yamlEngine);
 			const yaml = createFlashcardYaml({ uuid: 'recovered' });
 			vi.spyOn(parser['_yaml'], 'extractFmFromContent')
 				.mockImplementationOnce(() => {
@@ -170,7 +173,7 @@ describe('FlashcardParser', () => {
 
 		it('should throw on second failure after recovery', async () => {
 			plugin = createMockPlugin([{ path: 'test.md', content: 'any' }]);
-			parser = new FlashcardParser(plugin as unknown as Plugin, settings);
+			parser = new FlashcardParser(plugin as unknown as Plugin, settings, yamlEngine);
 			vi.spyOn(parser['_yaml'], 'extractFmFromContent').mockImplementation(() => {
 				throw new Error('fail');
 			});
@@ -196,7 +199,7 @@ describe('FlashcardParser', () => {
 			plugin.app.vault.adapter.exists = vi.fn().mockImplementation(async (path: string) =>
 				path === '/flashcards' || ['/flashcards/a.md', '/flashcards/b.md', '/flashcards/c.txt'].includes(path),
 			);
-			parser = new FlashcardParser(plugin as unknown as Plugin, settings);
+			parser = new FlashcardParser(plugin as unknown as Plugin, settings, yamlEngine);
 			const parseMetadataSpy = vi
 				.spyOn(parser, 'parseMetadata')
 				.mockImplementation(async (filepath) => ({
@@ -221,7 +224,7 @@ describe('FlashcardParser', () => {
 			plugin.app.vault.adapter.exists = vi.fn().mockImplementation(async (path: string) =>
 				path === '/flashcards' || ['/flashcards/note.md', '/flashcards/image.png'].includes(path),
 			);
-			parser = new FlashcardParser(plugin as unknown as Plugin, settings);
+			parser = new FlashcardParser(plugin as unknown as Plugin, settings, yamlEngine);
 			vi.spyOn(parser, 'parseMetadata').mockImplementation(async () => ({
 				entity: createFlashcardYaml({ uuid: 'note' }),
 				filepath: '/flashcards/note.md',

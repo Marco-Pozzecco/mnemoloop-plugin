@@ -1,4 +1,3 @@
-import { IEvent } from '@/interfaces/IEvent';
 import { BaseCommand } from '@/modules/commands/BaseCommand';
 import {
 	EventBus,
@@ -9,8 +8,9 @@ import { openInSplitMode } from '@/utils/Workspace';
 import { Menu, TAbstractFile, TFile, WorkspaceLeaf, normalizePath } from 'obsidian';
 
 export class CreateFlashcardFromFileCommand extends BaseCommand {
-	readonly id = 'ml-create-empty-in-panel';
+	readonly id = 'create-empty-in-panel';
 	readonly name = 'Create flashcard from file';
+	private _unsubscribe?: () => void;
 
 	protected onRegister(): void {
 		const eventRef = this.plugin.app.workspace.on(
@@ -38,37 +38,28 @@ export class CreateFlashcardFromFileCommand extends BaseCommand {
 		const sourcePath = file.path;
 		const sourceLeaf = this.plugin.app.workspace.getMostRecentLeaf();
 
-		const callback = async (evt: IEvent) => {
-			if (!evt.isType(FlashcardWriterCreateResponseEvent.type)) {
+		const responseHandler = async (event: FlashcardWriterCreateResponseEvent) => {
+			this._unsubscribe?.();
+			const path = normalizePath(event.data.filepath);
+			const targetFile = this.plugin.app.vault.getFileByPath(path);
+			if (!targetFile) {
 				return;
 			}
-
-			const data = (evt as FlashcardWriterCreateResponseEvent).data;
-
-			const path = normalizePath(data.filepath);
-			const file = this.plugin.app.vault.getFileByPath(path);
-
-			if (!file) {
-				EventBus.instance.unsubscribe(callback);
-				return;
-			}
-
 			const rootLeaves: WorkspaceLeaf[] = [];
 			this.plugin.app.workspace.iterateRootLeaves((leaf) => {
 				rootLeaves.push(leaf);
 			});
-
 			const leaf = openInSplitMode(this.plugin.app.workspace);
-			await leaf.openFile(file);
-
+			await leaf.openFile(targetFile);
 			if (sourceLeaf) {
 				this.plugin.app.workspace.revealLeaf(sourceLeaf);
 			}
-
-			EventBus.instance.unsubscribe(callback);
 		};
 
-		EventBus.instance.subscribe(callback);
+		this._unsubscribe = EventBus.instance.subscribe(
+			FlashcardWriterCreateResponseEvent,
+			responseHandler,
+		);
 
 		EventBus.instance.publish(
 			new FlashcardWriterCreateRequestEvent({
@@ -77,5 +68,9 @@ export class CreateFlashcardFromFileCommand extends BaseCommand {
 				source: sourcePath,
 			}),
 		);
+	}
+
+	override onUnregister(): void {
+		this._unsubscribe?.();
 	}
 }

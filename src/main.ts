@@ -13,46 +13,56 @@ import {
 	OpenDashboardCommand,
 	SetAllFlashcardsDueNowCommand,
 } from './modules/commands';
-import { EventRegistry } from './modules/events';
-import { FlascardIndexer } from './modules/indexers/FlashcardIndexer';
+import { EventBus, EventRegistry, IndexRouter } from './modules/events';
+import { FlashcardIndexer } from './modules/indexers/FlashcardIndexer';
 import { FlashcardParser } from './modules/parsers/FlashcardParser';
+import { FlashcardWriter } from './modules/writers/FlashcardWriter';
 import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from './schemas/settings';
 import { AdapterKey, Adapters } from './types/adapters';
 import { CommandKey } from './types/commands';
 import { Indexes, IndexKey } from './types/indexes';
 import { ParserKey, Parsers } from './types/parsers';
+import { WriterKey, Writers } from './types/writers';
 import { APP_VIEW, AppView } from './ui/views/App/AppView';
 import { SettingsView } from './ui/views/Settings/SettingsView';
 import { Logger } from './utils/Logger';
+import { VaultWatcher } from './utils/VaultWatcher';
+import { IEventRegistryDependencies } from './interfaces/IEventRegistry';
 
 export default class MnemoloopPlugin extends Plugin {
+	private _vaultWatcher?: VaultWatcher;
 	private _indexes: Indexes = new Map();
 	private _adapter: Adapters = new Map();
 	private _parsers: Parsers = new Map();
+	private _writers: Writers = new Map();
 	private _commandRegistry: CommandRegistry = new CommandRegistry();
+	private _eventRegistry!: EventRegistry;
 
 	settings!: PluginSettings;
 	private ribbonIcon?: HTMLElement;
 
 	async onload() {
-		Logger.info('Loading plugin');
-
 		this.initializeRibbonIcon();
+
 		await this.loadAdapters();
 		await this.loadParsers();
 		await this.loadIndexes();
+		await this.loadWriters();
 
-		// Initialize event processors with dependencies
-		this.initializeEventProcessors();
+		this._vaultWatcher = new VaultWatcher(
+			this,
+			this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>,
+		);
+
+		this.initializeEventRegistry();
 
 		await this.initializeViews();
 		this.loadCommands();
 	}
 
 	onunload() {
-		Logger.info('Unloading plugin');
-		// Dispose all event processors via registry
-		EventRegistry.instance.dispose();
+		this._vaultWatcher?.dispose();
+		this._eventRegistry.dispose();
 		this._commandRegistry.unregisterAll();
 		this.ribbonIcon?.remove();
 	}
@@ -86,35 +96,41 @@ export default class MnemoloopPlugin extends Plugin {
 		this._parsers.set(ParserKey.flashcard, new FlashcardParser(this, settings));
 	}
 
+	private async loadWriters() {
+		const parser = this._parsers.get(ParserKey.flashcard) as FlashcardParser;
+		this._writers.set(WriterKey.flashcard, new FlashcardWriter(this, parser));
+	}
+
 	private async loadIndexes() {
 		this._indexes.set(
 			IndexKey.flashcard,
-			new FlascardIndexer(
+			new FlashcardIndexer(
 				this._parsers.get(ParserKey.flashcard) as FlashcardParser,
 				this._adapter.get(AdapterKey.flashcard) as FlashcardAdapter,
 				this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>,
 			),
 		);
-
 		const indexPromises = Array.from(this._indexes.values()).map(async (index) => {
 			await index.initialize();
 		});
-
 		await Promise.all(indexPromises);
 		Logger.info('indexes initialized');
 	}
 
 	/**
-	 * Initialize all registered event processors with dependencies.
+	 * Initialize all registered events' handlers.
 	 */
-	private initializeEventProcessors(): void {
-		EventRegistry.instance.initialize({
+	private initializeEventRegistry(): void {
+		const deps: IEventRegistryDependencies = {
 			plugin: this,
+			bus: EventBus.instance,
 			adapters: this._adapter,
 			indexes: this._indexes,
 			parsers: this._parsers,
-		});
-		Logger.info('event processors initialized');
+			writers: this._writers,
+		};
+		this._eventRegistry = new EventRegistry(EventBus.instance, deps, IndexRouter);
+		this._eventRegistry.initialize();
 	}
 
 	private async initializeViews() {
@@ -147,6 +163,7 @@ export default class MnemoloopPlugin extends Plugin {
 			adapters: this._adapter,
 			indexes: this._indexes,
 			parsers: this._parsers,
+			writers: this._writers,
 		});
 
 		Logger.info('commands initialized');

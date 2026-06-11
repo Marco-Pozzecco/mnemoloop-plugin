@@ -1,9 +1,13 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { SetAllFlashcardsDueNowCommand } from '@/modules/commands/palette/SetAllFlashcardsDueNowCommand';
 import { IndexKey } from '@/types/indexes';
 import { ParserKey } from '@/types/parsers';
+import { WriterKey } from '@/types/writers';
 import { Notice } from 'obsidian';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMockPlugin } from '../../../../helpers/mock-obsidian';
+import { FlashcardIndexer } from '@/modules/indexers/FlashcardIndexer';
+import { FlashcardParser } from '@/modules/parsers/FlashcardParser';
+import { FlashcardWriter } from '@/modules/writers/FlashcardWriter';
 
 vi.mock('@/modules/writers/FlashcardWriter', () => ({
 	FlashcardWriter: vi.fn().mockImplementation(() => ({
@@ -30,6 +34,7 @@ describe('SetAllFlashcardsDueNowCommand', () => {
 			adapters: new Map() as any,
 			indexes: new Map() as any,
 			parsers: new Map() as any,
+			writers: new Map() as any,
 		});
 
 		expect(addCommandSpy).toHaveBeenCalledWith(
@@ -47,6 +52,7 @@ describe('SetAllFlashcardsDueNowCommand', () => {
 			adapters: new Map() as any,
 			indexes: new Map() as any,
 			parsers: new Map() as any,
+			writers: new Map() as any,
 		});
 
 		const callback = (addCommandSpy.mock.calls[0][0] as { callback: () => unknown }).callback;
@@ -64,6 +70,7 @@ describe('SetAllFlashcardsDueNowCommand', () => {
 			adapters: new Map() as any,
 			indexes: new Map([[IndexKey.flashcard, mockIndex]]) as any,
 			parsers: new Map() as any,
+			writers: new Map() as any,
 		});
 
 		const callback = (addCommandSpy.mock.calls[0][0] as { callback: () => unknown }).callback;
@@ -76,12 +83,14 @@ describe('SetAllFlashcardsDueNowCommand', () => {
 		const { cmd, plugin, addCommandSpy } = setup();
 		const mockIndex = { getAll: vi.fn().mockReturnValue([]), update: vi.fn(), save: vi.fn() };
 		const mockParser = { parse: vi.fn() };
+		const mockWriter = { updateFrontmatter: vi.fn().mockResolvedValue(undefined) };
 
 		cmd.register({
-			plugin: plugin as any,
-			adapters: new Map() as any,
-			indexes: new Map([[IndexKey.flashcard, mockIndex]]) as any,
-			parsers: new Map([[ParserKey.flashcard, mockParser]]) as any,
+			plugin: plugin,
+			adapters: new Map(),
+			indexes: new Map([[IndexKey.flashcard, mockIndex as unknown as FlashcardIndexer]]),
+			parsers: new Map([[ParserKey.flashcard, mockParser as unknown as FlashcardParser]]),
+			writers: new Map([[WriterKey.flashcard, mockWriter as unknown as FlashcardWriter]]),
 		});
 
 		const callback = (addCommandSpy.mock.calls[0][0] as { callback: () => unknown }).callback;
@@ -89,7 +98,6 @@ describe('SetAllFlashcardsDueNowCommand', () => {
 
 		expect(Notice).toHaveBeenCalledWith('No flashcards found');
 	});
-
 	it('should update all flashcards and show success Notice', async () => {
 		const { cmd, plugin, addCommandSpy } = setup();
 		const flashcards = [
@@ -98,24 +106,25 @@ describe('SetAllFlashcardsDueNowCommand', () => {
 		];
 		const mockIndex = {
 			getAll: vi.fn().mockReturnValue(flashcards),
-			update: vi.fn(),
 			save: vi.fn().mockResolvedValue(undefined),
 		};
 		const mockParser = { parse: vi.fn() };
+		const mockWriter = { updateFrontmatter: vi.fn().mockResolvedValue(undefined) };
 
 		cmd.register({
-			plugin: plugin as any,
-			adapters: new Map() as any,
-			indexes: new Map([[IndexKey.flashcard, mockIndex]]) as any,
-			parsers: new Map([[ParserKey.flashcard, mockParser]]) as any,
+			plugin: plugin,
+			adapters: new Map(),
+			indexes: new Map([[IndexKey.flashcard, mockIndex as unknown as FlashcardIndexer]]),
+			parsers: new Map([[ParserKey.flashcard, mockParser as unknown as FlashcardParser]]),
+			writers: new Map([[WriterKey.flashcard, mockWriter as unknown as FlashcardWriter]]),
 		});
 
 		const callback = (addCommandSpy.mock.calls[0][0] as { callback: () => unknown }).callback;
 		await callback();
 
 		expect(mockIndex.getAll).toHaveBeenCalledTimes(1);
-		expect(mockIndex.update).toHaveBeenCalledTimes(2);
 		expect(mockIndex.save).toHaveBeenCalledTimes(1);
+		expect(mockWriter.updateFrontmatter).toHaveBeenCalledTimes(2);
 		expect(Notice).toHaveBeenCalledWith('Updated 2 flashcard(s) due date to now');
 	});
 });

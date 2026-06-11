@@ -2,10 +2,13 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { GenerateFromSelectionCommand } from '@/modules/commands/editor-menu/GenerateFromSelectionCommand';
 import { EventBus } from '@/modules/events/core/EventBus';
 import { FlashcardWriterCreateResponseEvent } from '@/modules/events';
-import { TFile, MarkdownView, Notice } from 'obsidian';
+import { TFile, MarkdownView, Notice, WorkspaceLeaf } from 'obsidian';
 import { openInSplitMode } from '@/utils/Workspace';
 import { resetSingletons } from '../../../../helpers/reset-singletons';
 import { createMockPlugin, createMockEditor, createMockMenu } from '../../../../helpers/mock-obsidian';
+
+// Initialize static type properties on event classes before tests
+new FlashcardWriterCreateResponseEvent({ filepath: '' });
 
 vi.mock('@/ui/views/Modal/ModalView', () => ({
 	SvelteModal: vi.fn().mockImplementation(() => ({
@@ -16,7 +19,9 @@ vi.mock('@/ui/views/Modal/ModalView', () => ({
 vi.mock('@/ui/store/modal.store', () => ({
 	modalStore: {
 		open: vi.fn(),
-		close: vi.fn(),
+		state: {
+			view: null,
+		},
 	},
 	ModalViewEnum: {
 		flashcard: 'flashcard',
@@ -31,7 +36,7 @@ describe('GenerateFromSelectionCommand', () => {
 	beforeEach(() => {
 		resetSingletons();
 		vi.mocked(openInSplitMode).mockReset();
-		vi.mocked(openInSplitMode).mockReturnValue({ openFile: vi.fn().mockResolvedValue(undefined) });
+		vi.mocked(openInSplitMode).mockReturnValue({ openFile: vi.fn().mockResolvedValue(undefined) } as unknown as WorkspaceLeaf);
 	});
 
 	function setup() {
@@ -43,6 +48,7 @@ describe('GenerateFromSelectionCommand', () => {
 			adapters: new Map() as any,
 			indexes: new Map() as any,
 			parsers: new Map() as any,
+			writers: new Map() as any,
 		});
 		return { cmd, plugin, workspaceOnSpy };
 	}
@@ -132,7 +138,7 @@ describe('GenerateFromSelectionCommand', () => {
 		(view as any).file = { path: 'notes/test.md' };
 		(view as any).leaf = { id: 'original-leaf' };
 
-		const newLeaf = { openFile: vi.fn().mockResolvedValue(undefined) };
+		const newLeaf = { openFile: vi.fn().mockResolvedValue(undefined) } as any;
 		vi.mocked(openInSplitMode).mockReturnValue(newLeaf);
 		plugin.app.workspace.revealLeaf = vi.fn();
 		plugin.app.vault.getAbstractFileByPath = vi.fn().mockReturnValue(new (TFile as any)('notes/test.md', 'test'));
@@ -142,10 +148,7 @@ describe('GenerateFromSelectionCommand', () => {
 		await onClickHandler();
 
 		const responseEvent = new FlashcardWriterCreateResponseEvent({
-			uuid: 'test-uuid',
 			filepath: 'notes/test.md',
-			source: 'notes/test.md',
-			request_id: 'req-id',
 		});
 		EventBus.instance.publish(responseEvent);
 		await new Promise((resolve) => setTimeout(resolve, 0));
@@ -162,7 +165,7 @@ describe('GenerateFromSelectionCommand', () => {
 		(view as any).file = { path: 'notes/test.md' };
 		(view as any).leaf = { id: 'original-leaf' };
 
-		const newLeaf = { openFile: vi.fn().mockResolvedValue(undefined) };
+		const newLeaf = { openFile: vi.fn().mockResolvedValue(undefined) } as any;
 		vi.mocked(openInSplitMode).mockReturnValue(newLeaf);
 		plugin.app.workspace.revealLeaf = vi.fn();
 		plugin.app.vault.getAbstractFileByPath = vi.fn().mockReturnValue(new (TFile as any)('notes/test.md', 'test'));
@@ -172,10 +175,7 @@ describe('GenerateFromSelectionCommand', () => {
 		await onClickHandler();
 
 		const responseEvent = new FlashcardWriterCreateResponseEvent({
-			uuid: 'test-uuid',
 			filepath: 'notes/test.md',
-			source: 'notes/test.md',
-			request_id: 'req-id',
 		});
 		EventBus.instance.publish(responseEvent);
 		await new Promise((resolve) => setTimeout(resolve, 0));
@@ -198,10 +198,7 @@ describe('GenerateFromSelectionCommand', () => {
 		await onClickHandler();
 
 		const responseEvent = new FlashcardWriterCreateResponseEvent({
-			uuid: 'test-uuid',
 			filepath: 'notes/test.md',
-			source: 'notes/test.md',
-			request_id: 'req-id',
 		});
 		EventBus.instance.publish(responseEvent);
 		await new Promise((resolve) => setTimeout(resolve, 0));
@@ -243,7 +240,7 @@ describe('GenerateFromSelectionCommand', () => {
 		(view as any).file = { path: 'notes/test.md' };
 		(view as any).leaf = { id: 'original-leaf' };
 
-		const newLeaf = { openFile: vi.fn().mockResolvedValue(undefined) };
+		const newLeaf = { openFile: vi.fn().mockResolvedValue(undefined) } as any;
 		vi.mocked(openInSplitMode).mockReturnValue(newLeaf);
 		plugin.app.workspace.revealLeaf = vi.fn();
 		plugin.app.vault.getAbstractFileByPath = vi.fn().mockReturnValue(new (TFile as any)('notes/test.md', 'test'));
@@ -254,10 +251,7 @@ describe('GenerateFromSelectionCommand', () => {
 
 		// First response event
 		const responseEvent1 = new FlashcardWriterCreateResponseEvent({
-			uuid: 'test-uuid-1',
 			filepath: 'notes/test.md',
-			source: 'notes/test.md',
-			request_id: 'req-id-1',
 		});
 		EventBus.instance.publish(responseEvent1);
 		await new Promise((resolve) => setTimeout(resolve, 0));
@@ -266,10 +260,7 @@ describe('GenerateFromSelectionCommand', () => {
 
 		// Second response event - should NOT be processed
 		const responseEvent2 = new FlashcardWriterCreateResponseEvent({
-			uuid: 'test-uuid-2',
 			filepath: 'notes/test.md',
-			source: 'notes/test.md',
-			request_id: 'req-id-2',
 		});
 		EventBus.instance.publish(responseEvent2);
 		await new Promise((resolve) => setTimeout(resolve, 0));

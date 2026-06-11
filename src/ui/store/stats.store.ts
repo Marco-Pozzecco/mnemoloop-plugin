@@ -1,28 +1,21 @@
+import { EventBus, StatisticsAdapterStateEvent } from '@/modules/events';
 import { Stats } from '@/schemas';
 import { DEFAULT_STATISTICS } from '@/utils/constants';
 import { writable } from 'svelte/store';
 import { BaseStoreManager } from './base.store';
-import {
-	EventBus,
-	StatisticsAdapterInitResponseEvent,
-	StatisticsAdapterSaveResponseEvent,
-} from '@/modules/events';
 
 const store = writable(DEFAULT_STATISTICS);
 
 export class StatsStore extends BaseStoreManager<Stats> {
+	private _unsubscribe: () => void = () => {};
+
 	constructor() {
 		super(DEFAULT_STATISTICS, store);
 
-		EventBus.instance.subscribe((event) => {
-			if (event.isType(StatisticsAdapterInitResponseEvent.type)) {
-				const data = event.data as StatisticsAdapterInitResponseEvent['data'];
-				this.store.update(() => data);
-			} else if (event.isType(StatisticsAdapterSaveResponseEvent.type)) {
-				const data = event.data as StatisticsAdapterSaveResponseEvent['data'];
-				this.store.update(() => data);
-			}
-		});
+		const handler = (event: StatisticsAdapterStateEvent) => {
+			this.store.update(() => event.data);
+		};
+		this._unsubscribe = EventBus.instance.subscribe(StatisticsAdapterStateEvent, handler);
 	}
 
 	get stats() {
@@ -31,6 +24,10 @@ export class StatsStore extends BaseStoreManager<Stats> {
 
 	set stats(stats: Stats) {
 		this.store.update((state) => ({ ...state, ...stats }));
+	}
+
+	dispose(): void {
+		this._unsubscribe();
 	}
 }
 

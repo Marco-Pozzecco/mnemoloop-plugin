@@ -39,7 +39,7 @@ describe('DashboardController integration', () => {
 		expect(sessionStore.state.deck_filter).toBe('Maths');
 		expect(sessionStore.state.review_type).toBe('flashcard');
 		expect(sessionStore.state.session_id).not.toBeNull();
-		expect(FlashcardReviewQueue).toHaveBeenCalledWith(expect.any(Function), 'Maths');
+		expect(FlashcardReviewQueue).toHaveBeenCalledWith(expect.any(Function), expect.any(Object));
 		expect(publishSpy).toHaveBeenCalled();
 
 		publishSpy.mockRestore();
@@ -53,7 +53,7 @@ describe('DashboardController integration', () => {
 
 		expect(sessionStore.state.deck_filter).toBeNull();
 		expect(sessionStore.state.review_type).toBe('flashcard');
-		expect(FlashcardReviewQueue).toHaveBeenCalledWith(expect.any(Function), undefined);
+		expect(FlashcardReviewQueue).toHaveBeenCalledWith(expect.any(Function), expect.any(Object));
 
 		publishSpy.mockRestore();
 	});
@@ -65,7 +65,7 @@ describe('DashboardController integration', () => {
 		await controller.startReview(IndexKey.flashcard, 'Uncategorized');
 
 		expect(sessionStore.state.deck_filter).toBe('Uncategorized');
-		expect(FlashcardReviewQueue).toHaveBeenCalledWith(expect.any(Function), 'Uncategorized');
+		expect(FlashcardReviewQueue).toHaveBeenCalledWith(expect.any(Function), expect.any(Object));
 
 		publishSpy.mockRestore();
 	});

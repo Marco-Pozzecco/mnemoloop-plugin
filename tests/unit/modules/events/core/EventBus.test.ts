@@ -9,8 +9,18 @@ interface TestData {
 }
 
 class TestEvent extends Event<TestData> {
+	static readonly type = 'test-event';
+
 	constructor(data: TestData) {
-		super('test-event', data);
+		super(TestEvent.type, data);
+	}
+}
+
+class OtherEvent extends Event<{ value: number }> {
+	static readonly type = 'other-event';
+
+	constructor(data: { value: number }) {
+		super(OtherEvent.type, data);
 	}
 }
 
@@ -35,11 +45,11 @@ describe('EventBus', () => {
 	});
 
 	describe('subscribe', () => {
-		it('should add a subscriber and return the callback', () => {
+		it('should add a subscriber and return unsubscribe function', () => {
 			const bus = EventBus.instance;
 			const cb = vi.fn();
-			const result = bus.subscribe(cb);
-			expect(result).toBe(cb);
+			const unsubscribe = bus.subscribe(TestEvent, cb);
+			expect(typeof unsubscribe).toBe('function');
 		});
 	});
 
@@ -47,9 +57,11 @@ describe('EventBus', () => {
 		it('should remove a subscriber so it no longer receives events', () => {
 			const bus = EventBus.instance;
 			const events: IEvent[] = [];
-			const cb = (e: IEvent) => events.push(e);
-			bus.subscribe(cb);
-			bus.unsubscribe(cb);
+			const cb = (e: IEvent) => {
+				events.push(e);
+			};
+			bus.subscribe(TestEvent, cb);
+			bus.unsubscribe(TestEvent, cb);
 			bus.publish(new TestEvent({ value: 1 }));
 			expect(events).toHaveLength(0);
 		});
@@ -60,8 +72,12 @@ describe('EventBus', () => {
 			const bus = EventBus.instance;
 			const events1: IEvent[] = [];
 			const events2: IEvent[] = [];
-			bus.subscribe((e) => events1.push(e));
-			bus.subscribe((e) => events2.push(e));
+			bus.subscribe(TestEvent, (e) => {
+				events1.push(e);
+			});
+			bus.subscribe(TestEvent, (e) => {
+				events2.push(e);
+			});
 			const event = new TestEvent({ value: 42 });
 			bus.publish(event);
 			expect(events1).toHaveLength(1);
@@ -79,9 +95,11 @@ describe('EventBus', () => {
 		it('should not deliver to unsubscribed callbacks', () => {
 			const bus = EventBus.instance;
 			const events: IEvent[] = [];
-			const cb = (e: IEvent) => events.push(e);
-			bus.subscribe(cb);
-			bus.unsubscribe(cb);
+			const cb = (e: IEvent) => {
+				events.push(e);
+			};
+			bus.subscribe(TestEvent, cb);
+			bus.unsubscribe(TestEvent, cb);
 			bus.publish(new TestEvent({ value: 1 }));
 			expect(events).toHaveLength(0);
 		});
@@ -89,37 +107,50 @@ describe('EventBus', () => {
 		it('should synchronously execute subscribers', () => {
 			const bus = EventBus.instance;
 			let called = false;
-			bus.subscribe(() => {
+			bus.subscribe(TestEvent, () => {
 				called = true;
 			});
 			bus.publish(new TestEvent({ value: 1 }));
 			expect(called).toBe(true);
 		});
-	});
 
-	describe('request', () => {
-		it('should deliver event exactly once via one-shot pattern', () => {
+		it('should not deliver events to subscribers of different types', () => {
 			const bus = EventBus.instance;
 			const events: IEvent[] = [];
-			const cb = (e: IEvent) => events.push(e);
-			bus.request(new TestEvent({ value: 99 }), cb);
-			expect(events).toHaveLength(1);
-			// After request, the callback should be unsubscribed
+			bus.subscribe(OtherEvent, (e) => {
+				events.push(e);
+			});
+			bus.publish(new TestEvent({ value: 1 }));
+			expect(events).toHaveLength(0);
+		});
+	});
+
+	describe('subscribeOnce', () => {
+		it('should deliver event exactly once', () => {
+			const bus = EventBus.instance;
+			const events: IEvent[] = [];
+			const cb = (e: IEvent) => {
+				events.push(e);
+			};
+			bus.subscribeOnce(TestEvent, cb);
+			bus.publish(new TestEvent({ value: 1 }));
 			bus.publish(new TestEvent({ value: 2 }));
 			expect(events).toHaveLength(1);
 		});
 	});
 
 	describe('error resilience', () => {
-		it('should not isolate errors; remaining subscribers do not receive event', () => {
+		it('should catch errors and continue delivering to other subscribers', () => {
 			const bus = EventBus.instance;
 			const events: IEvent[] = [];
-			bus.subscribe(() => {
+			bus.subscribe(TestEvent, () => {
 				throw new Error('boom');
 			});
-			bus.subscribe((e) => events.push(e));
-			expect(() => bus.publish(new TestEvent({ value: 1 }))).toThrow('boom');
-			expect(events).toHaveLength(0);
+			bus.subscribe(TestEvent, (e) => {
+				events.push(e);
+			});
+			expect(() => bus.publish(new TestEvent({ value: 1 }))).not.toThrow();
+			expect(events).toHaveLength(1);
 		});
 	});
 });

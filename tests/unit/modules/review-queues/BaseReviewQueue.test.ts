@@ -54,7 +54,7 @@ describe('BaseReviewQueue', () => {
 
 	describe('add', () => {
 		it('should add items to the queue', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			const item = createMockItem('a.md');
 
 			queue.add(item);
@@ -64,7 +64,7 @@ describe('BaseReviewQueue', () => {
 		});
 
 		it('should add multiple items', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			queue.add(createMockItem('a.md'));
 			queue.add(createMockItem('b.md'));
 			queue.add(createMockItem('c.md'));
@@ -75,7 +75,7 @@ describe('BaseReviewQueue', () => {
 
 	describe('remove', () => {
 		it('should remove the last item', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			const item = createMockItem('a.md');
 			queue.add(item);
 
@@ -86,7 +86,7 @@ describe('BaseReviewQueue', () => {
 		});
 
 		it('should return undefined when empty', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 
 			expect(queue.remove()).toBeUndefined();
 		});
@@ -94,7 +94,7 @@ describe('BaseReviewQueue', () => {
 
 	describe('getCurrent', () => {
 		it('should return first item initially', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			const item = createMockItem('a.md');
 			queue.add(item);
 
@@ -102,7 +102,7 @@ describe('BaseReviewQueue', () => {
 		});
 
 		it('should return undefined when empty', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 
 			expect(queue.current).toBeUndefined();
 		});
@@ -110,13 +110,13 @@ describe('BaseReviewQueue', () => {
 
 	describe('isEmpty', () => {
 		it('should be true when no items', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 
 			expect(queue.isEmpty).toBe(true);
 		});
 
 		it('should be false when items exist', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			queue.add(createMockItem());
 
 			expect(queue.isEmpty).toBe(false);
@@ -125,7 +125,7 @@ describe('BaseReviewQueue', () => {
 
 	describe('getAll', () => {
 		it('should return all items', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			const item1 = createMockItem('a.md');
 			const item2 = createMockItem('b.md');
 			queue.add(item1);
@@ -137,7 +137,7 @@ describe('BaseReviewQueue', () => {
 
 	describe('next', () => {
 		it('should advance to next item', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			const item1 = createMockItem('a.md');
 			const item2 = createMockItem('b.md');
 			queue.add(item1);
@@ -150,7 +150,7 @@ describe('BaseReviewQueue', () => {
 		});
 
 		it('should return null at end of queue', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			queue.add(createMockItem());
 
 			const result = queue.next();
@@ -160,7 +160,7 @@ describe('BaseReviewQueue', () => {
 		});
 
 		it('should increment position past end without clamping', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			queue.add(createMockItem());
 
 			queue.next(); // position = 1, past end
@@ -173,7 +173,7 @@ describe('BaseReviewQueue', () => {
 
 	describe('previous', () => {
 		it('should go back to previous item', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			const item1 = createMockItem('a.md');
 			const item2 = createMockItem('b.md');
 			queue.add(item1);
@@ -187,14 +187,14 @@ describe('BaseReviewQueue', () => {
 		});
 
 		it('should return null at start of queue', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			queue.add(createMockItem());
 
 			expect(queue.previous()).toBeNull();
 		});
 
 		it('should clamp position at 0', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			queue.add(createMockItem());
 
 			queue.previous();
@@ -206,14 +206,14 @@ describe('BaseReviewQueue', () => {
 
 	describe('position', () => {
 		it('should start at 0', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			expect(queue.position).toBe(0);
 		});
 	});
 
 	describe('size', () => {
 		it('should reflect item count', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			expect(queue.size).toBe(0);
 
 			queue.add(createMockItem());
@@ -223,7 +223,7 @@ describe('BaseReviewQueue', () => {
 
 	describe('constructor', () => {
 		it('should store engine reference', () => {
-			const queue = new TestReviewQueue(engine);
+			const queue = new TestReviewQueue(engine, () => true);
 			expect((queue as unknown as { _engine: IReviewEngine<FlashcardYaml> })._engine).toBe(engine);
 		});
 
@@ -231,13 +231,9 @@ describe('BaseReviewQueue', () => {
 			const predicate = (f: FlashcardMetadata) => f.decks.includes('Math');
 			const queue = new TestReviewQueue(engine, predicate);
 
-			expect((queue as unknown as { _itemsQuery: (f: FlashcardMetadata) => boolean })._itemsQuery).toBe(predicate);
-		});
-
-		it('should store deck filter', () => {
-			const queue = new TestReviewQueue(engine, undefined, 'Math');
-
-			expect((queue as unknown as { _deckFilter: string })._deckFilter).toBe('Math');
+			expect(
+				(queue as unknown as { _itemsQuery: (f: FlashcardMetadata) => boolean })._itemsQuery,
+			).toBe(predicate);
 		});
 	});
 });

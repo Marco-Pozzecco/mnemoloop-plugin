@@ -49,4 +49,11 @@ export abstract class BaseCommand implements ICommand {
 		}
 		return this.deps.parsers;
 	}
+
+	protected get writers() {
+		if (!this.deps) {
+			throw new Error('Command dependencies not initialized');
+		}
+		return this.deps.writers;
+	}
 }

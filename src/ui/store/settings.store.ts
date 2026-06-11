@@ -1,21 +1,16 @@
-import { IEvent } from '@/interfaces/IEvent';
 import {
 	EventBus,
-	FlashcardIndexInitializeRequestEvent,
-	SettingsAdapterInitResponseEvent,
-	SettingsAdapterResetRequestEvent,
-	SettingsAdapterResetResponseEvent,
-	SettingsAdapterSaveRequestEvent,
-	SettingsAdapterSaveResponseEvent,
+	FlashcardIndexInitializeEvent,
+	SettingsAdapterResetEvent,
+	SettingsAdapterSaveEvent,
 	SettingsAdapterSetRequestEvent,
-	SettingsAdapterSetResponseEvent,
+	SettingsAdapterStateEvent,
 	SettingsAdapterUpdateRequestEvent,
 } from '@/modules/events';
 import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from '@/schemas/settings';
 import { writable, Writable } from 'svelte/store';
+import { simpleClone } from '@/utils/Clone';
 import { BaseStoreManager } from './base.store';
-
-type SettingsEventCallback = (event: IEvent) => void;
 
 const settingsWritable = writable(DEFAULT_PLUGIN_SETTINGS);
 const isLoadingStore = writable(false);
@@ -23,7 +18,7 @@ const saveErrorStore = writable<string | null>(null);
 const fieldErrorsStore = writable<Record<string, string>>({});
 
 export class SettingsStore extends BaseStoreManager<PluginSettings> {
-	private eventCallback: SettingsEventCallback;
+	private _unsubscribe: () => void = () => {};
 
 	// Public stores for direct access in Svelte components
 	settings: Writable<PluginSettings>;
@@ -38,39 +33,20 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this.saveError = saveErrorStore;
 		this.fieldErrors = fieldErrorsStore;
 
-		this.eventCallback = (event) => {
-			if (event.type === SettingsAdapterInitResponseEvent.type) {
-				const data = (event as SettingsAdapterInitResponseEvent).data;
-				this.settings.update(() => data);
-				this.saveError.update(() => null);
-				this.fieldErrors.update(() => ({}));
-				this.isLoading.update(() => false);
-			}
-			if (event.type === SettingsAdapterResetResponseEvent.type) {
-				const data = (event as SettingsAdapterResetResponseEvent).data;
-				this.settings.update(() => data);
-				this.saveError.update(() => null);
-				this.fieldErrors.update(() => ({}));
-				this.isLoading.update(() => false);
-			}
-			if (event.type === SettingsAdapterSetResponseEvent.type) {
-				const data = (event as SettingsAdapterSetResponseEvent).data;
-				this.settings.update(() => data);
-				this.saveError.update(() => null);
-				this.fieldErrors.update(() => ({}));
-				this.isLoading.update(() => false);
-			}
-			if (event.type === SettingsAdapterSaveResponseEvent.type) {
-				this.saveError.update(() => null);
-				this.fieldErrors.update(() => ({}));
-				this.isLoading.update(() => false);
-
-				const event = new FlashcardIndexInitializeRequestEvent();
-				EventBus.instance.publish(event);
-			}
+		const handler = (event: SettingsAdapterStateEvent) => {
+			this.settings.update((state) => {
+				const updated = { ...state, ...event.data };
+				// If the watch config has changed, trigger a flashcard index re-initialize
+				if (state.flashcard.watch.directory !== updated.flashcard.watch.directory) {
+					EventBus.instance.publish(new FlashcardIndexInitializeEvent());
+				}
+				return updated;
+			});
+			this.saveError.update(() => null);
+			this.fieldErrors.update(() => ({}));
+			this.isLoading.update(() => false);
 		};
-
-		EventBus.instance.subscribe(this.eventCallback);
+		this._unsubscribe = EventBus.instance.subscribe(SettingsAdapterStateEvent, handler);
 	}
 
 	async updateField<K extends keyof PluginSettings>(
@@ -88,10 +64,7 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this.isLoading.update(() => true);
 		this.saveError.update(() => null);
 
-		// Get current settings and create a deep copy
-		const currentSettings: PluginSettings = this.currentSettings;
-
-		// Set value at nested path
+		const currentSettings = simpleClone(this.currentSettings);
 		this.setValueAtPath(currentSettings, path, value);
 
 		const request = new SettingsAdapterUpdateRequestEvent(currentSettings);
@@ -102,7 +75,7 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this.isLoading.update(() => true);
 		this.saveError.update(() => null);
 
-		const request = new SettingsAdapterResetRequestEvent();
+		const request = new SettingsAdapterResetEvent();
 		EventBus.instance.publish(request);
 	}
 
@@ -110,12 +83,12 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this.isLoading.update(() => true);
 		this.saveError.update(() => null);
 
-		const request = new SettingsAdapterSaveRequestEvent();
+		const request = new SettingsAdapterSaveEvent();
 		EventBus.instance.publish(request);
 	}
 
 	dispose(): void {
-		EventBus.instance.unsubscribe(this.eventCallback);
+		this._unsubscribe();
 	}
 
 	/**
@@ -129,17 +102,18 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 	 * Sets a value at a nested path in an object
 	 */
 	private setValueAtPath(obj: Record<string, unknown>, path: string[], value: unknown): void {
-		let current: Record<string | number, unknown> = obj;
+		let current: Record<string, unknown> = obj;
 		for (let i = 0; i < path.length - 1; i++) {
 			const key = path[i];
-			const nextKey = path[i + 1];
-			if (!(key in current) || current[key] === null || typeof current[key] !== 'object') {
-				current[key] = typeof nextKey === 'number' || !isNaN(Number(nextKey)) ? [] : {};
+			if (!key || !(key in current) || typeof current[key] !== 'object') {
+				current[key] = {};
 			}
-			current = current[key] as Record<string | number, unknown>;
+			current = current[key] as Record<string, unknown>;
 		}
 		const lastKey = path[path.length - 1];
-		current[lastKey] = value;
+		if (lastKey) {
+			current[lastKey] = value;
+		}
 	}
 }
 
