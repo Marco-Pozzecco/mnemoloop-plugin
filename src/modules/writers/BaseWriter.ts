@@ -65,6 +65,14 @@ export abstract class BaseWriter<
 			// Write body-only, then restore frontmatter
 			await this.writeFile(filepath, serializedBody);
 			await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
+				const targetKeys = this.getMetadataKeys();
+
+				for (const key of Object.keys(frontmatter)) {
+					if (!targetKeys.includes(key)) {
+						delete frontmatter[key];
+					}
+				}
+
 				Object.assign(frontmatter, metadata);
 			});
 		}
@@ -80,6 +88,14 @@ export abstract class BaseWriter<
 			throw new Error(`File not found: ${normalized}`);
 		}
 		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
+			const targetKeys = this.getMetadataKeys();
+
+			for (const key of Object.keys(frontmatter)) {
+				if (!targetKeys.includes(key)) {
+					delete frontmatter[key];
+				}
+			}
+
 			Object.assign(frontmatter, data);
 		});
 	};
@@ -167,4 +183,5 @@ export abstract class BaseWriter<
 	protected abstract deserializeBody(content: string): EntityBody;
 	protected abstract extractMetadata(entity: Entity): EntityMetadata;
 	protected abstract extractBody(entity: Entity): EntityBody;
+	protected abstract getMetadataKeys(): string[];
 }
