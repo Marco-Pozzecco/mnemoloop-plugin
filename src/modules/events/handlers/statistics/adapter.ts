@@ -29,9 +29,10 @@ export class StatisticsAdapterResetHandler extends EventHandler<StatisticsAdapte
 		super(deps);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async handle(_event: StatisticsAdapterSetRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
-		await adapter.reset();
+		adapter.reset();
 		void this._bus.publish(new StatisticsAdapterStateEvent(adapter.data));
 	}
 }
