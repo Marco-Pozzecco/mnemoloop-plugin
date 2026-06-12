@@ -32,7 +32,7 @@ export function renderMarkdown(
 		if (link.classList.contains('internal-link')) {
 			const href = link.getAttribute('data-href') || link.textContent;
 			event.preventDefault();
-			app.workspace.openLinkText(href, currentOptions.sourcePath ?? '', false);
+			void app.workspace.openLinkText(href, currentOptions.sourcePath ?? '', false);
 		}
 		// external links: let browser handle or window.open()
 	}
@@ -49,7 +49,7 @@ export function renderMarkdown(
 		);
 	}
 
-	doRender();
+	void doRender();
 
 	return {
 		update(newOptions: MarkdownOptions) {
@@ -58,7 +58,7 @@ export function renderMarkdown(
 				newOptions.sourcePath !== currentOptions.sourcePath
 			) {
 				currentOptions = newOptions;
-				doRender();
+				void doRender();
 			}
 		},
 		destroy() {

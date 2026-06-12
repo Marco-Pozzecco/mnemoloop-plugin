@@ -1,6 +1,5 @@
 import { IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
 import { StatisticsAdapter } from '@/modules/adapters/StatisticsAdapter';
-import { FlashcardIndexer } from '@/modules/indexers/FlashcardIndexer';
 import { FlashcardMetadata } from '@/schemas';
 import { AdapterKey } from '@/types/adapters';
 import { IndexKey } from '@/types/indexes';
@@ -22,8 +21,9 @@ export class FlashcardStatisticsComputeHandler extends EventHandler<FlashcardSta
 		super(deps);
 	}
 
+// eslint-disable-next-line @typescript-eslint/require-await
 	async handle(_event: FlashcardStatisticsComputeEvent): Promise<void> {
-		const indexer = this._indexers.get(IndexKey.flashcard)! as FlashcardIndexer;
+		const indexer = this._indexers.get(IndexKey.flashcard)!;
 		const stats = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
 		const flashcards = indexer.getAll();
 		const now = new Date();
@@ -37,10 +37,10 @@ export class FlashcardStatisticsComputeHandler extends EventHandler<FlashcardSta
 			},
 			updated_at: new Date().toISOString(),
 		});
-		stats.save();
+		void stats.save();
 
 		this._handleNextCompute(flashcards);
-		this._bus.publish(new StatisticsAdapterStateEvent(stats.data));
+		void this._bus.publish(new StatisticsAdapterStateEvent(stats.data));
 	}
 
 	private _handleNextCompute(flashcards: FlashcardMetadata[]): void {
@@ -52,7 +52,7 @@ export class FlashcardStatisticsComputeHandler extends EventHandler<FlashcardSta
 		if (delay === null) return;
 
 		this._nextCompute = setTimeout(() => {
-			EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
+			void EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
 		}, delay);
 	}
 
@@ -69,7 +69,8 @@ export class StatisticsDashboardOpenHandler extends EventHandler<DashboardOpenEv
 		super(deps);
 	}
 
+// eslint-disable-next-line @typescript-eslint/require-await
 	async handle(_event: DashboardOpenEvent): Promise<void> {
-		EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
+		void EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
 	}
 }

@@ -52,7 +52,7 @@ export class SetAllFlashcardsDueNowCommand extends BaseCommand {
 					updated_at: now,
 				};
 
-				EventBus.instance.publish(new FlashcardIndexUpdateRequestEvent(updated));
+				void EventBus.instance.publish(new FlashcardIndexUpdateRequestEvent(updated));
 
 				// Update in actual file (FlashcardYaml only has due, not updated_at)
 				await writer.updateFrontmatter(flashcard.file, {

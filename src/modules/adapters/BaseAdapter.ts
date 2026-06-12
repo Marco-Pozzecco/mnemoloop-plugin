@@ -28,10 +28,10 @@ export abstract class BaseAdapter<T> implements IAdapter<T> {
 	};
 
 	update: (data: Partial<T>) => void = (data) => {
-		this._data = this._schema.parse({ ...this._data, ...data } as T);
+		this._data = this._schema.parse({ ...this._data, ...data });
 	};
 
-	reset: () => Promise<void> = async () => {
+	reset: () => void = () => {
 		this._data = simpleClone(this.defaultData);
 	};
 
@@ -91,15 +91,18 @@ export abstract class BaseAdapter<T> implements IAdapter<T> {
 	): void {
 		if (path.length === 0) return;
 		if (path.length === 1) {
-			obj[path[0]!] = value;
+			obj[String(path[0])] = value;
 			return;
 		}
 		const [head, ...tail] = path;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 		let next = obj[head!];
 		if (next === undefined || next === null || typeof next !== 'object') {
 			if (tail[0] !== undefined && typeof tail[0] === 'number') {
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 				next = obj[head!] = new Array(tail[0] + 1).fill(null);
 			} else {
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 				next = obj[head!] = {};
 			}
 		}
@@ -111,6 +114,7 @@ export abstract class BaseAdapter<T> implements IAdapter<T> {
 		for (const issue of error.issues) {
 			if (issue.path.length > 0) {
 				const path = issue.path.filter((p): p is string | number => typeof p !== 'symbol');
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 				const defaultValue = this.getValueAtPath(this.defaultData as Record<string, unknown>, path);
 				this.setValueAtPath(partialData, path, defaultValue);
 			}

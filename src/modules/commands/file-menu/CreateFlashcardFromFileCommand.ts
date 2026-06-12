@@ -24,8 +24,8 @@ export class CreateFlashcardFromFileCommand extends BaseCommand {
 					item
 						.setTitle(this.name)
 						.setIcon('file-plus')
-						.onClick(async () => {
-							await this.handleClick(file);
+						.onClick(() => {
+							this.handleClick(file);
 						});
 				});
 			},
@@ -34,7 +34,7 @@ export class CreateFlashcardFromFileCommand extends BaseCommand {
 		this.plugin.registerEvent(eventRef);
 	}
 
-	private async handleClick(file: TFile): Promise<void> {
+	private handleClick(file: TFile): void {
 		const sourcePath = file.path;
 		const sourceLeaf = this.plugin.app.workspace.getMostRecentLeaf();
 
@@ -52,7 +52,7 @@ export class CreateFlashcardFromFileCommand extends BaseCommand {
 			const leaf = openInSplitMode(this.plugin.app.workspace);
 			await leaf.openFile(targetFile);
 			if (sourceLeaf) {
-				this.plugin.app.workspace.revealLeaf(sourceLeaf);
+				void this.plugin.app.workspace.revealLeaf(sourceLeaf);
 			}
 		};
 
@@ -61,7 +61,7 @@ export class CreateFlashcardFromFileCommand extends BaseCommand {
 			responseHandler,
 		);
 
-		EventBus.instance.publish(
+		void EventBus.instance.publish(
 			new FlashcardWriterCreateRequestEvent({
 				back: '',
 				front: '',

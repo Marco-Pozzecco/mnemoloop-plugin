@@ -26,9 +26,9 @@ export class EventBus implements IEventBus {
 
 		const promises = Array.from(handlers).map(async (h) => {
 			try {
-				return await h(event as IEvent<unknown>);
+				return await h(event);
 			} catch (err) {
-				return Promise.reject(err);
+				return Promise.reject(err instanceof Error ? err : new Error(String(err)));
 			}
 		});
 

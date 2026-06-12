@@ -27,7 +27,7 @@ import {
 import { FlashcardIndexer } from './modules/indexers/FlashcardIndexer';
 import { FlashcardParser } from './modules/parsers/FlashcardParser';
 import { FlashcardWriter } from './modules/writers/FlashcardWriter';
-import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from './schemas/settings';
+import { PluginSettings } from './schemas/settings';
 import { AdapterKey, Adapters } from './types/adapters';
 import { CommandKey } from './types/commands';
 import { Indexes, IndexKey } from './types/indexes';
@@ -47,25 +47,24 @@ export default class MnemoloopPlugin extends Plugin {
 	private _eventRegistry!: EventRegistry;
 	private _initializationEvents: IEvent[] = [];
 
-	settings!: PluginSettings;
 	private ribbonIcon?: HTMLElement;
 
 	async onload() {
 		this.initializeRibbonIcon();
 
-		await this.loadAdapters();
-		await this.loadParsers();
-		await this.loadIndexes();
-		await this.loadWriters();
+		this.loadAdapters();
+		this.loadParsers();
+		this.loadIndexes();
+		this.loadWriters();
 
 		this._vaultWatcher = new VaultWatcher(
 			this,
 			this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>,
 		);
 
-		this.initializeEventRegistry();
+		await this.initializeEventRegistry();
 
-		await this.initializeViews();
+		this.initializeViews();
 		this.loadCommands();
 	}
 
@@ -76,15 +75,7 @@ export default class MnemoloopPlugin extends Plugin {
 		this.ribbonIcon?.remove();
 	}
 
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_PLUGIN_SETTINGS, await this.loadData());
-	}
-
-	async saveSettings() {
-		await this.saveData(this.settings);
-	}
-
-	private async loadAdapters() {
+	private loadAdapters() {
 		this._adapter.set(AdapterKey.settings, new SettingsAdapter(this));
 		this._adapter.set(AdapterKey.statistics, new StatisticsAdapter(this));
 		this._adapter.set(AdapterKey.flashcard, new FlashcardAdapter(this));
@@ -98,19 +89,19 @@ export default class MnemoloopPlugin extends Plugin {
 		this._initializationEvents.push(...events);
 	}
 
-	private async loadParsers() {
+	private loadParsers() {
 		const settings = this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>;
 		if (!settings) throw new Error('failed to initialize adapters');
 
 		this._parsers.set(ParserKey.flashcard, new FlashcardParser(this, settings));
 	}
 
-	private async loadWriters() {
+	private loadWriters() {
 		const parser = this._parsers.get(ParserKey.flashcard) as FlashcardParser;
 		this._writers.set(WriterKey.flashcard, new FlashcardWriter(this, parser));
 	}
 
-	private async loadIndexes() {
+	private loadIndexes() {
 		this._indexes.set(
 			IndexKey.flashcard,
 			new FlashcardIndexer(
@@ -143,7 +134,7 @@ export default class MnemoloopPlugin extends Plugin {
 		}
 	}
 
-	private async initializeViews() {
+	private initializeViews() {
 		this.registerView(APP_VIEW, (leaf) => new AppView(this.app, leaf));
 
 		this.addSettingTab(new SettingsView(this));
@@ -179,7 +170,7 @@ export default class MnemoloopPlugin extends Plugin {
 
 	private initializeRibbonIcon() {
 		this.ribbonIcon = this.addRibbonIcon('orbit', 'Mnemoloop', () => {
-			this.activateView();
+			void this.activateView();
 		});
 	}
 
@@ -192,6 +183,6 @@ export default class MnemoloopPlugin extends Plugin {
 			await leaf.setViewState({ type: APP_VIEW, active: true });
 		}
 
-		workspace.revealLeaf(leaf);
+		await workspace.revealLeaf(leaf);
 	}
 }

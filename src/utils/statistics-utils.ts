@@ -1,5 +1,6 @@
 import { FlashcardReviewSessionEndData } from '@/modules/events/domains/flashcard/review';
 import { DailyProgress, FlashcardMetadata, ReviewSession } from '@/schemas';
+import { CardStatus } from '@/schemas/flashcard';
 
 export const MAX_RECALC_DELAY_MS = 24 * 60 * 60 * 1000; // 24 hours
 export const BUFFER_MS = 300;
@@ -39,7 +40,7 @@ export function computeFlashcardStats(
 	let expected_review_time = 0;
 
 	for (const card of flashcards) {
-		if (card.status !== 'ACTIVE') continue;
+		if (card.status !== CardStatus.ACTIVE) continue;
 
 		const dueDate = new Date(card.due);
 
@@ -58,7 +59,7 @@ export function computeFlashcardStats(
 		expected_review_time += 30;
 	}
 
-	const total_cards = flashcards.filter((f) => f.status === 'ACTIVE').length;
+	const total_cards = flashcards.filter((f) => f.status === CardStatus.ACTIVE).length;
 
 	return {
 		due_now,
@@ -76,7 +77,7 @@ export function computeNextRecalcDelay(
 	maxDelayMs: number,
 ): number | null {
 	const futureDueCards = flashcards
-		.filter((f) => f.status === 'ACTIVE')
+		.filter((f) => f.status === CardStatus.ACTIVE)
 		.filter((f) => new Date(f.due) > now)
 		.sort((a, b) => new Date(a.due).getTime() - new Date(b.due).getTime());
 

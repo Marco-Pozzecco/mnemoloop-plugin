@@ -16,7 +16,7 @@ export abstract class BaseWriter<
 	}
 
 	create: (filepath: string, entity: Entity) => Promise<void> = async (filepath, entity) => {
-		if (await this.fileExists(filepath)) {
+		if (this.fileExists(filepath)) {
 			throw new Error(`File already exists: ${filepath}`);
 		}
 
@@ -33,13 +33,13 @@ export abstract class BaseWriter<
 		if (!(file instanceof TFile)) {
 			throw new Error(`File not found: ${normalized}`);
 		}
-		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
+		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
 			Object.assign(frontmatter, metadata);
 		});
 	};
 
 	update: (filepath: string, entity: Entity) => Promise<void> = async (filepath, entity) => {
-		if (!(await this.fileExists(filepath))) {
+		if (!this.fileExists(filepath)) {
 			throw new Error(`File not found: ${filepath}`);
 		}
 
@@ -53,7 +53,7 @@ export abstract class BaseWriter<
 		if (!(file instanceof TFile)) {
 			throw new Error(`File not found: ${normalized}`);
 		}
-		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
+		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
 			Object.assign(frontmatter, metadata);
 		});
 
@@ -64,7 +64,7 @@ export abstract class BaseWriter<
 		if (currentBody !== serializedBody) {
 			// Write body-only, then restore frontmatter
 			await this.writeFile(filepath, serializedBody);
-			await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
+		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
 				const targetKeys = this.getMetadataKeys();
 
 				for (const key of Object.keys(frontmatter)) {
@@ -87,7 +87,7 @@ export abstract class BaseWriter<
 		if (!(file instanceof TFile)) {
 			throw new Error(`File not found: ${normalized}`);
 		}
-		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
+		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
 			const targetKeys = this.getMetadataKeys();
 
 			for (const key of Object.keys(frontmatter)) {
@@ -122,7 +122,7 @@ export abstract class BaseWriter<
 			if (!(file instanceof TFile)) {
 				throw new Error(`File not found: ${normalized}`);
 			}
-			await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
+			await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
 				Object.assign(frontmatter, currentFm);
 			});
 		}
@@ -139,7 +139,7 @@ export abstract class BaseWriter<
 		await this._plugin.app.vault.delete(file);
 	};
 
-	protected async fileExists(filepath: string): Promise<boolean> {
+	protected fileExists(filepath: string): boolean {
 		const normalized = normalizePath(filepath);
 		return this._plugin.app.vault.getAbstractFileByPath(normalized) !== null;
 	}

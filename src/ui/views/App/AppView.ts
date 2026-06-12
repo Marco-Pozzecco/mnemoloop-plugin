@@ -41,6 +41,7 @@ export class AppView extends ItemView {
 	/**
 	 * Called when the view is opened in the workspace
 	 */
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async onOpen(): Promise<void> {
 		try {
 			// Load the Svelte component
@@ -64,7 +65,7 @@ export class AppView extends ItemView {
 		try {
 			// Clean up Svelte component
 			if (this._component) {
-				unmount(this._component);
+				await unmount(this._component);
 				this._component = null;
 			}
 		} catch (error) {

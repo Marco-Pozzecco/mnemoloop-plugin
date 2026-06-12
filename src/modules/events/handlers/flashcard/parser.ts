@@ -21,7 +21,7 @@ export class FlashcardParserParseHandler extends EventHandler<FlashcardParserPar
 		const parser = this._parsers.get(ParserKey.flashcard)!;
 		const { filepath } = event.data;
 		const result = await parser.parse(filepath);
-		this._bus.publish(new FlashcardParserParseResponseEvent(result));
+		void this._bus.publish(new FlashcardParserParseResponseEvent(result));
 	}
 }
 
@@ -30,11 +30,12 @@ export class FlashcardParserParseContentHandler extends EventHandler<FlashcardPa
 		super(deps);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async handle(event: FlashcardParserParseContentRequestEvent): Promise<void> {
 		const parser = this._parsers.get(ParserKey.flashcard)!;
 		const { content } = event.data;
 		const result = parser.parseContent(content);
-		this._bus.publish(new FlashcardParserParseContentResponseEvent(result));
+		void this._bus.publish(new FlashcardParserParseContentResponseEvent(result));
 	}
 }
 
@@ -47,7 +48,7 @@ export class FlashcardParserParseMetadataHandler extends EventHandler<FlashcardP
 		const parser = this._parsers.get(ParserKey.flashcard)!;
 		const { filepath } = event.data;
 		const result = await parser.parseMetadata(filepath);
-		this._bus.publish(new FlashcardParserParseMetadataResponseEvent(result));
+		void this._bus.publish(new FlashcardParserParseMetadataResponseEvent(result));
 	}
 }
 
@@ -60,6 +61,6 @@ export class FlashcardParserParseAllHandler extends EventHandler<FlashcardParser
 		const parser = this._parsers.get(ParserKey.flashcard)!;
 		const { dirPath } = event.data;
 		const result = await parser.parseAll(dirPath);
-		this._bus.publish(new FlashcardParserParseAllResponseEvent(result));
+		void this._bus.publish(new FlashcardParserParseAllResponseEvent(result));
 	}
 }

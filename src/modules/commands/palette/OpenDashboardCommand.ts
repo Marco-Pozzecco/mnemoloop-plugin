@@ -24,6 +24,6 @@ export class OpenDashboardCommand extends BaseCommand {
 			await leaf.setViewState({ type: APP_VIEW, active: true });
 		}
 
-		workspace.revealLeaf(leaf);
+		await workspace.revealLeaf(leaf);
 	}
 }

@@ -84,10 +84,10 @@ export class FlashcardReviewSessionScoreHandler extends EventHandler<FlashcardRe
 			progress: updatedProgress,
 			updated_at: new Date().toISOString(),
 		});
-		stats.save();
+		await stats.save();
 
 		// 4. Publish FlashcardWriterFmRequestEvent to update file on disk
-		EventBus.instance.publish(
+		void EventBus.instance.publish(
 			new FlashcardWriterFmRequestEvent({
 				filepath: card.filepath,
 				fm: FlashcardYamlSchema.parse(card),
@@ -95,7 +95,7 @@ export class FlashcardReviewSessionScoreHandler extends EventHandler<FlashcardRe
 		);
 
 		// 5. Publish FlashcardStatisticsComputeEvent
-		EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
+		void EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
 
@@ -123,9 +123,9 @@ export class FlashcardReviewSessionEndHandler extends EventHandler<FlashcardRevi
 			progress,
 			updated_at: new Date().toISOString(),
 		});
-		stats.save();
+		await stats.save();
 
 		// Publish statistics compute event to recalculate statistics
-		EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
+		void EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
