@@ -133,7 +133,7 @@ export class DeckTreeStore extends BaseStoreManager<DeckTreeState> {
 	constructor() {
 		super(DEFAULT_STATE, store);
 
-		// eslint-disable-next-line @typescript-eslint/require-await
+		 
 		const responseHandler = async (event: FlashcardIndexStateEvent) => {
 			const nodes = buildDeckTree(event.data.flashcards);
 			const map = buildNodeMap(nodes);

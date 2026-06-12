@@ -30,7 +30,7 @@ export class FlashcardParserParseContentHandler extends EventHandler<FlashcardPa
 		super(deps);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 	async handle(event: FlashcardParserParseContentRequestEvent): Promise<void> {
 		const parser = this._parsers.get(ParserKey.flashcard)!;
 		const { content } = event.data;

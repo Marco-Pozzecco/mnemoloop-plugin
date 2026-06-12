@@ -44,8 +44,8 @@ export abstract class BaseYamlEngine<T extends Record<string, unknown>> implemen
 
 		const yamlContent = match[0].replace(/^---\n/, '').replace(/\n---\n?$/, '');
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const frontmatter: Record<string, unknown> = parseYaml(yamlContent);
+		 
+		const frontmatter = parseYaml(yamlContent) as Record<string, unknown>;
 		const metadata = this.validate(frontmatter);
 		const body = this.removeFrontmatter(content);
 
@@ -106,7 +106,8 @@ export abstract class BaseYamlEngine<T extends Record<string, unknown>> implemen
 			if (typeof value === 'object') {
 				lines.push(`${key}: ${JSON.stringify(value)}`);
 			} else {
-				// eslint-disable-next-line @typescript-eslint/no-base-to-string
+				
+				// eslint-disable-next-line @typescript-eslint/no-base-to-string -- value is not an object here (checked above)
 				lines.push(`${key}: ${String(value)}`);
 			}
 		}
@@ -117,8 +118,8 @@ export abstract class BaseYamlEngine<T extends Record<string, unknown>> implemen
 	}
 
 	decode(yaml: string): T {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const parsed: Record<string, unknown> = parseYaml(yaml);
+		 
+		const parsed = parseYaml(yaml) as Record<string, unknown>;
 		return this.validate(parsed);
 	}
 }

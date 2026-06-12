@@ -15,13 +15,12 @@ import { FlashcardStatisticsComputeEvent, StatisticsAdapterStateEvent } from '..
 import { DashboardOpenEvent } from '../../domains/ui/dashboard';
 
 export class FlashcardStatisticsComputeHandler extends EventHandler<FlashcardStatisticsComputeEvent> {
-	private _nextCompute: ReturnType<typeof setTimeout> | null = null;
+	private _nextCompute: number | null = null;
 
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
 
-// eslint-disable-next-line @typescript-eslint/require-await
 	async handle(_event: FlashcardStatisticsComputeEvent): Promise<void> {
 		const indexer = this._indexers.get(IndexKey.flashcard)!;
 		const stats = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
@@ -51,14 +50,14 @@ export class FlashcardStatisticsComputeHandler extends EventHandler<FlashcardSta
 
 		if (delay === null) return;
 
-		this._nextCompute = setTimeout(() => {
+		this._nextCompute = window.setTimeout(() => {
 			void EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
 		}, delay);
 	}
 
 	private _clearNextCompute(): void {
 		if (this._nextCompute !== null) {
-			clearTimeout(this._nextCompute);
+			window.clearTimeout(this._nextCompute);
 			this._nextCompute = null;
 		}
 	}
@@ -69,7 +68,6 @@ export class StatisticsDashboardOpenHandler extends EventHandler<DashboardOpenEv
 		super(deps);
 	}
 
-// eslint-disable-next-line @typescript-eslint/require-await
 	async handle(_event: DashboardOpenEvent): Promise<void> {
 		void EventBus.instance.publish(new FlashcardStatisticsComputeEvent());
 	}

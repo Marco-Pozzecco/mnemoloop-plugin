@@ -51,7 +51,7 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 			return;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/require-await
+		 
 		const responseHandler = async (event: FlashcardWriterCreateResponseEvent) => {
 			this._unsubscribe?.();
 			const path = normalizePath(event.data.filepath);

@@ -41,7 +41,7 @@ export class AppView extends ItemView {
 	/**
 	 * Called when the view is opened in the workspace
 	 */
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 	async onOpen(): Promise<void> {
 		try {
 			// Load the Svelte component
@@ -54,7 +54,7 @@ export class AppView extends ItemView {
 			});
 		} catch (error) {
 			Logger.error('Failed to open Home view:', error);
-			this.containerEl.createEl('div', { text: 'Failed to load Mnemoloop' });
+			this.containerEl.createEl('div', { text: 'Failed to load mnemoloop' });
 		}
 	}
 

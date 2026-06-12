@@ -33,7 +33,7 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this.saveError = saveErrorStore;
 		this.fieldErrors = fieldErrorsStore;
 
-		// eslint-disable-next-line @typescript-eslint/require-await
+		 
 		const handler = async (event: SettingsAdapterStateEvent) => {
 			this.settings.update((state) => {
 				const updated = { ...state, ...event.data };
@@ -50,7 +50,7 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this._unsubscribe = EventBus.instance.subscribe(SettingsAdapterStateEvent, handler);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 	async updateField<K extends keyof PluginSettings>(
 		field: K,
 		value: PluginSettings[K],
@@ -62,7 +62,7 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		void EventBus.instance.publish(request);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 	async updateNestedField(path: string[], value: unknown): Promise<void> {
 		this.isLoading.update(() => true);
 		this.saveError.update(() => null);
@@ -74,7 +74,7 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		void EventBus.instance.publish(request);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 	async reset(): Promise<void> {
 		this.isLoading.update(() => true);
 		this.saveError.update(() => null);
@@ -83,7 +83,7 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		void EventBus.instance.publish(request);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 	async save(): Promise<void> {
 		this.isLoading.update(() => true);
 		this.saveError.update(() => null);

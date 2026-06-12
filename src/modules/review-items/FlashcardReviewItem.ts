@@ -15,7 +15,7 @@ export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml
 	constructor(filepath: string, engine: IReviewEngine<FlashcardYaml>) {
 		super(filepath, engine);
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 		const responseHandler = async (event: FlashcardParserParseResponseEvent) => {
 			if (event.data.filepath === filepath) {
 				this._data = event.data.entity;

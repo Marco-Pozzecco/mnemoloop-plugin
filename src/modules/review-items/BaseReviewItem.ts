@@ -14,7 +14,7 @@ export abstract class BaseReviewItem<
 		this._filepath = filepath;
 		this._engine = engine;
 		// Generate a unique ID from filepath and timestamp
-		this._id = `${filepath}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+		this._id = `${filepath}-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 	}
 
 	get id(): string {

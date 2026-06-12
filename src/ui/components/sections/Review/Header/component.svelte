@@ -26,10 +26,10 @@
 	});
 
 	$effect(() => {
-		const interval = setInterval(() => {
+		const interval = window.setInterval(() => {
 			elapsedTime = (Date.now() - startTime) / 1000;
 		}, 1000);
-		return () => clearInterval(interval);
+		return () => window.clearInterval(interval);
 	});
 </script>
 

@@ -29,7 +29,7 @@ export class StatisticsAdapterResetHandler extends EventHandler<StatisticsAdapte
 		super(deps);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 	async handle(_event: StatisticsAdapterSetRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
 		adapter.reset();
@@ -53,7 +53,7 @@ export class StatisticsAdapterSetHandler extends EventHandler<StatisticsAdapterS
 		super(deps);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 	async handle(event: StatisticsAdapterSetRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
 		const { field, value } = event.data;
@@ -68,7 +68,7 @@ export class StatisticsAdapterUpdateHandler extends EventHandler<StatisticsAdapt
 		super(deps);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 	async handle(event: StatisticsAdapterUpdateRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
 		adapter.update(event.data);
