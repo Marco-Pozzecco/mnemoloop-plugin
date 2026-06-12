@@ -23,8 +23,16 @@ export class FlashcardWriter extends BaseWriter<Flashcard, FlashcardYaml, Flashc
 		return `${body.front}\n\n${marker}\n\n${body.back}`;
 	}
 
+	/**
+	 * @throws {Error} if the content cannot be parsed
+	 */
 	protected deserializeBody(content: string): FlashcardContent {
 		const parsed = this._parser.parseContent(content);
+
+		if (!parsed.success) {
+			throw parsed.error;
+		}
+
 		return { front: parsed.entity.front, back: parsed.entity.back };
 	}
 

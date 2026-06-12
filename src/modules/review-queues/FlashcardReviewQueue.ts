@@ -16,12 +16,15 @@ export class FlashcardReviewQueue extends BaseReviewQueue<
 > {
 	private _unsubscribe?: () => void;
 
-	constructor(predicate: (entity: FlashcardMetadata) => boolean, fsrsConfig?: Partial<FSRSParameters>) {
+	constructor(
+		predicate: (entity: FlashcardMetadata) => boolean,
+		fsrsConfig?: Partial<FSRSParameters>,
+	) {
 		const engine = new FsrsEngine(fsrsConfig);
 
 		super(engine, predicate);
 
-		const responseHandler = (event: FlashcardIndexQueryResponseEvent) => {
+		const responseHandler = async (event: FlashcardIndexQueryResponseEvent) => {
 			const sortedData = this._engine.sort(event.data);
 			this._items = sortedData.map((f) => new FlashcardReviewItem(f.file, engine));
 		};

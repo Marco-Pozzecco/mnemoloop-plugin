@@ -1,5 +1,5 @@
 import { IAdapter } from '@/interfaces/IAdapter';
-import { ParseResult } from '@/interfaces/IParser';
+import { ParseContentResult, ParseResult } from '@/interfaces/IParser';
 import { Flashcard, type FlashcardContent, type FlashcardYaml } from '@/schemas';
 import { PluginSettings } from '@/schemas/settings';
 import { ERROR_MESSAGES } from '@/utils/constants';
@@ -24,32 +24,61 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 		return this._settings.data.flashcard.marker;
 	}
 
-	parseMetadata = async (filepath: string): Promise<ParseResult<FlashcardYaml>> => {
+	parseMetadata = async (
+		filepath: string,
+		retryCount: number = 0,
+	): Promise<ParseResult<FlashcardYaml>> => {
 		try {
 			const metadata = await this._yaml.extractFmFromFile(filepath);
 			return {
 				entity: metadata,
 				filepath,
+				success: true,
 			};
 		} catch {
-			// Try recovery
+			if (retryCount >= 3) {
+				const error = new Error(
+					`parseMetadata: failed after ${retryCount} retries for ${filepath}`,
+				);
+				Logger.error(error.message);
+				return {
+					entity: null,
+					filepath,
+					success: false,
+					error,
+				};
+			}
 			await this._yaml.recover(filepath);
-			return this.parseMetadata(filepath);
+			return this.parseMetadata(filepath, retryCount + 1);
 		}
 	};
 
-	parseContent: (content: string) => Omit<ParseResult<Flashcard>, 'filepath'> = (content) => {
-		const result = this._yaml.extractFmFromContent(content);
-		const splitResult = this.splitContent(result.body);
-		const flashcard: FlashcardYaml & FlashcardContent = {
-			...result.fm,
-			front: splitResult.front,
-			back: splitResult.back,
-		};
-		return { entity: flashcard };
+	parseContent: (content: string) => ParseContentResult<Flashcard> = (content) => {
+		try {
+			const result = this._yaml.extractFmFromContent(content);
+			const splitResult = this.splitContent(result.body);
+
+			if (splitResult.front === null || splitResult.back === null) {
+				throw new Error('no content found');
+			}
+
+			const flashcard: FlashcardYaml & FlashcardContent = {
+				...result.fm,
+				front: splitResult.front,
+				back: splitResult.back,
+			};
+
+			return { entity: flashcard, success: true };
+		} catch (error) {
+			return {
+				entity: null,
+				success: false,
+				error: error instanceof Error ? error : new Error(String(error)),
+			};
+		}
 	};
 
-	parse = async (filepath: string): Promise<ParseResult<Flashcard>> => {
+	parse = async (filepath: string, retryCount: number = 0): Promise<ParseResult<Flashcard>> => {
 		const normalizedPath = normalizePath(filepath);
 		const file = this._plugin.app.vault.getAbstractFileByPath(normalizedPath);
 		if (!(file instanceof TFile)) {
@@ -60,30 +89,32 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 		try {
 			const result = this._yaml.extractFmFromContent(content);
 			const splitResult = this.splitContent(result.body);
+
+			if (splitResult.front === null || splitResult.back === null) {
+				throw new Error('no content found');
+			}
+
 			const flashcard: FlashcardYaml & FlashcardContent = {
 				...result.fm,
 				front: splitResult.front,
 				back: splitResult.back,
 			};
-			return { entity: flashcard, filepath };
+
+			return { entity: flashcard, filepath, success: true };
 		} catch {
-			await this._yaml.recover(filepath);
-			Logger.warn('Recovered flashcard with default metadata:', filepath);
+			if (retryCount >= 2) {
+				const error = new Error(`parse: failed after ${retryCount} retries for ${filepath}`);
+				Logger.error(error.message);
 
-			const retryContent = await this._plugin.app.vault.read(file);
-
-			try {
-				const retryResult = this._yaml.extractFmFromContent(retryContent);
-				const splitResult = this.splitContent(retryResult.body);
-				const flashcard: Flashcard = {
-					...retryResult.fm,
-					front: splitResult.front,
-					back: splitResult.back,
+				return {
+					entity: null,
+					filepath,
+					success: false,
+					error,
 				};
-				return { entity: flashcard, filepath };
-			} catch {
-				throw new Error('impossible to recover metadata');
 			}
+			await this._yaml.recover(filepath);
+			return this.parse(filepath, retryCount + 1);
 		}
 	};
 
@@ -100,10 +131,12 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 		);
 
 		const promises = mdFiles.map(async (file) => {
-			return await this.parseMetadata(file.path);
+			const result = (await this.parse(file.path)) as ParseResult<FlashcardYaml>;
+			result.entity = result.entity ? this._yaml.validate(result.entity) : null;
+			return result;
 		});
 
-		return Promise.all(promises);
+		return await Promise.all(promises);
 	};
 
 	/**
@@ -112,7 +145,7 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 	 * @param content Full content of the markdown file (without frontmatter)
 	 * @returns A ContentSplitResult containing front and back content
 	 */
-	private splitContent(content: string): { front: string; back: string } {
+	private splitContent(content: string): { front: string | null; back: string | null } {
 		const marker = this._settings.data.flashcard.marker;
 
 		// Escape special regex characters in the marker
@@ -133,8 +166,8 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 		const back = content.substring(backStart).trim();
 
 		return {
-			front,
-			back,
+			front: front.length > 0 ? front : null,
+			back: back.length > 0 ? back : null,
 		};
 	}
 }

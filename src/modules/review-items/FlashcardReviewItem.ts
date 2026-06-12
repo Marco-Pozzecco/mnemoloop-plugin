@@ -15,7 +15,7 @@ export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml
 	constructor(filepath: string, engine: IReviewEngine<FlashcardYaml>) {
 		super(filepath, engine);
 
-		const responseHandler = (event: FlashcardParserParseResponseEvent) => {
+		const responseHandler = async (event: FlashcardParserParseResponseEvent) => {
 			if (event.data.filepath === filepath) {
 				this._data = event.data.entity;
 			}

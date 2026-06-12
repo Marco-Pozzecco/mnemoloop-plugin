@@ -12,7 +12,7 @@ export class StatsStore extends BaseStoreManager<Stats> {
 	constructor() {
 		super(DEFAULT_STATISTICS, store);
 
-		const handler = (event: StatisticsAdapterStateEvent) => {
+		const handler = async (event: StatisticsAdapterStateEvent) => {
 			this.store.update(() => event.data);
 		};
 		this._unsubscribe = EventBus.instance.subscribe(StatisticsAdapterStateEvent, handler);
