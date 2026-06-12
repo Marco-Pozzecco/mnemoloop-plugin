@@ -134,7 +134,7 @@ describe('FlashcardWriter', () => {
 		it('should delete existing file', async () => {
 			await writer.delete('existing.md');
 
-			expect(plugin.app.vault.delete).toHaveBeenCalled();
+			expect(plugin.app.fileManager.trashFile).toHaveBeenCalled();
 		});
 
 		it('should throw if file not found', async () => {

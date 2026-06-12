@@ -7,7 +7,7 @@ import {
 	FlashcardParserParseRequestEvent,
 	FlashcardParserParseResponseEvent,
 } from '@/modules/events';
-import { Flashcard, FlashcardMetadata } from '@/schemas';
+import { CardStatus, Flashcard, FlashcardMetadata } from '@/schemas';
 import { createFlashcardMetadata } from '../../../helpers/factories';
 import { useFixedDate, restoreRealTimers } from '../../../helpers/date-fixtures';
 import { resetSingletons } from '../../../helpers/reset-singletons';
@@ -77,14 +77,14 @@ describe('FlashcardReviewQueue', () => {
 
 		it('should apply predicate filter', () => {
 			mockFlashcards = [
-				createFlashcardMetadata({ file: 'active.md', status: 'ACTIVE' as never }),
-				createFlashcardMetadata({ file: 'paused.md', status: 'PAUSED' as never }),
+				createFlashcardMetadata({ file: 'active.md', status: CardStatus.ACTIVE }),
+				createFlashcardMetadata({ file: 'paused.md', status: CardStatus.PAUSED }),
 			];
 
-			const queue = new FlashcardReviewQueue((f) => f.status === 'ACTIVE', undefined);
+			const queue = new FlashcardReviewQueue((f) => f.status === CardStatus.ACTIVE, undefined);
 
 			expect(queue.size).toBe(1);
-			expect(queue.items[0].data?.status).toBe('ACTIVE');
+			expect(queue.items[0].data?.status).toBe(CardStatus.ACTIVE);
 		});
 
 		it('should apply deck filter via predicate', () => {

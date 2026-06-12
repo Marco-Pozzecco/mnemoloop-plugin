@@ -1,6 +1,16 @@
 // Vitest setup file
 import { vi } from 'vitest';
 
+// Polyfill window with timer functions for Node test environment
+// Use getters so vi.useFakeTimers can intercept them
+globalThis.window ??= {} as typeof globalThis.window;
+for (const fn of ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] as const) {
+	Object.defineProperty(globalThis.window, fn, {
+		get: () => (globalThis as Record<string, unknown>)[fn],
+		configurable: true,
+	});
+}
+
 // Define build-time globals for tests
 (globalThis as Record<string, unknown>).__DEV__ = true;
 (globalThis as Record<string, unknown>).__LOG_LEVEL__ = 'OFF';
@@ -32,6 +42,10 @@ vi.mock('obsidian', () => ({
 				cachedRead: vi.fn<any, any>(),
 				append: vi.fn<any, any>(),
 				on: vi.fn<any, any>(),
+			},
+			fileManager: {
+				trashFile: vi.fn<any, any>(),
+				processFrontMatter: vi.fn<any, any>(),
 			},
 			workspace: {
 				getLeaf: vi.fn<any, any>(),

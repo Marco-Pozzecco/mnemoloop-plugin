@@ -94,7 +94,7 @@ describe('BaseAdapter', () => {
 	describe('reset', () => {
 		it('should restore default data', async () => {
 			adapter.set({ uuid: 'new', count: 5 });
-			await adapter.reset();
+			adapter.reset();
 			expect(adapter.data).toEqual(defaultData);
 		});
 	});

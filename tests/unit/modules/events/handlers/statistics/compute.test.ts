@@ -184,7 +184,7 @@ describe('FlashcardStatisticsComputeHandler — _clearNextCompute', () => {
 		await handler.handle(event);
 		expect(bus.publish).toHaveBeenCalledTimes(1);
 
-		const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout');
+		const clearTimeoutSpy = vi.spyOn(window, 'clearTimeout');
 
 		await handler.handle(event);
 
@@ -237,7 +237,7 @@ describe('FlashcardStatisticsComputeHandler — _handleNextCompute when delay ==
 	});
 
 	it('should not call setTimeout when delay is null', async () => {
-		const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
+		const setTimeoutSpy = vi.spyOn(window, 'setTimeout');
 		const handler = new FlashcardStatisticsComputeHandler(mockDeps);
 		const event = new FlashcardStatisticsComputeEvent();
 

@@ -151,7 +151,7 @@ describe('GenerateFromSelectionCommand', () => {
 			filepath: 'notes/test.md',
 		});
 		EventBus.instance.publish(responseEvent);
-		await new Promise((resolve) => setTimeout(resolve, 0));
+		await new Promise((resolve) => window.setTimeout(resolve, 0));
 
 		expect(openInSplitMode).toHaveBeenCalledWith(plugin.app.workspace);
 		expect(newLeaf.openFile).toHaveBeenCalled();
@@ -178,7 +178,7 @@ describe('GenerateFromSelectionCommand', () => {
 			filepath: 'notes/test.md',
 		});
 		EventBus.instance.publish(responseEvent);
-		await new Promise((resolve) => setTimeout(resolve, 0));
+		await new Promise((resolve) => window.setTimeout(resolve, 0));
 
 		expect(openInSplitMode).toHaveBeenCalledWith(plugin.app.workspace);
 		expect(newLeaf.openFile).toHaveBeenCalled();
@@ -201,7 +201,7 @@ describe('GenerateFromSelectionCommand', () => {
 			filepath: 'notes/test.md',
 		});
 		EventBus.instance.publish(responseEvent);
-		await new Promise((resolve) => setTimeout(resolve, 0));
+		await new Promise((resolve) => window.setTimeout(resolve, 0));
 
 		expect(plugin.app.vault.getAbstractFileByPath).toHaveBeenCalledWith('notes/test.md');
 		expect(openInSplitMode).not.toHaveBeenCalled();
@@ -227,7 +227,7 @@ describe('GenerateFromSelectionCommand', () => {
 			toJSON: () => ({ type: 'some-unrelated-event', data: undefined, timestamp: new Date().toISOString() }),
 		} as any;
 		EventBus.instance.publish(fakeEvent);
-		await new Promise((resolve) => setTimeout(resolve, 0));
+		await new Promise((resolve) => window.setTimeout(resolve, 0));
 
 		// The callback should NOT have fired for this event type
 		expect(openInSplitMode).not.toHaveBeenCalled();
@@ -254,7 +254,7 @@ describe('GenerateFromSelectionCommand', () => {
 			filepath: 'notes/test.md',
 		});
 		EventBus.instance.publish(responseEvent1);
-		await new Promise((resolve) => setTimeout(resolve, 0));
+		await new Promise((resolve) => window.setTimeout(resolve, 0));
 
 		expect(newLeaf.openFile).toHaveBeenCalledTimes(1);
 
@@ -263,7 +263,7 @@ describe('GenerateFromSelectionCommand', () => {
 			filepath: 'notes/test.md',
 		});
 		EventBus.instance.publish(responseEvent2);
-		await new Promise((resolve) => setTimeout(resolve, 0));
+		await new Promise((resolve) => window.setTimeout(resolve, 0));
 
 		// openFile should still only have been called once
 		expect(newLeaf.openFile).toHaveBeenCalledTimes(1);
