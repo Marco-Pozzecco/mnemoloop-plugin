@@ -127,7 +127,7 @@ describe('BaseWriter', () => {
 	describe('delete', () => {
 		it('should delete an existing file', async () => {
 			await writer.delete('test.md');
-			expect(plugin.app.vault.delete).toHaveBeenCalled();
+			expect(plugin.app.fileManager.trashFile).toHaveBeenCalled();
 		});
 
 		it('should throw if file not found', async () => {

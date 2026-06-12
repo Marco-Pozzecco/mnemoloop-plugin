@@ -34,7 +34,7 @@ const mockSettingsAdapter: IAdapter<PluginSettings> = {
 	setField: () => {},
 	update: () => {},
 	save: async () => {},
-	reset: async () => {},
+	reset: () => {},
 	initialize: async () => {},
 };
 
@@ -44,7 +44,7 @@ const mockIndexAdapter: IAdapter<TestIndex> = {
 	setField: () => {},
 	update: () => {},
 	save: async () => {},
-	reset: async () => {},
+	reset: () => {},
 	initialize: async () => {},
 };
 

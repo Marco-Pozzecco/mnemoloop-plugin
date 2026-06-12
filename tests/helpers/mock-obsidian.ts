@@ -234,6 +234,9 @@ export function createMockPlugin(files: MockFile[] = []): any {
 						const yaml = encodeFrontmatter(frontmatter);
 						vault.fileMap.set(file.path, yaml + body);
 					}),
+				trashFile: vi.fn().mockImplementation(async (file: any) => {
+					vault.fileMap.delete(file.path);
+				}),
 			},
 		},
 		registerEvent: vi.fn(),

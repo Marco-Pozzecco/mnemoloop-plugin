@@ -21,7 +21,7 @@ export function createFlashcardMetadata(
 		updated_at: FIXED_DATE_ISO,
 		deleted_at: null,
 		...overrides,
-	} as FlashcardMetadata;
+	};
 }
 
 /**
@@ -35,7 +35,7 @@ export function createFlashcardYaml(overrides: Partial<FlashcardYaml> = {}): Fla
 		status: CardStatus.ACTIVE,
 		decks: [],
 		...overrides,
-	} as FlashcardYaml;
+	};
 }
 
 /**

@@ -57,7 +57,7 @@ describe('EventBus', () => {
 		it('should remove a subscriber so it no longer receives events', () => {
 			const bus = EventBus.instance;
 			const events: IEvent[] = [];
-			const cb = (e: IEvent) => {
+			const cb = async (e: IEvent) => {
 				events.push(e);
 			};
 			bus.subscribe(TestEvent, cb);
@@ -72,10 +72,10 @@ describe('EventBus', () => {
 			const bus = EventBus.instance;
 			const events1: IEvent[] = [];
 			const events2: IEvent[] = [];
-			bus.subscribe(TestEvent, (e) => {
+			bus.subscribe(TestEvent, async (e) => {
 				events1.push(e);
 			});
-			bus.subscribe(TestEvent, (e) => {
+			bus.subscribe(TestEvent, async (e) => {
 				events2.push(e);
 			});
 			const event = new TestEvent({ value: 42 });
@@ -95,7 +95,7 @@ describe('EventBus', () => {
 		it('should not deliver to unsubscribed callbacks', async () => {
 			const bus = EventBus.instance;
 			const events: IEvent[] = [];
-			const cb = (e: IEvent) => {
+			const cb = async (e: IEvent) => {
 				events.push(e);
 			};
 			bus.subscribe(TestEvent, cb);
@@ -107,7 +107,7 @@ describe('EventBus', () => {
 		it('should synchronously execute subscribers', async () => {
 			const bus = EventBus.instance;
 			let called = false;
-			bus.subscribe(TestEvent, () => {
+			bus.subscribe(TestEvent, async () => {
 				called = true;
 			});
 			await bus.publish(new TestEvent({ value: 1 }));
@@ -117,7 +117,7 @@ describe('EventBus', () => {
 		it('should not deliver events to subscribers of different types', async () => {
 			const bus = EventBus.instance;
 			const events: IEvent[] = [];
-			bus.subscribe(OtherEvent, (e) => {
+			bus.subscribe(OtherEvent, async (e) => {
 				events.push(e);
 			});
 			await bus.publish(new TestEvent({ value: 1 }));
@@ -129,7 +129,7 @@ describe('EventBus', () => {
 		it('should deliver event exactly once', async () => {
 			const bus = EventBus.instance;
 			const events: IEvent[] = [];
-			const cb = (e: IEvent) => {
+			const cb = async (e: IEvent) => {
 				events.push(e);
 			};
 			bus.subscribeOnce(TestEvent, cb);
@@ -143,10 +143,10 @@ describe('EventBus', () => {
 		it('should catch errors and continue delivering to other subscribers', async () => {
 			const bus = EventBus.instance;
 			const events: IEvent[] = [];
-			bus.subscribe(TestEvent, () => {
+			bus.subscribe(TestEvent, async () => {
 				throw new Error('boom');
 			});
-			bus.subscribe(TestEvent, (e) => {
+			bus.subscribe(TestEvent, async (e) => {
 				events.push(e);
 			});
 			await bus.publish(new TestEvent({ value: 1 }));
@@ -159,7 +159,7 @@ describe('EventBus', () => {
 			bus.subscribe(TestEvent, async () => {
 				throw new Error('async boom');
 			});
-			bus.subscribe(TestEvent, (e) => {
+			bus.subscribe(TestEvent, async (e) => {
 				events.push(e);
 			});
 			await bus.publish(new TestEvent({ value: 1 }));
