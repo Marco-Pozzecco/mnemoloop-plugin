@@ -1,4 +1,3 @@
-import { IReviewQueue } from '@/interfaces/IReviewQueue';
 import { EventBus, FlashcardReviewSessionStartEvent } from '@/modules/events';
 import { FlashcardReviewQueue } from '@/modules/review-queues/FlashcardReviewQueue';
 import { CardStatus, FlashcardMetadata } from '@/schemas';
@@ -28,6 +27,7 @@ export class DashboardController implements IDashboardController {
 		}
 	};
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	private async startFlashcardReview(deckFilter?: string) {
 		this._uiStore.isLoading = true;
 
@@ -47,11 +47,11 @@ export class DashboardController implements IDashboardController {
 			fsrsParams as unknown as Partial<FSRSParameters>,
 		);
 
-		this._sessionStore.queue = list as IReviewQueue<unknown>;
+		this._sessionStore.queue = list;
 
 		this._sessionStore.startSession('flashcard', deckFilter);
 
-		EventBus.instance.publish(
+		void EventBus.instance.publish(
 			new FlashcardReviewSessionStartEvent({
 				session_id: this._sessionStore.state.session_id!,
 				start_time: this._sessionStore.state.start_time!,

@@ -31,7 +31,7 @@ export class SettingsView extends PluginSettingTab {
 		try {
 			// Call unmount function if exists
 			if (this.component) {
-				unmount(this.component);
+			void unmount(this.component);
 				this.component = null;
 			}
 

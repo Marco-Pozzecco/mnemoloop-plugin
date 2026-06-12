@@ -103,7 +103,7 @@ export class ReviewController<T = unknown> implements IReviewController<T> {
 		this._sessionStore.pushUndoAction(undoAction);
 
 		// Record for statistics (Good=3, Easy=4 are "correct")
-		this._sessionStore.recordReview(rating >= 3);
+		this._sessionStore.recordReview(rating >= Rating.Good);
 	};
 
 	canUndo: () => boolean = () => {
@@ -137,7 +137,7 @@ export class ReviewController<T = unknown> implements IReviewController<T> {
 		}
 
 		// Adjust statistics - need to "un-record" the review
-		const isCorrect = action.rating >= 3;
+		const isCorrect = action.rating >= Rating.Good;
 		this._sessionStore.store.update((s) => ({
 			...s,
 			total_count: Math.max(0, s.total_count - 1),
@@ -154,7 +154,7 @@ export class ReviewController<T = unknown> implements IReviewController<T> {
 			const end_time = Date.now();
 			this._queue.dispose();
 
-			EventBus.instance.publish(
+			void EventBus.instance.publish(
 				new FlashcardReviewSessionEndEvent({
 					session_id: state.session_id,
 					date: new Date().toISOString().split('T')[0],

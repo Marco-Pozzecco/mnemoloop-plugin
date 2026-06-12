@@ -87,7 +87,7 @@ export class VaultWatcher {
 			return false;
 		}
 
-		const fileTags = cache.frontmatter.tags;
+		const fileTags: unknown = cache.frontmatter.tags;
 		const tagsArray = Array.isArray(fileTags) ? fileTags : [fileTags];
 
 		for (const watchedTag of watchedTags) {
@@ -136,7 +136,7 @@ export class VaultWatcher {
 			return;
 		}
 
-		EventBus.instance.publish(new VaultCreateEvent({ path: file.path, entity: 'flashcard' }));
+		void EventBus.instance.publish(new VaultCreateEvent({ path: file.path, entity: 'flashcard' }));
 	}
 
 	private _handleModify(file: TAbstractFile): void {
@@ -153,7 +153,7 @@ export class VaultWatcher {
 		}
 
 		this._setDebounceTimer(file.path, () => {
-			EventBus.instance.publish(new VaultModifyEvent({ path: file.path, entity: 'flashcard' }));
+			void EventBus.instance.publish(new VaultModifyEvent({ path: file.path, entity: 'flashcard' }));
 		});
 	}
 
@@ -168,7 +168,7 @@ export class VaultWatcher {
 			return;
 		}
 
-		EventBus.instance.publish(new VaultDeleteEvent({ path: file.path, entity: 'flashcard' }));
+		void EventBus.instance.publish(new VaultDeleteEvent({ path: file.path, entity: 'flashcard' }));
 	}
 
 	private _handleRename(file: TAbstractFile, oldPath: string): void {
@@ -181,7 +181,7 @@ export class VaultWatcher {
 		const hasWatchedTags = this._hasWatchedTags(file);
 
 		if (wasInWatchedDir || isInWatchedDir || hasWatchedTags) {
-			EventBus.instance.publish(
+		void EventBus.instance.publish(
 				new VaultRenameEvent({
 					path: file.path,
 					entity: 'flashcard',

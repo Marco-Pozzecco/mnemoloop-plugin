@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 import { BaseStoreManager } from './base.store';
 import { EventBus, FlashcardIndexStateEvent } from '@/modules/events';
-import { FlashcardMetadata } from '@/schemas';
+import { CardStatus, FlashcardMetadata } from '@/schemas';
 import { getParentDecks, splitDeckPath } from '@/utils/deck-utils';
 
 export interface DeckNode {
@@ -40,7 +40,7 @@ export function buildDeckTree(flashcards: FlashcardMetadata[]): DeckNode[] {
 
 	// Step 1: Aggregate counts for every deck path
 	for (const card of flashcards) {
-		if (card.status === 'DELETED') continue;
+		if (card.status === CardStatus.DELETED) continue;
 
 		const decks = !card.decks || card.decks.length === 0 ? ['Uncategorized'] : card.decks;
 
@@ -133,6 +133,7 @@ export class DeckTreeStore extends BaseStoreManager<DeckTreeState> {
 	constructor() {
 		super(DEFAULT_STATE, store);
 
+		// eslint-disable-next-line @typescript-eslint/require-await
 		const responseHandler = async (event: FlashcardIndexStateEvent) => {
 			const nodes = buildDeckTree(event.data.flashcards);
 			const map = buildNodeMap(nodes);

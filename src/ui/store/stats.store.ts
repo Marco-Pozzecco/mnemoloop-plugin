@@ -12,6 +12,7 @@ export class StatsStore extends BaseStoreManager<Stats> {
 	constructor() {
 		super(DEFAULT_STATISTICS, store);
 
+// eslint-disable-next-line @typescript-eslint/require-await
 		const handler = async (event: StatisticsAdapterStateEvent) => {
 			this.store.update(() => event.data);
 		};

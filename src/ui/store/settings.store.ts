@@ -33,12 +33,13 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this.saveError = saveErrorStore;
 		this.fieldErrors = fieldErrorsStore;
 
+		// eslint-disable-next-line @typescript-eslint/require-await
 		const handler = async (event: SettingsAdapterStateEvent) => {
 			this.settings.update((state) => {
 				const updated = { ...state, ...event.data };
 				// If the watch config has changed, trigger a flashcard index re-initialize
 				if (state.flashcard.watch.directory !== updated.flashcard.watch.directory) {
-					EventBus.instance.publish(new FlashcardIndexInitEvent());
+			void EventBus.instance.publish(new FlashcardIndexInitEvent());
 				}
 				return updated;
 			});
@@ -49,6 +50,7 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this._unsubscribe = EventBus.instance.subscribe(SettingsAdapterStateEvent, handler);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async updateField<K extends keyof PluginSettings>(
 		field: K,
 		value: PluginSettings[K],
@@ -57,9 +59,10 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this.saveError.update(() => null);
 
 		const request = new SettingsAdapterSetRequestEvent({ field, value });
-		EventBus.instance.publish(request);
+		void EventBus.instance.publish(request);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async updateNestedField(path: string[], value: unknown): Promise<void> {
 		this.isLoading.update(() => true);
 		this.saveError.update(() => null);
@@ -68,23 +71,25 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this.setValueAtPath(currentSettings, path, value);
 
 		const request = new SettingsAdapterUpdateRequestEvent(currentSettings);
-		EventBus.instance.publish(request);
+		void EventBus.instance.publish(request);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async reset(): Promise<void> {
 		this.isLoading.update(() => true);
 		this.saveError.update(() => null);
 
 		const request = new SettingsAdapterResetEvent();
-		EventBus.instance.publish(request);
+		void EventBus.instance.publish(request);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async save(): Promise<void> {
 		this.isLoading.update(() => true);
 		this.saveError.update(() => null);
 
 		const request = new SettingsAdapterSaveEvent();
-		EventBus.instance.publish(request);
+		void EventBus.instance.publish(request);
 	}
 
 	dispose(): void {

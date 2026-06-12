@@ -1,6 +1,5 @@
 import { BaseCommand } from '@/modules/commands/BaseCommand';
 import { EventBus, FlashcardWriterCreateResponseEvent } from '@/modules/events';
-import { FlashcardModalData } from '@/ui/components/modals/FlashcardModal/types';
 import { modalStore, ModalViewEnum } from '@/ui/store/modal.store';
 import { SvelteModal } from '@/ui/views/Modal/ModalView';
 import { ModalClassNames } from '@/ui/views/Modal/types';
@@ -28,8 +27,8 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 					item
 						.setTitle(this.name)
 						.setIcon('highlighter')
-						.onClick(async () => {
-							await this.handleClick(editor, view);
+						.onClick(() => {
+							this.handleClick(editor, view);
 						});
 				});
 			},
@@ -38,7 +37,7 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 		this.plugin.registerEvent(eventRef);
 	}
 
-	private async handleClick(editor: Editor, view: MarkdownView | MarkdownFileInfo): Promise<void> {
+	private handleClick(editor: Editor, view: MarkdownView | MarkdownFileInfo): void {
 		const selection = editor.getSelection();
 		const filepath = view.file?.path;
 
@@ -52,6 +51,7 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 			return;
 		}
 
+		// eslint-disable-next-line @typescript-eslint/require-await
 		const responseHandler = async (event: FlashcardWriterCreateResponseEvent) => {
 			this._unsubscribe?.();
 			const path = normalizePath(event.data.filepath);
@@ -64,7 +64,7 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 			void leaf.openFile(file);
 
 			if (view instanceof MarkdownView && view.leaf) {
-				this.plugin.app.workspace.revealLeaf(view.leaf);
+				void this.plugin.app.workspace.revealLeaf(view.leaf);
 			}
 		};
 
@@ -78,7 +78,7 @@ export class GenerateFromSelectionCommand extends BaseCommand {
 			back: selection,
 			deck: '',
 			filepath,
-		} as FlashcardModalData);
+		});
 
 		const modal = new SvelteModal(this.plugin.app, ModalClassNames.flashcard);
 		modal.open();

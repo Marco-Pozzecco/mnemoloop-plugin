@@ -20,7 +20,7 @@ export class StatisticsAdapterInitHandler extends EventHandler<StatisticsAdapter
 	async handle(_event: StatisticsAdapterInitEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
 		await adapter.initialize();
-		this._bus.publish(new StatisticsAdapterStateEvent(adapter.data));
+		void this._bus.publish(new StatisticsAdapterStateEvent(adapter.data));
 	}
 }
 
@@ -32,7 +32,7 @@ export class StatisticsAdapterResetHandler extends EventHandler<StatisticsAdapte
 	async handle(_event: StatisticsAdapterSetRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
 		await adapter.reset();
-		this._bus.publish(new StatisticsAdapterStateEvent(adapter.data));
+		void this._bus.publish(new StatisticsAdapterStateEvent(adapter.data));
 	}
 }
 
@@ -52,12 +52,13 @@ export class StatisticsAdapterSetHandler extends EventHandler<StatisticsAdapterS
 		super(deps);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async handle(event: StatisticsAdapterSetRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
 		const { field, value } = event.data;
 		adapter.setField(field, value);
-		this._bus.publish(new StatisticsAdapterSetResponseEvent(adapter.data));
-		this._bus.publish(new StatisticsAdapterStateEvent(adapter.data));
+		void this._bus.publish(new StatisticsAdapterSetResponseEvent(adapter.data));
+		void this._bus.publish(new StatisticsAdapterStateEvent(adapter.data));
 	}
 }
 
@@ -66,10 +67,11 @@ export class StatisticsAdapterUpdateHandler extends EventHandler<StatisticsAdapt
 		super(deps);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async handle(event: StatisticsAdapterUpdateRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
 		adapter.update(event.data);
-		this._bus.publish(new StatisticsAdapterUpdateResponseEvent(adapter.data));
-		this._bus.publish(new StatisticsAdapterStateEvent(adapter.data));
+		void this._bus.publish(new StatisticsAdapterUpdateResponseEvent(adapter.data));
+		void this._bus.publish(new StatisticsAdapterStateEvent(adapter.data));
 	}
 }

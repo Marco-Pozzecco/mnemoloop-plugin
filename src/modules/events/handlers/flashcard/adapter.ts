@@ -22,7 +22,7 @@ export class FlashcardAdapterInitHandler extends EventHandler<FlashcardAdapterIn
 		const adapter = this._adapters.get(AdapterKey.flashcard) as FlashcardAdapter;
 		await adapter.initialize();
 		// Publish the state change via the event bus
-		this._bus.publish(new FlashcardAdapterStateEvent(adapter.data));
+		void this._bus.publish(new FlashcardAdapterStateEvent(adapter.data));
 	}
 }
 
@@ -35,7 +35,7 @@ export class FlashcardAdapterResetHandler extends EventHandler<FlashcardAdapterR
 		const adapter = this._adapters.get(AdapterKey.flashcard) as FlashcardAdapter;
 		await adapter.reset();
 		// Publish the state change via the event bus
-		this._bus.publish(new FlashcardAdapterStateEvent(adapter.data));
+		void this._bus.publish(new FlashcardAdapterStateEvent(adapter.data));
 	}
 }
 
@@ -48,7 +48,7 @@ export class FlashcardAdapterSaveHandler extends EventHandler<FlashcardAdapterSa
 		const adapter = this._adapters.get(AdapterKey.flashcard) as FlashcardAdapter;
 		await adapter.save();
 		// Publish the state change via the event bus
-		this._bus.publish(new FlashcardAdapterStateEvent(adapter.data));
+		void this._bus.publish(new FlashcardAdapterStateEvent(adapter.data));
 	}
 }
 
@@ -65,9 +65,9 @@ export class FlashcardAdapterSetHandler extends EventHandler<FlashcardAdapterSet
 		// Publish the updated data via the event bus
 		const updated = adapter.data;
 		const response = new FlashcardAdapterSetResponseEvent(updated);
-		this._bus.publish(response);
+		void this._bus.publish(response);
 		// Publish the state change via the event bus
-		this._bus.publish(new FlashcardAdapterStateEvent(updated));
+		void this._bus.publish(new FlashcardAdapterStateEvent(updated));
 	}
 }
 
@@ -84,8 +84,8 @@ export class FlashcardAdapterUpdateHandler extends EventHandler<FlashcardAdapter
 		// Publish the updated data via the event bus
 		const updated = adapter.data;
 		const response = new FlashcardAdapterUpdateResponseEvent(updated);
-		this._bus.publish(response);
+		void this._bus.publish(response);
 		// Publish the state change via the event bus
-		this._bus.publish(new FlashcardAdapterStateEvent(updated));
+		void this._bus.publish(new FlashcardAdapterStateEvent(updated));
 	}
 }

@@ -12,7 +12,7 @@ export class CreateEmptyFlashcardCommand extends BaseCommand {
 			callback: async () => {
 				const activeFile = this.plugin.app.workspace.getActiveFile();
 
-				EventBus.instance.publish(
+				await EventBus.instance.publish(
 					new FlashcardWriterCreateRequestEvent({
 						back: '',
 						front: '',

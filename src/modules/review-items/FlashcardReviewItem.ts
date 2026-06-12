@@ -15,6 +15,7 @@ export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml
 	constructor(filepath: string, engine: IReviewEngine<FlashcardYaml>) {
 		super(filepath, engine);
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 		const responseHandler = async (event: FlashcardParserParseResponseEvent) => {
 			if (event.data.filepath === filepath) {
 				this._data = event.data.entity;
@@ -26,7 +27,7 @@ export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml
 			responseHandler,
 		);
 
-		EventBus.instance.publish(new FlashcardParserParseRequestEvent({ filepath }));
+		void EventBus.instance.publish(new FlashcardParserParseRequestEvent({ filepath }));
 	}
 
 	review: <Score extends number>(score: Score) => void = (score) => {
@@ -34,7 +35,7 @@ export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml
 		const result = this._engine.calculate(this._data, score);
 		this._data = { ...this._data, ...result };
 
-		EventBus.instance.publish(
+		void EventBus.instance.publish(
 			new FlashcardReviewSessionScoreEvent({
 				...result,
 				rating: score,
@@ -68,7 +69,7 @@ export class FlashcardReviewItem extends BaseReviewItem<Flashcard, FlashcardYaml
 			filepath: this._filepath,
 		});
 
-		EventBus.instance.publish(event);
+		void EventBus.instance.publish(event);
 	}
 
 	dispose(): void {
