@@ -35,8 +35,10 @@ export class FlashcardIndexer extends BaseIndexer<
 		const flashcards = await this._parser.parseAll(this._dirPath());
 
 		for (const flashcard of flashcards) {
-			const metadata = this.generateMetadata(flashcard);
-			this._cache.set(flashcard.entity.uuid, metadata);
+			if (flashcard.success) {
+				const metadata = this.generateMetadata(flashcard);
+				this._cache.set(flashcard.entity.uuid, metadata);
+			}
 		}
 
 		await this.save();

@@ -33,7 +33,7 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this.saveError = saveErrorStore;
 		this.fieldErrors = fieldErrorsStore;
 
-		const handler = (event: SettingsAdapterStateEvent) => {
+		const handler = async (event: SettingsAdapterStateEvent) => {
 			this.settings.update((state) => {
 				const updated = { ...state, ...event.data };
 				// If the watch config has changed, trigger a flashcard index re-initialize

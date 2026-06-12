@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { BaseIndexer } from '@/modules/indexers/BaseIndexer';
 import type { IParser, ParseResult } from '@/interfaces/IParser';
 import type { IAdapter } from '@/interfaces/IAdapter';
@@ -123,7 +123,9 @@ describe('BaseIndexer', () => {
 			};
 			const failingIndexer = new TestIndexer(mockParser, mockSettingsAdapter, mockIndexAdapter);
 			failingIndexer['_cache'] = failingCache as any;
-			expect(() => failingIndexer.create('id', { uuid: 'id', name: 'Test' })).toThrow('Failed to create entity');
+			expect(() => failingIndexer.create('id', { uuid: 'id', name: 'Test' })).toThrow(
+				'Failed to create entity',
+			);
 		});
 	});
 
@@ -140,7 +142,8 @@ describe('BaseIndexer', () => {
 		it('should throw FAILED_TO_UPDATE when cache.get returns undefined after set', () => {
 			const failingCache = {
 				set: vi.fn(),
-				get: vi.fn()
+				get: vi
+					.fn()
 					.mockReturnValueOnce({ uuid: 'id', name: 'Test' }) // first get in update
 					.mockReturnValueOnce(undefined), // second get after set
 				delete: vi.fn(),
@@ -148,7 +151,9 @@ describe('BaseIndexer', () => {
 			};
 			const failingIndexer = new TestIndexer(mockParser, mockSettingsAdapter, mockIndexAdapter);
 			failingIndexer['_cache'] = failingCache as any;
-			expect(() => failingIndexer.update('id', { name: 'Updated' })).toThrow('Failed to update entity');
+			expect(() => failingIndexer.update('id', { name: 'Updated' })).toThrow(
+				'Failed to update entity',
+			);
 		});
 	});
 

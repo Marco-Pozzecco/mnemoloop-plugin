@@ -126,7 +126,7 @@ export default class MnemoloopPlugin extends Plugin {
 	/**
 	 * Initialize all registered events' handlers.
 	 */
-	private initializeEventRegistry(): void {
+	private async initializeEventRegistry(): Promise<void> {
 		const deps: IEventRegistryDependencies = {
 			plugin: this,
 			bus: EventBus.instance,
@@ -139,7 +139,7 @@ export default class MnemoloopPlugin extends Plugin {
 		this._eventRegistry.initialize();
 
 		for (const event of this._initializationEvents) {
-			EventBus.instance.publish(event);
+			await EventBus.instance.publish(event);
 		}
 	}
 

@@ -17,18 +17,26 @@ export class EventBus implements IEventBus {
 		return EventBus._instance;
 	}
 
-	publish<TData>(event: IEvent<TData>): string {
+	async publish<TData>(event: IEvent<TData>): Promise<string> {
 		Logger.debug(`Event: ${event.type}`, event);
 		const handlers = this._registry.get(event.type);
 		if (!handlers) {
 			return event.id;
 		}
 
-		for (const handler of handlers) {
+		const promises = Array.from(handlers).map(async (h) => {
 			try {
-				handler(event as IEvent<unknown>);
+				return await h(event as IEvent<unknown>);
 			} catch (err) {
-				Logger.error(`EventBus: error in handler for ${event.type}`, err);
+				return Promise.reject(err);
+			}
+		});
+
+		const results = await Promise.allSettled(promises);
+
+		for (const result of results) {
+			if (result.status === 'rejected') {
+				Logger.error(`EventBus: error in handler for ${event.type}`, result.reason);
 			}
 		}
 

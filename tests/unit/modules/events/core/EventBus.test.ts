@@ -68,7 +68,7 @@ describe('EventBus', () => {
 	});
 
 	describe('publish', () => {
-		it('should deliver events to all subscribers', () => {
+		it('should deliver events to all subscribers', async () => {
 			const bus = EventBus.instance;
 			const events1: IEvent[] = [];
 			const events2: IEvent[] = [];
@@ -79,20 +79,20 @@ describe('EventBus', () => {
 				events2.push(e);
 			});
 			const event = new TestEvent({ value: 42 });
-			bus.publish(event);
+			await bus.publish(event);
 			expect(events1).toHaveLength(1);
 			expect(events2).toHaveLength(1);
 			expect(events1[0]).toBe(event);
 		});
 
-		it('should return the event id', () => {
+		it('should return the event id', async () => {
 			const bus = EventBus.instance;
 			const event = new TestEvent({ value: 1 });
-			const result = bus.publish(event);
+			const result = await bus.publish(event);
 			expect(result).toBe(event.id);
 		});
 
-		it('should not deliver to unsubscribed callbacks', () => {
+		it('should not deliver to unsubscribed callbacks', async () => {
 			const bus = EventBus.instance;
 			const events: IEvent[] = [];
 			const cb = (e: IEvent) => {
@@ -100,47 +100,47 @@ describe('EventBus', () => {
 			};
 			bus.subscribe(TestEvent, cb);
 			bus.unsubscribe(TestEvent, cb);
-			bus.publish(new TestEvent({ value: 1 }));
+			await bus.publish(new TestEvent({ value: 1 }));
 			expect(events).toHaveLength(0);
 		});
 
-		it('should synchronously execute subscribers', () => {
+		it('should synchronously execute subscribers', async () => {
 			const bus = EventBus.instance;
 			let called = false;
 			bus.subscribe(TestEvent, () => {
 				called = true;
 			});
-			bus.publish(new TestEvent({ value: 1 }));
+			await bus.publish(new TestEvent({ value: 1 }));
 			expect(called).toBe(true);
 		});
 
-		it('should not deliver events to subscribers of different types', () => {
+		it('should not deliver events to subscribers of different types', async () => {
 			const bus = EventBus.instance;
 			const events: IEvent[] = [];
 			bus.subscribe(OtherEvent, (e) => {
 				events.push(e);
 			});
-			bus.publish(new TestEvent({ value: 1 }));
+			await bus.publish(new TestEvent({ value: 1 }));
 			expect(events).toHaveLength(0);
 		});
 	});
 
 	describe('subscribeOnce', () => {
-		it('should deliver event exactly once', () => {
+		it('should deliver event exactly once', async () => {
 			const bus = EventBus.instance;
 			const events: IEvent[] = [];
 			const cb = (e: IEvent) => {
 				events.push(e);
 			};
 			bus.subscribeOnce(TestEvent, cb);
-			bus.publish(new TestEvent({ value: 1 }));
-			bus.publish(new TestEvent({ value: 2 }));
+			await bus.publish(new TestEvent({ value: 1 }));
+			await bus.publish(new TestEvent({ value: 2 }));
 			expect(events).toHaveLength(1);
 		});
 	});
 
 	describe('error resilience', () => {
-		it('should catch errors and continue delivering to other subscribers', () => {
+		it('should catch errors and continue delivering to other subscribers', async () => {
 			const bus = EventBus.instance;
 			const events: IEvent[] = [];
 			bus.subscribe(TestEvent, () => {
@@ -149,7 +149,20 @@ describe('EventBus', () => {
 			bus.subscribe(TestEvent, (e) => {
 				events.push(e);
 			});
-			expect(() => bus.publish(new TestEvent({ value: 1 }))).not.toThrow();
+			await bus.publish(new TestEvent({ value: 1 }));
+			expect(events).toHaveLength(1);
+		});
+
+		it('should catch async handler rejections and continue delivering', async () => {
+			const bus = EventBus.instance;
+			const events: IEvent[] = [];
+			bus.subscribe(TestEvent, async () => {
+				throw new Error('async boom');
+			});
+			bus.subscribe(TestEvent, (e) => {
+				events.push(e);
+			});
+			await bus.publish(new TestEvent({ value: 1 }));
 			expect(events).toHaveLength(1);
 		});
 	});
