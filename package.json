@@ -1,6 +1,6 @@
 {
 	"name": "mnemoloop",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"description": "An obsidian plugin for spaced repetition learning",
 	"homepage": "https://github.com/Marco-Pozzecco/mnemoloop-plugin#readme",
 	"bugs": {
