@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.2.0...1.2.1) (2026-06-12)
+
+### Bug Fixes
+
+* remove unnecessary await on adapter reset calls ([00cb359](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/00cb359683c0f558a7d63e2ef73305c0a7aa3766))
+* resolve type-checked eslint violations ([d6bd857](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/d6bd8576d369a15a605fe82ed162b63bd5962287))
+
 ## [1.2.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.1.0...1.2.0) (2026-06-12)
 
 ### Features
