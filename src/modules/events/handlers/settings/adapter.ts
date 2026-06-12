@@ -29,9 +29,10 @@ export class SettingsAdapterResetHandler extends EventHandler<SettingsAdapterSet
 		super(deps);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async handle(_event: SettingsAdapterSetRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
-		await adapter.reset();
+		adapter.reset();
 		void this._bus.publish(new SettingsAdapterStateEvent(adapter.data));
 	}
 }
