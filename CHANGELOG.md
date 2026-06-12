@@ -1,3 +1,13 @@
+## [1.2.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.1.0...1.2.0) (2026-06-12)
+
+### Features
+
+* add python script for manifest version sync ([8ece036](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/8ece036fc02c7ddf1c1fb94a0acb534d4d35d313))
+
+### Bug Fixes
+
+* order semantic-release plugins so npm bumps version before exec copies it ([4560f03](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/4560f036165d503c0206c871d9d61ba6b0baa094))
+
 ## [1.1.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.0.2...1.1.0) (2026-06-12)
 
 ### Features
