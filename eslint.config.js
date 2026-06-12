@@ -37,6 +37,22 @@ export default defineConfig(
 			],
 		},
 	},
+
+	// type-checked rules for TypeScript source only
+	{
+		...ts.configs.recommendedTypeChecked[0],
+		files: ['src/**/*.ts'],
+		ignores: ['**/*.svelte*'],
+		languageOptions: {
+			parserOptions: {
+				projectService: true,
+				tsconfigRootDir: import.meta.dirname,
+			},
+		},
+		rules: {
+			...ts.configs.recommendedTypeChecked[2].rules,
+		},
+	},
 	{
 		files: ['tests/**/*.test.ts', 'tests/**/*.spec.ts', 'tests/setup.ts', 'tests/helpers/*'],
 		rules: {
