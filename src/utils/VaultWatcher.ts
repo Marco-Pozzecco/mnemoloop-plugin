@@ -10,7 +10,7 @@ import {
 } from '@/modules/events/domains';
 
 export class VaultWatcher {
-	private _debounceTimers: Map<string, NodeJS.Timeout> = new Map();
+	private _debounceTimers: Map<string, number> = new Map();
 
 	constructor(
 		private _plugin: Plugin,
@@ -114,7 +114,7 @@ export class VaultWatcher {
 	private _clearDebounceTimer(filepath: string): void {
 		const timer = this._debounceTimers.get(filepath);
 		if (timer) {
-			clearTimeout(timer);
+			window.clearTimeout(timer);
 			this._debounceTimers.delete(filepath);
 		}
 	}
@@ -123,7 +123,7 @@ export class VaultWatcher {
 		this._clearDebounceTimer(filepath);
 
 		const timeout = this._getDebounceTimeout();
-		const timer = setTimeout(() => {
+		const timer = window.setTimeout(() => {
 			this._debounceTimers.delete(filepath);
 			callback();
 		}, timeout);
@@ -153,7 +153,9 @@ export class VaultWatcher {
 		}
 
 		this._setDebounceTimer(file.path, () => {
-			void EventBus.instance.publish(new VaultModifyEvent({ path: file.path, entity: 'flashcard' }));
+			void EventBus.instance.publish(
+				new VaultModifyEvent({ path: file.path, entity: 'flashcard' }),
+			);
 		});
 	}
 
@@ -181,7 +183,7 @@ export class VaultWatcher {
 		const hasWatchedTags = this._hasWatchedTags(file);
 
 		if (wasInWatchedDir || isInWatchedDir || hasWatchedTags) {
-		void EventBus.instance.publish(
+			void EventBus.instance.publish(
 				new VaultRenameEvent({
 					path: file.path,
 					entity: 'flashcard',
@@ -199,7 +201,7 @@ export class VaultWatcher {
 	 */
 	dispose(): void {
 		for (const [, timer] of this._debounceTimers) {
-			clearTimeout(timer);
+			window.clearTimeout(timer);
 		}
 		this._debounceTimers.clear();
 	}

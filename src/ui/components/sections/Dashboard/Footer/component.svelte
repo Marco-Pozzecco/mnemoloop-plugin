@@ -16,10 +16,10 @@
 	let countdownDisplay = $state(formatCountdown(getSecondsUntilNextReview()));
 
 	$effect(() => {
-		const interval = setInterval(() => {
+		const interval = window.setInterval(() => {
 			const seconds = getSecondsUntilNextReview();
 			if (seconds <= 0) {
-				clearInterval(interval);
+				window.clearInterval(interval);
 				countdownDisplay = formatCountdown(0);
 				hasNextReview = false;
 				return;
@@ -27,7 +27,7 @@
 			countdownDisplay = formatCountdown(seconds);
 		}, 1000);
 
-		return () => clearInterval(interval);
+		return () => window.clearInterval(interval);
 	});
 
 	function getSecondsUntilNextReview(): number {

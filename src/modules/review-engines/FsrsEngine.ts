@@ -83,6 +83,7 @@ export class FsrsEngine extends BaseReviewEngine<FlashcardYaml> {
 		return {
 			stability: card.stability,
 			difficulty: card.difficulty,
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			elapsed_days: card.elapsed_days,
 			scheduled_days: card.scheduled_days,
 			learning_steps: card.learning_steps,

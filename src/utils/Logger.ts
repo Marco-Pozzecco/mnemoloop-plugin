@@ -1,3 +1,5 @@
+/* eslint-disable obsidianmd/rule-custom-message */
+
 import { env, LogLevel } from '@/env';
 
 export class Logger {

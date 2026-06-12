@@ -24,7 +24,7 @@ export class FlashcardReviewQueue extends BaseReviewQueue<
 
 		super(engine, predicate);
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 		const responseHandler = async (event: FlashcardIndexQueryResponseEvent) => {
 			const sortedData = this._engine.sort(event.data);
 			this._items = sortedData.map((f) => new FlashcardReviewItem(f.file, engine));

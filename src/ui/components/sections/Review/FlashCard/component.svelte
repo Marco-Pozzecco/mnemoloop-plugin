@@ -20,14 +20,14 @@
 				flashcard = item.data;
 			}
 			if (!flashcard) {
-				timer = setTimeout(checkData, 1000); // Poll until ready
+				timer = window.setTimeout(checkData, 1000); // Poll until ready
 			}
 		};
 		checkData();
 
 		return () => {
 			if (timer) {
-				clearTimeout(timer);
+				window.clearTimeout(timer);
 				timer = null;
 			}
 		};

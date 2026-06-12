@@ -61,7 +61,7 @@ export class FlashcardIndexGetHandler extends EventHandler<FlashcardIndexGetRequ
 		super(deps);
 	}
 
-// eslint-disable-next-line @typescript-eslint/require-await
+ 
 	async handle(event: FlashcardIndexGetRequestEvent): Promise<void> {
 		const indexer = this._indexers.get(IndexKey.flashcard)!;
 		const response = indexer.get(event.data.id);
@@ -74,7 +74,7 @@ export class FlashcardIndexGetAllHandler extends EventHandler<FlashcardIndexGetA
 		super(deps);
 	}
 
-// eslint-disable-next-line @typescript-eslint/require-await
+ 
 	async handle(_event: FlashcardIndexGetAllRequestEvent): Promise<void> {
 		const indexer = this._indexers.get(IndexKey.flashcard)!;
 		const result = indexer.getAll();
@@ -87,7 +87,7 @@ export class FlashcardIndexQueryHandler extends EventHandler<FlashcardIndexQuery
 		super(deps);
 	}
 
-// eslint-disable-next-line @typescript-eslint/require-await
+ 
 	async handle(event: FlashcardIndexQueryRequestEvent): Promise<void> {
 		const indexer = this._indexers.get(IndexKey.flashcard)!;
 		const result = indexer.query(event.data.predicate);
@@ -100,7 +100,7 @@ export class FlashcardIndexUpdateHandler extends EventHandler<FlashcardIndexUpda
 		super(deps);
 	}
 
-// eslint-disable-next-line @typescript-eslint/require-await
+ 
 	async handle(event: FlashcardIndexUpdateRequestEvent): Promise<void> {
 		const indexer = this._indexers.get(IndexKey.flashcard)!;
 		const result = indexer.update(event.data.uuid!, event.data);

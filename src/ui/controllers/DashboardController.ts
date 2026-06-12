@@ -27,7 +27,7 @@ export class DashboardController implements IDashboardController {
 		}
 	};
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 	private async startFlashcardReview(deckFilter?: string) {
 		this._uiStore.isLoading = true;
 

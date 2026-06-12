@@ -31,7 +31,7 @@ export class FlashcardAdapterResetHandler extends EventHandler<FlashcardAdapterR
 		super(deps);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 	async handle(_event: FlashcardAdapterResetEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.flashcard) as FlashcardAdapter;
 		adapter.reset();

@@ -29,7 +29,7 @@ export class SettingsAdapterResetHandler extends EventHandler<SettingsAdapterSet
 		super(deps);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 	async handle(_event: SettingsAdapterSetRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		adapter.reset();
@@ -53,7 +53,7 @@ export class SettingsAdapterSetHandler extends EventHandler<SettingsAdapterSetRe
 		super(deps);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 	async handle(event: SettingsAdapterSetRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		const { field, value } = event.data;
@@ -68,7 +68,7 @@ export class SettingsAdapterUpdateHandler extends EventHandler<SettingsAdapterUp
 		super(deps);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	 
 	async handle(event: SettingsAdapterUpdateRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		adapter.update(event.data);
