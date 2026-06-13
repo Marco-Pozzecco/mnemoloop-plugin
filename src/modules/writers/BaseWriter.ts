@@ -136,7 +136,7 @@ export abstract class BaseWriter<
 			throw new Error(`File not found: ${normalized}`);
 		}
 
-		await this._plugin.app.vault.delete(file);
+		await this._plugin.app.fileManager.trashFile(file);
 	};
 
 	protected fileExists(filepath: string): boolean {
