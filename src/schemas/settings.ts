@@ -27,8 +27,8 @@ export const PluginSettingsSchema = z.object({
 	debounce_timeout_ms: z.number().min(100).max(5000),
 	enable_soft_delete: z.boolean(),
 	soft_delete_hours: z.number().min(1).max(168),
+	banner_dismissals: z.record(z.string(), z.iso.date()).optional(),
 });
-
 
 export const DEFAULT_FSRS_CONFIG: FsrsConfig = {
 	request_retention: 0.9,
@@ -51,6 +51,7 @@ export const DEFAULT_PLUGIN_SETTINGS: PluginSettings = {
 	debounce_timeout_ms: 500,
 	enable_soft_delete: true,
 	soft_delete_hours: 24,
+	banner_dismissals: {},
 };
 
 export type PluginSettings = z.infer<typeof PluginSettingsSchema>;
