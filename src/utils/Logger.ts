@@ -1,5 +1,3 @@
-/* eslint-disable obsidianmd/rule-custom-message */
-
 import { env, LogLevel } from '@/env';
 
 export class Logger {
@@ -7,7 +5,7 @@ export class Logger {
 
 	static info(message: string, ...args: unknown[]): void {
 		if (LogLevel.INFO <= env.logLevel) {
-			console.info(`${this.prefix} INFO: ${message}`, ...args);
+			console.debug(`${this.prefix} INFO: ${message}`, ...args);
 		}
 	}
 
