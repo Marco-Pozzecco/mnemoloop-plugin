@@ -1,3 +1,14 @@
+## [1.3.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.2.1...1.3.0) (2026-06-15)
+
+### Features
+
+* add Banner notification system ([d5b72e6](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/d5b72e650b5035bde31282ba1ba5095851549d5c))
+* add icon variant to Button ([a39dac4](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/a39dac428f8e90080b43fcc8598ca8319c7e7be1))
+
+### Bug Fixes
+
+* lint ([68abb98](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/68abb98330396a9d2e2827afa0f227529bcd2d23))
+
 ## [1.2.1](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.2.0...1.2.1) (2026-06-12)
 
 ### Bug Fixes
