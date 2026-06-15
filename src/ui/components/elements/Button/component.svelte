@@ -88,6 +88,16 @@
 		color: var(--interactive-accent);
 	}
 
+	:global(button.ml-button--icon) {
+		background-color: transparent;
+		color: var(--text-normal);
+		box-shadow: none;
+	}
+
+	:global(button.ml-button--icon:hover:not(:disabled)) {
+		color: var(--interactive-accent);
+	}
+
 	/* Sizes */
 	:global(button.ml-button--small) {
 		min-height: 32px;
