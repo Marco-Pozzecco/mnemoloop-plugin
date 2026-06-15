@@ -1,5 +1,7 @@
 export { default as Button } from './Button/component.svelte';
 export type { default as ButtonProps } from './Button/types';
+export { default as Banner } from './Banner/component.svelte';
+export type { default as BannerProps, BannerConfig, BannerView } from './Banner/types';
 export { default as Card } from './Card/component.svelte';
 export type { default as CardProps } from './Card/types';
 export { default as ChartHeatmap } from './Chart/Heatmap/component.svelte';
