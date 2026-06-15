@@ -5,10 +5,10 @@
 	import { ErrorWrapper } from '@/ui/components';
 	import {
 		DashboardChart,
+		DashboardDeckTree,
 		DashboardFooter,
 		DashboardHeader,
 		DashboardStatsGrid,
-		DashboardDeckTree,
 	} from '@/ui/components/sections';
 	import { DashboardController } from '@/ui/controllers/DashboardController';
 	import { deckTreeStore } from '@/ui/store/deck-tree.store';
