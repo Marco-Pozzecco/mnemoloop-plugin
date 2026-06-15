@@ -40,7 +40,8 @@ export class FsrsEngine extends BaseReviewEngine<FlashcardYaml> {
 	 */
 	calculate: <T extends FlashcardYaml>(item: T, score: Exclude<Rating, 0>) => T = (item, score) => {
 		const params = item;
-		const card: Card = this.mapToFsrsCard(params);
+		// cast to Card for compatibility with ts-fsrs until 'elapsed_days' is removed
+		const card: Card = this.mapToFsrsCard(params) as Card;
 		const reviewTime = new Date();
 
 		const record = this.fsrs.next(card, reviewTime, score);
@@ -61,12 +62,11 @@ export class FsrsEngine extends BaseReviewEngine<FlashcardYaml> {
 	/**
 	 * Maps internal FSRSStats to ts-fsrs Card object.
 	 */
-	private mapToFsrsCard(params: FSRSParams): Card {
+	private mapToFsrsCard(params: FSRSParams): Omit<Card, 'elapsed_days'> {
 		return {
 			due: new Date(params.due),
 			stability: params.stability,
 			difficulty: params.difficulty,
-			elapsed_days: params.elapsed_days,
 			scheduled_days: params.scheduled_days,
 			learning_steps: params.learning_steps,
 			reps: params.reps,
@@ -83,8 +83,6 @@ export class FsrsEngine extends BaseReviewEngine<FlashcardYaml> {
 		return {
 			stability: card.stability,
 			difficulty: card.difficulty,
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			elapsed_days: card.elapsed_days,
 			scheduled_days: card.scheduled_days,
 			learning_steps: card.learning_steps,
 			reps: card.reps,
