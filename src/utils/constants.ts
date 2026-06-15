@@ -4,7 +4,6 @@ import { State } from 'ts-fsrs';
 export const DEFAULT_FSRS: FSRSParams = {
 	stability: 0,
 	difficulty: 0,
-	elapsed_days: 0,
 	scheduled_days: 0,
 	learning_steps: 0,
 	reps: 0,

@@ -6661,9 +6661,9 @@ ts-api-utils@^2.5.0:
   integrity sha512-OJ/ibxhPlqrMM0UiNHJ/0CKQkoKF243/AEmplt3qpRgkW8VG7IfOS41h7V8TjITqdByHzrjcS/2si+y4lIh8NA==
 
 ts-fsrs@^5.2.3:
-  version "5.3.2"
-  resolved "https://registry.npmjs.org/ts-fsrs/-/ts-fsrs-5.3.2.tgz"
-  integrity sha512-moJJfYAeG9ynyyGCNaQPUloi0sspTMHFtgCvsx2wDchELu3O2c513/7fp+6PxsGth0ztxNjEtG8d85gX4ce0og==
+  version "5.4.1"
+  resolved "https://registry.yarnpkg.com/ts-fsrs/-/ts-fsrs-5.4.1.tgz#57e178698114b5ac9718bc02dd14cd80b8676357"
+  integrity sha512-mOp9+oexJexBTkwjg/jQI1aSUQRLIAvbimeKHLSmVdNJPwObugFNKmZkoggH5d6kZ0uaWLboP1Al1DnXAfIb9w==
 
 tsconfig-paths@^3.15.0:
   version "3.15.0"
