@@ -1,14 +1,16 @@
 <script lang="ts">
-	import { Dashboard, Review } from '@/ui/components';
+	import { Banner, Dashboard, Review } from '@/ui/components';
 	import { setAppContext } from '@/ui/context/AppContext';
 	import { uiStore } from '@/ui/store/ui.store';
 	import type { AppProps } from './types';
+	import { bannerStore } from '@/ui/store/banner.store';
 
 	// props
 	const { app, component }: AppProps = $props();
 
 	// state
 	let currentView = $state(uiStore.currentView);
+	const bannerRef = bannerStore.store;
 
 	// subscription
 	uiStore.store.subscribe((state) => {
@@ -22,6 +24,12 @@
 </script>
 
 <div class="ml-app-container">
+	{#if $bannerRef.activeBanner}
+		<Banner
+			banner={$bannerRef.activeBanner}
+			onDismiss={() => bannerStore.dismiss($bannerRef.activeBanner!.id)}
+		/>
+	{/if}
 	{#if currentView === 'dashboard'}
 		<Dashboard />
 	{:else if currentView === 'review'}
