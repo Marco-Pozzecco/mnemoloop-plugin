@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.3.0...1.3.1) (2026-06-15)
+
+### Bug Fixes
+
+* use console.debug for info-level logging ([67b5e90](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/67b5e90cfe2b98635240dad1225ecf07157976a0))
+
 ## [1.3.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.2.1...1.3.0) (2026-06-15)
 
 ### Features
