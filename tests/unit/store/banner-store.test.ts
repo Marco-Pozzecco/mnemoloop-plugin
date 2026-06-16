@@ -29,7 +29,7 @@ describe('BannerStore', () => {
 	it('evaluate should return github-feedback when no dismissals', async () => {
 		await EventBus.instance.publish(new DashboardOpenEvent());
 
-		let state: { activeBanner: unknown } | null = null;
+		let state: { activeBanner: unknown } = { activeBanner: null };
 		const unsub = bannerStore.store.subscribe((s) => (state = s));
 		expect(state?.activeBanner).not.toBeNull();
 		expect((state?.activeBanner as { id: string }).id).toBe('github-feedback');
@@ -58,7 +58,7 @@ describe('BannerStore', () => {
 
 		await EventBus.instance.publish(new DashboardOpenEvent());
 
-		let state: { activeBanner: unknown } | null = null;
+		let state: { activeBanner: unknown } = { activeBanner: null };
 		const unsub = bannerStore.store.subscribe((s) => (state = s));
 		expect(state?.activeBanner).toBeNull();
 		unsub();
@@ -75,7 +75,7 @@ describe('BannerStore', () => {
 
 		bannerStore.dismiss('github-feedback');
 
-		let state: { activeBanner: unknown } | null = null;
+		let state: { activeBanner: unknown } = { activeBanner: null };
 		const unsub = bannerStore.store.subscribe((s) => (state = s));
 		expect(state?.activeBanner).toBe(null);
 		unsub();
@@ -113,7 +113,7 @@ describe('BannerStore', () => {
 
 		bannerStore.dismiss('github-feedback');
 
-		let state: { activeBanner: unknown } | null = null;
+		let state: { activeBanner: unknown } = { activeBanner: null };
 		const unsub = bannerStore.store.subscribe((s) => (state = s));
 		expect(state?.activeBanner).toBeNull();
 		unsub();
