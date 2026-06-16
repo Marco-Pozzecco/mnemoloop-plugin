@@ -57,8 +57,11 @@ src/
 │   ├── commands/        # Obsidian commands (palette, editor-menu, file-menu)
 │   ├── parsers/         # Markdown flashcard parsing
 │   ├── indexers/        # In-memory flashcard indexing/caching
-│   ├── event-listeners/ # File watchers, processors
-│   ├── event-bus/       # Internal event system
+│   ├── events/            # Internal event system
+│   │   ├── core/          # EventBus, EventRegistry, EventRouter, Event, EventHandler
+│   │   ├── domains/       # Event type definitions organized by domain
+│   │   ├── handlers/      # Event handler implementations organized by domain
+│   │   └── routes/        # Event-to-handler route registrations by domain
 │   ├── review-engines/  # FSRS review algorithm integration
 │   ├── review-queues/   # Flashcard review queue management
 │   ├── review-items/    # Individual review item logic
@@ -86,7 +89,7 @@ src/
 **Adapters** (`modules/adapters/`)
 - Persist data to JSON files in plugin directory
 - Extend `BaseAdapter<T>` and implement `IAdapter<T>`
-- Emit events on data changes
+- Adapters are pure data stores — they do not emit events themselves; events are published externally via `EventBus` when changes occur
 - Example: `FlashcardAdapter` saves to `flashcard-index.json`
 
 **Indexers** (`modules/indexers/`)
@@ -99,16 +102,48 @@ src/
 - Convert between markdown and structured data
 - Handle YAML frontmatter
 
-**Event Listeners** (`modules/event-listeners/`)
-- Respond to file changes (FileWatcherListener)
-- Process flashcard updates (FlashcardWriterProcessor)
-- Track statistics (StatisticsListener)
+**Events** (`modules/events/`)
+Four-layer architecture decoupling event declaration, routing, and handling:
+
+- **domains/** — Declare event types using `EventFactory`:
+  - `EventFactory.createEvent<T>(type)` → fire-and-forget event class
+  - `EventFactory.createRequest<T>(type)` → request event (type suffix `:Request`)
+  - `EventFactory.createResponse<T>(type)` → response event (type suffix `:Response`)
+  - Pattern: one file per domain sub-area (e.g., `domains/flashcard/adapter.ts` defines all flashcard adapter events)
+
+- **handlers/** — Implement `EventHandler<E>` for each event, with a constructor that receives `IEventRegistryDependencies`:
+  ```
+  export class FlashcardAdapterInitHandler extends EventHandler<FlashcardAdapterInitEvent> {
+    async handle(_event: FlashcardAdapterInitEvent): Promise<void> { … }
+  }
+  ```
+  - Access dependencies via `this._adapters`, `this._indexers`, `this._parsers`, `this._writers`, `this._bus`, `this._plugin`
+  - Handlers publish follow-up events via `this._bus.publish(…)`
+
+- **routes/** — Wire events to handlers using `EventRouter`:
+  ```
+  const router = new EventRouter();
+  router.route(events.SomeEvent, handlers.SomeEventHandler);
+  ```
+  - Each domain sub-area exports its own router (e.g., `FlashcardAdapterRouter`)
+  - Domain-level routers combine sub-routers (e.g., `FlashcardRouter` combines all flashcard routers)
+  - Top-level `IndexRouter` (in `routes/index.ts`) combines all domain routers
+
+- **core/** — Infrastructure:
+  - `EventBus` (singleton) — `publish()`, `subscribe()`, `subscribeOnce()`, `unsubscribe()`
+  - `EventRegistry` — takes a bus, deps, and router; `initialize()` instantiates handlers and subscribes them to the bus
+  - `EventRouter` — `route(eventClass, handlerClass)` and `combine(...routers)`
+  - `Event<T>` / `EventRequest<T>` / `EventResponse<T>` — base classes; every event has `id`, `type`, `time`, `data`
+
+**Initialization flow in main.ts:** `loadAdapters()` pushes init events into `_initializationEvents[]` → `initializeEventRegistry()` creates `EventRegistry` with `IndexRouter`, calls `initialize()`, then publishes all pending init events via `EventBus.instance.publish()`.
 
 **Commands** (`modules/commands/`)
 - Implement `ICommand` interface and extend `BaseCommand`
 - Organized by: `palette/` (command palette), `editor-menu/` (editor context menu), `file-menu/` (file context menu)
 - Registered via `CommandRegistry` in `main.ts`
-- Receive dependencies (plugin, adapters, indexes, parsers) via constructor
+- Receive dependencies via `register(deps: ICommandDependencies)` method — access them through protected getters (`this.plugin`, `this.adapters`, `this.indexes`, `this.parsers`, `this.writers`)
+- Define `readonly id: string` and `readonly name: string`; implement `onRegister()` for setup, optionally `onUnregister()` for cleanup
+- Add to `CommandKey` enum and `CommandMap` interface in `src/types/commands.ts`
 - Example: `OpenDashboardCommand` registers the "Mnemoloop: Open Dashboard" palette command
 
 **UI Components** (`ui/components/`)
@@ -132,7 +167,7 @@ src/
 - CSS bundled as `dist/styles.css`
 - **Auto-copy**: Custom plugin copies `dist/main.js` and `dist/styles.css` to root after build
 - **External deps**: `obsidian`, `electron`, all `@codemirror/*`, `@lezer/*` packages (not bundled)
-- Post-build: `scripts/post-build.sh` renames `main.css` → `styles.css` if present
+- CSS output: Vite `assetFileNames: 'styles.css'` ensures CSS is directly named `styles.css` (no rename step)
 
 ### CSS Handling
 
@@ -147,7 +182,8 @@ src/
 - **Framework**: Vitest with Node environment
 - **Setup**: `tests/setup.ts` mocks the `obsidian` module
 - **Location**: `tests/unit/`
-- **Pattern**: `*.test.ts` files
+- **Pattern**: `*.test.ts` files (e.g., `moduleName.test.ts`)
+- **Helpers**: `tests/helpers/` — shared test utilities: `mock-obsidian.ts`, `factories.ts`, `date-fixtures.ts`, `reset-singletons.ts`
 - **Mock**: Obsidian API is mocked; tests run without Obsidian
 
 ---
@@ -246,41 +282,6 @@ The following are marked as external in Vite and must exist in Obsidian:
 - `@codemirror/*` - All CodeMirror packages
 - `@lezer/*` - All Lezer packages
 
-### Plugin Lifecycle
-
-```typescript
-// main.ts
-export default class MnemoloopPlugin extends Plugin {
-  async onload() {
-    // 1. Initialize ribbon icon
-    // 2. Load adapters (settings, flashcards, stats)
-    // 3. Load parsers
-    // 4. Load indexers
-    // 5. Load event listeners
-    // 6. Initialize views
-    // 7. Load commands (via CommandRegistry)
-  }
-  
-  onunload() {
-    // Dispose listeners, unregister commands, clean up
-  }
-}
-```
-
-### Commands Registered
-
-**Palette Commands:**
-- `ml-open-dashboard` - Open plugin dashboard
-- `open-settings` - Open plugin settings
-- `ml-create-empty-flashcard` - Create empty flashcard
-
-**Editor Menu Commands:**
-- "Generate flashcard from selection" - Creates flashcard from selected text
-- "Create empty flashcard in side panel" - Opens empty flashcard in right panel
-
-**File Menu Commands:**
-- "Generate flashcards from file" - Bulk generate from markdown file
-
 ---
 
 ## CI Pipeline
@@ -307,38 +308,6 @@ Additional docs in `docs/` directory:
 
 - `TODO.md` - Current task list
 
-
----
-
-## Deck System
-
-### Deck Storage
-- Decks are stored as YAML array `decks: string[]` on each flashcard frontmatter
-- Old cards without `decks` parse with `decks: undefined` — they are **never rewritten**
-- New cards are created with `decks: []` via `DEFAULT_FLASHCARD_YAML`
-
-### Nested Deck Syntax
-- Anki-style `::` separator for nested decks (e.g., `Maths::Linear algebra`)
-- Utility functions in `src/utils/deck-utils.ts`: `splitDeckPath`, `getParentDecks`, `matchesDeckFilter`
-- Prefix match filtering: selecting `Maths` includes cards in `Maths::*` sub-decks
-
-### Virtual "Uncategorized"
-- "Uncategorized" is a **UI-only concept** — never persisted to card YAML
-- Cards with `decks: undefined` or `decks: []` appear under "Uncategorized" in the deck tree
-- The label is configurable via `default_deck_name` setting (default: `'Uncategorized'`)
-- Query layer handles `'Uncategorized'` as a special filter matching cards with no decks
-
-### No Migration Policy
-- **No batch rewrite** of existing cards
-- Old cards stay without `decks` forever
-- New cards get `decks: []` on creation
-- This is an intentional design decision to avoid touching user data
-
-### Deck Tree Store
-- `src/ui/store/deck-tree.store.ts` computes tree from `FlashcardIndexRecalcResponseEvent`
-- Virtual normalization happens only in the store (not in query layer or YAML)
-- Parent decks aggregate counts from all children
-- Tree is reactive via Svelte writable store
 
 ## Common Tasks
 
@@ -372,6 +341,49 @@ Additional docs in `docs/` directory:
 4. Add to `CommandMap` interface for type safety
 5. Register in `main.ts` `loadCommands()` method via `CommandRegistry`
 6. Export from `src/modules/commands/index.ts` barrel
+
+### Adding an Event, Handler, and Route
+
+1. **Define the event** in `src/modules/events/domains/{domain}/{area}.ts`:
+   - Use `EventFactory.createEvent<T>(type)` for fire-and-forget events
+   - Use `EventFactory.createRequest<T>(type)` for events that need a response (suffix `:Request` auto-applied)
+   - Use `EventFactory.createResponse<T>(type)` for responses (suffix `:Response` auto-applied)
+   - Export both the class and its type alias:
+     ```
+     const MyEvent = EventFactory.createEvent<MyData>('Domain:Action');
+     type MyEvent = IEvent<MyData>;
+     export { MyEvent };
+     ```
+   - Add to the domain's `index.ts` barrel export
+2. **Create the handler** in `src/modules/events/handlers/{domain}/{area}.ts`:
+   - Extend `EventHandler<MyEvent>`:
+     ```
+     export class MyEventHandler extends EventHandler<MyEvent> {
+       async handle(event: MyEvent): Promise<void> {
+         const adapter = this._adapters.get(AdapterKey.whatever);
+         // … side effects or publish follow-up events via this._bus.publish(…)
+       }
+     }
+     ```
+   - Add to the handler domain's `index.ts` barrel export
+3. **Register the route** in `src/modules/events/routes/{domain}/{area}.ts`:
+   ```
+   const router = new EventRouter();
+   router.route(events.MyEvent, handlers.MyEventHandler);
+   export const MyAreaRouter = router;
+   ```
+   - If this is a new domain sub-area, combine its router into the domain-level router (e.g., `FlashcardRouter.combine(…, MyAreaRouter)`)
+   - Export any new named router from the routes barrel (`routes/flashcard/index.ts` or equivalent)
+4. **If this is a new domain** (new top-level domain beyond flashcard/settings/statistics/vault/ui):
+   - Create `domains/{newdomain}/`, `handlers/{newdomain}/`, `routes/{newdomain}/` with their own barrel exports
+   - Add the new domain router to `routes/index.ts` `IndexRouter.combine(…, NewDomainRouter)`
+   - Re-export from `domains/index.ts` and `handlers/index.ts`
+
+**Publishing events from outside the event system** (e.g., from a command or utility):
+```
+import { EventBus } from '@/modules/events';
+EventBus.instance.publish(new MyEvent(data));
+```
 
 ---
 
