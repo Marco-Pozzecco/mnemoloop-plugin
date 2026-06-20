@@ -58,11 +58,13 @@ export default class MnemoloopPlugin extends Plugin {
 		this.loadParsers();
 		this.loadIndexes();
 		this.loadWriters();
-
 		this._vaultWatcher = new VaultWatcher(
 			this,
 			this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>,
 		);
+		this.app.workspace.onLayoutReady(() => {
+			this._vaultWatcher?.initialize();
+		});
 
 		await this.initializeEventRegistry();
 
