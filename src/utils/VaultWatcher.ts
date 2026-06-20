@@ -10,14 +10,29 @@ import {
 } from '@/modules/events/domains';
 
 export class VaultWatcher {
-	private _debounceTimers: Map<string, number> = new Map();
+       private _initialized = false;
+       private _debounceTimers: Map<string, number> = new Map();
 
-	constructor(
-		private _plugin: Plugin,
-		private _settingsAdapter: IAdapter<PluginSettings>,
-	) {
-		this._registerVaultEvents();
-	}
+       constructor(
+               private _plugin: Plugin,
+               private _settingsAdapter: IAdapter<PluginSettings>,
+       ) {
+               // Vault event registration is deferred to initialize()
+               // so we don't receive the startup flood of Vault:Create
+               // events for every existing file.
+       }
+
+       /**
+        * Register vault event handlers. MUST be called inside
+        * workspace.onLayoutReady() so that the startup flood
+        * of Vault:Create events for existing files is skipped.
+        * Safe to call multiple times — subsequent calls are no-ops.
+        */
+       initialize(): void {
+               if (this._initialized) return;
+               this._initialized = true;
+               this._registerVaultEvents();
+       }
 
 	/**
 	 * Register vault event handlers via plugin.registerEvent()
