@@ -21,14 +21,30 @@ def find_svelte_components(category_dir: Path) -> list[tuple[str, str, bool]]:
     """
     Recursively find all Svelte components following the pattern {Name}/{Name}.svelte.
 
+    Wrapper directories (those with their own index.ts) are aggregated: their
+    individual sub-components are skipped and a single synthetic entry is emitted.
+
     Returns list of tuples: (export_name, relative_path, has_types_file)
     - export_name: joined directory names (e.g., "DashboardFooter" for Dashboard/Footer/Footer.svelte)
     - relative_path: path from category root (e.g., "Dashboard/Footer/Footer.svelte")
     """
     components: list[tuple[str, str, bool]] = []
 
+    # --- Detect wrapper directories (those with their own index.ts) ---
+    wrapper_dirs: set[Path] = set()
+    for index_file in category_dir.rglob("index.ts"):
+        parent = index_file.parent
+        if parent != category_dir:
+            wrapper_dirs.add(parent)
+
+    # --- Scan .svelte files, skipping those inside wrapper directories ---
     for svelte_file in sorted(category_dir.rglob("*.svelte")):
         parent_dir = svelte_file.parent
+
+        # Skip if parent is inside a wrapper directory
+        if any(parent_dir == wd or wd in parent_dir.parents for wd in wrapper_dirs):
+            continue
+
         component_name = parent_dir.name
 
         if (
@@ -54,6 +70,12 @@ def find_svelte_components(category_dir: Path) -> list[tuple[str, str, bool]]:
 
         components.append((export_name, str(relative_path), has_types))
 
+    # --- Append synthetic entries for wrapper directories ---
+    for wrapper_dir in sorted(wrapper_dirs):
+        export_name = "".join(wrapper_dir.relative_to(category_dir).parts)
+        relative_path = str(wrapper_dir.relative_to(category_dir))
+        components.append((export_name, relative_path, False))
+
     return components
 
 
@@ -61,9 +83,12 @@ def generate_barrel_content(components: list[tuple[str, str, bool]]) -> str:
     """
     Generate the content for an index.ts barrel file.
 
-    Pattern:
+    Pattern for regular components:
         export { default as ComponentName } from './Path/To/Component.svelte';
         export type { ComponentNameProps } from './Path/To/Component.types';
+
+    Pattern for wrapper directories (those with their own index.ts aggregating sub-components):
+        export { default as WrapperName } from './Wrapper';  // no type export
     """
     if not components:
         return ""
@@ -71,6 +96,13 @@ def generate_barrel_content(components: list[tuple[str, str, bool]]) -> str:
     lines: list[str] = []
 
     for export_name, relative_path, has_types in components:
+        is_wrapper = ".svelte" not in relative_path
+
+        if is_wrapper:
+            # Wrapper directories export their aggregated default
+            lines.append(f"export {{ default as {export_name} }} from './{relative_path}';")
+            continue
+
         lines.append(f"export {{ default as {export_name} }} from './{relative_path}';")
 
         if has_types:
