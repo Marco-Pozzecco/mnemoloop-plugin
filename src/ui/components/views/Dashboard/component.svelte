@@ -15,7 +15,6 @@
 	import { statsStore } from '@/ui/store/stats.store';
 	import { uiStore } from '@/ui/store/ui.store';
 	import { onMount } from 'svelte';
-	import type { DashboardConfig } from './types';
 
 	// Store references for automatic subscription with $ prefix
 	const statsStoreRef = statsStore.store;
@@ -28,15 +27,8 @@
 	let stats = $derived($statsStoreRef);
 	let deckTree = $derived($deckTreeRef);
 	let selectedDeck = $derived(deckTree.selectedDeck);
-	let config: DashboardConfig = $state({
-		chartTimeframe: 'week',
-		chartType: 'heatmap',
-		showProgressChart: true,
-		showRetentionRate: true,
-	});
 	let isLoading = $derived($uiStoreRef.isLoading);
 	let isReviewDisabled = $derived(stats.flashcard.due_now === 0);
-	let showChart = $derived(config.showProgressChart && stats.flashcard.total_learned > 0);
 
 	function onStartReview() {
 		controller.startReview(IndexKey.flashcard, selectedDeck?.fullPath);
@@ -67,11 +59,9 @@
 >
 	<div class="ml-dashboard" role="main">
 		<DashboardHeader {isLoading} {onRefresh} />
-		<DashboardStatsGrid {stats} {config} />
+		<DashboardStatsGrid {stats} />
 		<DashboardDeckTree nodes={deckTree.nodes} {selectedDeck} {onSelectDeck} {onToggleExpand} />
-		{#if showChart}
-			<DashboardChart {stats} chartType={config.chartType} />
-		{/if}
+		<DashboardChart {stats} />
 		<DashboardFooter
 			{stats}
 			{onStartReview}
