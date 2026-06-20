@@ -45,7 +45,7 @@
 
 	// Color range for the threshold scale
 	const cRange = getColorRange();
-	const cDomain = $derived([1, t1, t2, maxValue]);
+	const cDomain = $derived([1, t1, t2]);
 
 	// Calculate year stats
 	const yearStats = $derived(getYearStats(data, isMobile ? undefined : year));
@@ -55,6 +55,7 @@
 	<!-- Header -->
 	<header class="ml-heatmap__header">
 		<h3 class="ml-heatmap__title">Learning Activity</h3>
+		<p class="ml-heatmap__subtitle">Total review count by day</p>
 	</header>
 
 	<div class="ml-heatmap__body">
@@ -64,7 +65,7 @@
 				{data}
 				{cRange}
 				{cDomain}
-				cScale={scaleThreshold(cDomain, cRange)}
+				cScale={scaleThreshold().unknown('transparent')}
 				x="date"
 				c="value"
 				padding={{ top: 20, bottom: 10 }}
@@ -77,9 +78,9 @@
 									<Rect
 										x={cell.x}
 										y={cell.y}
-										width={cellSize[0] - 2}
-										height={cellSize[1] - 2}
-										fill={cell.color}
+										width={Math.max(0, cellSize[0] - 2)}
+										height={Math.max(0, cellSize[1] - 2)}
+										fill={cell.color ?? 'transparent'}
 										rx={2}
 										class="lc-calendar-cell"
 										role="button"
@@ -149,6 +150,13 @@
 		font-size: var(--font-ui-medium);
 		font-weight: var(--font-semibold);
 		color: var(--text-normal);
+	}
+
+	.ml-heatmap__subtitle {
+		margin: 0;
+		margin-top: var(--ml-spacing-sm);
+		font-size: var(--font-ui-small);
+		color: var(--text-muted);
 	}
 
 	.ml-heatmap__body {
