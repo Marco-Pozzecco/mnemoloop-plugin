@@ -6,7 +6,7 @@
  */
 
 /* ==================== Base Theme Variables ==================== */
-:root {
+body {
 	/* Text Colors */
 	--ml-text-normal: var(--text-normal);
 	--ml-text-muted: var(--text-muted);
@@ -47,6 +47,13 @@
 	--ml-spacing-md: 1rem;
 	--ml-spacing-lg: 1.5rem;
 	--ml-spacing-xl: 2rem;
+
+	/* Padding */
+	--ml-padding-xs: 0.25rem;
+	--ml-padding-sm: 0.5rem;
+	--ml-padding-md: 1rem;
+	--ml-padding-lg: 1.5rem;
+	--ml-padding-xl: 2rem;
 
 	/* Border Radius */
 	--ml-radius-sm: 4px;
@@ -92,6 +99,9 @@
 	--ml-card-background: var(--background-secondary);
 	--ml-card-border: var(--background-modifier-border);
 	--ml-card-hover-glow: color-mix(in srgb, var(--text-normal) 5%, transparent);
+
+	/* Breakpoint */
+	--mobile-breakpoint: 768px;
 }
 
 /* ==================== Dark Theme Overrides ==================== */
@@ -104,68 +114,6 @@
 .theme-light {
 	/* Reduced shadow opacity for light theme */
 	--ml-shadow-color: color-mix(in srgb, var(--text-normal) 8%, transparent);
-}
-
-/* ==================== Component-Specific Variables ==================== */
-
-/* Card Face */
-:root {
-	--ml-card-min-height: 200px;
-	--ml-card-padding: 2rem;
-	--ml-card-transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.ml-card-face-container:hover {
-	box-shadow: 0 4px 12px var(--ml-shadow-color);
-}
-
-/* Rating Buttons */
-:root {
-	--ml-rating-button-height: 60px;
-	--ml-rating-button-gap: 1rem;
-
-	/* Rating colors */
-	--ml-rating-again: var(--text-error);
-	--ml-rating-hard: var(--text-warning);
-	--ml-rating-good: var(--text-accent);
-	--ml-rating-easy: var(--text-success);
-
-	/* Rating colors with alpha (Phase 0) - derived from Obsidian variables */
-	--ml-rating-again-alpha: color-mix(in srgb, var(--text-error) 20%, transparent);
-	--ml-rating-hard-alpha: color-mix(in srgb, var(--text-warning) 20%, transparent);
-	--ml-rating-good-alpha: color-mix(in srgb, var(--text-accent) 20%, transparent);
-	--ml-rating-easy-alpha: color-mix(in srgb, var(--text-success) 20%, transparent);
-}
-
-/* Progress Bar */
-:root {
-	--ml-progress-height: 4px;
-	--ml-progress-background: var(--background-modifier-border);
-	--ml-progress-fill: var(--interactive-accent);
-}
-
-/* Toast Notifications */
-:root {
-	--ml-toast-max-width: 400px;
-	--ml-toast-padding: 0.875rem 1rem;
-	--ml-toast-border-radius: 8px;
-	--ml-toast-shadow: var(--ml-shadow-lg);
-}
-
-/* Dashboard Stats */
-:root {
-	--ml-stat-card-padding: 1.25rem;
-	--ml-stat-card-border-radius: var(--ml-radius-md);
-	--ml-stat-value-font-size: 2rem;
-	--ml-stat-label-font-size: 0.85rem;
-}
-
-/* Buttons */
-:root {
-	--ml-button-height: 40px;
-	--ml-button-padding: 0.5rem 1rem;
-	--ml-button-border-radius: var(--ml-radius-sm);
-	--ml-button-transition: all 0.15s ease;
 }
 
 /* ==================== Reduced Motion ==================== */
