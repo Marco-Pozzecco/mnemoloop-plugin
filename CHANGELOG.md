@@ -1,3 +1,15 @@
+## [1.4.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.3.1...1.4.0) (2026-06-21)
+
+### Features
+
+* add debug command to bulk-create test flashcards ([e594ac1](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/e594ac1eb308457acc0a2727f0c8f76ee2bf12d7))
+
+### Bug Fixes
+
+* correct banner-store test initial state type ([97a5f3d](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/97a5f3db2cf92add1338f1af389c812dbe2da433))
+* defer VaultWatcher initialization until layout ready ([75607d0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/75607d066e394f35b2e48fa4ffa027896f94fd98))
+* improve heatmap cell rendering and add review count subtitle ([e4e1c90](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/e4e1c9036645fa32c1e5bbef0ffc027ed9c8baf9))
+
 ## [1.3.1](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.3.0...1.3.1) (2026-06-15)
 
 ### Bug Fixes
