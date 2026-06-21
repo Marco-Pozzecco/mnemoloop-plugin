@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type DashboardStatsGridProps from './types';
 
-	let { stats, config, className }: DashboardStatsGridProps = $props();
+	let { stats, className }: DashboardStatsGridProps = $props();
 
 	function formatPercent(value: number): string {
 		return `${Math.round(value * 100)}%`;
@@ -15,13 +15,11 @@
 		<span class="ml-stat-card__description">cards to review</span>
 	</div>
 
-	{#if config.showRetentionRate}
-		<div class="ml-stat-card">
-			<span class="ml-stat-card__label">Retention</span>
-			<span class="ml-stat-card__value">{formatPercent(stats.flashcard.retention_rate)}</span>
-			<span class="ml-stat-card__description">average accuracy</span>
-		</div>
-	{/if}
+	<div class="ml-stat-card">
+		<span class="ml-stat-card__label">Retention</span>
+		<span class="ml-stat-card__value">{formatPercent(stats.flashcard.retention_rate)}</span>
+		<span class="ml-stat-card__description">average accuracy</span>
+	</div>
 
 	<div class="ml-stat-card">
 		<span class="ml-stat-card__label">Streak</span>
