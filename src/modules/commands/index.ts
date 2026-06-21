@@ -5,6 +5,7 @@ export { CommandRegistry } from './CommandRegistry';
 export { OpenDashboardCommand } from './palette/OpenDashboardCommand';
 export { CreateEmptyFlashcardCommand } from './palette/CreateEmptyFlashcardCommand';
 export { SetAllFlashcardsDueNowCommand } from './palette/SetAllFlashcardsDueNowCommand';
+export { DebugAddTestFlashcardCommand } from './palette/DebugAddTestFlashcardsCommand';
 
 // Editor menu commands
 export { GenerateFromSelectionCommand } from './editor-menu/GenerateFromSelectionCommand';
