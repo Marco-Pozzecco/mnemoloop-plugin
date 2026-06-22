@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Button, Icon } from '@/ui/components';
 	import type DashboardFooterProps from './types';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	let {
 		stats,
@@ -35,11 +36,23 @@
 	}
 
 	function formatCountdown(seconds: number): string {
-		if (seconds <= 0) return '00:00:00';
-		const h = Math.floor(seconds / 3600);
-		const m = Math.floor((seconds % 3600) / 60);
-		const s = seconds % 60;
-		return [h, m, s].map((v) => v.toString().padStart(2, '0')).join(':');
+		const timeMap: Map<string, number> = new SvelteMap();
+
+		if (seconds <= 0) return '0s';
+
+		timeMap.set('d', Math.floor(seconds / 86400));
+		timeMap.set('h', Math.floor((seconds % 86400) / 3600));
+		timeMap.set('m', Math.floor((seconds % 3600) / 60));
+		timeMap.set('s', seconds % 60);
+
+		let result = '';
+
+		timeMap.forEach((v, k) => {
+			if (v === 0) return;
+			result += `${v.toString().padStart(2, '0')}${k} `;
+		});
+
+		return result;
 	}
 </script>
 
