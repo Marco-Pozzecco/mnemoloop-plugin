@@ -14,6 +14,8 @@ export { default as DashboardStatsGrid } from './Dashboard/StatsGrid/component.s
 export type { default as DashboardStatsGridProps } from './Dashboard/StatsGrid/types';
 export { default as ModalControls } from './Modal/Controls/component.svelte';
 export type { default as ModalControlsProps } from './Modal/Controls/types';
+export { default as Navbar } from './Navbar/component.svelte';
+export type { default as NavbarProps } from './Navbar/types';
 export { default as ReviewControls } from './Review/Controls/component.svelte';
 export type { default as ReviewControlsProps } from './Review/Controls/types';
 export { default as ReviewEmptyState } from './Review/EmptyState/component.svelte';
