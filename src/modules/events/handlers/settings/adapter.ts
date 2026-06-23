@@ -2,6 +2,8 @@ import { IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
 import { AdapterKey } from '@/types/adapters';
 import { EventHandler } from '../../core/EventHandler';
 import {
+	SettingsAdapterGetRequestEvent,
+	SettingsAdapterGetResponseEvent,
 	SettingsAdapterInitEvent,
 	SettingsAdapterSaveEvent,
 	SettingsAdapterSetRequestEvent,
@@ -29,7 +31,6 @@ export class SettingsAdapterResetHandler extends EventHandler<SettingsAdapterSet
 		super(deps);
 	}
 
-	 
 	async handle(_event: SettingsAdapterSetRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		adapter.reset();
@@ -48,12 +49,22 @@ export class SettingsAdapterSaveHandler extends EventHandler<SettingsAdapterSave
 	}
 }
 
+export class SettingsAdapterGetHandler extends EventHandler<SettingsAdapterGetRequestEvent> {
+	constructor(deps: IEventRegistryDependencies) {
+		super(deps);
+	}
+
+	async handle(_event: SettingsAdapterGetRequestEvent): Promise<void> {
+		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
+		void this._bus.publish(new SettingsAdapterGetResponseEvent(adapter.data));
+	}
+}
+
 export class SettingsAdapterSetHandler extends EventHandler<SettingsAdapterSetRequestEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
 
-	 
 	async handle(event: SettingsAdapterSetRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		const { field, value } = event.data;
@@ -68,7 +79,6 @@ export class SettingsAdapterUpdateHandler extends EventHandler<SettingsAdapterUp
 		super(deps);
 	}
 
-	 
 	async handle(event: SettingsAdapterUpdateRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		adapter.update(event.data);

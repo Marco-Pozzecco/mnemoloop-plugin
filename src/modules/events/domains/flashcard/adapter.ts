@@ -7,6 +7,7 @@ type Adapters = 'flashcard';
 type AdapterEventType = `${Capitalize<Adapters>}:Adapter:${Capitalize<AdapterAction>}`;
 
 const t: Record<AdapterAction, AdapterEventType> = {
+	get: 'Flashcard:Adapter:Get',
 	set: 'Flashcard:Adapter:Set',
 	update: 'Flashcard:Adapter:Update',
 	reset: 'Flashcard:Adapter:Reset',
@@ -14,6 +15,12 @@ const t: Record<AdapterAction, AdapterEventType> = {
 	init: 'Flashcard:Adapter:Init',
 	state: 'Flashcard:Adapter:State',
 };
+
+const FlashcardAdapterGetRequestEvent = EventFactory.createRequest<void>(t.get);
+type FlashcardAdapterGetRequestEvent = IEvent<void>;
+
+const FlashcardAdapterGetResponseEvent = EventFactory.createResponse<FlashcardIndex>(t.get);
+type FlashcardAdapterGetResponseEvent = IEvent<FlashcardIndex>;
 
 const FlashcardAdapterSetRequestEvent = EventFactory.createRequest<FlashcardIndex>(t.set);
 type FlashcardAdapterSetRequestEvent = IEvent<FlashcardIndex>;
@@ -40,6 +47,8 @@ const FlashcardAdapterStateEvent = EventFactory.createEvent<FlashcardIndex>(t.st
 type FlashcardAdapterStateEvent = IEvent<FlashcardIndex>;
 
 export {
+	FlashcardAdapterGetRequestEvent,
+	FlashcardAdapterGetResponseEvent,
 	FlashcardAdapterInitEvent,
 	FlashcardAdapterResetEvent,
 	FlashcardAdapterSaveEvent,

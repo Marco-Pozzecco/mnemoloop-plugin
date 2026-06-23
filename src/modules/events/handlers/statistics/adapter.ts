@@ -1,7 +1,10 @@
 import { IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
+import { StatisticsAdapter } from '@/modules/adapters/StatisticsAdapter';
 import { AdapterKey } from '@/types/adapters';
 import { EventHandler } from '../../core/EventHandler';
 import {
+	StatisticsAdapterGetRequestEvent,
+	StatisticsAdapterGetResponseEvent,
 	StatisticsAdapterInitEvent,
 	StatisticsAdapterSaveEvent,
 	StatisticsAdapterSetRequestEvent,
@@ -10,7 +13,6 @@ import {
 	StatisticsAdapterUpdateRequestEvent,
 	StatisticsAdapterUpdateResponseEvent,
 } from '../../domains/statistics/adapter';
-import { StatisticsAdapter } from '@/modules/adapters/StatisticsAdapter';
 
 export class StatisticsAdapterInitHandler extends EventHandler<StatisticsAdapterInitEvent> {
 	constructor(deps: IEventRegistryDependencies) {
@@ -29,7 +31,6 @@ export class StatisticsAdapterResetHandler extends EventHandler<StatisticsAdapte
 		super(deps);
 	}
 
-	 
 	async handle(_event: StatisticsAdapterSetRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
 		adapter.reset();
@@ -48,12 +49,22 @@ export class StatisticsAdapterSaveHandler extends EventHandler<StatisticsAdapter
 	}
 }
 
+export class StatisticsAdapterGetHandler extends EventHandler<StatisticsAdapterGetRequestEvent> {
+	constructor(deps: IEventRegistryDependencies) {
+		super(deps);
+	}
+
+	async handle(_event: StatisticsAdapterGetRequestEvent): Promise<void> {
+		const adapter = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
+		void this._bus.publish(new StatisticsAdapterGetResponseEvent(adapter.data));
+	}
+}
+
 export class StatisticsAdapterSetHandler extends EventHandler<StatisticsAdapterSetRequestEvent> {
 	constructor(deps: IEventRegistryDependencies) {
 		super(deps);
 	}
 
-	 
 	async handle(event: StatisticsAdapterSetRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
 		const { field, value } = event.data;
@@ -68,7 +79,6 @@ export class StatisticsAdapterUpdateHandler extends EventHandler<StatisticsAdapt
 		super(deps);
 	}
 
-	 
 	async handle(event: StatisticsAdapterUpdateRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.statistics)! as StatisticsAdapter;
 		adapter.update(event.data);

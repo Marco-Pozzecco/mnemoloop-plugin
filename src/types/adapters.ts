@@ -16,6 +16,7 @@ interface AdapterMap {
 export type Adapters = Map<AdapterKey, AdapterMap[AdapterKey]>;
 
 export enum AdapterAction {
+	Get = 'get',
 	Set = 'set',
 	Update = 'update',
 	Reset = 'reset',
