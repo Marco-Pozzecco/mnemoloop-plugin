@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { ChartSessions } from '@/ui/components/elements';
 	import { analyticsStore } from '@/ui/store/analytics.store';
-	import type AnalyticsReviewProps './types';
+	import type AnalyticsReviewProps from './types';
 
-	let { className }: AnalyticsReviewPropsrops();
+	let { className }: AnalyticsReviewProps = $props();
 
 	const storeRef = $derived(analyticsStore.store);
 	const state = $derived($storeRef);
