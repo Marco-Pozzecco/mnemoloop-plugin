@@ -1,7 +1,7 @@
 import type { ReviewSession, Stats } from '@/schemas';
 
 export default interface ChartSessionsProps {
-	stats: Stats;
+	stats: Stats | null;
 	className?: string;
 }
 
