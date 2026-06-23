@@ -3,6 +3,7 @@
 	import { Chart, Layer, Month, Rect, Tooltip } from 'layerchart';
 	import type ChartSessionsProps from './types';
 	import { getDateRange, getSessionStats, transformSessionsToData } from './utils';
+	import { ChartEmptyState } from '../..';
 
 	let { stats, className }: ChartSessionsProps = $props();
 
@@ -99,56 +100,65 @@
 
 	<div class="ml-sessions__body">
 		<!-- Chart -->
-		<div bind:this={containerEl} class="ml-sessions__chart-container">
-			<Chart
-				{data}
-				{cRange}
-				{cDomain}
-				cScale={scaleThreshold().unknown('transparent')}
-				x="date"
-				c="value"
-				height={chartHeight}
-				padding={containerWidth ? { left: gridOffset, right: gridOffset } : undefined}
-				width={containerWidth || undefined}
-			>
-				{#snippet children({ context })}
-					<Layer>
-						<Month {start} {end} cellSize={monthCellSize} {monthsPerRow} monthLabel={true} tooltip>
-							{#snippet children({ cells, cellSize })}
-								{#each cells as cell (cell.data)}
-									<Rect
-										x={cell.x}
-										y={cell.y}
-										width={Math.max(0, cellSize - 2)}
-										height={Math.max(0, cellSize - 2)}
-										fill={cell.color ?? 'transparent'}
-										rx={2}
-										class="lc-month-cell"
-										role="button"
-										tabindex={0}
-										onpointermove={(e) => context.tooltip?.show(e, cell.data)}
-										onpointerleave={() => context.tooltip?.hide()}
-									/>
-								{/each}
-							{/snippet}
-						</Month>
-					</Layer>
+		<ChartEmptyState show={!stats} message="No sessions data, start reviewing to see your progress">
+			<div bind:this={containerEl} class="ml-sessions__chart-container">
+				<Chart
+					{data}
+					{cRange}
+					{cDomain}
+					cScale={scaleThreshold().unknown('transparent')}
+					x="date"
+					c="value"
+					height={chartHeight}
+					padding={containerWidth ? { left: gridOffset, right: gridOffset } : undefined}
+					width={containerWidth || undefined}
+				>
+					{#snippet children({ context })}
+						<Layer>
+							<Month
+								{start}
+								{end}
+								cellSize={monthCellSize}
+								{monthsPerRow}
+								monthLabel={true}
+								tooltip
+							>
+								{#snippet children({ cells, cellSize })}
+									{#each cells as cell (cell.data)}
+										<Rect
+											x={cell.x}
+											y={cell.y}
+											width={Math.max(0, cellSize - 2)}
+											height={Math.max(0, cellSize - 2)}
+											fill={cell.color ?? 'transparent'}
+											rx={2}
+											class="lc-month-cell"
+											role="button"
+											tabindex={0}
+											onpointermove={(e) => context.tooltip?.show(e, cell.data)}
+											onpointerleave={() => context.tooltip?.hide()}
+										/>
+									{/each}
+								{/snippet}
+							</Month>
+						</Layer>
 
-					<Tooltip.Root
-						classes={{
-							root: 'ml-sessions__tooltip-font',
-						}}
-					>
-						{#snippet children({ data: day })}
-							<Tooltip.Header value={day.date} format="day" />
-							<Tooltip.List>
-								<Tooltip.Item label="Sessions" value={day.value} format="integer" />
-							</Tooltip.List>
-						{/snippet}
-					</Tooltip.Root>
-				{/snippet}
-			</Chart>
-		</div>
+						<Tooltip.Root
+							classes={{
+								root: 'ml-sessions__tooltip-font',
+							}}
+						>
+							{#snippet children({ data: day })}
+								<Tooltip.Header value={day.date} format="day" />
+								<Tooltip.List>
+									<Tooltip.Item label="Sessions" value={day.value} format="integer" />
+								</Tooltip.List>
+							{/snippet}
+						</Tooltip.Root>
+					{/snippet}
+				</Chart>
+			</div>
+		</ChartEmptyState>
 		<div class="ml-sessions__stats-bar">
 			<span class="ml-sessions__stat-badge">
 				<span class="ml-sessions__stat-dot"></span>

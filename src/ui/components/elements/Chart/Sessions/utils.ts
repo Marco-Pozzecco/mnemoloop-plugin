@@ -29,11 +29,13 @@ function formatDateString(d: Date): string {
  * and groups sessions per day.
  */
 export function transformSessionsToData(
-	stats: Stats,
+	stats: Stats | null,
 	bounds: { start: Date; end: Date },
 ): SessionDay[] {
 	// Build map of sessions keyed by date string
 	const sessionMap: Record<string, ReviewSession[]> = {};
+
+	if (!stats) return [];
 
 	for (const session of stats.sessions) {
 		const sessionDate = new Date(session.date);
