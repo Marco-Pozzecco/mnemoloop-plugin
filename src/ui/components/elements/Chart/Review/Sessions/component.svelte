@@ -3,7 +3,7 @@
 	import { Chart, Layer, Month, Rect, Tooltip } from 'layerchart';
 	import type ChartSessionsProps from './types';
 	import { getDateRange, getSessionStats, transformSessionsToData } from './utils';
-	import { ChartEmptyState } from '../..';
+	import { ChartEmptyState } from '@/ui/components';
 
 	let { stats, className }: ChartSessionsProps = $props();
 
