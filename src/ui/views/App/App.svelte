@@ -59,7 +59,9 @@
 
 	@media (max-width: 480px) {
 		.ml-app-container {
-			padding-bottom: calc(60px + env(safe-area-inset-bottom, 0));
+			padding-bottom: calc(
+				var(--navbar-bottom-offset) + var(--navbar-height) + var(--ml-spacing-md)
+			);
 		}
 	}
 </style>
