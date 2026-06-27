@@ -12,7 +12,7 @@
 <div class="ml-chart-retention-rate {className ?? ''}">
 	<div class="ml-chart-retention-rate__header">
 		<div class="ml-chart-retention-rate__title">Retention Rate</div>
-		<div class="ml-chart-retention-rate__subtitle">Point retention rate over time</div>
+		<div class="ml-chart-retention-rate__subtitle">Percentage of correct answers over time</div>
 	</div>
 	<ChartEmptyState show={data.length === 0} message="No review history yet.">
 		<Chart
