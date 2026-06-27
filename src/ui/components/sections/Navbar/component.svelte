@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Icon, NavigationMenu } from '@/ui/components/elements';
 	import type NavbarProps from './types';
-	import { Logger } from '@/utils/Logger';
 
 	let { activeTab = $bindable('dashboard'), onTabChange, className = '' }: NavbarProps = $props();
 
@@ -14,8 +13,6 @@
 		if (value.length === 0 || value === activeTab) return;
 		const tab = value as 'dashboard' | 'analytics';
 		activeTab = tab;
-		Logger.info(`Tab changed to ${tab}`);
-
 		onTabChange?.(tab);
 	}
 </script>
@@ -43,10 +40,11 @@
 	@media (max-width: 480px) {
 		.ml-navbar {
 			position: fixed;
-			bottom: 0;
+			bottom: calc(var(--navbar-bottom-offset) + var(--navbar-height) + var(--ml-spacing-xs));
 			left: 0;
 			right: 0;
 			z-index: 50;
+			height: var(--navbar-height);
 			background-color: var(--ml-background-primary);
 			border-top: 1px solid var(--background-modifier-border);
 			border-bottom: none;
@@ -61,6 +59,7 @@
 
 		:global(.ml-navbar button.ml-navmenu__trigger) {
 			flex-direction: column;
+			border-radius: 0;
 			gap: 2px;
 			padding: 8px 12px;
 			min-height: 48px;
@@ -70,6 +69,8 @@
 
 		:global(.ml-navbar button.ml-navmenu__trigger[data-state='open']) {
 			color: var(--interactive-accent);
+			background-color: transparent;
+			border-bottom: 1px solid var(--interactive-accent);
 		}
 
 		:global(.ml-navbar .ml-navmenu__indicator) {

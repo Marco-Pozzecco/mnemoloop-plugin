@@ -1,7 +1,6 @@
 import { IEventBus } from '@/interfaces/IEventBus';
 import { IEventRegistry, IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
 import { IEventRouter } from '@/interfaces/IEventRouter';
-import { Logger } from '@/utils/Logger';
 
 export class EventRegistry implements IEventRegistry {
 	private _factories: Set<() => void> = new Set();
@@ -42,8 +41,6 @@ export class EventRegistry implements IEventRegistry {
 
 		// Register the router and its routes
 		this._registerRouter(this._router);
-
-		Logger.info('n of registered handlers', this._factories.size);
 
 		// Initialize each factory
 		for (const factory of this._factories) {

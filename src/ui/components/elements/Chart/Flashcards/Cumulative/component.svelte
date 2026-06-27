@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { ChartEmptyState } from '@/ui/components';
-	import { Logger } from '@/utils/Logger';
 	import { AreaChart, defaultChartPadding, Tooltip } from 'layerchart';
 	import type ChartCumulativeCardsProps from './types';
 	import { computeCumulativeByDay } from './utils';
@@ -8,10 +7,6 @@
 	let { flashcards, className }: ChartCumulativeCardsProps = $props();
 
 	const data = $derived(computeCumulativeByDay(flashcards));
-	$effect(() => {
-		Logger.info('Flashcards', flashcards);
-		Logger.info('Data', data);
-	});
 </script>
 
 <div class="ml-chart-cumulative {className ?? ''}">
