@@ -7,6 +7,7 @@ import { Logger } from '@/utils/Logger';
 import { normalizePath, Plugin, TFile, TFolder } from 'obsidian';
 import { FlashcardYamlEngine } from '../yaml-engines/FlashcardYamlEngine';
 import { BaseParser } from './BaseParser';
+import { NotFoundError } from '@/utils/errors';
 
 export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 	private _settings: IAdapter<PluginSettings>;
@@ -29,20 +30,42 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 		retryCount: number = 0,
 	): Promise<ParseResult<FlashcardYaml>> => {
 		try {
+			const file = this._plugin.app.vault.getFileByPath(filepath);
+
+			if (!file) {
+				throw new NotFoundError(`File not found: ${filepath}`);
+			}
+
 			const metadata = await this._yaml.extractFmFromFile(filepath);
+
 			return {
 				entity: metadata,
+				stats: {
+					created_at: new Date(file.stat.ctime).toISOString(),
+					updated_at: new Date(file.stat.mtime).toISOString(),
+				},
 				filepath,
 				success: true,
 			};
-		} catch {
-			if (retryCount >= 3) {
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				Logger.error(e.message);
+				return {
+					entity: null,
+					stats: null,
+					filepath,
+					success: false,
+					error: e,
+				};
+			}
+			if (retryCount >= 1) {
 				const error = new Error(
 					`parseMetadata: failed after ${retryCount} retries for ${filepath}`,
 				);
 				Logger.error(error.message);
 				return {
 					entity: null,
+					stats: null,
 					filepath,
 					success: false,
 					error,
@@ -100,7 +123,15 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 				back: splitResult.back,
 			};
 
-			return { entity: flashcard, filepath, success: true };
+			return {
+				entity: flashcard,
+				filepath,
+				stats: {
+					created_at: new Date(file.stat.ctime).toISOString(),
+					updated_at: new Date(file.stat.mtime).toISOString(),
+				},
+				success: true,
+			};
 		} catch {
 			if (retryCount >= 2) {
 				const error = new Error(`parse: failed after ${retryCount} retries for ${filepath}`);
@@ -109,6 +140,7 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 				return {
 					entity: null,
 					filepath,
+					stats: null,
 					success: false,
 					error,
 				};

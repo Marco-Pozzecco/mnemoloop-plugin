@@ -8,17 +8,19 @@ export interface IParser<Entity extends EntityYaml, EntityYaml> {
 
 export type ParseResult<Entity> = ParseResultWithSuccess<Entity> | ParseResultWithError;
 export type ParseContentResult<Entity> =
-	| Omit<ParseResultWithSuccess<Entity>, 'filepath'>
-	| Omit<ParseResultWithError, 'filepath'>;
+	| Omit<ParseResultWithSuccess<Entity>, 'filepath' | 'stats'>
+	| Omit<ParseResultWithError, 'filepath' | 'stats'>;
 
 type ParseResultWithSuccess<Entity> = {
 	entity: Entity;
+	stats: { created_at: string; updated_at: string };
 	filepath: string;
 	success: true;
 };
 
 type ParseResultWithError = {
 	entity: null;
+	stats: null;
 	filepath: string;
 	success: false;
 	error: Error;
