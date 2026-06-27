@@ -1,3 +1,5 @@
+export { default as AnalyticsReview } from './Analytics/Review/component.svelte';
+export type { default as AnalyticsReviewProps } from './Analytics/Review/types';
 export { default as DashboardChart } from './Dashboard/Chart/component.svelte';
 export type { default as DashboardChartProps } from './Dashboard/Chart/types';
 export { default as DashboardDeckTree } from './Dashboard/DeckTree/component.svelte';
@@ -20,8 +22,8 @@ export { default as ReviewControls } from './Review/Controls/component.svelte';
 export type { default as ReviewControlsProps } from './Review/Controls/types';
 export { default as ReviewEmptyState } from './Review/EmptyState/component.svelte';
 export type { default as ReviewEmptyStateProps } from './Review/EmptyState/types';
-export { default as ReviewFlashCard } from './Review/FlashCard/component.svelte';
-export type { default as ReviewFlashCardProps } from './Review/FlashCard/types';
+export { default as ReviewFlashcard } from './Review/Flashcard/component.svelte';
+export type { default as ReviewFlashcardProps } from './Review/Flashcard/types';
 export { default as ReviewFooter } from './Review/Footer/component.svelte';
 export type { default as ReviewFooterProps } from './Review/Footer/types';
 export { default as ReviewHeader } from './Review/Header/component.svelte';
