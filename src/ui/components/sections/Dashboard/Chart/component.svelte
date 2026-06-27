@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { ChartEmptyState, ChartHeatmap, ChartForecast, Tabs } from '@/ui/components/elements';
+	import {
+		ChartEmptyState,
+		ChartReviewHeatmap,
+		ChartFlashcardsForecast,
+		Tabs,
+	} from '@/ui/components/elements';
 	import type DashboardChartProps from './types';
 	import type { ChartType } from './types';
 
@@ -23,11 +28,11 @@
 				show={stats.flashcard.total_learned === 0}
 				message="No review history yet. Start reviewing to see your heatmap."
 			>
-				<ChartHeatmap {stats} year={new Date().getFullYear()} />
+				<ChartReviewHeatmap {stats} year={new Date().getFullYear()} />
 			</ChartEmptyState>
 		</Tabs.Content>
 		<Tabs.Content value="forecast">
-			<ChartForecast />
+			<ChartFlashcardsForecast />
 		</Tabs.Content>
 	</Tabs.Root>
 </section>

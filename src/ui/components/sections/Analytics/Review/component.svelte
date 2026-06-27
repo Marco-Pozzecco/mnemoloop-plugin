@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChartSessions } from '@/ui/components/elements';
+	import { ChartReviewSessions } from '@/ui/components/elements';
 	import { analyticsStore } from '@/ui/store/analytics.store';
 	import type AnalyticsReviewProps from './types';
 
@@ -52,7 +52,7 @@
 	</div>
 
 	<div class="ml-analytics-review-stats__chart">
-		<ChartSessions {stats} />
+		<ChartReviewSessions {stats} />
 	</div>
 </div>
 
