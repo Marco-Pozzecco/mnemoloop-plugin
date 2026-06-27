@@ -140,38 +140,10 @@ export class DebugAddTestFlashcardCommand extends BaseCommand {
 				const filepath = `${dir}/${entity.uuid}.md`;
 				await writer.create(filepath, entity);
 
-				const {
-					uuid: yUuid,
-					source: ySource,
-					status: yStatus,
-					decks: yDecks,
-					stability: yStability,
-					difficulty: yDifficulty,
-					scheduled_days: yScheduledDays,
-					learning_steps: yLearningSteps,
-					reps: yReps,
-					lapses: yLapses,
-					state: yState,
-					last_review: yLastReview,
-					due: yDue,
-				} = entity;
-
 				const metadata: FlashcardMetadata = FlashcardMetadataSchema.parse({
-					uuid: yUuid,
-					source: ySource,
-					status: yStatus,
-					decks: yDecks,
-					stability: yStability,
-					difficulty: yDifficulty,
-					scheduled_days: yScheduledDays,
-					learning_steps: yLearningSteps,
-					reps: yReps,
-					lapses: yLapses,
-					state: yState,
-					last_review: yLastReview,
-					due: yDue,
+					...entity,
 					file: filepath,
-					created_at: now,
+					created_at: new Date(Date.now() - randomInt(0, 30) * dayMs).toISOString(),
 					updated_at: now,
 					deleted_at: null,
 				});
