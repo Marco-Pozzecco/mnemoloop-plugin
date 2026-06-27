@@ -54,12 +54,10 @@ function createMockMetadata(overrides: Partial<FlashcardMetadata> = {}): Flashca
 		file: 'test.md',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
-		deleted_at: null,
 		status: CardStatus.ACTIVE,
 		decks: [],
 		stability: 0,
 		difficulty: 0,
-		elapsed_days: 0,
 		scheduled_days: 0,
 		learning_steps: 0,
 		reps: 0,
@@ -241,7 +239,7 @@ describe('FlashcardIndexSaveHandler', () => {
 
 	it('should call indexer.save once', async () => {
 		const handler = new FlashcardIndexSaveHandler(mockDeps);
-		const event = new FlashcardIndexSaveEvent();
+		const event = new FlashcardIndexSaveEvent({ flashcards: [], total: 0 });
 
 		await handler.handle(event);
 
@@ -360,7 +358,7 @@ describe('FlashcardIndexUpdateHandler', () => {
 		mockIndexer.getAll = vi.fn().mockReturnValue([mockData]);
 
 		const handler = new FlashcardIndexUpdateHandler(mockDeps);
-		const event = new FlashcardIndexUpdateRequestEvent({ uuid: 'test-uuid', ...mockData });
+		const event = new FlashcardIndexUpdateRequestEvent({ ...mockData, uuid: 'test-uuid' });
 
 		await handler.handle(event);
 
@@ -401,8 +399,9 @@ describe('FlashcardIndexDeleteHandler', () => {
 	});
 
 	it('should call indexer.delete and publish response, state, and compute events', async () => {
+		const mockData = createMockMetadata({ uuid: 'test-uuid' });
 		const handler = new FlashcardIndexDeleteHandler(mockDeps);
-		const event = new FlashcardIndexDeleteRequestEvent({ uuid: 'test-uuid' });
+		const event = new FlashcardIndexDeleteRequestEvent(mockData);
 
 		await handler.handle(event);
 
@@ -430,7 +429,9 @@ describe('FlashcardIndexOnVaultCreateHandler', () => {
 		mockData = createMockMetadata({ uuid: 'test-uuid', file: 'test.md' });
 
 		mockParser = {
-			parseMetadata: vi.fn().mockResolvedValue({ entity: { uuid: 'test-uuid' }, filepath: 'test.md' }),
+			parseMetadata: vi
+				.fn()
+				.mockResolvedValue({ entity: { uuid: 'test-uuid' }, filepath: 'test.md', success: true }),
 		} as unknown as FlashcardParser;
 
 		mockIndexer = {
@@ -577,7 +578,9 @@ describe('FlashcardIndexOnVaultModifyHandler', () => {
 		mockData = createMockMetadata({ uuid: 'test-uuid', file: 'test.md' });
 
 		mockParser = {
-			parseMetadata: vi.fn().mockResolvedValue({ entity: { uuid: 'test-uuid' }, filepath: 'test.md' }),
+			parseMetadata: vi
+				.fn()
+				.mockResolvedValue({ entity: { uuid: 'test-uuid' }, filepath: 'test.md', success: true }),
 		} as unknown as FlashcardParser;
 
 		mockIndexer = {
@@ -646,7 +649,9 @@ describe('FlashcardIndexOnVaultRenameHandler', () => {
 		mockData = createMockMetadata({ uuid: 'test-uuid', file: 'test.md' });
 
 		mockParser = {
-			parseMetadata: vi.fn().mockResolvedValue({ entity: { uuid: 'test-uuid' }, filepath: 'new.md' }),
+			parseMetadata: vi
+				.fn()
+				.mockResolvedValue({ entity: { uuid: 'test-uuid' }, filepath: 'new.md', success: true }),
 		} as unknown as FlashcardParser;
 		mockIndexer = {
 			isPathInWatchedDir: vi.fn().mockReturnValue(true),
@@ -675,7 +680,10 @@ describe('FlashcardIndexOnVaultRenameHandler', () => {
 		await handler.handle(event);
 
 		expect(mockIndexer.findByFilepath).toHaveBeenCalledWith('old.md');
-		expect(mockIndexer.upsert).toHaveBeenCalledWith('test-uuid', expect.objectContaining({ file: 'new.md' }));
+		expect(mockIndexer.upsert).toHaveBeenCalledWith(
+			'test-uuid',
+			expect.objectContaining({ file: 'new.md' }),
+		);
 		expect(mockIndexer.save).toHaveBeenCalledTimes(1);
 		expect(bus.publish).toHaveBeenCalledTimes(2);
 		expect(bus.publish).toHaveBeenCalledWith(expect.any(FlashcardIndexStateEvent));
@@ -692,7 +700,7 @@ describe('FlashcardIndexOnVaultRenameHandler', () => {
 
 		expect(mockIndexer.findByFilepath).toHaveBeenCalledWith('old.md');
 		expect(mockParser.parseMetadata).toHaveBeenCalledWith('new.md');
-		expect(mockIndexer.generateMetadata).toHaveBeenCalledWith(expect.any(Object));
+		expect(mockIndexer.generateMetadata).toHaveBeenCalledWith({ uuid: 'test-uuid' }, 'new.md');
 		expect(mockIndexer.upsert).toHaveBeenCalledWith('test-uuid', expect.any(Object));
 		expect(mockIndexer.save).toHaveBeenCalledTimes(1);
 		expect(bus.publish).toHaveBeenCalledTimes(2);

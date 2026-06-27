@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeForecastData } from '@/ui/components/elements/Chart/Forecast/utils';
+import { computeForecastData } from '@/ui/components/elements/Chart/Flashcards/Forecast/utils';
 import { CardStatus } from '@/schemas';
 import type { FlashcardMetadata } from '@/schemas';
 import { State } from 'ts-fsrs';
@@ -23,7 +23,6 @@ function makeFlashcard(overrides: Partial<FlashcardMetadata> = {}): FlashcardMet
 		source: null,
 		created_at: now,
 		updated_at: now,
-		deleted_at: null,
 		...overrides,
 	};
 }
