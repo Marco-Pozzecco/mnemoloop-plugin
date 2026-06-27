@@ -1,8 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { Plugin } from 'obsidian';
-import {
-	FlashcardIndexer,
-} from '@/modules/indexers/FlashcardIndexer';
+import { FlashcardIndexer } from '@/modules/indexers/FlashcardIndexer';
 import { FlashcardParser } from '@/modules/parsers/FlashcardParser';
 import { FlashcardAdapter } from '@/modules/adapters/FlashcardAdapter';
 import { IAdapter } from '@/interfaces/IAdapter';
@@ -63,14 +61,19 @@ describe('FlashcardIndexer', () => {
 
 		it('should parse all flashcards and merge into cache', async () => {
 			vi.spyOn(parser, 'parseAll').mockResolvedValue([
-				{ entity: createFlashcardYaml(), filepath: '/flashcards/1.md' },
+				{
+					entity: createFlashcardYaml(),
+					filepath: '/flashcards/1.md',
+					success: true,
+					stats: { created_at: '2026-05-18T10:00:00.000Z', updated_at: '2026-05-18T10:00:00.000Z' },
+				},
 			]);
-			const adapterSetSpy = vi.spyOn(adapter, 'set');
+			const adapterUpdateSpy = vi.spyOn(adapter, 'update');
 
 			await indexer.initialize();
 
 			expect(parser.parseAll).toHaveBeenCalledWith('/flashcards');
-			expect(adapterSetSpy).toHaveBeenCalled();
+			expect(adapterUpdateSpy).toHaveBeenCalled();
 		});
 
 		it('should use new timestamps when re-parsing existing flashcards', async () => {
@@ -86,6 +89,7 @@ describe('FlashcardIndexer', () => {
 			vi.spyOn(parser, 'parseAll').mockResolvedValue([
 				{
 					entity: createFlashcardYaml({ uuid: existingCard.uuid }),
+					stats: { created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
 					filepath: '/flashcards/1.md',
 					success: true,
 				},
@@ -102,12 +106,12 @@ describe('FlashcardIndexer', () => {
 	describe('save', () => {
 		it('should dump cache to adapter and save', async () => {
 			indexer.create('00000000-0000-0000-0000-000000000000', createFlashcardMetadata());
-			const adapterSetSpy = vi.spyOn(adapter, 'set');
+			const adapterUpdateSpy = vi.spyOn(adapter, 'update');
 			const adapterSaveSpy = vi.spyOn(adapter, 'save').mockResolvedValue(undefined);
 
 			await indexer.save();
 
-			expect(adapterSetSpy).toHaveBeenCalled();
+			expect(adapterUpdateSpy).toHaveBeenCalled();
 			expect(adapterSaveSpy).toHaveBeenCalled();
 		});
 	});
