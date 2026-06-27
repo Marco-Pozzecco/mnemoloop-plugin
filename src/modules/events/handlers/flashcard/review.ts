@@ -117,9 +117,17 @@ export class FlashcardReviewSessionEndHandler extends EventHandler<FlashcardRevi
 		);
 		const progress = { ...currentData.progress, [dateKey]: updatedProgressForDate };
 		const { current_streak, longest_streak } = calculateStreaks(progress, dateKey);
+
+		const total_reviews = sessions.reduce((acc, session) => (acc += session.total_count), 0);
+
 		stats.update({
 			sessions,
-			flashcard: { ...currentData.flashcard, current_streak, longest_streak },
+			flashcard: {
+				...currentData.flashcard,
+				current_streak,
+				longest_streak,
+				total_reviews: total_reviews,
+			},
 			progress,
 			updated_at: new Date().toISOString(),
 		});
