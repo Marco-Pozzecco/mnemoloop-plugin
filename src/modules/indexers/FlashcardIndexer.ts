@@ -1,12 +1,5 @@
 import { IAdapter } from '@/interfaces/IAdapter';
-import { ParseResult } from '@/interfaces/IParser';
-import {
-	Flashcard,
-	FlashcardIndex,
-	FlashcardMetadata,
-	FlashcardMetadataSchema,
-	FlashcardYaml,
-} from '@/schemas';
+import { Flashcard, FlashcardIndex, FlashcardMetadata, FlashcardYaml } from '@/schemas';
 import { PluginSettings } from '@/schemas/settings';
 import { normalizePath } from 'obsidian';
 import { FlashcardAdapter } from '../adapters/FlashcardAdapter';
@@ -32,11 +25,24 @@ export class FlashcardIndexer extends BaseIndexer<
 	initialize: () => Promise<void> = async () => {
 		this._cache.clear();
 
+		// load from adpater
+		const metadata = this._adapter.data;
+
+		for (const flashcard of metadata.flashcards) {
+			if (!this.isPathInWatchedDir(flashcard.file)) continue;
+			this._cache.set(flashcard.uuid, flashcard);
+		}
+
+		// parse new flashcards
 		const flashcards = await this._parser.parseAll(this._dirPath());
 
 		for (const flashcard of flashcards) {
 			if (flashcard.success) {
-				const metadata = this.generateMetadata(flashcard);
+				const metadata = this.generateMetadata(
+					flashcard.entity,
+					flashcard.filepath,
+					flashcard.stats,
+				);
 				this._cache.set(flashcard.entity.uuid, metadata);
 			}
 		}
@@ -47,7 +53,7 @@ export class FlashcardIndexer extends BaseIndexer<
 	save: () => Promise<void> = async () => {
 		const flashcards = Object.values(this._cache.dump());
 
-		this._adapter.set({
+		this._adapter.update({
 			flashcards,
 			updated_at: new Date().toISOString(),
 		});
@@ -72,16 +78,19 @@ export class FlashcardIndexer extends BaseIndexer<
 		return parentDir === watchedDir;
 	}
 
-	public generateMetadata(data: ParseResult<FlashcardYaml>): FlashcardMetadata {
+	public generateMetadata(
+		data: FlashcardYaml,
+		filepath: string,
+		time?: { created_at: string; updated_at: string },
+	): FlashcardMetadata {
 		const now = new Date().toISOString();
-		const entity = data.entity as Record<string, unknown>;
-		const metadata = FlashcardMetadataSchema.parse({
-			...entity,
-			file: data.filepath,
-			created_at: entity.created_at ?? now,
-			updated_at: entity.updated_at ?? now,
-			deleted_at: entity.deleted_at ?? null,
-		});
+
+		const metadata: FlashcardMetadata = {
+			...data,
+			file: filepath,
+			created_at: time?.created_at ?? now,
+			updated_at: time?.updated_at ?? now,
+		};
 		return metadata;
 	}
 }

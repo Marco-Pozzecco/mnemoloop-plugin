@@ -1,5 +1,6 @@
 import './ui/styles/main.css';
 
+import { bannerStore } from '@/ui/store/banner.store';
 import { Plugin } from 'obsidian';
 import { IAdapter } from './interfaces/IAdapter';
 import { IEvent } from './interfaces/IEvent';
@@ -36,7 +37,6 @@ import { ParserKey, Parsers } from './types/parsers';
 import { WriterKey, Writers } from './types/writers';
 import { APP_VIEW, AppView } from './ui/views/App/AppView';
 import { SettingsView } from './ui/views/Settings/SettingsView';
-import { bannerStore } from '@/ui/store/banner.store';
 import { VaultWatcher } from './utils/VaultWatcher';
 
 export default class MnemoloopPlugin extends Plugin {

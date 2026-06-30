@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { Banner, Dashboard, Review } from '@/ui/components';
+	import { Analytics } from '@/ui/components/views';
+	import { Navbar } from '@/ui/components/sections';
 	import { setAppContext } from '@/ui/context/AppContext';
 	import { uiStore } from '@/ui/store/ui.store';
 	import type { AppProps } from './types';
@@ -30,11 +32,16 @@
 			onDismiss={() => bannerStore.dismiss($bannerRef.activeBanner!.id)}
 		/>
 	{/if}
-	{#if currentView === 'dashboard'}
-		<Dashboard />
-	{:else if currentView === 'review'}
-		<Review />
-	{/if}
+	<Navbar bind:activeTab={currentView} />
+	<div class="ml-app-view-section">
+		{#if currentView === 'review'}
+			<Review />
+		{:else if currentView === 'dashboard'}
+			<Dashboard />
+		{:else}
+			<Analytics />
+		{/if}
+	</div>
 </div>
 
 <style>
@@ -42,6 +49,19 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
+		overflow-y: hidden;
+	}
+
+	.ml-app-view-section {
+		width: 100%;
 		overflow-y: auto;
+	}
+
+	@media (max-width: 480px) {
+		.ml-app-container {
+			padding-bottom: calc(
+				var(--navbar-bottom-offset) + var(--navbar-height) + var(--ml-spacing-md)
+			);
+		}
 	}
 </style>

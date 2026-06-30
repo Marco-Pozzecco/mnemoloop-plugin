@@ -3,6 +3,8 @@ import { FlashcardAdapter } from '@/modules/adapters/FlashcardAdapter';
 import { AdapterKey } from '@/types/adapters';
 import { EventHandler } from '../../core/EventHandler';
 import {
+	FlashcardAdapterGetRequestEvent,
+	FlashcardAdapterGetResponseEvent,
 	FlashcardAdapterInitEvent,
 	FlashcardAdapterResetEvent,
 	FlashcardAdapterSaveEvent,
@@ -31,7 +33,6 @@ export class FlashcardAdapterResetHandler extends EventHandler<FlashcardAdapterR
 		super(deps);
 	}
 
-	 
 	async handle(_event: FlashcardAdapterResetEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.flashcard) as FlashcardAdapter;
 		adapter.reset();
@@ -50,6 +51,17 @@ export class FlashcardAdapterSaveHandler extends EventHandler<FlashcardAdapterSa
 		await adapter.save();
 		// Publish the state change via the event bus
 		void this._bus.publish(new FlashcardAdapterStateEvent(adapter.data));
+	}
+}
+
+export class FlashcardAdapterGetHandler extends EventHandler<FlashcardAdapterGetRequestEvent> {
+	constructor(deps: IEventRegistryDependencies) {
+		super(deps);
+	}
+
+	async handle(_event: FlashcardAdapterGetRequestEvent): Promise<void> {
+		const adapter = this._adapters.get(AdapterKey.flashcard)! as FlashcardAdapter;
+		void this._bus.publish(new FlashcardAdapterGetResponseEvent(adapter.data));
 	}
 }
 

@@ -15,7 +15,10 @@ describe('FlashcardParser', () => {
 	let yamlEngine: FlashcardYamlEngine;
 
 	beforeEach(() => {
-		plugin = createMockPlugin([]);
+		plugin = createMockPlugin([
+			{ path: 'test.md', content: '---\n---\n' },
+			{ path: 'bad.md', content: '---\n---\n' },
+		]);
 		settings = {
 			data: {
 				flashcard: {
@@ -74,7 +77,7 @@ describe('FlashcardParser', () => {
 
 			const result = await parser.parseMetadata('bad.md');
 
-			expect(recoverSpy).toHaveBeenCalledTimes(3);
+			expect(recoverSpy).toHaveBeenCalledTimes(1);
 			expect(result.filepath).toBe('bad.md');
 		});
 	});

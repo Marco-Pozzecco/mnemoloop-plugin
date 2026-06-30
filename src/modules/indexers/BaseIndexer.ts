@@ -1,8 +1,9 @@
 import type { IAdapter } from '@/interfaces/IAdapter';
 import { IIndexer } from '@/interfaces/IIndexer';
-import { IParser, ParseResult } from '@/interfaces/IParser';
+import { IParser } from '@/interfaces/IParser';
 import { PluginSettings } from '@/schemas/settings';
 import { Cache } from '@/utils/Cache';
+import { Logger } from '@/utils/Logger';
 
 export abstract class BaseIndexer<
 	Entity extends EntityYaml,
@@ -55,6 +56,7 @@ export abstract class BaseIndexer<
 		if (!entity) {
 			throw new Error(IndexError.FAILED_TO_CREATE);
 		}
+		this.save().catch((e: Error) => Logger.error(e.message));
 		return entity;
 	};
 
@@ -78,6 +80,7 @@ export abstract class BaseIndexer<
 			throw new Error(IndexError.FAILED_TO_UPDATE);
 		}
 
+		this.save().catch((e: Error) => Logger.error(e.message));
 		return result;
 	};
 
@@ -98,10 +101,11 @@ export abstract class BaseIndexer<
 		const entity = this._cache.get(id);
 		if (!entity) throw new Error(IndexError.NOT_FOUND);
 		this._cache.delete(id);
+		this.save().catch((e: Error) => Logger.error(e.message));
 		return entity;
 	};
 
-	public abstract generateMetadata(data: ParseResult<Entity>): EntityMetadata;
+	public abstract generateMetadata(data: Entity, filepath: string): EntityMetadata;
 }
 
 enum IndexError {

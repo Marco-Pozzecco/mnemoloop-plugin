@@ -5,4 +5,4 @@ export interface AppProps {
 	component: Component;
 }
 
-export type AppViews = 'dashboard' | 'review';
+export type AppViews = 'dashboard' | 'review' | 'analytics';

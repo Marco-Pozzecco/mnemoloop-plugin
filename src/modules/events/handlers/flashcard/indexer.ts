@@ -38,8 +38,8 @@ export class FlashcardIndexInitializeHandler extends EventHandler<FlashcardIndex
 		const indexer = this._indexers.get(IndexKey.flashcard)!;
 		await indexer.initialize();
 		// Update statistics
-void this._bus.publish(new FlashcardStatisticsComputeEvent());
-void this._bus.publish(
+		void this._bus.publish(new FlashcardStatisticsComputeEvent());
+		void this._bus.publish(
 			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
 		);
 	}
@@ -61,11 +61,10 @@ export class FlashcardIndexGetHandler extends EventHandler<FlashcardIndexGetRequ
 		super(deps);
 	}
 
- 
 	async handle(event: FlashcardIndexGetRequestEvent): Promise<void> {
 		const indexer = this._indexers.get(IndexKey.flashcard)!;
 		const response = indexer.get(event.data.id);
-void this._bus.publish(new FlashcardIndexGetResponseEvent(response ?? null));
+		void this._bus.publish(new FlashcardIndexGetResponseEvent(response ?? null));
 	}
 }
 
@@ -74,11 +73,10 @@ export class FlashcardIndexGetAllHandler extends EventHandler<FlashcardIndexGetA
 		super(deps);
 	}
 
- 
 	async handle(_event: FlashcardIndexGetAllRequestEvent): Promise<void> {
 		const indexer = this._indexers.get(IndexKey.flashcard)!;
 		const result = indexer.getAll();
-void this._bus.publish(new FlashcardIndexGetAllResponseEvent(result));
+		void this._bus.publish(new FlashcardIndexGetAllResponseEvent(result));
 	}
 }
 
@@ -87,11 +85,10 @@ export class FlashcardIndexQueryHandler extends EventHandler<FlashcardIndexQuery
 		super(deps);
 	}
 
- 
 	async handle(event: FlashcardIndexQueryRequestEvent): Promise<void> {
 		const indexer = this._indexers.get(IndexKey.flashcard)!;
 		const result = indexer.query(event.data.predicate);
-void this._bus.publish(new FlashcardIndexQueryResponseEvent(result));
+		void this._bus.publish(new FlashcardIndexQueryResponseEvent(result));
 	}
 }
 
@@ -100,16 +97,15 @@ export class FlashcardIndexUpdateHandler extends EventHandler<FlashcardIndexUpda
 		super(deps);
 	}
 
- 
 	async handle(event: FlashcardIndexUpdateRequestEvent): Promise<void> {
 		const indexer = this._indexers.get(IndexKey.flashcard)!;
 		const result = indexer.update(event.data.uuid!, event.data);
 
-void this._bus.publish(new FlashcardIndexUpdateResponseEvent(result));
-void this._bus.publish(
+		void this._bus.publish(new FlashcardIndexUpdateResponseEvent(result));
+		void this._bus.publish(
 			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
 		);
-void this._bus.publish(new FlashcardStatisticsComputeEvent());
+		void this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
 
@@ -123,11 +119,11 @@ export class FlashcardIndexCreateHandler extends EventHandler<FlashcardIndexCrea
 		const result = indexer.create(event.data.uuid, event.data);
 		await indexer.save();
 
-void this._bus.publish(new FlashcardIndexCreateResponseEvent(result));
-void this._bus.publish(
+		void this._bus.publish(new FlashcardIndexCreateResponseEvent(result));
+		void this._bus.publish(
 			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
 		);
-void this._bus.publish(new FlashcardStatisticsComputeEvent());
+		void this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
 
@@ -141,11 +137,11 @@ export class FlashcardIndexDeleteHandler extends EventHandler<FlashcardIndexDele
 		const result = indexer.delete(event.data.uuid);
 		await indexer.save();
 
-void this._bus.publish(new FlashcardIndexDeleteResponseEvent(result ?? null));
-void this._bus.publish(
+		void this._bus.publish(new FlashcardIndexDeleteResponseEvent(result ?? null));
+		void this._bus.publish(
 			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
 		);
-void this._bus.publish(new FlashcardStatisticsComputeEvent());
+		void this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
 
@@ -170,16 +166,18 @@ export class FlashcardIndexOnVaultCreateHandler extends EventHandler<VaultCreate
 		try {
 			const parser = this._parsers.get(ParserKey.flashcard)!;
 			const result = await parser.parseMetadata(data.path);
-			const entity = indexer.generateMetadata(result);
-			indexer.upsert(entity.uuid, entity);
-			await indexer.save();
+			if (result.success) {
+				const entity = indexer.generateMetadata(result.entity, result.filepath);
+				indexer.upsert(entity.uuid, entity);
+				await indexer.save();
+			}
 		} catch (error) {
 			Logger.error(`Watcher: failed to create flashcard from ${data.path}`, error);
 		}
-void this._bus.publish(
+		void this._bus.publish(
 			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
 		);
-void this._bus.publish(new FlashcardStatisticsComputeEvent());
+		void this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
 
@@ -205,10 +203,10 @@ export class FlashcardIndexOnVaultDeleteHandler extends EventHandler<VaultDelete
 			indexer.delete(existing.uuid);
 			await indexer.save();
 		}
-void this._bus.publish(
+		void this._bus.publish(
 			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
 		);
-void this._bus.publish(new FlashcardStatisticsComputeEvent());
+		void this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
 
@@ -234,19 +232,21 @@ export class FlashcardIndexOnVaultModifyHandler extends EventHandler<VaultModify
 
 		try {
 			const result = await parser.parseMetadata(data.path);
-			const entity = indexer.generateMetadata(result);
-			indexer.update(entity.uuid, entity);
-			await indexer.save();
+			if (result.success) {
+				const entity = indexer.generateMetadata(result.entity, result.filepath);
+				indexer.update(entity.uuid, entity);
+				await indexer.save();
+			}
 		} catch {
 			if (existing) {
 				indexer.delete(existing.uuid);
 				await indexer.save();
 			}
 		}
-void this._bus.publish(
+		void this._bus.publish(
 			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
 		);
-void this._bus.publish(new FlashcardStatisticsComputeEvent());
+		void this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }
 
@@ -275,16 +275,18 @@ export class FlashcardIndexOnVaultRenameHandler extends EventHandler<VaultRename
 			} else if (indexer.isPathInWatchedDir(data.path)) {
 				const parser = this._parsers.get(ParserKey.flashcard)!;
 				const result = await parser.parseMetadata(data.path);
-				const entity = indexer.generateMetadata(result);
-				indexer.upsert(entity.uuid, entity);
-				await indexer.save();
+				if (result.success) {
+					const entity = indexer.generateMetadata(result.entity, result.filepath);
+					indexer.upsert(entity.uuid, entity);
+					await indexer.save();
+				}
 			}
 		} catch (error) {
 			Logger.error(`Watcher: failed to create flashcard from ${data.path} after rename`, error);
 		}
-void this._bus.publish(
+		void this._bus.publish(
 			new FlashcardIndexStateEvent({ flashcards: indexer.getAll(), total: indexer.size }),
 		);
-void this._bus.publish(new FlashcardStatisticsComputeEvent());
+		void this._bus.publish(new FlashcardStatisticsComputeEvent());
 	}
 }

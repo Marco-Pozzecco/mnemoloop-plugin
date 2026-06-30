@@ -5,7 +5,7 @@ import {
 	FlashcardIndexStateEvent,
 } from '@/modules/events';
 import { type FlashcardMetadata } from '@/schemas';
-import { computeForecastData } from '@/ui/components/elements/Chart/Forecast/utils';
+import { computeForecastData } from '@/ui/components/elements/Chart/Flashcards/Forecast/utils';
 import {
 	chartForecastStore,
 	ChartForecastStore,

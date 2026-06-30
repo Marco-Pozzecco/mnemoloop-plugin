@@ -23,7 +23,6 @@ export const FlashcardMetadataSchema = FlashcardYamlSchema.extend({
 	file: z.string().min(1),
 	created_at: z.iso.datetime(),
 	updated_at: z.iso.datetime(),
-	deleted_at: z.iso.datetime().nullable(),
 });
 
 export const FlashcardContentSchema = z.object({
@@ -54,7 +53,6 @@ export const DEFAULT_FLASHCARD_YAML: Omit<FlashcardYaml, 'uuid'> = {
 export const DEFAULT_FLASHCARD_METADATA: Omit<FlashcardMetadata, 'uuid' | 'file'> = {
 	created_at: new Date().toISOString(),
 	updated_at: new Date().toISOString(),
-	deleted_at: null,
 	...DEFAULT_FSRS,
 	...DEFAULT_FLASHCARD_YAML,
 };

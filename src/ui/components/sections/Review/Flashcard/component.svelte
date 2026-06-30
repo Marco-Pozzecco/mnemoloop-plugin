@@ -11,7 +11,7 @@
 	let cardContainer: HTMLElement | undefined = $state();
 
 	let flashcard: Flashcard | null = $derived(item.data);
-	let timer: ReturnType<typeof setTimeout> | null = null;
+	let timer: number | null = null;
 
 	$effect(() => {
 		// Watch for data changes

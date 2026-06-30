@@ -7,6 +7,7 @@ type Adapters = 'settings';
 type AdapterEventType = `${Capitalize<Adapters>}:Adapter:${Capitalize<AdapterAction>}`;
 
 const t: Record<AdapterAction, AdapterEventType> = {
+	get: 'Settings:Adapter:Get',
 	set: 'Settings:Adapter:Set',
 	update: 'Settings:Adapter:Update',
 	reset: 'Settings:Adapter:Reset',
@@ -14,6 +15,12 @@ const t: Record<AdapterAction, AdapterEventType> = {
 	init: 'Settings:Adapter:Init',
 	state: 'Settings:Adapter:State',
 };
+
+const SettingsAdapterGetRequestEvent = EventFactory.createRequest<void>(t.get);
+type SettingsAdapterGetRequestEvent = IEvent<void>;
+
+const SettingsAdapterGetResponseEvent = EventFactory.createResponse<PluginSettings>(t.get);
+type SettingsAdapterGetResponseEvent = IEvent<PluginSettings>;
 
 const SettingsAdapterSetRequestEvent = EventFactory.createRequest<{
 	field: keyof PluginSettings;
@@ -24,7 +31,9 @@ type SettingsAdapterSetRequestEvent = IEvent<{ field: keyof PluginSettings; valu
 const SettingsAdapterSetResponseEvent = EventFactory.createResponse<PluginSettings>(t.set);
 type SettingsAdapterSetResponseEvent = IEvent<PluginSettings>;
 
-const SettingsAdapterUpdateRequestEvent = EventFactory.createRequest<Partial<PluginSettings>>(t.update);
+const SettingsAdapterUpdateRequestEvent = EventFactory.createRequest<Partial<PluginSettings>>(
+	t.update,
+);
 type SettingsAdapterUpdateRequestEvent = IEvent<Partial<PluginSettings>>;
 
 const SettingsAdapterUpdateResponseEvent = EventFactory.createResponse<PluginSettings>(t.update);
@@ -43,6 +52,8 @@ const SettingsAdapterStateEvent = EventFactory.createEvent<PluginSettings>(t.sta
 type SettingsAdapterStateEvent = IEvent<PluginSettings>;
 
 export {
+	SettingsAdapterGetRequestEvent,
+	SettingsAdapterGetResponseEvent,
 	SettingsAdapterInitEvent,
 	SettingsAdapterResetEvent,
 	SettingsAdapterSaveEvent,
