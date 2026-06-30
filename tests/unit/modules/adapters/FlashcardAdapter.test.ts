@@ -5,7 +5,10 @@ import { DEFAULT_FLASHCARD_INDEX } from '@/schemas';
 import { createMockPlugin } from '../../../helpers/mock-obsidian';
 
 function getVault(plugin: unknown): Record<string, unknown> {
-	return ((plugin as Record<string, unknown>).app as Record<string, unknown>).vault as Record<string, unknown>;
+	return ((plugin as Record<string, unknown>).app as Record<string, unknown>).vault as Record<
+		string,
+		unknown
+	>;
 }
 
 describe('FlashcardAdapter', () => {
@@ -13,7 +16,9 @@ describe('FlashcardAdapter', () => {
 	let adapter: FlashcardAdapter;
 
 	beforeEach(() => {
-		plugin = createMockPlugin([]);
+		plugin = createMockPlugin([
+			{ path: '/test-plugin/flashcard-index.json', content: '{"flashcards":[],"updated_at":null}' },
+		]);
 		(plugin as Record<string, unknown>).manifest = { dir: '/test-plugin' };
 		adapter = new FlashcardAdapter(plugin as Plugin);
 	});
@@ -30,25 +35,20 @@ describe('FlashcardAdapter', () => {
 	});
 
 	describe('loadData', () => {
-		it('should parse existing JSON file via vault.read', async () => {
-			const vault = getVault(plugin);
-			vault.getAbstractFileByPath = vi
-				.fn()
-				.mockReturnValue(new (TFile as unknown as new (path: string) => TFile)('/test-plugin/flashcard-index.json'));
-			vault.read = vi.fn().mockResolvedValue('{"flashcards":[],"updated_at":null}');
-
+		it('should parse existing JSON file via vault.adapter.read', async () => {
 			const data = await (adapter as unknown as Record<string, () => Promise<unknown>>).loadData();
 
 			expect(data).toEqual({ flashcards: [], updated_at: null });
 		});
 
-		it('should return default data when file not found', async () => {
+		it('should throw when file not found', async () => {
+			// Remove the file from fileMap so adapter.read throws
 			const vault = getVault(plugin);
-			vault.getAbstractFileByPath = vi.fn().mockReturnValue(null);
+	vault.fileMap.delete('/test-plugin/flashcard-index.json');
 
-			const data = await (adapter as unknown as Record<string, () => Promise<unknown>>).loadData();
-
-			expect(data).toEqual(DEFAULT_FLASHCARD_INDEX);
+			await expect(
+				(adapter as unknown as Record<string, () => Promise<unknown>>).loadData(),
+			).rejects.toThrow('File not found');
 		});
 	});
 
@@ -91,7 +91,11 @@ describe('FlashcardAdapter', () => {
 			const vault = getVault(plugin);
 			vault.getAbstractFileByPath = vi
 				.fn()
-				.mockReturnValue(new (TFile as unknown as new (path: string) => TFile)('/test-plugin/flashcard-index.json'));
+				.mockReturnValue(
+					new (TFile as unknown as new (path: string) => TFile)(
+						'/test-plugin/flashcard-index.json',
+					),
+				);
 			vault.read = vi.fn().mockResolvedValue('{"flashcards":[],"updated_at":null}');
 
 			await adapter.initialize();

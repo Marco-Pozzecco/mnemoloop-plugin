@@ -83,6 +83,7 @@
 		margin: 0 auto;
 		color: var(--text-normal);
 		animation: ml-fade-in 0.3s ease-out;
+		overflow-y: auto;
 	}
 
 	@keyframes ml-fade-in {

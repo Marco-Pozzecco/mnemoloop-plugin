@@ -7,6 +7,7 @@ type Adapters = 'Statistics';
 type AdapterEventType = `${Capitalize<Adapters>}:Adapter:${Capitalize<AdapterAction>}`;
 
 const t: Record<AdapterAction, AdapterEventType> = {
+	get: 'Statistics:Adapter:Get',
 	set: 'Statistics:Adapter:Set',
 	update: 'Statistics:Adapter:Update',
 	reset: 'Statistics:Adapter:Reset',
@@ -14,6 +15,12 @@ const t: Record<AdapterAction, AdapterEventType> = {
 	init: 'Statistics:Adapter:Init',
 	state: 'Statistics:Adapter:State',
 };
+
+const StatisticsAdapterGetRequestEvent = EventFactory.createRequest<void>(t.get);
+type StatisticsAdapterGetRequestEvent = IEvent<void>;
+
+const StatisticsAdapterGetResponseEvent = EventFactory.createResponse<Stats>(t.get);
+type StatisticsAdapterGetResponseEvent = IEvent<Stats>;
 
 const StatisticsAdapterSetRequestEvent = EventFactory.createRequest<{
 	field: keyof Stats;
@@ -43,6 +50,8 @@ const StatisticsAdapterStateEvent = EventFactory.createEvent<Stats>(t.state);
 type StatisticsAdapterStateEvent = IEvent<Stats>;
 
 export {
+	StatisticsAdapterGetRequestEvent,
+	StatisticsAdapterGetResponseEvent,
 	StatisticsAdapterInitEvent,
 	StatisticsAdapterResetEvent,
 	StatisticsAdapterSaveEvent,

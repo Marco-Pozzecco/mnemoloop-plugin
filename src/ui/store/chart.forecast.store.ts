@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import { ForecastDatum } from '../components/elements/Chart/Forecast/types';
+import { ForecastDatum } from '../components/elements/Chart/Flashcards/Forecast/types';
 import { BaseStoreManager } from './base.store';
 
 export type ForecastChartTimeframe = 'month' | 'quarter' | 'year';

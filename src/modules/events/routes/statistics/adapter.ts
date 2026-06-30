@@ -7,6 +7,7 @@ const router = new EventRouter();
 router.route(events.StatisticsAdapterInitEvent, handlers.StatisticsAdapterInitHandler);
 router.route(events.StatisticsAdapterResetEvent, handlers.StatisticsAdapterResetHandler);
 router.route(events.StatisticsAdapterSaveEvent, handlers.StatisticsAdapterSaveHandler);
+router.route(events.StatisticsAdapterGetRequestEvent, handlers.StatisticsAdapterGetHandler);
 router.route(events.StatisticsAdapterSetRequestEvent, handlers.StatisticsAdapterSetHandler);
 router.route(events.StatisticsAdapterUpdateRequestEvent, handlers.StatisticsAdapterUpdateHandler);
 

@@ -62,6 +62,7 @@ export const StatsSchema = z.object({
 export type DailyProgress = z.infer<typeof DailyProgressSchema>;
 export type ReviewSession = z.infer<typeof ReviewSessionSchema>;
 export type Stats = z.infer<typeof StatsSchema>;
+export type FlashcardStats = z.infer<typeof FlashcardStatsSchema>;
 
 export const DEFAULT_STATISTICS: Stats = {
 	progress: {},

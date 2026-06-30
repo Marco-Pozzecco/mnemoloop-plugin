@@ -3,10 +3,10 @@
 	import {
 		ReviewControls,
 		ReviewEmptyState,
-		ReviewFlashCard,
+		ReviewFlashcard,
 		ReviewHeader,
 		type ReviewEmptyStateProps,
-		type ReviewFlashCardProps,
+		type ReviewFlashcardProps,
 		type ReviewHeaderProps,
 	} from '@/ui/components/sections';
 	import { ReviewController } from '@/ui/controllers/ReviewController';
@@ -107,6 +107,7 @@
 
 	onDestroy(() => {
 		window.removeEventListener('keydown', handleKeyDown);
+		handleEndSession();
 	});
 
 	const headerProps: ReviewHeaderProps = $derived({
@@ -121,7 +122,7 @@
 		canUndo: controller!.canUndo(),
 	});
 
-	const flashCardProps: ReviewFlashCardProps = $derived({
+	const flashCardProps: ReviewFlashcardProps = $derived({
 		item: item!,
 		showingAnswer,
 		onShowAnswer: handleShowAnswer,
@@ -142,7 +143,7 @@
 
 	<main class="ml-review-main">
 		{#if item}
-			<ReviewFlashCard {...flashCardProps} />
+			<ReviewFlashcard {...flashCardProps} />
 
 			{#if showingAnswer}
 				<div class="ml-controls-wrapper">
