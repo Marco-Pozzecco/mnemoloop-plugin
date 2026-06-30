@@ -1,3 +1,22 @@
+## [1.5.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.4.0...1.5.0) (2026-06-30)
+
+### Features
+
+* add analytics review section with sessions chart ([b96b649](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/b96b649740a33fd4b5be4fa15140b382bc571069))
+* add Analytics view with controller and store ([c2dad83](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/c2dad8383d88e2e4647382b1b11a640cd16949d4))
+* add get adapter event handlers for flashcard, settings, and statistics ([bf091c9](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/bf091c955db0d01d6c1c8f288de1d5891ba736f1))
+* add Navbar section component ([7d4b5e6](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/7d4b5e604e5891b56e439619d3a0765441de3188))
+* add NavigationMenu element component ([757d93b](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/757d93b6e54d56c80f6ff3588c252c0596046bcb))
+* add sessions calendar heatmap chart component ([b3c7f4d](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/b3c7f4db21ad1fb264816667e2e6834c04ffb2e4))
+* add total_reviews counter to flashcard statistics ([e9b2c8f](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/e9b2c8f9b01896964162ce48cdb992b6bb6819c3))
+* extract stats from parse results and add NotFoundError ([1c2a774](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/1c2a774da9cc263e78738f0880f2a438a02f431f))
+
+### Bug Fixes
+
+* correct syntax errors in analytics review component ([3733496](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/3733496f66e232e35c78766960d5c5e3b4c8948d))
+* correct vault.fileMap access in FlashcardAdapter test ([6e22459](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/6e224594c949b8f195c60b632eb88d6ed26f37fa))
+* handle null stats in sessions chart with empty state ([ae52661](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/ae52661c0fdbac260811565a84ee426a3f0640a3))
+
 ## [1.4.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.3.1...1.4.0) (2026-06-21)
 
 ### Features
