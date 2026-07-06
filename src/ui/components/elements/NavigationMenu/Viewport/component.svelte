@@ -11,12 +11,14 @@
 	{/if}
 </NavigationMenu.Viewport>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	:global(.ml-navmenu__viewport) {
 		position: relative;
 		overflow: hidden;
 		transition:
-			width var(--ml-transition-fast),
-			height var(--ml-transition-fast);
+			width $transition-fast,
+			height $transition-fast;
 	}
 </style>

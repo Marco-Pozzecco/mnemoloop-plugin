@@ -2,15 +2,16 @@
 	import { Button, Icon } from '@/ui/components';
 	import type { RatingButton } from './types';
 	import type RatingControlsProps from './types';
+	import { tokens } from '@/utils/token';
 
 	// props
 	let { onSubmitRating, disabled = false }: RatingControlsProps = $props();
 
 	const ratings: RatingButton[] = [
-		{ value: 1, label: 'Again', color: 'var(--text-error)', icon: 'refresh-ccw', shortcut: '1' },
-		{ value: 2, label: 'Hard', color: 'var(--text-warning)', icon: 'trending-up', shortcut: '2' },
-		{ value: 3, label: 'Good', color: 'var(--text-accent)', icon: 'check', shortcut: '3' },
-		{ value: 4, label: 'Easy', color: 'var(--text-success)', icon: 'zap', shortcut: '4' },
+		{ value: 1, label: 'Again', color: tokens['text-error'], icon: 'refresh-ccw', shortcut: '1' },
+		{ value: 2, label: 'Hard', color: tokens['text-warning'], icon: 'trending-up', shortcut: '2' },
+		{ value: 3, label: 'Good', color: tokens['text-accent'], icon: 'check', shortcut: '3' },
+		{ value: 4, label: 'Easy', color: tokens['text-success'], icon: 'zap', shortcut: '4' },
 	];
 </script>
 
@@ -34,13 +35,15 @@
 	{/each}
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-rating-controls {
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
-		gap: 1rem;
+		gap: $spacing-md;
 		width: 100%;
-		margin-top: 1.5rem;
+		margin-top: $spacing-lg;
 	}
 
 	.ml-rating-controls.disabled {
@@ -52,25 +55,25 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.5rem;
+		gap: $spacing-xs;
 	}
 
 	:global(button.ml-rating-button) {
 		width: 100%;
 		height: 60px;
-		border-color: var(--background-modifier-border);
+		border-color: $background-modifier-border;
 		transition: all 0.2s ease;
 	}
 
 	:global(.ml-rating-button:hover) {
-		background-color: var(--background-secondary);
+		background-color: $background-secondary;
 	}
 
 	.ml-rating-button-content {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 4px;
+		gap: $spacing-xxs;
 	}
 
 	.ml-rating-label {
@@ -80,24 +83,24 @@
 
 	.ml-rating-shortcut {
 		font-size: 0.7rem;
-		color: var(--text-muted);
-		background-color: var(--background-secondary);
-		padding: 2px 6px;
-		border-radius: 4px;
-		border: 1px solid var(--background-modifier-border);
+		color: $text-muted;
+		background-color: $background-secondary;
+		padding: $spacing-xxs $spacing-xs;
+		border-radius: $radius-sm;
+		border: 1px solid $background-modifier-border;
 	}
 
 	/* Mobile optimizations */
 	@media (max-width: 480px) {
 		.ml-rating-controls {
-			gap: 0.75rem;
+			gap: $spacing-sm;
 			grid-template-columns: repeat(2, 1fr);
-			margin-top: 1rem;
+			margin-top: $spacing-md;
 		}
 
 		:global(button.ml-rating-button) {
 			height: 56px;
-			padding: 0.5rem;
+			padding: $spacing-xs;
 		}
 
 		.ml-rating-label {

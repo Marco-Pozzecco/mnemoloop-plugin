@@ -16,7 +16,9 @@
 	{@render children()}
 {/if}
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-chart-empty {
 		position: relative;
 		display: inline-block;
@@ -40,8 +42,8 @@
 	}
 
 	.ml-chart-empty__message {
-		color: var(--text-muted);
-		font-size: var(--font-ui-small);
+		color: $text-muted;
+		font-size: $font-sm;
 		text-align: center;
 	}
 </style>

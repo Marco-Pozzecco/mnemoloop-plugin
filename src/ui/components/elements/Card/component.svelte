@@ -60,17 +60,19 @@
 	{/if}
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-card {
-		background-color: var(--background-secondary);
-		border-radius: var(--card-radius, 8px);
+		background-color: $background-secondary;
+		border-radius: $radius-md;
 		transition:
 			box-shadow 0.2s ease,
 			transform 0.2s ease;
 	}
 
 	.ml-card.has-border {
-		border: 1px solid var(--background-modifier-border);
+		border: 1px solid $background-modifier-border;
 	}
 
 	.ml-card.clickable {
@@ -78,7 +80,7 @@
 	}
 
 	.ml-card.clickable:hover {
-		box-shadow: 0 2px 8px var(--ml-shadow-color);
+		box-shadow: $shadow-sm;
 		transform: translateY(-1px);
 	}
 
@@ -89,37 +91,37 @@
 	.ml-card-header {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 1rem 1.25rem;
-		border-bottom: 1px solid var(--background-modifier-border);
+		gap: $spacing-sm;
+		padding: $spacing-md $spacing-lg;
+		border-bottom: 1px solid $background-modifier-border;
 	}
 
 	.ml-card-icon {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: var(--text-muted);
+		color: $text-muted;
 		flex-shrink: 0;
 	}
 
 	.ml-card-title {
 		margin: 0;
-		font-size: var(--font-ui-medium);
-		font-weight: var(--font-semibold);
-		color: var(--text-normal);
+		font-size: $font-md;
+		font-weight: $font-semibold;
+		color: $text-normal;
 		flex: 1;
 	}
 
 	.ml-card-content {
-		padding: 1.25rem;
+		padding: $spacing-lg;
 		width: 100%;
 		height: fit-content;
 	}
 
 	.ml-card-footer {
-		padding: 1rem 1.25rem;
-		border-top: 1px solid var(--background-modifier-border);
-		background-color: var(--background-modifier-hover);
+		padding: $spacing-md $spacing-lg;
+		border-top: 1px solid $background-modifier-border;
+		background-color: $background-modifier-hover;
 	}
 
 	/* Padding variants */
@@ -128,30 +130,30 @@
 	}
 
 	.ml-card.padding-small .ml-card-content {
-		padding: 0.75rem;
+		padding: $spacing-sm;
 	}
 
 	.ml-card.padding-medium .ml-card-content {
-		padding: 1.25rem;
+		padding: $spacing-lg;
 	}
 
 	.ml-card.padding-large .ml-card-content {
-		padding: 1.5rem;
+		padding: $spacing-lg;
 	}
 
 	.ml-card.padding-none .ml-card-header,
 	.ml-card.padding-none .ml-card-footer {
-		padding: 0.5rem 0.75rem;
+		padding: $spacing-xs $spacing-sm;
 	}
 
 	.ml-card.padding-small .ml-card-header,
 	.ml-card.padding-small .ml-card-footer {
-		padding: 0.75rem 1rem;
+		padding: $spacing-sm $spacing-md;
 	}
 
 	.ml-card.padding-large .ml-card-header,
 	.ml-card.padding-large .ml-card-footer {
-		padding: 1.25rem 1.5rem;
+		padding: $spacing-lg $spacing-lg;
 	}
 
 	/* Mobile adjustments */
@@ -159,34 +161,33 @@
 		.ml-card-header,
 		.ml-card-content,
 		.ml-card-footer {
-			padding: 0.75rem 1rem;
+		padding: $spacing-sm $spacing-md;
 		}
 	}
 
 	/*Global styles*/
 	:global(.ml-card.ml-settings-card) {
-		background-color: var(--setting-items-background);
-		border-radius: var(--setting-items-radius);
-		corner-shape: var(--corner-shape);
-		border: var(--setting-items-border-width) solid var(--setting-items-border-color);
+		background-color: $background-modifier-settings;
+		border-radius: $radius-settings;
+		border: $border-width-settings solid $background-modifier-settings-border;
 	}
 
 	:global(.ml-card.has-border.ml-settings-card) {
-		border: var(--setting-items-border-width) solid var(--setting-items-border-color);
+		border: $border-width-settings solid $background-modifier-settings-border;
 	}
 
 	:global(.ml-card.ml-card.padding-medium.ml-settings-card .ml-card-content) {
-		padding: var(--setting-items-padding);
+		padding: $setting-items-padding;
 	}
 
 	:global(.ml-card.ml-settings-card .ml-card-content) {
 		display: flex;
 		flex-direction: column;
-		gap: var(--size-4-4);
+		gap: $spacing-md;
 	}
 
 	:global(.ml-card.ml-settings-card .ml-card-content .ml-settings-group:not(:last-child)) {
-		padding-bottom: var(--size-4-4);
-		border-bottom: var(--border-width) solid var(--background-modifier-border);
+		padding-bottom: $spacing-md;
+		border-bottom: $border-width-settings solid $background-modifier-border;
 	}
 </style>

@@ -26,14 +26,16 @@
 	{/if}
 </Button.Root>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	:global(button.ml-button) {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
 		font-family: inherit;
-		font-weight: var(--font-medium);
-		border-radius: var(--button-radius);
+		font-weight: $font-md;
+		border-radius: $radius-md;
 		cursor: pointer;
 		transition:
 			background-color 0.15s ease,
@@ -50,27 +52,27 @@
 
 	/* Variants */
 	:global(button.ml-button--primary) {
-		background-color: var(--interactive-accent);
-		color: var(--text-on-accent);
+		background-color: $interactive-accent;
+		color: $text-accent-foreground;
 	}
 
 	:global(button.ml-button--primary:hover:not(:disabled)) {
-		background-color: var(--interactive-accent-hover);
+		background-color: $interactive-accent-hover;
 	}
 
 	:global(button.ml-button--secondary) {
-		background-color: var(--button-secondary-background, var(--background-modifier-border));
-		color: var(--text-normal);
-		border: 1px solid var(--background-modifier-border-focus);
+		background-color: $background-modifier-border;
+		color: $text-normal;
+		border: $border-width solid $background-modifier-border-focus;
 	}
 
 	:global(button.ml-button--secondary:hover:not(:disabled)) {
-		background-color: var(--background-modifier-hover);
+		background-color: $background-modifier-hover;
 	}
 
 	:global(button.ml-button--danger) {
-		background-color: var(--text-error);
-		color: var(--text-on-accent);
+		background-color: -error;
+		color: $text-accent-foreground;
 	}
 
 	:global(button.ml-button--danger:hover:not(:disabled)) {
@@ -79,42 +81,42 @@
 
 	:global(button.ml-button--ghost) {
 		background-color: transparent;
-		color: var(--text-normal);
-		border: 1px solid var(--background-modifier-border);
+		color: $text-normal;
+		border: 1px solid $background-modifier-border;
 		box-shadow: none;
 	}
 
 	:global(button.ml-button--ghost:hover:not(:disabled)) {
-		color: var(--interactive-accent);
+		color: $interactive-accent;
 	}
 
 	:global(button.ml-button--icon) {
 		background-color: transparent;
-		color: var(--text-normal);
+		color: $text-normal;
 		box-shadow: none;
 	}
 
 	:global(button.ml-button--icon:hover:not(:disabled)) {
-		color: var(--interactive-accent);
+		color: $interactive-accent;
 	}
 
 	/* Sizes */
 	:global(button.ml-button--small) {
 		min-height: 32px;
 		padding: 0 12px;
-		font-size: var(--font-ui-smaller);
+		font-size: $font-xs;
 	}
 
 	:global(button.ml-button--medium) {
 		min-height: 44px;
 		padding: 0 20px;
-		font-size: var(--font-ui-small);
+		font-size: $font-sm;
 	}
 
 	:global(button.ml-button--large) {
 		min-height: 52px;
 		padding: 0 28px;
-		font-size: var(--font-ui-medium);
+		font-size: $font-md;
 	}
 
 	/* States */
@@ -124,7 +126,7 @@
 	}
 
 	:global(button.ml-button:focus-visible) {
-		outline: 2px solid var(--interactive-accent);
+		outline: 2px solid $interactive-accent;
 		outline-offset: 2px;
 	}
 

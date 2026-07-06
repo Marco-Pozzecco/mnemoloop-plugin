@@ -16,7 +16,9 @@
 	{/if}
 </NavigationMenu.Item>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	:global(.ml-navmenu__item) {
 		display: block;
 	}

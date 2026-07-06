@@ -16,6 +16,7 @@
 	import { ChartEmptyState, Tabs } from '@/ui/components';
 	import { type ForecastChartTimeframe } from '@/ui/store/chart.forecast.store';
 	import { capitalize } from '@/utils/String';
+	import { tokens } from '@/utils/token';
 
 	const workloadController = new ForecastChartController();
 
@@ -44,7 +45,7 @@
 	});
 
 	// Color scale for entities (alphabetical: flashcard=index0, overdue=index1)
-	const cRange = ['var(--interactive-accent)', 'var(--color-red)'];
+	const cRange = [tokens['interactive-accent'], tokens['red']];
 
 	function onTabChange(value: ForecastChartTimeframe) {
 		workloadController.setTimeframe(value);
@@ -95,9 +96,9 @@
 						y={average}
 						label="Average"
 						props={{
-							label: { fill: 'var(--ml-text-muted)' },
+							label: { fill: tokens['text-muted'] },
 							line: {
-								stroke: 'var(--ml-text-muted)',
+								stroke: tokens['text-muted'],
 								dashArray: '6 3',
 							},
 						}}
@@ -136,7 +137,10 @@
 	</div>
 </ChartEmptyState>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+	@use 'breakpoints' as *;
+
 	.ml-chart-workload {
 		width: 100%;
 		min-height: 200px;
@@ -146,23 +150,23 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: flex-start;
-		margin-bottom: var(--ml-spacing-sm);
+		margin-bottom: $spacing-sm;
 	}
 
 	.ml-chart-workload__header {
 		display: flex;
 		flex-direction: column;
-		gap: var(--ml-spacing-sm);
+		gap: $spacing-sm;
 	}
 
 	.ml-chart-workload__title {
-		font-size: var(--font-ui-medium);
+		font-size: $font-md;
 		margin: 0;
 	}
 
 	.ml-chart-workload__subtitle {
-		color: var(--text-muted);
-		font-size: var(--font-ui-small);
+		color: $text-muted;
+		font-size: $font-sm;
 		margin: 0;
 	}
 
@@ -174,10 +178,10 @@
 	.ml-chart-workload__timeframe-tabs.mobile {
 		width: 100%;
 		display: none;
-		margin-top: var(--ml-spacing-sm);
+		margin-top: $spacing-sm;
 	}
 
-	@media (max-width: 768px) {
+	@media (max-width: $tablet-breakpoint) {
 		.ml-chart-workload__timeframe-tabs:not(.mobile) {
 			display: none;
 		}

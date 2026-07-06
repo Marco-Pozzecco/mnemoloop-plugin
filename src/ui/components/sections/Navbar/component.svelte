@@ -32,21 +32,23 @@
 	</NavigationMenu.Root>
 </nav>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-navbar {
-		border-bottom: 1px solid var(--background-modifier-border);
+		border-bottom: 1px solid $background-modifier-border;
 	}
 
 	@media (max-width: 480px) {
 		.ml-navbar {
 			position: fixed;
-			bottom: calc(var(--navbar-bottom-offset) + var(--navbar-height) + var(--ml-spacing-xs));
+		bottom: calc($navbar-bottom-offset + $navbar-height + $spacing-xs);
 			left: 0;
 			right: 0;
 			z-index: 50;
-			height: var(--navbar-height);
-			background-color: var(--ml-background-primary);
-			border-top: 1px solid var(--background-modifier-border);
+		height: $navbar-height;
+			background-color: $background-primary;
+			border-top: 1px solid $background-modifier-border;
 			border-bottom: none;
 			padding-bottom: env(safe-area-inset-bottom, 0);
 		}
@@ -54,23 +56,23 @@
 		:global(.ml-navbar .ml-navmenu__list) {
 			justify-content: space-around;
 			width: 100%;
-			padding: var(--ml-spacing-xs) var(--ml-spacing-sm);
+			padding: $spacing-xs $spacing-sm;
 		}
 
 		:global(.ml-navbar button.ml-navmenu__trigger) {
 			flex-direction: column;
 			border-radius: 0;
-			gap: 2px;
-			padding: 8px 12px;
+		gap: $spacing-xxs;
+		padding: $spacing-xs $spacing-sm;
 			min-height: 48px;
 			min-width: 48px;
 			font-size: 10px;
 		}
 
 		:global(.ml-navbar button.ml-navmenu__trigger[data-state='open']) {
-			color: var(--interactive-accent);
+			color: $interactive-accent;
 			background-color: transparent;
-			border-bottom: 1px solid var(--interactive-accent);
+			border-bottom: 1px solid $interactive-accent;
 		}
 
 		:global(.ml-navbar .ml-navmenu__indicator) {

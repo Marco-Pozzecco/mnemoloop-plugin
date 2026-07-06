@@ -83,18 +83,20 @@
 	</Button>
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-dashboard__footer-actions {
 		margin-top: 8px;
 		display: flex;
 		justify-content: center;
-		gap: 12px;
+		gap: $spacing-sm;
 	}
 
 	:global(.ml-start-button) {
 		width: max-content;
 		max-width: 400px;
-		gap: 12px;
+		gap: $spacing-sm;
 	}
 
 	:global(.ml-spin) {

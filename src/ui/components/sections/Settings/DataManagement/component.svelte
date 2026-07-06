@@ -57,20 +57,22 @@
 	</Card>
 </section>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-data-management-section {
-		margin-top: var(--size-2-2);
+		margin-top: $spacing-xxs;
 	}
 
 	.ml-section-header {
-		color: var(--text-normal);
+		color: $text-normal;
 		margin: 0;
-		margin-bottom: var(--size-4-4);
+		margin-bottom: $spacing-md;
 	}
 
 	.ml-field-group {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: $spacing-xs;
 	}
 </style>

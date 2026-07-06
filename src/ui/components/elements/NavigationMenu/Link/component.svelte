@@ -11,21 +11,23 @@
 	{/if}
 </NavigationMenu.Link>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	:global(.ml-navmenu__link) {
 		display: block;
-		padding: var(--ml-padding-sm);
+		padding: $spacing-sm;
 		text-decoration: none;
-		color: var(--text-normal);
-		border-radius: var(--ml-radius-sm);
-		transition: background-color var(--ml-transition-fast);
+		color: $text-normal;
+		border-radius: $radius-sm;
+		transition: background-color $transition-fast;
 	}
 
 	:global(.ml-navmenu__link:hover) {
-		background-color: var(--ml-background-modifier-hover);
+		background-color: $background-modifier-hover;
 	}
 
 	:global(.ml-navmenu__link[data-active]) {
-		color: var(--ml-text-accent);
+		color: $text-accent;
 	}
 </style>
