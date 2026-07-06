@@ -6,6 +6,7 @@ import { Logger } from '@/utils/Logger';
 
 export class EventBus implements IEventBus {
 	private _registry: Map<string, Set<IEventHandler['handle']>> = new Map();
+	private _tap?: (event: IEvent<unknown>) => void;
 	private static _instance: EventBus | undefined;
 
 	private constructor() {}
@@ -19,6 +20,14 @@ export class EventBus implements IEventBus {
 
 	async publish<TData>(event: IEvent<TData>): Promise<string> {
 		Logger.debug(`Event: ${event.type}`, event);
+		if (this._tap) {
+			try {
+				this._tap(event);
+			} catch (err) {
+				Logger.error('EventBus tap error', err);
+			}
+		}
+
 		const handlers = this._registry.get(event.type);
 		if (!handlers) {
 			return event.id;
@@ -82,5 +91,14 @@ export class EventBus implements IEventBus {
 				this._registry.delete(eventClass.type);
 			}
 		}
+	}
+
+	/** Register a sink invoked for every published event. Single sink; last wins. */
+	setTap(handler: (event: IEvent<unknown>) => void): void {
+		this._tap = handler;
+	}
+
+	clearTap(): void {
+		this._tap = undefined;
 	}
 }
