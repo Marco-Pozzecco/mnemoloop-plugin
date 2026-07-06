@@ -69,10 +69,8 @@ describe('FlashcardParser', () => {
 			expect(result.entity.uuid).toBe('recovered');
 		});
 
-
 		it('should return default entity after max retries exceeded', async () => {
-			vi.spyOn(parser['_yaml'], 'extractFmFromFile')
-				.mockRejectedValue(new Error('always fail'));
+			vi.spyOn(parser['_yaml'], 'extractFmFromFile').mockRejectedValue(new Error('always fail'));
 			const recoverSpy = vi.spyOn(parser['_yaml'], 'recover').mockResolvedValue(undefined);
 
 			const result = await parser.parseMetadata('bad.md');
@@ -189,7 +187,9 @@ describe('FlashcardParser', () => {
 			parser = new FlashcardParser(plugin as unknown as Plugin, settings, yamlEngine);
 			const yaml = createFlashcardYaml({ uuid: '88888888-8888-1888-8888-888888888888' });
 			vi.spyOn(parser['_yaml'], 'extractFmFromContent')
-				.mockImplementationOnce(() => { throw new Error('first fail'); })
+				.mockImplementationOnce(() => {
+					throw new Error('first fail');
+				})
 				.mockReturnValueOnce({ fm: yaml, body: 'Front\n\n?\n\nBack' });
 			vi.spyOn(parser['_yaml'], 'recover').mockResolvedValue(undefined);
 
@@ -213,18 +213,24 @@ describe('FlashcardParser', () => {
 				{ path: '/flashcards/b.md', content: '---\n---\n' },
 				{ path: '/flashcards/c.txt', content: 'not markdown' },
 			]);
-			plugin.app.vault.adapter.exists = vi.fn().mockImplementation(async (path: string) =>
-				path === '/flashcards' || ['/flashcards/a.md', '/flashcards/b.md', '/flashcards/c.txt'].includes(path),
-			);
+			plugin.app.vault.adapter.exists = vi
+				.fn()
+				.mockImplementation(
+					async (path: string) =>
+						path === '/flashcards' ||
+						['/flashcards/a.md', '/flashcards/b.md', '/flashcards/c.txt'].includes(path),
+				);
 			const localYamlEngine = new FlashcardYamlEngine(plugin as unknown as Plugin);
 			parser = new FlashcardParser(plugin as unknown as Plugin, settings, localYamlEngine);
-			const parseSpy = vi
-				.spyOn(parser, 'parse')
-				.mockImplementation(async (filepath) => ({
-					entity: createFlashcardYaml({ uuid: filepath.endsWith('/a.md') ? 'aaaaaaaa-aaaa-1aaa-8aaa-aaaaaaaaaaaa' : 'bbbbbbbb-bbbb-1bbb-8bbb-bbbbbbbbbbbb' }),
-					filepath,
-					success: true,
-				}));
+			const parseSpy = vi.spyOn(parser, 'parse').mockImplementation(async (filepath) => ({
+				entity: createFlashcardYaml({
+					uuid: filepath.endsWith('/a.md')
+						? 'aaaaaaaa-aaaa-1aaa-8aaa-aaaaaaaaaaaa'
+						: 'bbbbbbbb-bbbb-1bbb-8bbb-bbbbbbbbbbbb',
+				}),
+				filepath,
+				success: true,
+			}));
 
 			const result = await parser.parseAll('/flashcards');
 
@@ -239,9 +245,13 @@ describe('FlashcardParser', () => {
 				{ path: '/flashcards/note.md', content: '---\n---\n' },
 				{ path: '/flashcards/image.png', content: 'binary' },
 			]);
-			plugin.app.vault.adapter.exists = vi.fn().mockImplementation(async (path: string) =>
-				path === '/flashcards' || ['/flashcards/note.md', '/flashcards/image.png'].includes(path),
-			);
+			plugin.app.vault.adapter.exists = vi
+				.fn()
+				.mockImplementation(
+					async (path: string) =>
+						path === '/flashcards' ||
+						['/flashcards/note.md', '/flashcards/image.png'].includes(path),
+				);
 			const localYamlEngine = new FlashcardYamlEngine(plugin as unknown as Plugin);
 			parser = new FlashcardParser(plugin as unknown as Plugin, settings, localYamlEngine);
 			vi.spyOn(parser, 'parse').mockImplementation(async () => ({
@@ -262,40 +272,88 @@ describe('FlashcardParser', () => {
 				{ path: '/flashcards/bad.md', content: '---\n---\n' },
 				{ path: '/flashcards/also-good.md', content: '---\n---\n' },
 			]);
-			plugin.app.vault.adapter.exists = vi.fn().mockImplementation(async (path: string) =>
-				path === '/flashcards' || ['/flashcards/good.md', '/flashcards/bad.md', '/flashcards/also-good.md'].includes(path),
-			);
+			plugin.app.vault.adapter.exists = vi
+				.fn()
+				.mockImplementation(
+					async (path: string) =>
+						path === '/flashcards' ||
+						['/flashcards/good.md', '/flashcards/bad.md', '/flashcards/also-good.md'].includes(
+							path,
+						),
+				);
 			const localYamlEngine = new FlashcardYamlEngine(plugin as unknown as Plugin);
 			parser = new FlashcardParser(plugin as unknown as Plugin, settings, localYamlEngine);
-			vi.spyOn(parser, 'parse')
-				.mockImplementation(async (filepath) => {
-					if (filepath === '/flashcards/bad.md') {
-						return { entity: null, filepath, success: false, error: new Error('bad file') };
-					}
-					return {
-						entity: createFlashcardYaml({ uuid: filepath.includes('also-good') ? '33333333-3333-1333-8333-333333333333' : '22222222-2222-1222-8222-222222222222' }),
-						filepath,
-						success: true,
-					};
-				});
+			vi.spyOn(parser, 'parse').mockImplementation(async (filepath) => {
+				if (filepath === '/flashcards/bad.md') {
+					return { entity: null, filepath, success: false, error: new Error('bad file') };
+				}
+				return {
+					entity: createFlashcardYaml({
+						uuid: filepath.includes('also-good')
+							? '33333333-3333-1333-8333-333333333333'
+							: '22222222-2222-1222-8222-222222222222',
+					}),
+					filepath,
+					success: true,
+				};
+			});
 
 			const result = await parser.parseAll('/flashcards');
 
 			expect(result).toHaveLength(3);
-			const successResults = result.filter(r => r.success);
+			const successResults = result.filter((r) => r.success);
 			expect(successResults).toHaveLength(2);
-			const uuids = successResults.map(r => r.entity.uuid);
+			const uuids = successResults.map((r) => r.entity.uuid);
 			expect(uuids).toContain('22222222-2222-1222-8222-222222222222');
 			expect(uuids).toContain('33333333-3333-1333-8333-333333333333');
 		});
 
-		it('should call parse method on each markdown file', async () => {
+		it('should return error result when validate throws for one file', async () => {
 			plugin = createMockPlugin([
-				{ path: '/flashcards/x.md', content: '---\n---\n' },
+				{ path: '/flashcards/good.md', content: '---\n---\n' },
+				{ path: '/flashcards/bad.md', content: '---\n---\n' },
 			]);
-			plugin.app.vault.adapter.exists = vi.fn().mockImplementation(async (path: string) =>
-				path === '/flashcards' || path === '/flashcards/x.md',
-			);
+			plugin.app.vault.adapter.exists = vi
+				.fn()
+				.mockImplementation(
+					async (path: string) =>
+						path === '/flashcards' || ['/flashcards/good.md', '/flashcards/bad.md'].includes(path),
+				);
+			const localYamlEngine = new FlashcardYamlEngine(plugin as unknown as Plugin);
+			parser = new FlashcardParser(plugin as unknown as Plugin, settings, localYamlEngine);
+			vi.spyOn(parser, 'parse').mockImplementation(async (filepath: string) => {
+				const isBad = filepath.includes('bad');
+				return {
+					entity: createFlashcardYaml({
+						uuid: isBad
+							? 'bbbbbbbb-bbbb-1bbb-8bbb-bbbbbbbbbbbb'
+							: 'aaaaaaaa-aaaa-1aaa-8aaa-aaaaaaaaaaaa',
+						source: isBad ? 'invalid' : null,
+					}),
+					filepath,
+					success: true,
+				};
+			});
+
+			const result = await parser.parseAll('/flashcards');
+
+			expect(result).toHaveLength(2);
+			const successResults = result.filter((r) => r.success);
+			expect(successResults).toHaveLength(1);
+			expect(successResults[0].entity.uuid).toBe('aaaaaaaa-aaaa-1aaa-8aaa-aaaaaaaaaaaa');
+			const errorResults = result.filter((r) => !r.success);
+			expect(errorResults).toHaveLength(1);
+			expect(errorResults[0].filepath).toBe('/flashcards/bad.md');
+			expect(errorResults[0].error).toBeInstanceOf(Error);
+		});
+
+		it('should call parse method on each markdown file', async () => {
+			plugin = createMockPlugin([{ path: '/flashcards/x.md', content: '---\n---\n' }]);
+			plugin.app.vault.adapter.exists = vi
+				.fn()
+				.mockImplementation(
+					async (path: string) => path === '/flashcards' || path === '/flashcards/x.md',
+				);
 			const localYamlEngine = new FlashcardYamlEngine(plugin as unknown as Plugin);
 			parser = new FlashcardParser(plugin as unknown as Plugin, settings, localYamlEngine);
 			const parseSpy = vi.spyOn(parser, 'parse').mockResolvedValue({

@@ -105,11 +105,19 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 		const normalizedPath = normalizePath(filepath);
 		const file = this._plugin.app.vault.getAbstractFileByPath(normalizedPath);
 		if (!(file instanceof TFile)) {
-			throw new Error(`File not found: ${normalizedPath}`);
+			const error = new Error(`File not found: ${normalizedPath}`);
+			Logger.error(error.message);
+			return {
+				entity: null,
+				filepath,
+				stats: null,
+				success: false,
+				error,
+			};
 		}
-		const content = await this._plugin.app.vault.read(file);
 
 		try {
+			const content = await this._plugin.app.vault.read(file);
 			const result = this._yaml.extractFmFromContent(content);
 			const splitResult = this.splitContent(result.body);
 
@@ -162,13 +170,27 @@ export class FlashcardParser extends BaseParser<Flashcard, FlashcardYaml> {
 			(f): f is TFile => f instanceof TFile && f.extension === 'md',
 		);
 
-		const promises = mdFiles.map(async (file) => {
-			const result = (await this.parse(file.path)) as ParseResult<FlashcardYaml>;
-			result.entity = result.entity ? this._yaml.validate(result.entity) : null;
-			return result;
-		});
-
-		return await Promise.all(promises);
+		const results = await Promise.all(
+			mdFiles.map(async (file): Promise<ParseResult<FlashcardYaml>> => {
+				const result = await this.parse(file.path);
+				if (!result.success) {
+					return result;
+				}
+				try {
+					const validated = this._yaml.validate(result.entity);
+					return { ...result, entity: validated };
+				} catch (e) {
+					return {
+						entity: null,
+						filepath: result.filepath,
+						stats: null,
+						success: false,
+						error: e instanceof Error ? e : new Error(String(e)),
+					};
+				}
+			}),
+		);
+		return results;
 	};
 
 	/**
