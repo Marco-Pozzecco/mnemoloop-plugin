@@ -10,7 +10,16 @@ import svelteConfig from './svelte.config.js';
 
 export default defineConfig(
 	{
-		ignores: ['node_modules/', 'dist/', 'build/', 'coverage/', '*.min.js', 'main.js', '**/*.json', 'vitest.config.ts'],
+		ignores: [
+			'node_modules/',
+			'dist/',
+			'build/',
+			'coverage/',
+			'*.min.js',
+			'main.js',
+			'**/*.json',
+			'vitest.config.ts',
+		],
 	},
 	prettier,
 	...svelte.configs.prettier,

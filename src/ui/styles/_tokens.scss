@@ -1,0 +1,160 @@
+/**
+ * Mnemoloop Design Tokens
+ *
+ * Base CSS custom properties mapping to Obsidian's theme variables.
+ * Consumed by _theme.scss and by component styles.
+ */
+
+// -- Base colors --
+$red: var(--color-red);
+$orange: var(--color-orange);
+$yellow: var(--color-yellow);
+$green: var(--color-green);
+$cyan: var(--color-cyan);
+$blue: var(--color-blue);
+$purple: var(--color-purple);
+$pink: var(--color-pink);
+
+// -- Text Colors --
+$text-normal: var(--text-normal);
+$text-muted: var(--text-muted);
+$text-faint: var(--text-faint);
+$text-accent: var(--text-accent);
+$text-accent-hover: var(--text-accent-hover);
+$text-error: var(--text-error);
+$text-error-rgb: var(--text-error-rgb, 255, 0, 0);
+$text-warning: var(--text-warning);
+$text-success: var(--text-success);
+$text-accent-foreground: var(--text-on-accent);
+
+// -- Background Colors --
+$background-primary: var(--background-primary);
+$background-primary-alt: var(--background-primary-alt);
+$background-secondary: var(--background-secondary);
+$background-secondary-alt: var(--background-secondary-alt);
+$background-tertiary: var(--background-tertiary);
+$background-tertiary-alt: var(--background-tertiary-alt);
+
+$background-modifier-border: var(--background-modifier-border);
+$background-modifier-border-focus: var(--background-modifier-border-focus);
+$background-modifier-border-hover: var(--background-modifier-border-hover);
+
+$background-modifier-hover: var(--background-modifier-hover);
+$background-modifier-active: var(--background-modifier-active);
+$background-modifier-active-hover: var(--background-modifier-active-hover);
+$background-modifier-error: var(--background-modifier-error);
+$background-modifier-error-hover: var(--background-modifier-error-hover);
+$background-modifier-selected: var(--background-modifier-selected);
+
+$background-modifier-form-field: var(--background-modifier-form-field);
+$background-modifier-form-field-hover: var(--background-modifier-form-field-hover);
+
+$background-modifier-settings: var(--setting-items-background);
+$background-modifier-settings-border: var(--setting-items-border-color);
+
+// -- Interactive Colors --
+$interactive-accent: var(--interactive-accent);
+$interactive-accent-hover: var(--interactive-accent-hover);
+$interactive-normal: var(--interactive-normal);
+$interactive-hover: var(--interactive-hover);
+
+// -- Status Colors --
+$status-info: var(--color-blue);
+$status-success: var(--color-green);
+$status-warning: var(--color-orange);
+$status-error: var(--color-red);
+
+// -- Font size --
+$font-xs: var(--font-ui-smaller);
+$font-sm: var(--font-ui-small);
+$font-md: var(--font-ui-medium);
+$font-lg: var(--font-ui-large);
+
+// -- Font weight --
+$font-light: var(--font-light);
+$font-normal: var(--font-normal);
+$font-medium: var(--font-medium);
+$font-semibold: var(--font-semibold);
+$font-bold: var(--font-bold);
+
+// -- Font family --
+$font-interface: var(--font-interface);
+$font-monospace: var(--font-monospace);
+$font-text: var(--font-text);
+
+// -- Line height --
+$line-height-normal: var(--line-height-normal);
+
+// -- Heading size --
+$heading-xs: var(--h6-size);
+$heading-sm: var(--h5-size);
+$heading-md: var(--h4-size);
+$heading-lg: var(--h3-size);
+$heading-xl: var(--h2-size);
+$heading-xxl: var(--h1-size);
+
+// -- Spacing --
+// used for: gaps, margins, padding
+$spacing-xxs: 0.25rem; // 4px
+$spacing-xs: 0.5rem; // 8px
+$spacing-sm: 0.75rem; // 12px
+$spacing-md: 1rem; // 16px
+$spacing-lg: 1.5rem; // 24px
+$spacing-xl: 2rem; // 32px
+
+// -- Layout --
+$navbar-height: var(--navbar-height);
+$navbar-bottom-offset: var(--navbar-bottom-offset);
+$dialog-width: var(--dialog-width);
+
+// -- Border Radius --
+$radius-xs: 2px;
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-xl: 16px;
+$radius-full: 50%;
+
+// -- Component specific radius --
+$radius-button: var(--button-radius);
+$radius-input: var(--input-radius);
+$radius-settings: var(--setting-items-radius);
+$setting-items-padding: var(--setting-items-padding);
+
+// -- Border width --
+$border-width: var(--border-width);
+$border-width-settings: var(--setting-items-border-width);
+
+// -- Shadow base --
+$shadow-color: color-mix(in srgb, $text-normal 10%, transparent);
+
+// -- Shadows --
+$shadow-sm: 0 2px 8px $shadow-color;
+$shadow-md: 0 4px 12px $shadow-color;
+$shadow-lg: 0 6px 16px $shadow-color;
+
+// -- Transitions --
+$transition-fast: 0.15s ease;
+$transition-normal: 0.2s ease;
+$transition-slow: 0.3s ease;
+
+// -- Animation Durations --
+$animation-duration-fast: 150ms;
+$animation-duration-normal: 300ms;
+$animation-duration-slow: 400ms;
+$animation-duration-flip: 400ms;
+$animation-duration-slide: 300ms;
+
+// -- Animation Easings --
+$easing-default: ease;
+$easing-in: ease-in;
+$easing-out: ease-out;
+$easing-in-out: ease-in-out;
+$easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+$easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+// -- Z-Index --
+$z-base: 1;
+$z-dropdown: 100;
+$z-modal: 1000;
+$z-toast: 2000;

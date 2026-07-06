@@ -1,4 +1,4 @@
-import './ui/styles/main.css';
+import './ui/styles/main.scss';
 
 import { bannerStore } from '@/ui/store/banner.store';
 import { Plugin } from 'obsidian';

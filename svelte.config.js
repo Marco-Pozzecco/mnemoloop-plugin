@@ -9,5 +9,8 @@ export default {
 		typescript: {
 			tsconfigFile: resolve(__dirname, 'tsconfig.svelte.json'),
 		},
+		scss: {
+			includePaths: [resolve(__dirname, 'src', 'ui', 'styles')],
+		},
 	}),
 };
