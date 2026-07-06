@@ -1,3 +1,17 @@
+## [1.6.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.5.0...1.6.0) (2026-07-06)
+
+### Features
+
+* add disk-backed event logging adapter ([b3bc34d](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/b3bc34d3217279d83df6e03c0197f5a5c7f57785))
+* add EventBus tap side-effecting sink ([6731e92](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/6731e928e1a6faa4f9213c4506a56478c1bab2e5))
+* add Obsidian theme token utility ([a75f90e](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/a75f90e5df4c6894d0bd63bcc8324094e304c6b6))
+
+### Bug Fixes
+
+* add getAll flashcards support for dashboard polling ([feb07cb](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/feb07cb86420ea4eb487577eef4c5ce645833620))
+* return error result instead of throwing in FlashcardParser ([112302a](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/112302a2b523b24d591c0b3e7897a1348b59d557))
+* set default log level to ERROR ([f00f67f](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/f00f67fa90f24098e9acb0e61da3626978f790e7))
+
 ## [1.5.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.4.0...1.5.0) (2026-06-30)
 
 ### Features
