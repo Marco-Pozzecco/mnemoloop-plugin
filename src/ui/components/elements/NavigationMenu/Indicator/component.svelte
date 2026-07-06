@@ -11,12 +11,14 @@
 	{/if}
 </NavigationMenu.Indicator>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	:global(.ml-navmenu__indicator) {
-		background-color: var(--ml-interactive-accent);
+		background-color: $interactive-accent;
 		height: 2px;
 		transition:
-			transform var(--ml-transition-fast),
-			width var(--ml-transition-fast);
+			transform $transition-fast,
+			width $transition-fast;
 	}
 </style>

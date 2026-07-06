@@ -11,13 +11,15 @@
 	{/if}
 </NavigationMenu.List>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	:global(.ml-navmenu__list) {
 		display: flex;
-		background-color: var(--ml-background-primary);
-		border-radius: var(--ml-radius-md);
-		gap: var(--ml-spacing-sm);
-		padding: var(--ml-padding-sm);
+		background-color: $background-primary;
+		border-radius: $radius-md;
+		gap: $spacing-sm;
+		padding: $spacing-sm;
 		margin: 0;
 	}
 </style>

@@ -44,7 +44,9 @@
 	</div>
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-app-container {
 		display: flex;
 		flex-direction: column;
@@ -59,9 +61,7 @@
 
 	@media (max-width: 480px) {
 		.ml-app-container {
-			padding-bottom: calc(
-				var(--navbar-bottom-offset) + var(--navbar-height) + var(--ml-spacing-md)
-			);
+			padding-bottom: calc($navbar-bottom-offset + $navbar-height + $spacing-md);
 		}
 	}
 </style>

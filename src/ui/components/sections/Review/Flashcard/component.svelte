@@ -100,7 +100,9 @@
 	{/if}
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-flashcard-wrapper {
 		display: flex;
 		flex-direction: column;
@@ -113,7 +115,7 @@
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		gap: 1.5rem;
+		gap: $spacing-lg;
 		min-height: 0;
 		overflow-y: auto;
 	}
@@ -125,10 +127,10 @@
 
 	.ml-flashcard-footer {
 		font-size: 0.9rem;
-		color: var(--text-muted);
+		color: $text-muted;
 		display: flex;
 		flex-direction: row;
-		gap: 0.5rem;
+		gap: $spacing-xs;
 	}
 
 	.ml-flashcard-footer-key {
@@ -142,14 +144,14 @@
 
 	.ml-flashcard-back {
 		padding-top: 1rem;
-		border-top: 1px solid var(--background-modifier-border);
+		border-top: 1px solid $background-modifier-border;
 	}
 
 	.ml-show-answer-wrapper {
 		display: flex;
 		justify-content: center;
 		min-height: 100px;
-		padding: 1rem 0;
+		padding: $spacing-md 0;
 	}
 
 	:global(button.ml-show-answer-button) {
@@ -166,8 +168,8 @@
 		font-size: 0.7rem;
 		opacity: 0.6;
 		border: 1px solid currentColor;
-		padding: 2px 4px;
-		border-radius: 3px;
+		padding: $spacing-xxs $spacing-xxs;
+		border-radius: $radius-sm;
 	}
 
 	@media (max-width: 480px) {
@@ -181,11 +183,11 @@
 
 		.ml-show-answer-wrapper {
 			min-height: 60px;
-			padding: 0.5rem 0;
+			padding: $spacing-xs 0;
 		}
 
 		.ml-flashcard-container {
-			gap: 1rem;
+			gap: $spacing-md;
 		}
 
 		.ml-flashcard-back {

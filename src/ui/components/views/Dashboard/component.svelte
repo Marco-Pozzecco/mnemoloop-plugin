@@ -43,11 +43,24 @@
 	}
 
 	function onRefresh() {
-		//
+		void EventBus.instance.publish(new DashboardOpenEvent());
 	}
+
+	$effect(() => {
+		const interval = window.setInterval(() => {
+			if (stats.flashcard.total_cards > 0) {
+				return window.clearInterval(interval);
+			}
+
+			EventBus.instance.publish(new DashboardOpenEvent());
+		}, 1000);
+
+		return () => window.clearInterval(interval);
+	});
 
 	onMount(() => {
 		EventBus.instance.publish(new DashboardOpenEvent());
+		deckTreeStore.init();
 	});
 </script>
 
@@ -72,16 +85,18 @@
 	</div>
 </ErrorWrapper>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-dashboard {
 		display: flex;
 		flex-direction: column;
-		gap: 24px;
-		padding: 24px;
+		gap: $spacing-lg;
+		padding: $spacing-lg;
 		width: 100%;
 		max-width: 800px;
 		margin: 0 auto;
-		color: var(--text-normal);
+		color: $text-normal;
 		animation: ml-fade-in 0.3s ease-out;
 		overflow-y: auto;
 	}
@@ -100,8 +115,8 @@
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
 		.ml-dashboard {
-			padding: 16px;
-			gap: 16px;
+			padding: $spacing-md;
+			gap: $spacing-md;
 		}
 	}
 </style>

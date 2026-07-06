@@ -81,38 +81,40 @@
 	{/if}
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-select-wrapper {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: $spacing-xs;
 		width: 100%;
 	}
 
 	.ml-select-label {
-		font-size: var(--font-ui-smaller);
-		font-weight: var(--font-medium);
-		color: var(--text-normal);
+		font-size: $font-xs;
+		font-weight: $font-md;
+		color: $text-normal;
 		margin-bottom: 0;
 		display: flex;
 		align-items: center;
-		gap: 0.25rem;
+		gap: $spacing-xxs;
 	}
 
 	.ml-select-required {
-		color: var(--text-error);
+		color: -error;
 		font-weight: bold;
 	}
 
 	.ml-select {
 		width: 100%;
-		padding: 0.625rem 0.75rem;
+		padding: $spacing-sm $spacing-sm;
 		font-family: inherit;
-		font-size: var(--font-ui-small);
-		color: var(--text-normal);
-		background-color: var(--background-primary);
-		border: 1px solid var(--background-modifier-border);
-		border-radius: var(--input-radius, 4px);
+		font-size: $font-sm;
+		color: $text-normal;
+		background-color: $background-primary;
+		border: 1px solid $background-modifier-border;
+		border-radius: $radius-input;
 		transition:
 			border-color 0.15s ease,
 			box-shadow 0.15s ease;
@@ -125,48 +127,48 @@
 	}
 
 	.ml-select:hover:not([data-disabled]) {
-		border-color: var(--background-modifier-border-hover);
+		border-color: $background-modifier-border-hover;
 	}
 
 	.ml-select[data-state='open'] {
-		border-color: var(--interactive-accent);
-		box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
+		border-color: $interactive-accent;
+		box-shadow: 0 0 0 2px $background-modifier-border-focus;
 	}
 
 	.ml-select:focus-visible {
 		outline: none;
-		border-color: var(--interactive-accent);
-		box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
+		border-color: $interactive-accent;
+		box-shadow: 0 0 0 2px $background-modifier-border-focus;
 	}
 
 	.ml-select[data-disabled] {
-		background-color: var(--background-secondary);
-		color: var(--text-muted);
+		background-color: $background-secondary;
+		color: $text-muted;
 		cursor: not-allowed;
 		opacity: 0.6;
 	}
 
 	.ml-select-wrapper.has-error .ml-select {
-		border-color: var(--text-error);
-		background-color: color-mix(in srgb, var(--text-error) 5%, transparent);
+		border-color: -error;
+		background-color: color-mix(in srgb, -error 5%, transparent);
 	}
 
 	.ml-select-wrapper.has-error .ml-select:focus-visible {
-		box-shadow: 0 0 0 2px color-mix(in srgb, var(--text-error) 10%, transparent);
+		box-shadow: 0 0 0 2px color-mix(in srgb, -error 10%, transparent);
 	}
 
 	/* Dropdown content styles */
 	:global(.ml-select-content) {
-		background-color: var(--background-primary);
-		border: 1px solid var(--background-modifier-border);
-		border-radius: var(--input-radius, 4px);
-		box-shadow: 0 4px 12px color-mix(in srgb, var(--text-normal) 15%, transparent);
+		background-color: $background-primary;
+		border: 1px solid $background-modifier-border;
+		border-radius: $radius-input;
+		box-shadow: 0 4px 12px color-mix(in srgb, $text-normal 15%, transparent);
 		z-index: 50;
 		min-width: var(--bits-floating-anchor-width);
 	}
 
 	:global(.ml-select-viewport) {
-		padding: 0.25rem;
+		padding: $spacing-xxs;
 		max-height: 300px;
 		overflow-y: auto;
 	}
@@ -175,24 +177,24 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0.5rem 0.75rem;
-		font-size: var(--font-ui-small);
-		color: var(--text-normal);
+		padding: $spacing-xs $spacing-sm;
+		font-size: $font-sm;
+		color: $text-normal;
 		cursor: pointer;
-		border-radius: calc(var(--input-radius, 4px) - 2px);
+		border-radius: $radius-sm;
 		transition: background-color 0.15s ease;
 	}
 
 	:global(.ml-select-item:hover:not([data-disabled])) {
-		background-color: var(--background-modifier-hover);
+		background-color: $background-modifier-hover;
 	}
 
 	:global(.ml-select-item[data-selected]) {
-		background-color: var(--background-modifier-active);
+		background-color: $background-modifier-active;
 	}
 
 	:global(.ml-select-item[data-disabled]) {
-		color: var(--text-muted);
+		color: $text-muted;
 		cursor: not-allowed;
 		opacity: 0.5;
 	}
@@ -202,34 +204,34 @@
 	}
 
 	:global(.ml-select-item-indicator) {
-		color: var(--interactive-accent);
+		color: $interactive-accent;
 		font-weight: bold;
 		margin-left: 0.5rem;
 	}
 
 	.ml-select-error,
 	.ml-select-helper {
-		font-size: var(--font-ui-smaller);
+		font-size: $font-xs;
 		line-height: 1.4;
 	}
 
 	.ml-select-error {
-		color: var(--text-error);
+		color: -error;
 	}
 
 	.ml-select-helper {
-		color: var(--text-muted);
+		color: $text-muted;
 	}
 
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
 		.ml-select {
-			padding: 0.5rem 0.625rem;
+			padding: $spacing-xs $spacing-sm;
 			font-size: 1rem; /* Prevent iOS zoom */
 		}
 
 		:global(.ml-select-item) {
-			padding: 0.625rem 0.75rem;
+			padding: $spacing-sm $spacing-sm;
 			font-size: 1rem;
 		}
 	}

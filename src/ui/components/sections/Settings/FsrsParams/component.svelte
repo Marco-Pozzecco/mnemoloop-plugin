@@ -146,20 +146,22 @@
 	</div>
 </section>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-fsrs-params-section {
-		margin-top: var(--size-2-2);
+		margin-top: $spacing-xxs;
 	}
 
 	.ml-section-header {
-		color: var(--text-normal);
+		color: $text-normal;
 	}
 
 	.ml-fsrs-preview-wrapper {
 		margin-top: 0.5rem;
-		padding: 0.75rem;
-		border: 1px solid var(--background-modifier-border);
-		border-radius: var(--radius-m);
-		background-color: var(--background-modifier-form-field);
+		padding: $spacing-sm;
+		border: 1px solid $background-modifier-border;
+		border-radius: $radius-md;
+		background-color: $background-modifier-form-field;
 	}
 </style>

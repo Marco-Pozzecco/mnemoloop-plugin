@@ -20,7 +20,9 @@
 	<div class="ml-skeleton__block"></div>
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-skeleton {
 		display: block;
 		width: 100%;
@@ -28,7 +30,7 @@
 	}
 
 	.ml-skeleton--shimmer {
-		border-radius: var(--radius-s, 4px);
+		border-radius: $radius-sm;
 		overflow: hidden;
 	}
 
@@ -38,14 +40,14 @@
 
 	.ml-skeleton--circle {
 		border-radius: 50%;
-		aspect-ratio: 1 / 1;
+		aspect-ratio: 1 #{'/'} 1;
 	}
 
 	.ml-skeleton__block {
 		width: 100%;
 		height: 100%;
-		border-radius: var(--radius-s, 4px);
-		background-color: var(--background-modifier-form-field);
+		border-radius: $radius-sm;
+		background-color: $background-modifier-form-field;
 		position: relative;
 		overflow: hidden;
 	}
@@ -65,7 +67,7 @@
 		background: linear-gradient(
 			90deg,
 			transparent 0%,
-			var(--background-modifier-hover) 50%,
+			$background-modifier-hover 50%,
 			transparent 100%
 		);
 		transform: translateX(-100%);

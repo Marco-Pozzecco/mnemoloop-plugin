@@ -30,12 +30,14 @@
 	{/if}
 </section>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-dashboard__progress {
-		background-color: var(--background-secondary);
-		border: 1px solid var(--background-modifier-border);
+		background-color: $background-secondary;
+		border: 1px solid $background-modifier-border;
 		border-radius: 12px;
-		padding: 24px;
+		padding: $spacing-lg;
 	}
 
 	.ml-section-header {
@@ -47,28 +49,28 @@
 
 	.ml-section-title {
 		margin: 0;
-		font-size: var(--font-ui-medium);
-		font-weight: var(--font-semibold);
-		color: var(--text-normal);
+		font-size: $font-md;
+		font-weight: $font-semibold;
+		color: $text-normal;
 	}
 
 	.ml-section-value {
-		font-size: var(--font-ui-small);
-		color: var(--text-muted);
+		font-size: $font-sm;
+		color: $text-muted;
 		font-variant-numeric: tabular-nums;
 	}
 
 	.ml-progress-estimate {
-		margin: 16px 0 0 0;
-		font-size: var(--font-ui-small);
-		color: var(--text-muted);
+		margin: $spacing-md 0 0 0;
+		font-size: $font-sm;
+		color: $text-muted;
 		text-align: center;
 	}
 
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
 		.ml-dashboard__progress {
-			padding: 16px;
+			padding: $spacing-md;
 		}
 	}
 </style>

@@ -54,15 +54,17 @@
 	</table>
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-fsrs-preview {
 		margin-top: 1rem;
 	}
 
 	.ml-fsrs-preview__title {
-		color: var(--text-normal);
+		color: $text-normal;
 		margin: 0 0 0.5rem 0;
-		font-size: var(--font-ui-small);
+		font-size: $font-sm;
 		font-weight: 600;
 		padding: 0;
 	}
@@ -70,19 +72,19 @@
 	.ml-fsrs-preview__table {
 		width: 100%;
 		border-collapse: collapse;
-		font-size: var(--font-ui-small);
+		font-size: $font-sm;
 	}
 
 	.ml-fsrs-preview__table th,
 	.ml-fsrs-preview__table td {
-		padding: 0.5rem;
+		padding: $spacing-xs;
 		text-align: left;
-		border-bottom: 1px solid var(--background-modifier-border);
-		color: var(--text-normal);
+		border-bottom: 1px solid $background-modifier-border;
+		color: $text-normal;
 	}
 
 	.ml-fsrs-preview__table th {
 		font-weight: 600;
-		color: var(--text-muted);
+		color: $text-muted;
 	}
 </style>

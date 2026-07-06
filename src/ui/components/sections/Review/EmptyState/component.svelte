@@ -12,16 +12,18 @@
 	<Button variant="primary" onclick={onEndSession}>Return to dashboard</Button>
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-empty-state {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
 		text-align: center;
-		gap: 1rem;
-		padding: 3rem;
-		background-color: var(--background-secondary);
+		gap: $spacing-md;
+		padding: $spacing-xl;
+		background-color: $background-secondary;
 		border-radius: 12px;
 	}
 
@@ -30,14 +32,14 @@
 	}
 
 	.ml-empty-state p {
-		color: var(--text-muted);
+		color: $text-muted;
 		margin-bottom: 1rem;
 	}
 
 	@media (max-width: 480px) {
 		.ml-empty-state {
-			padding: 2rem 1rem;
-			gap: 0.75rem;
+			padding: $spacing-xl $spacing-md;
+			gap: $spacing-sm;
 		}
 
 		.ml-empty-state h2 {

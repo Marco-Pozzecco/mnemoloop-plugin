@@ -28,7 +28,9 @@
 	{/if}
 </NavigationMenu.Root>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	/*:global(.ml-navmenu) {
 		width: 100%;
 		position: fixed;

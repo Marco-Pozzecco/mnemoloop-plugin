@@ -1,4 +1,4 @@
-import './ui/styles/main.css';
+import './ui/styles/main.scss';
 
 import { bannerStore } from '@/ui/store/banner.store';
 import { Plugin } from 'obsidian';
@@ -8,6 +8,7 @@ import { IEventRegistryDependencies } from './interfaces/IEventRegistry';
 import { FlashcardAdapter } from './modules/adapters/FlashcardAdapter';
 import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
 import { StatisticsAdapter } from './modules/adapters/StatisticsAdapter';
+import { EventLogAdapter } from './modules/adapters/EventLogAdapter';
 import {
 	CommandRegistry,
 	CreateEmptyFlashcardCommand,
@@ -47,12 +48,17 @@ export default class MnemoloopPlugin extends Plugin {
 	private _writers: Writers = new Map();
 	private _commandRegistry: CommandRegistry = new CommandRegistry();
 	private _eventRegistry!: EventRegistry;
+	private _eventLog?: EventLogAdapter;
 	private _initializationEvents: IEvent[] = [];
 
 	private ribbonIcon?: HTMLElement;
 
 	async onload() {
 		this.initializeRibbonIcon();
+		this._eventLog = new EventLogAdapter(this);
+		void this._eventLog.initialize();
+
+		EventBus.instance.setTap(this._eventLog.log.bind(this._eventLog));
 
 		this.loadAdapters();
 		this.loadParsers();
@@ -75,6 +81,9 @@ export default class MnemoloopPlugin extends Plugin {
 
 	onunload() {
 		this._vaultWatcher?.dispose();
+		EventBus.instance.clearTap();
+		this._eventLog?.dispose();
+
 		this._eventRegistry.dispose();
 		this._commandRegistry.unregisterAll();
 		this.ribbonIcon?.remove();

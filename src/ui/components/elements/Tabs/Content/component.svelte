@@ -11,8 +11,10 @@
 	{/if}
 </Tabs.Content>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	:global(.ml-tabs__content) {
-		padding-top: var(--ml-padding-md);
+		padding-top: $spacing-md;
 	}
 </style>
