@@ -12,8 +12,8 @@ interface Env {
 }
 
 // @ts-expect-error __LOG_LEVEL__ variable injected at build time
-// IF __DEV__ is true, log level is DEBUG, otherwise OFF
-const DEFAULT_LOG_LEVEL = __LOG_LEVEL__ === 'DEBUG' ? LogLevel.DEBUG : LogLevel.OFF;
+// IF __DEV__ is true, log level is DEBUG, otherwise ERROR
+const DEFAULT_LOG_LEVEL = __LOG_LEVEL__ === 'DEBUG' ? LogLevel.DEBUG : LogLevel.ERROR;
 
 // @ts-expect-error __DEV__ variable injected at build time
 const MODE = __DEV__ ? 'development' : 'production';
