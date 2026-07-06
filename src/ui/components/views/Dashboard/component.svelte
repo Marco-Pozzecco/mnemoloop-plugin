@@ -43,11 +43,24 @@
 	}
 
 	function onRefresh() {
-		//
+		void EventBus.instance.publish(new DashboardOpenEvent());
 	}
+
+	$effect(() => {
+		const interval = window.setInterval(() => {
+			if (stats.flashcard.total_cards > 0) {
+				return window.clearInterval(interval);
+			}
+
+			EventBus.instance.publish(new DashboardOpenEvent());
+		}, 1000);
+
+		return () => window.clearInterval(interval);
+	});
 
 	onMount(() => {
 		EventBus.instance.publish(new DashboardOpenEvent());
+		deckTreeStore.init();
 	});
 </script>
 

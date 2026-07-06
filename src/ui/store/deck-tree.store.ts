@@ -1,6 +1,11 @@
 import { writable } from 'svelte/store';
 import { BaseStoreManager } from './base.store';
-import { EventBus, FlashcardIndexStateEvent } from '@/modules/events';
+import {
+	EventBus,
+	FlashcardIndexGetAllRequestEvent,
+	FlashcardIndexGetAllResponseEvent,
+	FlashcardIndexStateEvent,
+} from '@/modules/events';
 import { CardStatus, FlashcardMetadata } from '@/schemas';
 import { getParentDecks, splitDeckPath } from '@/utils/deck-utils';
 
@@ -128,19 +133,33 @@ function buildNodeMap(nodes: DeckNode[]): Map<string, DeckNode> {
 }
 
 export class DeckTreeStore extends BaseStoreManager<DeckTreeState> {
-	private _unsubscribe?: () => void;
+	private _unsubscribe: () => void;
 
 	constructor() {
 		super(DEFAULT_STATE, store);
 
-		 
-		const responseHandler = async (event: FlashcardIndexStateEvent) => {
-			const nodes = buildDeckTree(event.data.flashcards);
+		const responseHandler = async (
+			event: FlashcardIndexStateEvent | FlashcardIndexGetAllResponseEvent,
+		) => {
+			let nodes: DeckNode[];
+
+			if (event instanceof FlashcardIndexStateEvent) {
+				nodes = buildDeckTree((event as FlashcardIndexStateEvent).data.flashcards);
+			} else {
+				nodes = buildDeckTree((event as FlashcardIndexGetAllResponseEvent).data);
+			}
+
 			const map = buildNodeMap(nodes);
 			this.store.update((state) => ({ ...state, nodes, nodeMap: map }));
 		};
 
 		this._unsubscribe = EventBus.instance.subscribe(FlashcardIndexStateEvent, responseHandler);
+
+		EventBus.instance.subscribeOnce(FlashcardIndexGetAllResponseEvent, responseHandler);
+	}
+
+	init() {
+		void EventBus.instance.publish(new FlashcardIndexGetAllRequestEvent());
 	}
 
 	selectDeck(fullPath: string | null): void {
