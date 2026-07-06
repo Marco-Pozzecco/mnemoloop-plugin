@@ -136,18 +136,20 @@
 	{/if}
 </svelte:boundary>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-error-wrapper {
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
-		padding: 32px;
-		background-color: var(--background-secondary);
-		border: 1px solid var(--text-warning);
+		gap: $spacing-md;
+		padding: $spacing-xl;
+		background-color: $background-secondary;
+		border: 1px solid -warning;
 		border-radius: 12px;
-		color: var(--text-normal);
+		color: $text-normal;
 		max-width: 600px;
-		margin: 24px auto;
+		margin: $spacing-lg auto;
 		text-align: center;
 		animation: ml-fade-in 0.3s ease-out;
 	}
@@ -167,17 +169,17 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 16px;
+		gap: $spacing-md;
 	}
 
 	.ml-error-wrapper__icon {
-		color: var(--text-warning);
+		color: $text-warning;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		width: 64px;
 		height: 64px;
-		background-color: var(--background-modifier-error-hover);
+		background-color: $background-modifier-error-hover;
 		border-radius: 50%;
 		flex-shrink: 0;
 	}
@@ -185,22 +187,22 @@
 	.ml-error-wrapper__message {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: $spacing-xs;
 		text-align: left;
 		width: 100%;
 	}
 
 	.ml-error-wrapper__title {
 		margin: 0;
-		font-size: var(--font-ui-larger);
-		font-weight: var(--font-bold);
-		color: var(--text-normal);
+		font-size: $font-lg;
+		font-weight: $font-bold;
+		color: $text-normal;
 	}
 
 	.ml-error-wrapper__description {
 		margin: 0;
-		font-size: var(--font-ui-small);
-		color: var(--text-muted);
+		font-size: $font-sm;
+		color: $text-muted;
 		line-height: 1.5;
 	}
 
@@ -211,32 +213,32 @@
 	.ml-error-wrapper__details details {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: $spacing-xs;
 	}
 
 	.ml-error-wrapper__details summary {
 		cursor: pointer;
-		color: var(--text-muted);
-		font-size: var(--font-ui-smaller);
+		color: $text-muted;
+		font-size: $font-xs;
 		user-select: none;
 		outline: none;
 	}
 
 	.ml-error-wrapper__details summary:focus {
-		outline: 2px solid var(--interactive-accent);
+		outline: 2px solid $interactive-accent;
 		outline-offset: 2px;
-		border-radius: 2px;
+		border-radius: $radius-xs;
 	}
 
 	.ml-error-wrapper__code {
 		display: block;
-		padding: 12px;
-		background-color: var(--background-primary-alt);
-		border: 1px solid var(--background-modifier-border);
-		border-radius: 6px;
-		font-size: var(--font-ui-smaller);
-		font-family: var(--font-monospace);
-		color: var(--text-muted);
+		padding: $spacing-sm;
+		background-color: $background-primary-alt;
+		border: 1px solid $background-modifier-border;
+		border-radius: $radius-md;
+		font-size: $font-xs;
+		font-family: $font-monospace;
+		color: $text-muted;
 		overflow-x: auto;
 		white-space: pre-wrap;
 		word-break: break-all;
@@ -248,27 +250,27 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 12px;
+		gap: $spacing-sm;
 		padding-top: 8px;
-		border-top: 1px solid var(--background-modifier-border);
+		border-top: 1px solid $background-modifier-border;
 		width: 100%;
 	}
 
 	.ml-error-wrapper__retry-info {
-		font-size: var(--font-ui-smaller);
-		color: var(--text-muted);
+		font-size: $font-xs;
+		color: $text-muted;
 	}
 
 	.ml-error-wrapper__retry-info--exceeded {
-		color: var(--text-warning);
-		font-weight: var(--font-medium);
+		color: $text-warning;
+		font-weight: $font-md;
 	}
 
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
 		.ml-error-wrapper {
-			padding: 24px 16px;
-			margin: 16px;
+		padding: $spacing-lg $spacing-md;
+		margin: $spacing-md;
 		}
 
 		.ml-error-wrapper__icon {
@@ -277,7 +279,7 @@
 		}
 
 		.ml-error-wrapper__title {
-			font-size: var(--font-ui-large);
+			font-size: $font-lg;
 		}
 
 		.ml-error-wrapper__code {

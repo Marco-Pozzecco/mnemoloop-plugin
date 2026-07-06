@@ -47,12 +47,14 @@
 	</Card>
 </section>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-flashcard-config-section {
 		margin-top: 0;
 	}
 
 	.ml-section-header {
-		color: var(--text-normal);
+		color: $text-normal;
 	}
 </style>

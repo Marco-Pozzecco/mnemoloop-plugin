@@ -11,25 +11,27 @@
 	</div>
 </header>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-dashboard__header {
 		display: flex;
 		justify-content: space-between;
 		align-items: flex-start;
-		gap: 16px;
+		gap: $spacing-md;
 	}
 
 	.ml-dashboard__title {
 		margin: 0;
-		font-size: var(--font-l);
-		font-weight: var(--font-bold);
-		color: var(--text-normal);
+		font-size: $font-md;
+		font-weight: $font-bold;
+		color: $text-normal;
 	}
 
 	.ml-dashboard__subtitle {
-		margin: 4px 0 0 0;
-		color: var(--text-muted);
-		font-size: var(--font-ui-small);
+		margin: $spacing-xxs 0 0 0;
+		color: $text-muted;
+		font-size: $font-sm;
 	}
 
 	/* Mobile adjustments */

@@ -65,25 +65,27 @@
 	</div>
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-settings {
-		padding: var(--size-4-3);
+		padding: $spacing-sm;
 		max-width: 800px;
-	}
 
-	.ml-settings__error {
-		color: var(--text-error);
-		background-color: rgba(var(--text-error-rgb, 255, 0, 0), 0.1);
-		border: 1px solid var(--text-error);
-		border-radius: var(--radius-m);
-		padding: var(--size-4-2);
-		margin-bottom: var(--size-4-3);
-		font-size: var(--font-ui-small);
-	}
+		&__sections {
+			display: flex;
+			flex-direction: column;
+			gap: $spacing-md;
+		}
 
-	.ml-settings__sections {
-		display: flex;
-		flex-direction: column;
-		gap: var(--size-4-4);
+		&__error {
+			color: -error;
+			background-color: rgba(#{$text-error-rgb}, 0.1);
+			border: 1px solid -error;
+			border-radius: $radius-md;
+			padding: $spacing-sm;
+			margin-bottom: $spacing-sm;
+			font-size: $font-sm;
+		}
 	}
 </style>

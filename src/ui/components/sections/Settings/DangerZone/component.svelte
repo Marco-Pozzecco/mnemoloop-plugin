@@ -2,6 +2,7 @@
 	import Button from '@/ui/components/elements/Button/component.svelte';
 	import Icon from '@/ui/components/elements/Icon/component.svelte';
 	import type DangerZoneProps from './types';
+	import { tokens } from '@/utils/token';
 
 	let { onReset, isLoading = false }: DangerZoneProps = $props();
 
@@ -12,7 +13,7 @@
 
 <section class="ml-danger-zone">
 	<div class="ml-danger-zone__header">
-		<Icon name="alert-triangle" size={20} color="var(--text-error)" />
+		<Icon name="alert-triangle" size={20} color={tokens['text-error']} />
 		<h2 class="ml-danger-zone__title">Danger zone</h2>
 	</div>
 
@@ -40,71 +41,73 @@
 	</div>
 </section>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-danger-zone {
-		border: 1px solid var(--text-error);
-		border-radius: var(--radius-m);
-		background-color: color-mix(in srgb, var(--text-error) 5%, transparent);
-		padding: var(--size-4-3);
+		border: 1px solid -error;
+		border-radius: $radius-md;
+		background-color: color-mix(in srgb, $background-modifier-error 20%, transparent);
+		padding: $spacing-sm;
 	}
 
 	.ml-danger-zone__header {
 		display: flex;
 		align-items: center;
-		gap: var(--size-2-2);
-		margin-bottom: var(--size-4-2);
+		gap: $spacing-xxs;
+		margin-bottom: $spacing-sm;
 	}
 
 	.ml-danger-zone__title {
-		font-size: var(--font-ui-medium);
-		font-weight: var(--font-semibold);
-		color: var(--text-error);
+		font-size: $font-md;
+		font-weight: $font-semibold;
+		color: -error;
 		margin: 0;
 	}
 
 	.ml-danger-zone__description {
-		font-size: var(--font-ui-small);
-		color: var(--text-muted);
-		margin: 0 0 var(--size-4-3) 0;
-		line-height: var(--line-height-normal);
+		font-size: $font-sm;
+		color: $text-muted;
+		margin: 0 0 $spacing-sm 0;
+		line-height: $line-height-normal;
 	}
 
 	.ml-danger-zone__content {
 		display: flex;
 		flex-direction: column;
-		gap: var(--size-4-2);
+		gap: $spacing-sm;
 	}
 
 	.ml-danger-zone__action {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--size-4-3);
-		padding-top: var(--size-4-2);
-		border-top: 1px solid color-mix(in srgb, var(--text-error) 20%, transparent);
+		gap: $spacing-sm;
+		padding-top: $spacing-sm;
+		border-top: 1px solid color-mix(in srgb, $background-modifier-error 30%, transparent);
 	}
 
 	.ml-danger-zone__action-info {
 		display: flex;
 		flex-direction: column;
-		gap: var(--size-2-1);
+		gap: $spacing-xxs;
 	}
 
 	.ml-danger-zone__action-label {
-		font-size: var(--font-ui-small);
-		font-weight: var(--font-medium);
-		color: var(--text-normal);
+		font-size: $font-sm;
+		font-weight: $font-md;
+		color: $text-normal;
 	}
 
 	.ml-danger-zone__action-helper {
-		font-size: var(--font-ui-smaller);
-		color: var(--text-muted);
+		font-size: $font-xs;
+		color: $text-muted;
 	}
 
 	.ml-danger-zone__loading {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--size-2-2);
+		gap: $spacing-xxs;
 	}
 
 	/* Mobile-first responsive adjustments */
@@ -112,7 +115,7 @@
 		.ml-danger-zone__action {
 			flex-direction: column;
 			align-items: flex-start;
-			gap: var(--size-4-2);
+			gap: $spacing-sm;
 		}
 	}
 </style>

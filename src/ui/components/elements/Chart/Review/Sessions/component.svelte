@@ -4,6 +4,7 @@
 	import type ChartSessionsProps from './types';
 	import { getDateRange, getSessionStats, transformSessionsToData } from './utils';
 	import { ChartEmptyState } from '@/ui/components';
+	import { tokens } from '@/utils/token';
 
 	let { stats, className }: ChartSessionsProps = $props();
 
@@ -81,10 +82,10 @@
 	// Color range for the threshold scale
 	const cDomain = $derived([1, t1, t2]);
 	const cRange = [
-		'var(--background-modifier-border)',
-		'color-mix(in srgb, var(--interactive-accent) 25%, transparent)',
-		'color-mix(in srgb, var(--interactive-accent) 55%, transparent)',
-		'var(--interactive-accent)',
+		tokens['background-modifier-border'],
+		`color-mix(in srgb, ${tokens['interactive-accent']} 25%, transparent)`,
+		`color-mix(in srgb, ${tokens['interactive-accent']} 55%, transparent)`,
+		tokens['interactive-accent'],
 	];
 
 	// Calculate session stats
@@ -174,7 +175,9 @@
 	</div>
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-sessions {
 		width: 100%;
 	}
@@ -185,16 +188,16 @@
 
 	.ml-sessions__title {
 		margin: 0;
-		font-size: var(--font-ui-medium);
-		font-weight: var(--font-semibold);
-		color: var(--text-normal);
+		font-size: $font-md;
+		font-weight: $font-semibold;
+		color: $text-normal;
 	}
 
 	.ml-sessions__subtitle {
 		margin: 0;
-		margin-top: var(--ml-spacing-sm);
-		font-size: var(--font-ui-small);
-		color: var(--text-muted);
+		margin-top: $spacing-sm;
+		font-size: $font-sm;
+		color: $text-muted;
 	}
 
 	.ml-sessions__body {
@@ -206,7 +209,7 @@
 		display: flex;
 		justify-content: flex-end;
 		align-items: center;
-		gap: 8px;
+		gap: $spacing-xs;
 		margin-top: 12px;
 		flex-wrap: wrap;
 	}
@@ -214,31 +217,31 @@
 	.ml-sessions__stat-badge {
 		display: inline-flex;
 		align-items: center;
-		gap: 6px;
-		padding: 4px 10px;
-		border-radius: var(--ml-radius-md);
-		background-color: var(--background-modifier-hover);
-		border: 1px solid var(--background-modifier-border);
-		font-size: var(--font-ui-smaller);
-		color: var(--text-muted);
-		transition: background-color var(--ml-transition-fast);
+		gap: $spacing-xs;
+		padding: $spacing-xxs $spacing-sm;
+		border-radius: $radius-md;
+		background-color: $background-modifier-hover;
+		border: 1px solid $background-modifier-border;
+		font-size: $font-xs;
+		color: $text-muted;
+		transition: background-color $transition-fast;
 	}
 
 	.ml-sessions__stat-badge:hover {
-		background-color: var(--background-modifier-active);
+		background-color: $background-modifier-active;
 	}
 
 	.ml-sessions__stat-dot {
 		width: 6px;
 		height: 6px;
 		border-radius: 50%;
-		background-color: var(--interactive-accent);
+		background-color: $interactive-accent;
 		flex-shrink: 0;
 	}
 
 	.ml-sessions__stat-value {
-		color: var(--text-normal);
-		font-weight: var(--font-medium);
+		color: $text-normal;
+		font-weight: $font-md;
 	}
 
 	.ml-sessions__chart-container {
@@ -258,19 +261,19 @@
 	}
 
 	.ml-sessions__chart-container :global(.lc-month-cell:hover) {
-		stroke: var(--interactive-accent);
+		stroke: $interactive-accent;
 		stroke-width: 2px;
 	}
 
 	:global(.ml-sessions__tooltip-font) {
-		font-family: var(--font-text);
-		font-size: var(--font-ui-small);
+		font-family: $font-interface;
+		font-size: $font-sm;
 	}
 
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
 		.ml-sessions {
-			padding: 8px;
+			padding: $spacing-xs;
 		}
 
 		.ml-sessions__header {
@@ -284,12 +287,8 @@
 		.ml-sessions__stats-bar {
 			flex-direction: column;
 			align-items: center;
-			gap: 6px;
-			margin-top: 8px;
-		}
-
-		.ml-sessions__stat-badge {
-			padding: 3px 8px;
+			gap: $spacing-xs;
+			padding: $spacing-xxs $spacing-xs;
 		}
 	}
 </style>

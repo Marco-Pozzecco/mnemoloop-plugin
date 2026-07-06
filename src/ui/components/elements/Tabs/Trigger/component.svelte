@@ -11,27 +11,29 @@
 	{/if}
 </Tabs.Trigger>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	:global(button.ml-tabs__trigger) {
 		width: 100%;
-		padding: var(--ml-padding-sm);
-		font-size: var(--font-ui-small);
-		color: var(--text-muted);
+		padding: $spacing-sm;
+		font-size: $font-sm;
+		color: $text-muted;
 		cursor: pointer;
 		background: none;
 		box-shadow: none;
 		border: none;
 		transition:
-			color var(--ml-transition-fast),
-			background-color var(--ml-transition-fast);
+			color $transition-fast,
+			background-color $transition-fast;
 	}
 
 	:global(.ml-tabs__trigger[data-state='active']) {
-		background-color: var(--ml-background-secondary);
+		background-color: $background-secondary;
 	}
 
 	:global(.ml-tabs__trigger:hover:not([data-state='active'])) {
-		color: var(--text-normal);
+		color: $text-normal;
 	}
 
 	:global(.ml-tabs__trigger[data-disabled]) {

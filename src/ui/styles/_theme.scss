@@ -1,0 +1,52 @@
+/**
+ * Theme Overrides for Mnemoloop
+ *
+ * Mode-specific overrides for the base tokens defined in _tokens.scss
+ * (dark/light themes, reduced motion, high contrast, print).
+ */
+
+@use 'tokens';
+
+/* ==================== Dark Theme Overrides ==================== */
+.theme-dark {
+	/* Enhanced shadow opacity for dark theme */
+	--ml-shadow-color: color-mix(in srgb, $text-normal 30%, transparent);
+}
+
+/* ==================== Light Theme Overrides ==================== */
+.theme-light {
+	/* Reduced shadow opacity for light theme */
+	--ml-shadow-color: color-mix(in srgb, $text-normal 8%, transparent);
+}
+
+/* ==================== Reduced Motion ==================== */
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--ml-transition-fast: 0s;
+		--ml-transition-normal: 0s;
+		--ml-transition-slow: 0s;
+		--ml-card-transition: none;
+	}
+}
+
+/* ==================== High Contrast Mode ==================== */
+@media (prefers-contrast: high) {
+	:root {
+		--ml-border-color: currentColor;
+		--ml-card-border: 2px solid currentColor;
+		--ml-text-muted: color-mix(in srgb, $text-normal 80%, transparent);
+	}
+}
+
+/* ==================== Print Styles ==================== */
+@media print {
+	:root {
+		--ml-background-primary: var(--background-primary);
+		--ml-text-normal: $text-normal;
+		--ml-text-muted: $text-normal;
+		--ml-interactive-accent: $text-normal;
+		--ml-shadow-sm: none;
+		--ml-shadow-md: none;
+		--ml-shadow-lg: none;
+	}
+}

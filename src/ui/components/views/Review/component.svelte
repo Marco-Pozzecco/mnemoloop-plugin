@@ -156,7 +156,9 @@
 	</main>
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-review-container {
 		display: flex;
 		flex-direction: column;
@@ -164,8 +166,8 @@
 		width: 100%;
 		max-width: 800px;
 		margin: 0 auto;
-		padding: 1rem;
-		gap: 1.5rem;
+		padding: $spacing-md;
+		gap: $spacing-lg;
 	}
 
 	.ml-review-main {
@@ -173,7 +175,7 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: start;
-		gap: 2rem;
+		gap: $spacing-xl;
 		min-height: 0;
 	}
 
@@ -185,12 +187,12 @@
 
 	@media (max-width: 480px) {
 		.ml-review-container {
-			padding: 0.5rem;
-			gap: 0.75rem;
+			padding: $spacing-xs;
+			gap: $spacing-sm;
 		}
 
 		.ml-review-main {
-			gap: 1rem;
+			gap: $spacing-md;
 		}
 
 		.ml-controls-wrapper {

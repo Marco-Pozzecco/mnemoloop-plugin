@@ -77,25 +77,27 @@
 	{@render actions()}
 </header>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-review-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 1rem;
+		gap: $spacing-md;
 	}
 
 	.ml-review-stats {
 		display: flex;
-		gap: 1rem;
-		color: var(--text-muted);
+		gap: $spacing-md;
+		color: $text-muted;
 		font-size: 0.85rem;
 	}
 
 	.ml-stat-item {
 		display: flex;
 		align-items: center;
-		gap: 0.4rem;
+		gap: $spacing-xs;
 	}
 
 	.ml-progress-wrapper {
@@ -103,12 +105,12 @@
 	}
 
 	.ml-stat-secondary {
-		color: var(--text-muted);
+		color: $text-muted;
 	}
 
 	.ml-header-actions {
 		display: flex;
-		gap: 0.5rem;
+		gap: $spacing-xs;
 		align-items: center;
 	}
 
@@ -119,12 +121,12 @@
 	@media (max-width: 480px) {
 		.ml-review-header {
 			flex-wrap: wrap;
-			gap: 0.5rem;
+			gap: $spacing-xs;
 		}
 
 		.ml-review-stats {
 			font-size: 0.75rem;
-			gap: 0.5rem;
+			gap: $spacing-xs;
 			flex: 0 1 auto;
 			justify-content: start;
 			order: 1;
@@ -135,7 +137,7 @@
 			display: flex;
 			flex-direction: row;
 			align-items: center;
-			gap: 0.4rem;
+			gap: $spacing-xs;
 		}
 
 		.ml-progress-wrapper {

@@ -1,3 +1,5 @@
+@use 'breakpoints' as *;
+
 /* ==================== Touch Device Optimizations ==================== */
 @media (hover: none) and (pointer: coarse) {
 	/* Increase touch targets for all interactive elements */
@@ -58,7 +60,7 @@
 }
 
 /* ==================== Animation Performance ==================== */
-@media (max-width: 768px) {
+@media (max-width: $mobile-breakpoint) {
 	/* Reduce animation complexity for mobile */
 	.ml-card-face-container,
 	:global(.ml-button) {
