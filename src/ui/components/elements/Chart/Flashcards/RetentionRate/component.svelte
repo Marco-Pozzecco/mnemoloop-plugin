@@ -3,6 +3,7 @@
 	import { AnnotationLine, Axis, Chart, Highlight, Layer, Spline, Tooltip } from 'layerchart';
 	import type RetentionRateChartProps from './types';
 	import { computeRetentionRateOverTime } from './utils';
+	import { tokens } from '@/utils/token';
 
 	let { stats, requestRetention, className }: RetentionRateChartProps = $props();
 
@@ -34,7 +35,7 @@
 				<Axis placement="bottom" label="Date" labelProps={{ 'font-size': '12px' }} rule />
 
 				<Highlight lines points opacity={0.7} />
-				<Spline stroke="var(--interactive-accent)" strokeWidth={2} />
+				<Spline stroke={tokens['interactive-accent']} strokeWidth={2} />
 
 				<AnnotationLine
 					y={requestRetention}
@@ -42,8 +43,8 @@
 					labelPlacement="top-left"
 					labelXOffset={20}
 					props={{
-						label: { fill: 'var(--text-muted)', 'font-size': '12px' },
-						line: { stroke: 'var(--text-muted)', dashArray: '4 4', width: 1 },
+						label: { fill: tokens['text-muted'], 'font-size': '12px' },
+						line: { stroke: tokens['text-muted'], dashArray: '4 4', width: 1 },
 					}}
 				/>
 			</Layer>
@@ -63,29 +64,31 @@
 	</ChartEmptyState>
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-chart-retention-rate {
-		background-color: var(--background-secondary);
-		border: 1px solid var(--background-modifier-border);
+		background-color: $background-secondary;
+		border: 1px solid $background-modifier-border;
 		border-radius: 12px;
-		padding: 20px;
+		padding: $spacing-lg;
 	}
 
 	.ml-chart-retention-rate__header {
 		display: flex;
 		flex-direction: column;
-		gap: var(--ml-spacing-sm);
-		margin-bottom: var(--ml-spacing-sm);
+		gap: $spacing-sm;
+		margin-bottom: $spacing-sm;
 	}
 
 	.ml-chart-retention-rate__title {
-		font-size: var(--font-ui-medium);
-		font-weight: var(--font-semibold);
-		color: var(--text-normal);
+		font-size: $font-md;
+		font-weight: $font-semibold;
+		color: $text-normal;
 	}
 
 	.ml-chart-retention-rate__subtitle {
-		font-size: var(--font-ui-small);
-		color: var(--text-muted);
+		font-size: $font-sm;
+		color: $text-muted;
 	}
 </style>

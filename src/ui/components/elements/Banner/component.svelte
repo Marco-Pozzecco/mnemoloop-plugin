@@ -31,19 +31,21 @@
 	</div>
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-banner {
 		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 12px;
-		padding: 10px 16px;
-		background-color: var(--background-secondary);
-		border: 1px solid var(--background-modifier-border);
-		border-radius: 8px;
-		color: var(--text-normal);
-		font-size: var(--font-ui-small);
+		gap: $spacing-sm;
+		padding: $spacing-sm $spacing-md;
+		background-color: $background-secondary;
+		border: 1px solid $background-modifier-border;
+		border-radius: $radius-md;
+		color: $text-normal;
+		font-size: $font-sm;
 		animation: ml-banner-slide-in 0.3s ease-out;
 		width: 100%;
 	}
@@ -52,13 +54,13 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 16px;
+		gap: $spacing-md;
 		min-width: fit-content;
 	}
 
 	.ml-banner__icon {
 		flex-shrink: 0;
-		color: var(--interactive-accent);
+		color: $interactive-accent;
 		display: flex;
 		align-items: center;
 	}
@@ -91,7 +93,7 @@
 		.ml-banner {
 			flex-direction: column;
 			align-items: flex-start;
-			gap: 8px;
+			gap: $spacing-xs;
 		}
 	}
 </style>

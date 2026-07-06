@@ -3,6 +3,7 @@
 	import { AreaChart, defaultChartPadding, Tooltip } from 'layerchart';
 	import type ChartCumulativeCardsProps from './types';
 	import { computeCumulativeByDay } from './utils';
+	import { tokens } from '@/utils/token';
 
 	let { flashcards, className }: ChartCumulativeCardsProps = $props();
 
@@ -26,9 +27,9 @@
 			height={260}
 			props={{
 				area: {
-					fill: 'var(--ml-interactive-accent)',
+					fill: tokens['interactive-accent'],
 					fillOpacity: 0.3,
-					stroke: 'var(--ml-interactive-accent)',
+					stroke: tokens['interactive-accent'],
 					strokeOpacity: 0.6,
 					strokeWidth: 2,
 				},
@@ -55,29 +56,31 @@
 	</ChartEmptyState>
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-chart-cumulative {
-		background-color: var(--background-secondary);
-		border: 1px solid var(--background-modifier-border);
+		background-color: $background-secondary;
+		border: 1px solid $background-modifier-border;
 		border-radius: 12px;
-		padding: 20px;
+		padding: $spacing-lg;
 	}
 
 	.ml-chart-cumulative__header {
 		display: flex;
 		flex-direction: column;
-		gap: var(--ml-spacing-sm);
-		margin-bottom: var(--ml-spacing-sm);
+		gap: $spacing-sm;
+		margin-bottom: $spacing-sm;
 	}
 
 	.ml-chart-cumulative__title {
-		font-size: var(--font-ui-medium);
-		font-weight: var(--font-semibold);
-		color: var(--text-normal);
+		font-size: $font-md;
+		font-weight: $font-semibold;
+		color: $text-normal;
 	}
 
 	.ml-chart-cumulative__subtitle {
-		font-size: var(--font-ui-small);
-		color: var(--text-muted);
+		font-size: $font-sm;
+		color: $text-muted;
 	}
 </style>

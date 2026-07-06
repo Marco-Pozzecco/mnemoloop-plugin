@@ -34,18 +34,20 @@
 	</div>
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-dashboard__stats-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-		gap: 16px;
+		gap: $spacing-md;
 	}
 
 	.ml-stat-card {
-		background-color: var(--background-secondary);
-		border: 1px solid var(--background-modifier-border);
-		border-radius: 8px;
-		padding: 20px;
+		background-color: $background-secondary;
+		border: 1px solid $background-modifier-border;
+		border-radius: $radius-md;
+		padding: $spacing-lg;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -54,14 +56,14 @@
 	}
 
 	.ml-stat-card:hover {
-		border-color: var(--interactive-accent);
+		border-color: $interactive-accent;
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px var(--ml-shadow-color);
+		box-shadow: $shadow-md;
 	}
 
 	.ml-stat-card__label {
-		font-size: var(--font-ui-smaller);
-		color: var(--text-muted);
+		font-size: $font-xs;
+		color: $text-muted;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 		margin-bottom: 8px;
@@ -69,26 +71,26 @@
 
 	.ml-stat-card__value {
 		font-size: 28px;
-		font-weight: var(--font-bold);
-		color: var(--interactive-accent);
+		font-weight: $font-bold;
+		color: $interactive-accent;
 		margin-bottom: 4px;
 		line-height: 1.2;
 	}
 
 	.ml-stat-card__description {
-		font-size: var(--font-ui-smaller);
-		color: var(--text-faint);
+		font-size: $font-xs;
+		color: $text-faint;
 	}
 
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
 		.ml-dashboard__stats-grid {
 			grid-template-columns: 1fr 1fr;
-			gap: 12px;
+			gap: $spacing-sm;
 		}
 
 		.ml-stat-card {
-			padding: 16px 12px;
+			padding: $spacing-md $spacing-sm;
 		}
 
 		.ml-stat-card__value {

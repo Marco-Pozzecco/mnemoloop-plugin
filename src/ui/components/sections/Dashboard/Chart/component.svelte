@@ -37,18 +37,20 @@
 	</Tabs.Root>
 </section>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-dashboard__chart-section {
-		background-color: var(--background-secondary);
-		border: 1px solid var(--background-modifier-border);
+		background-color: $background-secondary;
+		border: 1px solid $background-modifier-border;
 		border-radius: 12px;
-		padding: 24px;
+		padding: $spacing-lg;
 	}
 
 	/* Mobile adjustments */
 	@media (max-width: 480px) {
 		.ml-dashboard__chart-section {
-			padding: 16px;
+			padding: $spacing-md;
 		}
 	}
 </style>

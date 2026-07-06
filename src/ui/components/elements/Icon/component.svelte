@@ -46,7 +46,9 @@
 	<span use:iconAction={name} class="ml-icon {className}"></span>
 </span>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-icon {
 		display: inline-flex;
 		align-items: center;

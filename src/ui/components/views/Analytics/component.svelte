@@ -39,12 +39,14 @@
 	</section>
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-analytics {
 		display: flex;
 		flex-direction: column;
-		gap: 24px;
-		padding: 24px;
+		gap: $spacing-lg;
+		padding: $spacing-lg;
 		overflow-y: auto;
 		height: 100%;
 	}
@@ -52,48 +54,48 @@
 	.ml-analytics__section {
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
+		gap: $spacing-md;
 	}
 
 	.ml-analytics__section-title {
-		font-size: var(--font-ui-medium);
-		font-weight: var(--font-semibold);
+		font-size: $font-md;
+		font-weight: $font-semibold;
 		margin: 0;
-		color: var(--text-normal);
+		color: $text-normal;
 	}
 
 	.ml-analytics__filter-note {
-		font-size: var(--font-ui-small);
-		color: var(--text-muted);
+		font-size: $font-sm;
+		color: $text-muted;
 		margin: 0;
 		display: flex;
 		align-items: center;
-		gap: 8px;
+		gap: $spacing-xs;
 	}
 
 	.ml-analytics__clear-filter {
 		background: none;
 		border: none;
-		color: var(--interactive-accent);
+		color: $interactive-accent;
 		cursor: pointer;
-		font-size: var(--font-ui-small);
+		font-size: $font-sm;
 		padding: 0;
 		text-decoration: underline;
 	}
 
 	.ml-analytics__clear-filter:hover {
-		color: var(--text-accent-hover);
+		color: $text-accent-hover;
 	}
 
 	.ml-analytics__charts-grid {
 		display: grid;
 		grid-template-columns: repeat(2, 1fr);
-		gap: 16px;
+		gap: $spacing-md;
 	}
 
 	@media (max-width: 768px) {
 		.ml-analytics {
-			padding: 16px;
+			padding: $spacing-md;
 		}
 
 		.ml-analytics__charts-grid {

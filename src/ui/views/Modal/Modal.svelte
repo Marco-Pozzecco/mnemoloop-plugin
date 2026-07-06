@@ -21,10 +21,12 @@
 	<ModalControls {controller} />
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-modal-container {
-		background: var(--background-primary);
-		color: var(--text-normal);
-		border-radius: var(--radius-m);
+		background: $background-primary;
+		color: $text-normal;
+		border-radius: $radius-md;
 	}
 </style>

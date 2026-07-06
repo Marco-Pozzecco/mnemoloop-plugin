@@ -49,17 +49,19 @@
 	{/if}
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-toggle-wrapper {
 		display: flex;
 		flex-direction: column;
-		gap: 0.25rem;
+		gap: $spacing-xxs;
 	}
 
 	.ml-toggle-label-row {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		gap: $spacing-sm;
 	}
 
 	.ml-toggle-switch {
@@ -67,7 +69,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: flex-start;
-		background-color: var(--background-modifier-border);
+		background-color: $background-modifier-border;
 		border-radius: 100px;
 		border: none;
 		padding: 0;
@@ -78,15 +80,15 @@
 
 	.ml-toggle-thumb {
 		display: block;
-		background-color: var(--text-on-accent);
+		background-color: $text-accent-foreground;
 		border-radius: 50%;
-		box-shadow: 0 1px 3px color-mix(in srgb, var(--text-normal) 20%, transparent);
+		box-shadow: 0 1px 3px color-mix(in srgb, $text-normal 20%, transparent);
 		transition: transform 0.2s ease;
 		flex-shrink: 0;
 	}
 
 	.ml-toggle-switch.checked {
-		background-color: var(--interactive-accent);
+		background-color: $interactive-accent;
 	}
 
 	.ml-toggle-switch.disabled {
@@ -95,26 +97,26 @@
 	}
 
 	.ml-toggle-text {
-		font-size: var(--font-ui-small);
-		color: var(--text-normal);
+		font-size: $font-sm;
+		color: $text-normal;
 		line-height: 1.4;
 		cursor: pointer;
 		user-select: none;
 	}
 
 	.ml-toggle-helper {
-		font-size: var(--font-ui-smaller);
-		color: var(--text-muted);
+		font-size: $font-xs;
+		color: $text-muted;
 		line-height: 1.4;
 		margin-left: calc(var(--toggle-width, 40px) + 0.75rem);
 	}
 
 	.ml-toggle-label-row:hover .ml-toggle-switch:not(.disabled) {
-		background-color: var(--background-modifier-border-hover);
+		background-color: $background-modifier-border-hover;
 	}
 
 	.ml-toggle-label-row:hover .ml-toggle-switch.checked:not(.disabled) {
-		background-color: var(--interactive-accent-hover);
+		background-color: $interactive-accent-hover;
 	}
 
 	/* Size variants - small */
@@ -167,7 +169,7 @@
 
 	/* Focus visible */
 	.ml-toggle-switch:focus-visible {
-		outline: 2px solid var(--interactive-accent);
+		outline: 2px solid $interactive-accent;
 		outline-offset: 2px;
 	}
 </style>

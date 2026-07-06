@@ -41,32 +41,34 @@
 	</div>
 </Card>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-deck-tree {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
-		font-size: var(--font-ui-small);
+		gap: $spacing-xxs;
+		font-size: $font-sm;
 	}
 
 	.ml-deck-tree__all-decks {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		padding: 8px;
-		border-radius: 6px;
+		gap: $spacing-xs;
+		padding: $spacing-xs;
+		border-radius: $radius-md;
 		cursor: pointer;
 		transition: background-color 0.15s ease;
-		font-weight: var(--font-medium);
-		color: var(--text-normal);
+		font-weight: $font-md;
+		color: $text-normal;
 	}
 
 	.ml-deck-tree__all-decks:hover {
-		background-color: var(--background-modifier-hover);
+		background-color: $background-modifier-hover;
 	}
 
 	.ml-deck-tree__all-decks--selected {
-		background-color: var(--background-modifier-active-hover);
+		background-color: $background-modifier-active-hover;
 	}
 
 	.ml-deck-tree__all-decks-name {
@@ -76,6 +78,6 @@
 	.ml-deck-tree__nodes {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: $spacing-xxs;
 	}
 </style>

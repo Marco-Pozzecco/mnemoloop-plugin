@@ -88,25 +88,27 @@
 	{/if}
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-slider-wrapper {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: $spacing-xs;
 	}
 
 	.ml-slider-label {
-		font-size: var(--font-ui-smaller);
-		font-weight: var(--font-medium);
-		color: var(--text-normal);
+		font-size: $font-xs;
+		font-weight: $font-md;
+		color: $text-normal;
 		margin-bottom: 0;
 		display: flex;
 		align-items: center;
-		gap: 0.25rem;
+		gap: $spacing-xxs;
 	}
 
 	.ml-slider-required {
-		color: var(--text-error);
+		color: -error;
 		font-weight: bold;
 	}
 
@@ -122,8 +124,8 @@
 
 	.ml-slider-track {
 		height: 4px;
-		background-color: var(--background-modifier-border);
-		border-radius: 2px;
+		background-color: $background-modifier-border;
+		border-radius: $radius-xs;
 		position: relative;
 		width: 100%;
 		overflow: hidden;
@@ -131,8 +133,8 @@
 
 	.ml-slider-range {
 		height: 100%;
-		background-color: var(--interactive-accent);
-		border-radius: 2px;
+		background-color: $interactive-accent;
+		border-radius: $radius-xs;
 		position: absolute;
 		left: 0;
 		top: 0;
@@ -142,10 +144,10 @@
 	.ml-slider-thumb {
 		width: 16px;
 		height: 16px;
-		background-color: var(--interactive-accent);
+		background-color: $interactive-accent;
 		border-radius: 50%;
-		border: 2px solid var(--background-primary);
-		box-shadow: 0 1px 3px color-mix(in srgb, var(--text-normal) 20%, transparent);
+		border: 2px solid $background-primary;
+		box-shadow: 0 1px 3px color-mix(in srgb, $text-normal 20%, transparent);
 		position: absolute;
 		transition:
 			background-color 0.15s ease,
@@ -154,25 +156,25 @@
 	}
 
 	.ml-slider-thumb:hover {
-		background-color: var(--interactive-accent-hover);
+		background-color: $interactive-accent-hover;
 		transform: scale(1.2);
 	}
 
 	.ml-slider-thumb:active {
 		cursor: grabbing;
 		transform: scale(0.95);
-		box-shadow: 0 2px 6px color-mix(in srgb, var(--text-normal) 30%, transparent);
+		box-shadow: 0 2px 6px color-mix(in srgb, $text-normal 30%, transparent);
 	}
 
 	.ml-slider-thumb-label {
 		display: none;
 		z-index: 999;
 		border: 1px solid;
-		border-color: var(--background-modifier-border);
-		background-color: var(--background-primary);
-		color: var(--text-normal);
-		padding: 4px 8px;
-		border-radius: 4px;
+		border-color: $background-modifier-border;
+		background-color: $background-primary;
+		color: $text-normal;
+		padding: $spacing-xxs $spacing-xs;
+		border-radius: $radius-sm;
 		font-size: 0.875rem;
 	}
 
@@ -185,39 +187,39 @@
 	}
 	/* Error state */
 	.ml-slider-wrapper.has-error .ml-slider-track {
-		background-color: color-mix(in srgb, var(--text-error) 20%, transparent);
+		background-color: color-mix(in srgb, -error 20%, transparent);
 	}
 
 	.ml-slider-wrapper.has-error .ml-slider-range {
-		background-color: var(--text-error);
+		background-color: -error;
 	}
 
 	.ml-slider-wrapper.has-error .ml-slider-thumb {
-		background-color: var(--text-error);
-		border-color: var(--background-primary);
+		background-color: -error;
+		border-color: $background-primary;
 	}
 
 	.ml-slider-wrapper.has-error .ml-slider-thumb:hover {
-		background-color: var(--text-error);
+		background-color: -error;
 		filter: brightness(1.1);
 	}
 
 	.ml-slider-wrapper.has-error .ml-slider-label {
-		color: var(--text-error);
+		color: -error;
 	}
 
 	/* Disabled state */
 	.ml-slider-wrapper.disabled .ml-slider-track {
-		background-color: var(--background-modifier-border);
+		background-color: $background-modifier-border;
 		opacity: 0.5;
 	}
 
 	.ml-slider-wrapper.disabled .ml-slider-range {
-		background-color: var(--text-muted);
+		background-color: $text-muted;
 	}
 
 	.ml-slider-wrapper.disabled .ml-slider-thumb {
-		background-color: var(--text-muted);
+		background-color: $text-muted;
 		cursor: not-allowed;
 		box-shadow: none;
 	}
@@ -225,15 +227,15 @@
 	/* Error and helper text */
 	.ml-slider-error,
 	.ml-slider-helper {
-		font-size: var(--font-ui-smaller);
+		font-size: $font-xs;
 		line-height: 1.4;
 	}
 
 	.ml-slider-error {
-		color: var(--text-error);
+		color: -error;
 	}
 
 	.ml-slider-helper {
-		color: var(--text-muted);
+		color: $text-muted;
 	}
 </style>

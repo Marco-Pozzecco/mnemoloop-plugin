@@ -28,7 +28,9 @@
 	</div>
 </footer>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-review-footer {
 		display: flex;
 		justify-content: center;
@@ -37,7 +39,7 @@
 
 	.ml-navigation-controls {
 		display: flex;
-		gap: 2rem;
+		gap: $spacing-xl;
 	}
 
 	@media (max-width: 480px) {
@@ -46,7 +48,7 @@
 		}
 
 		.ml-navigation-controls {
-			gap: 1rem;
+			gap: $spacing-md;
 		}
 	}
 </style>

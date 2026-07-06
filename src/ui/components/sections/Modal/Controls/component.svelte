@@ -21,13 +21,15 @@
 	</Button>
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-modal-controls {
 		display: flex;
 		justify-content: flex-end;
-		gap: var(--size-4-2);
-		margin-top: var(--size-4-4);
-		padding-top: var(--size-4-3);
-		border-top: 1px solid var(--background-modifier-border);
+		gap: $spacing-sm;
+		margin-top: $spacing-md;
+		padding-top: $spacing-sm;
+		border-top: 1px solid $background-modifier-border;
 	}
 </style>

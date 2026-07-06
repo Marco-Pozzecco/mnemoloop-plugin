@@ -36,27 +36,29 @@
 	{/if}
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-progress-container {
 		display: flex;
 		flex-direction: column;
-		gap: 4px;
+		gap: $spacing-xxs;
 		width: 100%;
 	}
 
 	.ml-progress-track {
 		height: 8px;
 		width: 100%;
-		background-color: var(--background-modifier-border);
-		border-radius: 4px;
+		background-color: $background-modifier-border;
+		border-radius: $radius-sm;
 		overflow: hidden;
 		position: relative;
 	}
 
 	.ml-progress-fill {
 		height: 100%;
-		background-color: var(--interactive-accent);
-		border-radius: 4px;
+		background-color: $interactive-accent;
+		border-radius: $radius-sm;
 		transition: width 0.3s ease-in-out;
 	}
 
@@ -68,8 +70,8 @@
 	}
 
 	.ml-progress-label {
-		font-size: var(--font-ui-smaller);
-		color: var(--text-muted);
+		font-size: $font-xs;
+		color: $text-muted;
 		text-align: right;
 		font-variant-numeric: tabular-nums;
 	}

@@ -65,25 +65,27 @@
 	{/if}
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	.ml-deck-tree-node__content {
 		display: flex;
 		align-items: center;
-		gap: 6px;
-		padding: 2px 8px;
+		gap: $spacing-xs;
+		padding: $spacing-xxs $spacing-xs;
 		padding-left: var(--indent, 0px);
-		border-radius: 6px;
+		border-radius: $radius-md;
 		cursor: pointer;
 		transition: background-color 0.15s ease;
 		min-height: 32px;
 	}
 
 	.ml-deck-tree-node__content:hover {
-		background-color: var(--background-modifier-hover);
+		background-color: $background-modifier-hover;
 	}
 
 	.ml-deck-tree-node--selected .ml-deck-tree-node__content {
-		background-color: var(--background-modifier-active-hover);
+		background-color: $background-modifier-active-hover;
 	}
 
 	.ml-deck-tree-node__chevron {
@@ -97,13 +99,13 @@
 		border-radius: 50%;
 		width: 24px;
 		height: 24px;
-		color: var(--text-muted);
+		color: $text-muted;
 		flex-shrink: 0;
 	}
 
 	.ml-deck-tree-node__chevron:hover {
-		/*background-color: var(--background-modifier-hover);*/
-		color: var(--text-normal);
+		/*background-color: $background-modifier-hover;*/
+		color: $text-normal;
 	}
 
 	.ml-deck-tree-node__spacer {
@@ -113,8 +115,8 @@
 
 	.ml-deck-tree-node__name {
 		flex: 1;
-		font-size: var(--font-ui-small);
-		color: var(--text-normal);
+		font-size: $font-sm;
+		color: $text-normal;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -128,10 +130,10 @@
 		height: 20px;
 		padding: 0 6px;
 		border-radius: 10px;
-		background-color: var(--interactive-accent);
-		color: var(--text-on-accent);
-		font-size: var(--font-ui-smaller);
-		font-weight: var(--font-bold);
+		background-color: $interactive-accent;
+		color: $text-accent-foreground;
+		font-size: $font-xs;
+		font-weight: $font-bold;
 		flex-shrink: 0;
 	}
 

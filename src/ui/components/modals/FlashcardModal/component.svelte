@@ -26,11 +26,13 @@
 
 	$effect(() => {
 		controller.confirmAction = async () => {
-			EventBus.instance.publish(new FlashcardWriterCreateRequestEvent({
-				back: data.back,
-				front: data.front,
-				source: data.filepath,
-			}));
+			EventBus.instance.publish(
+				new FlashcardWriterCreateRequestEvent({
+					back: data.back,
+					front: data.front,
+					source: data.filepath,
+				}),
+			);
 		};
 	});
 </script>
@@ -44,7 +46,13 @@
 
 	<div class="ml-form-field">
 		<label for="flashcard-front">Front</label>
-		<Input id="flashcard-front" value={data.front} disabled={isLoading} onchange={(v) => updateFront(v)} type='text'/>
+		<Input
+			id="flashcard-front"
+			value={data.front}
+			disabled={isLoading}
+			onchange={(v) => updateFront(v)}
+			type="text"
+		/>
 	</div>
 
 	<div class="ml-form-field">
@@ -65,72 +73,74 @@
 	<!-- </div> -->
 </div>
 
-<style>
+<style lang="scss">
+	@use 'tokens' as *;
+
 	:global(.ml-flashcard-modal) {
-		width: var(--dialog-width);
+		width: $dialog-width;
 	}
 
 	.ml-flashcard-modal-content {
-		background: var(--background-primary);
-		padding: var(--size-4-4);
-		border-radius: var(--radius-s);
+		background: $background-primary;
+		padding: $spacing-md;
+		border-radius: $radius-sm;
 	}
 
 	.ml-modal-title {
-		font-size: var(--font-ui-larger);
-		font-weight: var(--font-semibold);
-		color: var(--text-normal);
-		margin: 0 0 var(--size-4-4) 0;
+		font-size: $font-lg;
+		font-weight: $font-semibold;
+		color: $text-normal;
+		margin: 0 0 $spacing-md 0;
 	}
 
 	.ml-modal-error {
-		background: var(--background-modifier-error);
-		color: var(--text-error);
-		padding: var(--size-4-2);
-		border-radius: var(--radius-s);
-		margin-bottom: var(--size-4-3);
-		font-size: var(--font-ui-small);
-		font-weight: var(--font-medium);
+		background: $background-modifier-error;
+		color: -error;
+		padding: $spacing-sm;
+		border-radius: $radius-sm;
+		margin-bottom: $spacing-sm;
+		font-size: $font-sm;
+		font-weight: $font-md;
 	}
 
 	.ml-form-field {
-		margin-bottom: var(--size-4-3);
+		margin-bottom: $spacing-sm;
 	}
 
 	.ml-form-field label {
 		display: block;
-		font-size: var(--font-ui-small);
-		font-weight: var(--font-medium);
-		color: var(--text-muted);
-		margin-bottom: var(--size-4-1);
+		font-size: $font-sm;
+		font-weight: $font-md;
+		color: $text-muted;
+		margin-bottom: $spacing-xxs;
 	}
 
 	.ml-textarea {
 		width: 100%;
-		padding: var(--size-4-2);
+		padding: $spacing-sm;
 		font-family: inherit;
-		font-size: var(--font-ui-small);
-		color: var(--text-normal);
-		background-color: var(--background-primary);
-		border: 1px solid var(--background-modifier-border);
-		border-radius: var(--radius-s);
+		font-size: $font-sm;
+		color: $text-normal;
+		background-color: $background-primary;
+		border: 1px solid $background-modifier-border;
+		border-radius: $radius-sm;
 		resize: vertical;
 		min-height: 80px;
 	}
 
 	.ml-textarea:hover:not(:disabled):not(:focus) {
-		border-color: var(--background-modifier-border-hover);
+		border-color: $background-modifier-border-hover;
 	}
 
 	.ml-textarea:focus {
 		outline: none;
-		border-color: var(--interactive-accent);
-		box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
+		border-color: $interactive-accent;
+		box-shadow: 0 0 0 2px $background-modifier-border-focus;
 	}
 
 	.ml-textarea:disabled {
-		background-color: var(--background-secondary);
-		color: var(--text-muted);
+		background-color: $background-secondary;
+		color: $text-muted;
 		cursor: not-allowed;
 		opacity: 0.6;
 	}
