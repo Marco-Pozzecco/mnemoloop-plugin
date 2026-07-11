@@ -23,7 +23,7 @@ class TestHandler implements IEventHandler {
 
 	constructor(_deps: IEventRegistryDependencies) {}
 
-	handle(event: IEvent): void {
+	async handle(event: IEvent): Promise<void> {
 		this.handled.push(event);
 	}
 }
@@ -101,7 +101,7 @@ describe('EventRegistry', () => {
 
 			class BoundCheckHandler extends EventHandler<TestEvent> {
 				wasCalled = false;
-				handle(_event: TestEvent): void {
+				async handle(_event: TestEvent): Promise<void> {
 					this.wasCalled = true;
 					// Accessing a protected property from the base class proves this is bound
 					expect(this._bus).toBe(bus);

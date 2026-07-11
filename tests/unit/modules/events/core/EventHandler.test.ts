@@ -14,7 +14,7 @@ class TestEvent extends Event<{ value: number }> {
 }
 
 class ConcreteHandler extends EventHandler<TestEvent> {
-	handle(_event: TestEvent): void {
+	async handle(_event: TestEvent): Promise<void> {
 		// no-op
 	}
 }

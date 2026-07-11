@@ -5,10 +5,11 @@ import { Plugin } from 'obsidian';
 import { IAdapter } from './interfaces/IAdapter';
 import { IEvent } from './interfaces/IEvent';
 import { IEventRegistryDependencies } from './interfaces/IEventRegistry';
+import { IContentParser } from './interfaces/parser/IContentParser';
+import { EventLogAdapter } from './modules/adapters/EventLogAdapter';
 import { FlashcardAdapter } from './modules/adapters/FlashcardAdapter';
 import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
 import { StatisticsAdapter } from './modules/adapters/StatisticsAdapter';
-import { EventLogAdapter } from './modules/adapters/EventLogAdapter';
 import {
 	CommandRegistry,
 	CreateEmptyFlashcardCommand,
@@ -28,8 +29,14 @@ import {
 	StatisticsAdapterInitEvent,
 } from './modules/events';
 import { FlashcardIndexer } from './modules/indexers/FlashcardIndexer';
-import { FlashcardParser } from './modules/parsers/FlashcardParser';
+import { FlashcardBasicContentParser } from './modules/parsers/content/FlashcardBasicContentParser';
+import { FlashcardSequenceContentParser } from './modules/parsers/content/FlashcardSequenceContentParser';
+import { FlashcardParser } from './modules/parsers/entity/FlashcardParser';
+import { FlashcardReviewItem } from './modules/review-items/FlashcardReviewItem';
+import { reviewItemFactory } from './modules/review-items/ReviewItemFactory';
+import { SequenceReviewItem } from './modules/review-items/SequenceReviewItem';
 import { FlashcardWriter } from './modules/writers/FlashcardWriter';
+import { CardType, FlashcardContent } from './schemas';
 import { PluginSettings } from './schemas/settings';
 import { AdapterKey, Adapters } from './types/adapters';
 import { CommandKey } from './types/commands';
@@ -63,6 +70,7 @@ export default class MnemoloopPlugin extends Plugin {
 		this.loadAdapters();
 		this.loadParsers();
 		this.loadIndexes();
+		this.loadReviewItemFactory();
 		this.loadWriters();
 		this._vaultWatcher = new VaultWatcher(
 			this,
@@ -107,12 +115,18 @@ export default class MnemoloopPlugin extends Plugin {
 		const settings = this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>;
 		if (!settings) throw new Error('failed to initialize adapters');
 
-		this._parsers.set(ParserKey.flashcard, new FlashcardParser(this, settings));
+		const contentParsers: IContentParser<FlashcardContent>[] = [
+			new FlashcardBasicContentParser(settings) as IContentParser<FlashcardContent>,
+			new FlashcardSequenceContentParser(settings) as IContentParser<FlashcardContent>,
+		];
+		this._parsers.set(ParserKey.flashcard, new FlashcardParser(this, contentParsers));
 	}
 
 	private loadWriters() {
-		const parser = this._parsers.get(ParserKey.flashcard) as FlashcardParser;
-		this._writers.set(WriterKey.flashcard, new FlashcardWriter(this, parser));
+		this._writers.set(
+			WriterKey.flashcard,
+			new FlashcardWriter(this, this._parsers.get(ParserKey.flashcard)!),
+		);
 	}
 
 	private loadIndexes() {
@@ -126,6 +140,11 @@ export default class MnemoloopPlugin extends Plugin {
 		);
 
 		this._initializationEvents.push(new FlashcardIndexInitEvent());
+	}
+
+	private loadReviewItemFactory() {
+		reviewItemFactory.register(CardType.Basic, (fp, eng) => new FlashcardReviewItem(fp, eng));
+		reviewItemFactory.register(CardType.Sequence, (fp, eng) => new SequenceReviewItem(fp, eng));
 	}
 
 	/**

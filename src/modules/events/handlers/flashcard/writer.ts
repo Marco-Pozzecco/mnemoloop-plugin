@@ -1,6 +1,6 @@
 import { IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
 import { SettingsAdapter } from '@/modules/adapters/SettingsAdapter';
-import { DEFAULT_FLASHCARD_YAML } from '@/schemas';
+import { DEFAULT_FLASHCARD_YAML, Flashcard } from '@/schemas';
 import { AdapterKey } from '@/types/adapters';
 import { WriterKey } from '@/types/writers';
 import { Logger } from '@/utils/Logger';
@@ -28,14 +28,14 @@ export class FlashcardWriterCreateHandler extends EventHandler<FlashcardWriterCr
 	async handle(event: FlashcardWriterCreateRequestEvent): Promise<void> {
 		const writer = this._writers.get(WriterKey.flashcard)!;
 		const settings = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
-		const { front, back, source } = event.data;
+		const { content, source } = event.data;
 		const flashcard = {
 			...DEFAULT_FLASHCARD_YAML,
 			uuid: uuid(),
 			source: `[[${source}]]`,
-			front,
-			back,
-		};
+			content,
+			card_type: content.meta_type,
+		} as Flashcard;
 		const flashcardPath = settings.data.flashcard.watch.directory + `/${flashcard.uuid}.md`;
 
 		try {
@@ -57,10 +57,8 @@ export class FlashcardWriterUpdateHandler extends EventHandler<FlashcardWriterUp
 	async handle(event: FlashcardWriterUpdateRequestEvent): Promise<void> {
 		const writer = this._writers.get(WriterKey.flashcard)!;
 		const settings = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
-		const { uuid, front, back, source } = event.data;
-		const flashcard = { ...DEFAULT_FLASHCARD_YAML, uuid, source, front, back };
-		const filepath = settings.data.flashcard.watch.directory + `/${uuid}.md`;
-		await writer.update(filepath, flashcard);
+		const filepath = settings.data.flashcard.watch.directory + `/${event.data.uuid}.md`;
+		await writer.update(filepath, event.data);
 		void this._bus.publish(new FlashcardWriterUpdateResponseEvent({ filepath }));
 	}
 }
@@ -99,8 +97,8 @@ export class FlashcardWriterBodyHandler extends EventHandler<FlashcardWriterBody
 	}
 	async handle(event: FlashcardWriterBodyRequestEvent): Promise<void> {
 		const writer = this._writers.get(WriterKey.flashcard)!;
-		const { front, back, filepath } = event.data;
-		await writer.updateBody(filepath, { front, back });
+		const { content, filepath } = event.data;
+		await writer.updateBody(filepath, content);
 		void this._bus.publish(new FlashcardWriterBodyResponseEvent({ filepath }));
 	}
 }

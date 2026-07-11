@@ -5,13 +5,14 @@ import {
 	FlashcardWriterCreateRequestEvent,
 	FlashcardWriterCreateResponseEvent,
 } from '@/modules/events';
+import { CardType } from '@/schemas';
 import { TFile, WorkspaceLeaf } from 'obsidian';
 import { openInSplitMode } from '@/utils/Workspace';
 import { resetSingletons } from '../../../../helpers/reset-singletons';
 import { createMockPlugin, createMockMenu } from '../../../../helpers/mock-obsidian';
 
 // Initialize static type properties on event classes before tests
-new FlashcardWriterCreateRequestEvent({ front: '', back: '', source: '' });
+new FlashcardWriterCreateRequestEvent({ content: { meta_type: CardType.Basic, front: '', back: '' }, source: '' });
 new FlashcardWriterCreateResponseEvent({ filepath: '' });
 
 vi.mock('@/utils/Workspace', () => ({
@@ -98,8 +99,11 @@ describe('CreateFlashcardFromFileCommand', () => {
 		const event = publishSpy.mock.calls[0][0] as FlashcardWriterCreateRequestEvent;
 		expect(event.type).toBe(FlashcardWriterCreateRequestEvent.type);
 		expect(event.data).toEqual({
-			back: '',
-			front: '',
+			content: {
+				meta_type: CardType.Basic,
+				front: '',
+				back: '',
+			},
 			source: 'notes/test.md',
 		});
 	});

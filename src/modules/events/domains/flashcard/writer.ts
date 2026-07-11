@@ -14,7 +14,7 @@ const t: Record<WriterAction, WriterEventType> = {
 	delete: 'Flashcard:Writer:Delete',
 };
 
-type FlashcardWriterCreateEventData = Pick<Flashcard, 'front' | 'back' | 'source'>;
+type FlashcardWriterCreateEventData = Pick<Flashcard, 'content' | 'source'>;
 
 const FlashcardWriterCreateRequestEvent =
 	EventFactory.createRequest<FlashcardWriterCreateEventData>(t.create);
@@ -25,7 +25,7 @@ const FlashcardWriterCreateResponseEvent = EventFactory.createResponse<{ filepat
 );
 type FlashcardWriterCreateResponseEvent = IEvent<{ filepath: string }>;
 
-type FlashcardWriterUpdateEventData = Pick<Flashcard, 'uuid' | 'front' | 'back' | 'source'>;
+type FlashcardWriterUpdateEventData = Partial<Flashcard>;
 
 const FlashcardWriterUpdateRequestEvent =
 	EventFactory.createRequest<FlashcardWriterUpdateEventData>(t.update);
@@ -55,12 +55,12 @@ type FlashcardWriterFmRequestEvent = IEvent<FlashcardWriterFmEventData>;
 const FlashcardWriterFmResponseEvent = EventFactory.createResponse<{ filepath: string }>(t.fm);
 type FlashcardWriterFmResponseEvent = IEvent<{ filepath: string }>;
 
-type FlashcardWriterBodyEventData = FlashcardContent;
+type FlashcardWriterBodyEventData = { content: FlashcardContent; filepath: string };
 
-const FlashcardWriterBodyRequestEvent = EventFactory.createRequest<
-	FlashcardWriterBodyEventData & { filepath: string }
->(t.body);
-type FlashcardWriterBodyRequestEvent = IEvent<FlashcardWriterBodyEventData & { filepath: string }>;
+const FlashcardWriterBodyRequestEvent = EventFactory.createRequest<FlashcardWriterBodyEventData>(
+	t.body,
+);
+type FlashcardWriterBodyRequestEvent = IEvent<FlashcardWriterBodyEventData>;
 
 const FlashcardWriterBodyResponseEvent = EventFactory.createResponse<{ filepath: string }>(t.body);
 type FlashcardWriterBodyResponseEvent = IEvent<{ filepath: string }>;

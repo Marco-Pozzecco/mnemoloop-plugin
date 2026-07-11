@@ -6,7 +6,7 @@ import { Notice } from 'obsidian';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMockPlugin } from '../../../../helpers/mock-obsidian';
 import { FlashcardIndexer } from '@/modules/indexers/FlashcardIndexer';
-import { FlashcardParser } from '@/modules/parsers/FlashcardParser';
+import { FlashcardParser } from '@/modules/parsers/entity/FlashcardParser';
 import { FlashcardWriter } from '@/modules/writers/FlashcardWriter';
 
 vi.mock('@/modules/writers/FlashcardWriter', () => ({
