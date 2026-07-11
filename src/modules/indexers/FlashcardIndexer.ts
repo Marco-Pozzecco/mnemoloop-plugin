@@ -1,15 +1,22 @@
 import { IAdapter } from '@/interfaces/IAdapter';
-import { Flashcard, FlashcardIndex, FlashcardMetadata, FlashcardYaml } from '@/schemas';
+import {
+	Flashcard,
+	FlashcardContent,
+	FlashcardIndex,
+	FlashcardMetadata,
+	FlashcardYaml,
+} from '@/schemas';
 import { PluginSettings } from '@/schemas/settings';
 import { normalizePath } from 'obsidian';
 import { FlashcardAdapter } from '../adapters/FlashcardAdapter';
-import { FlashcardParser } from '../parsers/FlashcardParser';
+import { FlashcardParser } from '../parsers/entity/FlashcardParser';
 import { BaseIndexer } from './BaseIndexer';
 
 export class FlashcardIndexer extends BaseIndexer<
 	Flashcard,
 	FlashcardMetadata,
 	FlashcardYaml,
+	FlashcardContent,
 	FlashcardIndex
 > {
 	private _dirPath = () => this._settings.data.flashcard.watch.directory;
@@ -34,7 +41,7 @@ export class FlashcardIndexer extends BaseIndexer<
 		}
 
 		// parse new flashcards
-		const flashcards = await this._parser.parseAll(this._dirPath());
+		const flashcards = await this._parser.parseDir(this._dirPath());
 
 		for (const flashcard of flashcards) {
 			if (flashcard.success) {

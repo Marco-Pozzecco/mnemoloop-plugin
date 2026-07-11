@@ -1,6 +1,7 @@
-import { IParser } from '@/interfaces/IParser';
+import { Logger } from '@/utils/Logger';
+import { IEntityParser } from '@/interfaces/parser/IEntityParser';
 import { FlashcardWriter } from '@/modules/writers/FlashcardWriter';
-import { Flashcard, FlashcardYaml } from '@/schemas';
+import { CardType, Flashcard, FlashcardContent, FlashcardYaml } from '@/schemas';
 import { Plugin } from 'obsidian';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createFlashcardYaml } from '../../../helpers/factories';
@@ -8,32 +9,47 @@ import { createMockPlugin } from '../../../helpers/mock-obsidian';
 
 describe('FlashcardWriter', () => {
 	let plugin: ReturnType<typeof createMockPlugin>;
-	let parser: IParser<Flashcard, FlashcardYaml>;
+	let entityParser: IEntityParser<Flashcard, FlashcardYaml, FlashcardContent>;
 	let writer: FlashcardWriter;
 
 	beforeEach(() => {
 		plugin = createMockPlugin([
 			{ path: 'existing.md', content: '---\nuuid: old\n---\nFront\n\n?\n\nBack' },
 		]);
-		parser = {
-			marker: '?',
-			parseContent: vi.fn().mockReturnValue({
-				entity: { front: 'Parsed Front', back: 'Parsed Back', uuid: 'parsed' },
+		entityParser = {
+		serializeContent: vi.fn().mockImplementation((content: FlashcardContent) => {
+			const c = content as { meta_type: CardType.Basic; front: string; back: string };
+			return { entity: `${c.front}\n\n?\n\n${c.back}`, success: true };
+		}),
+			parseFile: vi.fn().mockResolvedValue({
+				entity: {
+					...createFlashcardYaml(),
+					card_type: CardType.Basic,
+					content: { meta_type: CardType.Basic, front: 'Front', back: 'Back' },
+				},
+				stats: { created_at: '', updated_at: '' },
+				filepath: 'existing.md',
 				success: true,
 			}),
-			parse: vi.fn(),
-			parseMetadata: vi.fn(),
-			parseAll: vi.fn(),
-		} as unknown as IParser<Flashcard, FlashcardYaml>;
-		writer = new FlashcardWriter(plugin as unknown as Plugin, parser);
+			parseContent: vi.fn().mockReturnValue({
+				entity: { meta_type: CardType.Basic, front: 'Parsed Front', back: 'Parsed Back' },
+				success: true,
+			}),
+		} as unknown as IEntityParser<Flashcard, FlashcardYaml, FlashcardContent>;
+		writer = new FlashcardWriter(plugin as unknown as Plugin, entityParser);
+		vi.spyOn(Logger, 'error').mockImplementation(() => {});
 	});
 
 	describe('create', () => {
 		it('should write new file with frontmatter and serialized body', async () => {
 			const entity: Flashcard = {
 				...createFlashcardYaml(),
-				front: 'New Front',
-				back: 'New Back',
+				card_type: CardType.Basic as const,
+				content: {
+					meta_type: CardType.Basic,
+					front: 'New Front',
+					back: 'New Back',
+				},
 			};
 
 			await writer.create('new.md', entity);
@@ -48,11 +64,16 @@ describe('FlashcardWriter', () => {
 		it('should throw if file already exists', async () => {
 			const entity: Flashcard = {
 				...createFlashcardYaml(),
-				front: 'Front',
-				back: 'Back',
+				card_type: CardType.Basic as const,
+				content: {
+					meta_type: CardType.Basic,
+					front: 'Front',
+					back: 'Back',
+				},
 			};
 
-			await expect(writer.create('existing.md', entity)).rejects.toThrow('File already exists');
+			await writer.create('existing.md', entity);
+			expect(Logger.error).toHaveBeenCalledWith(expect.stringContaining('File already exists'));
 		});
 	});
 
@@ -60,8 +81,12 @@ describe('FlashcardWriter', () => {
 		it('should overwrite existing file', async () => {
 			const entity: Flashcard = {
 				...createFlashcardYaml(),
-				front: 'Updated Front',
-				back: 'Updated Back',
+				card_type: CardType.Basic as const,
+				content: {
+					meta_type: CardType.Basic,
+					front: 'Updated Front',
+					back: 'Updated Back',
+				},
 			};
 
 			await writer.update('existing.md', entity);
@@ -75,11 +100,16 @@ describe('FlashcardWriter', () => {
 		it('should throw if file does not exist', async () => {
 			const entity: Flashcard = {
 				...createFlashcardYaml(),
-				front: 'Front',
-				back: 'Back',
+				card_type: CardType.Basic as const,
+				content: {
+					meta_type: CardType.Basic,
+					front: 'Front',
+					back: 'Back',
+				},
 			};
 
-			await expect(writer.update('missing.md', entity)).rejects.toThrow('File not found');
+			await writer.update('missing.md', entity);
+			expect(Logger.error).toHaveBeenCalledWith(expect.stringContaining('File not found'));
 		});
 	});
 
@@ -96,9 +126,8 @@ describe('FlashcardWriter', () => {
 		});
 
 		it('should throw if file does not exist', async () => {
-			await expect(
-				writer.updateFrontmatter('missing.md', { uuid: '00000000-0000-0000-0000-000000000000' }),
-			).rejects.toThrow('File not found');
+			await writer.updateFrontmatter('missing.md', { uuid: '00000000-0000-0000-0000-000000000000' });
+			expect(Logger.error).toHaveBeenCalledWith(expect.stringContaining('File not found'));
 		});
 	});
 
@@ -115,7 +144,7 @@ describe('FlashcardWriter', () => {
 				sections: [],
 			});
 
-			await writer.updateBody('existing.md', { front: 'New Front', back: 'New Back' });
+			await writer.updateBody('existing.md', { meta_type: CardType.Basic, front: 'New Front', back: 'New Back' });
 
 			const content = await plugin.app.vault.adapter.read('existing.md');
 			expect(content).toContain('New Front');
@@ -124,9 +153,8 @@ describe('FlashcardWriter', () => {
 		});
 
 		it('should throw if file does not exist', async () => {
-			await expect(writer.updateBody('missing.md', { front: 'New', back: 'Body' })).rejects.toThrow(
-				'File not found',
-			);
+			await writer.updateBody('missing.md', { meta_type: CardType.Basic, front: 'New', back: 'Body' });
+			expect(Logger.error).toHaveBeenCalledWith(expect.stringContaining('File not found'));
 		});
 	});
 
@@ -138,38 +166,23 @@ describe('FlashcardWriter', () => {
 		});
 
 		it('should throw if file not found', async () => {
-			await expect(writer.delete('missing.md')).rejects.toThrow('File not found');
+			await writer.delete('missing.md');
+			expect(Logger.error).toHaveBeenCalledWith(expect.stringContaining('File not found'));
 		});
 	});
 
-	describe('serializeBody', () => {
-		it('should format body with marker separator', () => {
-			const result = (writer as unknown as Record<string, (b: unknown) => string>).serializeBody({
-				front: 'Front',
-				back: 'Back',
-			});
 
-			expect(result).toBe('Front\n\n?\n\nBack');
-		});
-	});
-
-	describe('deserializeBody', () => {
-		it('should delegate to parser.parseContent', () => {
-			const result = (writer as unknown as Record<string, (c: string) => unknown>).deserializeBody(
-				'some content',
-			);
-
-			expect(parser.parseContent).toHaveBeenCalledWith('some content');
-			expect(result).toEqual({ front: 'Parsed Front', back: 'Parsed Back' });
-		});
-	});
 
 	describe('extractMetadata', () => {
 		it('should extract and validate YAML fields from entity', () => {
 			const entity: Flashcard = {
 				...createFlashcardYaml(),
-				front: 'Front',
-				back: 'Back',
+				card_type: CardType.Basic as const,
+				content: {
+					meta_type: CardType.Basic,
+					front: 'Front',
+					back: 'Back',
+				},
 			};
 
 			const result = (
@@ -194,15 +207,19 @@ describe('FlashcardWriter', () => {
 		it('should extract body fields from entity', () => {
 			const entity: Flashcard = {
 				...createFlashcardYaml(),
-				front: 'Front',
-				back: 'Back',
+				card_type: CardType.Basic as const,
+				content: {
+					meta_type: CardType.Basic,
+					front: 'Front',
+					back: 'Back',
+				},
 			};
 
 			const result = (writer as unknown as Record<string, (e: Flashcard) => unknown>).extractBody(
 				entity,
 			);
 
-			expect(result).toEqual({ front: 'Front', back: 'Back' });
+			expect(result).toEqual({ meta_type: CardType.Basic, front: 'Front', back: 'Back' });
 		});
 
 		it('should throw on missing body fields', () => {

@@ -1,23 +1,23 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { Plugin } from 'obsidian';
-import { FlashcardYamlEngine } from '@/modules/yaml-engines/FlashcardYamlEngine';
+import { FlashcardYamlParser } from '@/modules/parsers/yaml/FlashcardYamlParser';
 import { createMockPlugin } from '../../../helpers/mock-obsidian';
 import { createFlashcardYaml } from '../../../helpers/factories';
 import { CardStatus } from '@/schemas';
 
 describe('FlashcardYamlEngine', () => {
 	let plugin: ReturnType<typeof createMockPlugin>;
-	let engine: FlashcardYamlEngine;
+	let engine: FlashcardYamlParser;
 
 	beforeEach(() => {
 		plugin = createMockPlugin([]);
-		engine = new FlashcardYamlEngine(plugin as unknown as Plugin);
+		engine = new FlashcardYamlParser(plugin as unknown as Plugin);
 	});
 
 	describe('recover', () => {
 		it('should call processFrontMatter with default YAML', async () => {
 			plugin = createMockPlugin([{ path: 'test.md', content: '' }]);
-			engine = new FlashcardYamlEngine(plugin as unknown as Plugin);
+			engine = new FlashcardYamlParser(plugin as unknown as Plugin);
 
 			await engine.recover('test.md');
 
@@ -28,7 +28,7 @@ describe('FlashcardYamlEngine', () => {
 
 		it('should preserve body when recovering', async () => {
 			plugin = createMockPlugin([{ path: 'test.md', content: 'existing body' }]);
-			engine = new FlashcardYamlEngine(plugin as unknown as Plugin);
+			engine = new FlashcardYamlParser(plugin as unknown as Plugin);
 
 			await engine.recover('test.md');
 
@@ -70,12 +70,14 @@ describe('FlashcardYamlEngine', () => {
 		});
 
 		it('should throw when no frontmatter in content', () => {
-			expect(() => engine.extractFmFromContent('no frontmatter')).toThrow('Invalid YAML frontmatter');
+			expect(() => engine.extractFmFromContent('no frontmatter')).toThrow(
+				'Invalid YAML frontmatter',
+			);
 		});
 
 		it('should call processFrontMatter while preserving body', async () => {
 			plugin = createMockPlugin([{ path: 'test.md', content: '---\nuuid: old\n---\nbody text' }]);
-			engine = new FlashcardYamlEngine(plugin as unknown as Plugin);
+			engine = new FlashcardYamlParser(plugin as unknown as Plugin);
 
 			await engine.write('test.md', createFlashcardYaml());
 

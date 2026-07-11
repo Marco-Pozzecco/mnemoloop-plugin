@@ -1,80 +1,122 @@
 import { IWriter } from '@/interfaces/IWriter';
-import { IYamlEngine } from '@/interfaces/IYamlEngine';
+import { IEntityParser } from '@/interfaces/parser/IEntityParser';
+import { Logger } from '@/utils/Logger';
 import { normalizePath, Plugin, TFile } from 'obsidian';
 
 export abstract class BaseWriter<
-	Entity extends Record<string, unknown>,
+	Entity extends EntityMetadata & { content: EntityBody },
 	EntityMetadata,
-	EntityBody = Record<string, unknown>,
+	EntityBody,
 > implements IWriter<Entity, EntityMetadata, EntityBody> {
 	protected _plugin: Plugin;
-	protected _yaml: IYamlEngine<EntityMetadata>;
+	protected _parser: IEntityParser<Entity, EntityMetadata, EntityBody>;
 
-	constructor(plugin: Plugin, yamlEngine: IYamlEngine<EntityMetadata>) {
+	constructor(plugin: Plugin, parser: IEntityParser<Entity, EntityMetadata, EntityBody>) {
 		this._plugin = plugin;
-		this._yaml = yamlEngine;
+		this._parser = parser;
 	}
 
 	create: (filepath: string, entity: Entity) => Promise<void> = async (filepath, entity) => {
-		if (this.fileExists(filepath)) {
-			throw new Error(`File already exists: ${filepath}`);
+		try {
+			if (this.fileExists(filepath)) {
+				throw new Error(`File already exists: ${filepath}`);
+			}
+
+			const body = this.extractBody(entity);
+			const serializedBody = this._parser.serializeContent(body);
+
+			if (!serializedBody.success) {
+				throw serializedBody.error;
+			}
+
+			// Create file with body only; frontmatter will be added via processFrontMatter
+			await this.writeFile(filepath, serializedBody.entity);
+
+			// Add frontmatter using processFrontMatter
+			const metadata = this.extractMetadata(entity);
+			const normalized = normalizePath(filepath);
+			const file = this._plugin.app.vault.getAbstractFileByPath(normalized);
+
+			if (!(file instanceof TFile)) {
+				throw new Error(`File not found: ${normalized}`);
+			}
+
+			await this._plugin.app.fileManager.processFrontMatter(
+				file,
+				(frontmatter: Record<string, unknown>) => {
+					Object.assign(frontmatter, metadata);
+				},
+			);
+		} catch (e) {
+			Logger.error(e instanceof Error ? e.message : String(e));
 		}
-
-		const body = this.extractBody(entity);
-		const serializedBody = this.serializeBody(body);
-
-		// Create file with body only; frontmatter will be added via processFrontMatter
-		await this.writeFile(filepath, serializedBody);
-
-		// Add frontmatter using processFrontMatter
-		const metadata = this.extractMetadata(entity);
-		const normalized = normalizePath(filepath);
-		const file = this._plugin.app.vault.getAbstractFileByPath(normalized);
-		if (!(file instanceof TFile)) {
-			throw new Error(`File not found: ${normalized}`);
-		}
-		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
-			Object.assign(frontmatter, metadata);
-		});
 	};
 
-	update: (filepath: string, entity: Entity) => Promise<void> = async (filepath, entity) => {
-		if (!this.fileExists(filepath)) {
-			throw new Error(`File not found: ${filepath}`);
-		}
+	update: (filepath: string, entity: Partial<Entity>) => Promise<void> = async (
+		filepath,
+		entity,
+	) => {
+		try {
+			if (!this.fileExists(filepath)) {
+				throw new Error(`File not found: ${filepath}`);
+			}
 
-		const metadata = this.extractMetadata(entity);
-		const body = this.extractBody(entity);
-		const serializedBody = this.serializeBody(body);
+			const current = await this._parser.parseFile(filepath);
 
-		// Update frontmatter using processFrontMatter
-		const normalized = normalizePath(filepath);
-		const file = this._plugin.app.vault.getAbstractFileByPath(normalized);
-		if (!(file instanceof TFile)) {
-			throw new Error(`File not found: ${normalized}`);
-		}
-		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
-			Object.assign(frontmatter, metadata);
-		});
+			if (!current.success) {
+				throw current.error;
+			}
 
-		// Update body if changed
-		const currentContent = await this.readFile(filepath);
-		const currentBody = this.removeFrontmatter(currentContent);
+			const updated = {
+				...current.entity,
+				...entity,
+			};
 
-		if (currentBody !== serializedBody) {
-			// Write body-only, then restore frontmatter
-			await this.writeFile(filepath, serializedBody);
-		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
-				const targetKeys = this.getMetadataKeys();
+			const metadata = this.extractMetadata(updated);
+			const body = this.extractBody(updated);
+			const serializedBody = this._parser.serializeContent(body);
 
-				for (const key of Object.keys(frontmatter)) {
-					if (!targetKeys.includes(key)) {
-						delete frontmatter[key];
-					}
-				}
+			if (!serializedBody.success) {
+				throw serializedBody.error;
+			}
 
-				Object.assign(frontmatter, metadata);
-			});
+			// Update frontmatter using processFrontMatter
+			const normalized = normalizePath(filepath);
+			const file = this._plugin.app.vault.getAbstractFileByPath(normalized);
+			if (!(file instanceof TFile)) {
+				throw new Error(`File not found: ${normalized}`);
+			}
+			await this._plugin.app.fileManager.processFrontMatter(
+				file,
+				(frontmatter: Record<string, unknown>) => {
+					Object.assign(frontmatter, metadata);
+				},
+			);
+
+			// Update body if changed
+			const currentContent = await this.readFile(filepath);
+			const currentBody = this.removeFrontmatter(currentContent);
+
+			if (currentBody !== serializedBody.entity) {
+				// Write body-only, then restore frontmatter
+				await this.writeFile(filepath, serializedBody.entity);
+				await this._plugin.app.fileManager.processFrontMatter(
+					file,
+					(frontmatter: Record<string, unknown>) => {
+						const targetKeys = this.getMetadataKeys();
+
+						for (const key of Object.keys(frontmatter)) {
+							if (!targetKeys.includes(key)) {
+								delete frontmatter[key];
+							}
+						}
+
+						Object.assign(frontmatter, metadata);
+					},
+				);
+			}
+		} catch (e) {
+			Logger.error(e instanceof Error ? e.message : String(e));
 		}
 	};
 
@@ -82,61 +124,84 @@ export abstract class BaseWriter<
 		filepath,
 		data,
 	) => {
-		const normalized = normalizePath(filepath);
-		const file = this._plugin.app.vault.getAbstractFileByPath(normalized);
-		if (!(file instanceof TFile)) {
-			throw new Error(`File not found: ${normalized}`);
-		}
-		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
-			const targetKeys = this.getMetadataKeys();
-
-			for (const key of Object.keys(frontmatter)) {
-				if (!targetKeys.includes(key)) {
-					delete frontmatter[key];
-				}
-			}
-
-			Object.assign(frontmatter, data);
-		});
-	};
-
-	updateBody: (filepath: string, body: EntityBody) => Promise<void> = async (filepath, body) => {
-		const serializedBody = this.serializeBody(body);
-		const currentContent = await this.readFile(filepath);
-		const currentBody = this.removeFrontmatter(currentContent);
-
-		if (currentBody !== serializedBody) {
-			// Get current frontmatter from cache
+		try {
 			const normalized = normalizePath(filepath);
 			const file = this._plugin.app.vault.getAbstractFileByPath(normalized);
-			let currentFm: Record<string, unknown> = {};
-			if (file instanceof TFile) {
-				const cache = this._plugin.app.metadataCache.getFileCache(file);
-				currentFm = cache?.frontmatter || {};
-			}
-
-			// Write body-only
-			await this.writeFile(filepath, serializedBody);
-
-			// Restore frontmatter
 			if (!(file instanceof TFile)) {
 				throw new Error(`File not found: ${normalized}`);
 			}
-			await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
-				Object.assign(frontmatter, currentFm);
-			});
+			await this._plugin.app.fileManager.processFrontMatter(
+				file,
+				(frontmatter: Record<string, unknown>) => {
+					const targetKeys = this.getMetadataKeys();
+
+					for (const key of Object.keys(frontmatter)) {
+						if (!targetKeys.includes(key)) {
+							delete frontmatter[key];
+						}
+					}
+
+					Object.assign(frontmatter, data);
+				},
+			);
+		} catch (e) {
+			Logger.error(e instanceof Error ? e.message : String(e));
+		}
+	};
+
+	updateBody: (filepath: string, body: EntityBody) => Promise<void> = async (filepath, body) => {
+		try {
+			const serializedBody = this._parser.serializeContent(body);
+
+			if (!serializedBody.success) {
+				return;
+			}
+
+			const currentContent = await this.readFile(filepath);
+			const currentBody = this.removeFrontmatter(currentContent);
+
+			if (currentBody !== serializedBody.entity) {
+				// Get current frontmatter from cache
+				const normalized = normalizePath(filepath);
+				const file = this._plugin.app.vault.getAbstractFileByPath(normalized);
+				let currentFm: Record<string, unknown> = {};
+				if (file instanceof TFile) {
+					const cache = this._plugin.app.metadataCache.getFileCache(file);
+					currentFm = cache?.frontmatter || {};
+				}
+
+				// Write body-only
+				await this.writeFile(filepath, serializedBody.entity);
+
+				// Restore frontmatter
+				if (!(file instanceof TFile)) {
+					throw new Error(`File not found: ${normalized}`);
+				}
+				await this._plugin.app.fileManager.processFrontMatter(
+					file,
+					(frontmatter: Record<string, unknown>) => {
+						Object.assign(frontmatter, currentFm);
+					},
+				);
+			}
+		} catch (e) {
+			Logger.error(e instanceof Error ? e.message : String(e));
 		}
 	};
 
 	delete: (filepath: string) => Promise<void> = async (filepath) => {
-		const normalized = normalizePath(filepath);
-		const file = this._plugin.app.vault.getAbstractFileByPath(normalized);
+		try {
+			const normalized = normalizePath(filepath);
+			const file = this._plugin.app.vault.getAbstractFileByPath(normalized);
 
-		if (!file) {
-			throw new Error(`File not found: ${normalized}`);
+			if (!file) {
+				throw new Error(`File not found: ${normalized}`);
+			}
+
+			await this._plugin.app.fileManager.trashFile(file);
+		} catch (e) {
+			Logger.error(e instanceof Error ? e.message : String(e));
 		}
-
-		await this._plugin.app.fileManager.trashFile(file);
 	};
 
 	protected fileExists(filepath: string): boolean {
@@ -179,8 +244,6 @@ export abstract class BaseWriter<
 		return content;
 	}
 
-	protected abstract serializeBody(body: EntityBody): string;
-	protected abstract deserializeBody(content: string): EntityBody;
 	protected abstract extractMetadata(entity: Entity): EntityMetadata;
 	protected abstract extractBody(entity: Entity): EntityBody;
 	protected abstract getMetadataKeys(): string[];

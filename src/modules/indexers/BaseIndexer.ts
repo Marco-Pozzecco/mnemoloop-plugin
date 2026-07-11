@@ -1,23 +1,24 @@
 import type { IAdapter } from '@/interfaces/IAdapter';
 import { IIndexer } from '@/interfaces/IIndexer';
-import { IParser } from '@/interfaces/IParser';
+import { IEntityParser } from '@/interfaces/parser/IEntityParser';
 import { PluginSettings } from '@/schemas/settings';
 import { Cache } from '@/utils/Cache';
 import { Logger } from '@/utils/Logger';
 
 export abstract class BaseIndexer<
-	Entity extends EntityYaml,
+	Entity extends EntityYaml & { content: EntityContent },
 	EntityMetadata extends EntityYaml,
 	EntityYaml,
+	EntityContent,
 	Index,
 > implements IIndexer<EntityMetadata> {
 	protected _cache: Cache<EntityMetadata> = new Cache();
-	protected _parser: IParser<Entity, EntityYaml>;
+	protected _parser: IEntityParser<Entity, EntityYaml, EntityContent>;
 	protected _settings: IAdapter<PluginSettings>;
 	protected _adapter: IAdapter<Index>;
 
 	constructor(
-		parser: IParser<Entity, EntityYaml>,
+		parser: IEntityParser<Entity, EntityYaml, EntityContent>,
 		settings: IAdapter<PluginSettings>,
 		adapter: IAdapter<Index>,
 	) {
