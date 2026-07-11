@@ -1,4 +1,5 @@
-import { FlashcardMetadata, FlashcardYaml, CardStatus } from '@/schemas';
+import { FlashcardMetadata, FlashcardYaml, CardStatus, CardType } from '@/schemas';
+import type { FlashcardSequenceSchema } from '@/schemas';
 import { DEFAULT_FSRS } from '@/utils/constants';
 import { vi } from 'vitest';
 
@@ -16,10 +17,10 @@ export function createFlashcardMetadata(
 		source: null,
 		status: CardStatus.ACTIVE,
 		decks: [],
+		card_type: CardType.Basic,
 		file: 'test.md',
 		created_at: FIXED_DATE_ISO,
 		updated_at: FIXED_DATE_ISO,
-		deleted_at: null,
 		...overrides,
 	};
 }
@@ -34,8 +35,35 @@ export function createFlashcardYaml(overrides: Partial<FlashcardYaml> = {}): Fla
 		source: null,
 		status: CardStatus.ACTIVE,
 		decks: [],
+		card_type: CardType.Basic,
 		...overrides,
 	};
+}
+
+/**
+ * Create a valid FlashcardYaml for a sequence card.
+ */
+export function createSequenceYaml(overrides: Partial<FlashcardYaml> = {}): FlashcardYaml {
+	return createFlashcardYaml({
+		card_type: CardType.Sequence,
+		...overrides,
+	});
+}
+
+/**
+ * Create a valid Sequence entity.
+ */
+export function createSequence(overrides: Partial<FlashcardSequenceSchema> = {}): FlashcardSequenceSchema {
+	return {
+		...DEFAULT_FSRS,
+		uuid: '00000000-0000-0000-0000-000000000000',
+		source: null,
+		status: CardStatus.ACTIVE,
+		decks: [],
+		card_type: CardType.Sequence,
+		content: { meta_type: CardType.Sequence, steps: ['step one', 'step two', 'step three'] },
+		...overrides,
+	} as FlashcardSequenceSchema;
 }
 
 /**
