@@ -61,7 +61,7 @@
 		shuffledSteps = arrayMove(shuffledSteps, from, to);
 	}
 
-	function handleDragEnd(event: { canceled?: boolean }) {
+	function handleDragEnd() {
 		if (showingAnswer) return;
 		// Reordering is handled in onDragOver; nothing to do here on successful drop.
 		// On cancel, the user released the drag outside a valid target — steps retain their
