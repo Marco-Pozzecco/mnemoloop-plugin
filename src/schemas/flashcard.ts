@@ -1,6 +1,13 @@
-import { DEFAULT_FSRS } from '@/utils/constants';
 import { z } from 'zod';
-import { FSRSParams } from './srs';
+import { DEFAULT_FSRS } from '@/utils/constants';
+import {
+	CardType,
+	CardStatus,
+	CardTypeSchema,
+	DEFAULT_FLASHCARD_YAML,
+	FlashcardYamlSchema,
+	type FlashcardYaml,
+} from './flashcard.utils';
 import {
 	FlashcardSequenceContent,
 	FlashcardSequenceContentSchema,
@@ -12,30 +19,8 @@ import {
 	FlashcardBaseSchema,
 } from './flashcard.base';
 
-export enum CardType {
-	Basic = 'basic',
-	Sequence = 'sequence',
-}
-
-export enum CardStatus {
-	ACTIVE = 'ACTIVE',
-	DELETED = 'DELETED',
-	PAUSED = 'PAUSED',
-	STALE = 'STALE',
-}
-
-export const CardTypeSchema = z.enum([CardType.Basic, CardType.Sequence]);
-
-export const FlashcardYamlSchema = FSRSParams.extend({
-	uuid: z.uuid(),
-	source: z
-		.string()
-		.regex(/^\[\[.*\]\]$/, 'Must be valid Obsidian link format')
-		.nullable(),
-	status: z.enum(CardStatus),
-	decks: z.array(z.string()),
-	card_type: CardTypeSchema.default(CardType.Basic),
-});
+export { CardType, CardStatus, CardTypeSchema, DEFAULT_FLASHCARD_YAML, FlashcardYamlSchema };
+export type { FlashcardYaml };
 
 export const FlashcardContentSchema = z.union([
 	FlashcardBaseContentSchema,
@@ -55,17 +40,16 @@ export const FlashcardIndexSchema = z.object({
 
 export type FlashcardIndex = z.infer<typeof FlashcardIndexSchema>;
 export type FlashcardMetadata = z.infer<typeof FlashcardMetadataSchema>;
-export type FlashcardYaml = z.infer<typeof FlashcardYamlSchema>;
 export type Flashcard = FlashcardBaseSchema | FlashcardSequenceSchema;
-export type FlashcardContent = FlashcardBaseContent | FlashcardSequenceContent;
 
-export const DEFAULT_FLASHCARD_YAML: Omit<FlashcardYaml, 'uuid'> = {
-	...DEFAULT_FSRS,
-	source: null,
-	status: CardStatus.ACTIVE,
-	decks: [],
-	card_type: CardType.Basic,
-};
+export function isFlashcardBase(card: Flashcard): card is FlashcardBaseSchema {
+	return card.card_type === CardType.Basic;
+}
+
+export function isFlashcardSequence(card: Flashcard): card is FlashcardSequenceSchema {
+	return card.card_type === CardType.Sequence;
+}
+export type FlashcardContent = FlashcardBaseContent | FlashcardSequenceContent;
 
 export const DEFAULT_FLASHCARD_METADATA: Omit<FlashcardMetadata, 'uuid' | 'file'> = {
 	created_at: new Date().toISOString(),

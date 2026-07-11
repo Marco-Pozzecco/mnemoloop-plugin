@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CardType, FlashcardYamlSchema } from './flashcard';
+import { CardType, FlashcardYamlSchema } from './flashcard.utils';
 
 export const FlashcardBaseContentSchema = z.object({
 	meta_type: z.literal(CardType.Basic),
