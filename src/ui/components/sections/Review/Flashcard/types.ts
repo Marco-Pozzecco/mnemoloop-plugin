@@ -9,3 +9,9 @@ export default interface FlashCardProps {
 	onSwipeRight: () => void;
 	onTap: () => void;
 }
+
+/** Shared shape for per-type content components. */
+export interface FlashcardContentProps<T> {
+	content: T;
+	showingAnswer: boolean;
+}
