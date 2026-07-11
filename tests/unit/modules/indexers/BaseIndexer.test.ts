@@ -94,7 +94,7 @@ const mockIndexAdapter: IAdapter<TestIndex> = {
 class TestIndexer extends BaseIndexer<TestEntity, TestMetadata, TestYaml, TestContent, TestIndex> {
 	initialize = async () => {};
 	save = async () => {};
-	generateMetadata(data: TestEntity, filepath: string): TestMetadata {
+	generateMetadata(data: TestEntity, _filepath: string): TestMetadata {
 		return { uuid: data.uuid, name: data.content.name };
 	}
 }

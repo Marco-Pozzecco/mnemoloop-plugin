@@ -1,4 +1,4 @@
-import { Flashcard, FlashcardMetadata, FlashcardYaml, CardType } from '@/schemas';
+import { Flashcard, FlashcardMetadata, FlashcardYaml } from '@/schemas';
 import { FSRSParameters } from 'ts-fsrs';
 import { FsrsEngine } from '../review-engines/FsrsEngine';
 import { ReviewItemFactory } from '../review-items/ReviewItemFactory';

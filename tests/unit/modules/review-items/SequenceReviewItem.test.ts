@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { SequenceReviewItem } from '@/modules/review-items/SequenceReviewItem';
 import { IReviewEngine } from '@/interfaces/IReviewEngine';
-import { FlashcardYaml, Flashcard, FlashcardSequenceSchema, CardType } from '@/schemas';
+import { FlashcardYaml, FlashcardSequenceSchema } from '@/schemas';
 import {
 	EventBus,
 	FlashcardParserParseRequestEvent,

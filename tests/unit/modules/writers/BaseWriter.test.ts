@@ -1,9 +1,7 @@
 import { Logger } from '@/utils/Logger';
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { Plugin, parseYaml } from 'obsidian';
-import { z } from 'zod';
 import { BaseWriter } from '@/modules/writers/BaseWriter';
-import { IYamlEngine } from '@/interfaces/parser/IYamlParser';
 import { IEntityParser } from '@/interfaces/parser/IEntityParser';
 import { createMockPlugin } from '../../../helpers/mock-obsidian';
 
@@ -21,24 +19,6 @@ interface TestMetadata {
 }
 type TestBody = string;
 
-class TestYamlEngine implements IYamlEngine<TestMetadata> {
-	private schema: z.ZodObject<{ uuid: z.ZodString; tags: z.ZodOptional<z.ZodArray<z.ZodString>> }>;
-
-	constructor(_plugin: Plugin) {
-		this.schema = z.object({
-			uuid: z.string(),
-			tags: z.array(z.string()).optional(),
-		});
-	}
-	encode = (data: TestMetadata): string => JSON.stringify(data);
-	decode = (yaml: string): TestMetadata => JSON.parse(yaml);
-	extractFmFromFile = async (_filepath: string): Promise<TestMetadata> => ({ uuid: 'test' });
-	extractFmFromCache = (_filepath: string): TestMetadata => ({ uuid: 'test' });
-	extractFmFromContent = (_content: string): { fm: TestMetadata; body: string } => ({ fm: { uuid: 'test' }, body: '' });
-	write = async (_filepath: string, _data: TestMetadata): Promise<void> => {};
-	recover = async (_filepath: string) => ({ data: { uuid: 'test' }, success: true } as const);
-	validate = (data: Record<string, unknown>): TestMetadata => this.schema.parse(data) as TestMetadata;
-}
 class TestWriter extends BaseWriter<TestEntity, TestMetadata, TestBody> {
 	constructor(plugin: Plugin, parser: IEntityParser<TestEntity, TestMetadata, TestBody>) {
 		super(plugin, parser);
