@@ -1,5 +1,6 @@
 import { BaseCommand } from '@/modules/commands/BaseCommand';
 import { EventBus, FlashcardWriterCreateRequestEvent } from '@/modules/events';
+import { CardType } from '@/schemas';
 
 export class CreateEmptyFlashcardCommand extends BaseCommand {
 	readonly id = 'create-empty-flashcard';
@@ -14,8 +15,11 @@ export class CreateEmptyFlashcardCommand extends BaseCommand {
 
 				await EventBus.instance.publish(
 					new FlashcardWriterCreateRequestEvent({
-						back: '',
-						front: '',
+						content: {
+							meta_type: CardType.Basic,
+							front: '',
+							back: '',
+						},
 						source: activeFile?.path ?? '',
 					}),
 				);

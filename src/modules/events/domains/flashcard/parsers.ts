@@ -1,6 +1,6 @@
 import { IEvent } from '@/interfaces/IEvent';
-import { ParseResult } from '@/interfaces/IParser';
-import { Flashcard, FlashcardYaml } from '@/schemas';
+import { ParseContentResult, ParseResult } from '@/interfaces/parser/utils';
+import { Flashcard, FlashcardContent, FlashcardYaml } from '@/schemas';
 import { ParserAction } from '@/types/parsers';
 import { EventFactory } from '../../core/Event';
 
@@ -37,11 +37,9 @@ const FlashcardParserParseContentRequestEvent =
 type FlashcardParserParseContentRequestEvent = IEvent<FlashcardParserParseContentEventData>;
 
 const FlashcardParserParseContentResponseEvent = EventFactory.createResponse<
-	Omit<ParseResult<Flashcard>, 'filepath' | 'stats'>
+	ParseContentResult<FlashcardContent>
 >(t.parseContent);
-type FlashcardParserParseContentResponseEvent = IEvent<
-	Omit<ParseResult<Flashcard>, 'filepath' | 'stats'>
->;
+type FlashcardParserParseContentResponseEvent = IEvent<ParseContentResult<FlashcardContent>>;
 
 type FlashcardParserParseMetadataEventData = {
 	filepath: string;

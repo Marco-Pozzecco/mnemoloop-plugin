@@ -165,9 +165,13 @@ export class FlashcardIndexOnVaultCreateHandler extends EventHandler<VaultCreate
 
 		try {
 			const parser = this._parsers.get(ParserKey.flashcard)!;
-			const result = await parser.parseMetadata(data.path);
-			if (result.success) {
-				const entity = indexer.generateMetadata(result.entity, result.filepath);
+			const rawResult = await parser.parseYaml(data.path);
+			if (Array.isArray(rawResult)) {
+				Logger.error('parseMetadata returned array for filepath, expected single result');
+				return;
+			}
+			if (rawResult.success) {
+				const entity = indexer.generateMetadata(rawResult.entity, rawResult.filepath);
 				indexer.upsert(entity.uuid, entity);
 				await indexer.save();
 			}
@@ -231,7 +235,9 @@ export class FlashcardIndexOnVaultModifyHandler extends EventHandler<VaultModify
 		const parser = this._parsers.get(ParserKey.flashcard)!;
 
 		try {
-			const result = await parser.parseMetadata(data.path);
+			const rawResult = await parser.parseYaml(data.path);
+			if (Array.isArray(rawResult)) return;
+			const result = rawResult;
 			if (result.success) {
 				const entity = indexer.generateMetadata(result.entity, result.filepath);
 				indexer.update(entity.uuid, entity);
@@ -274,7 +280,9 @@ export class FlashcardIndexOnVaultRenameHandler extends EventHandler<VaultRename
 				await indexer.save();
 			} else if (indexer.isPathInWatchedDir(data.path)) {
 				const parser = this._parsers.get(ParserKey.flashcard)!;
-				const result = await parser.parseMetadata(data.path);
+				const rawResult = await parser.parseYaml(data.path);
+				if (Array.isArray(rawResult)) return;
+				const result = rawResult;
 				if (result.success) {
 					const entity = indexer.generateMetadata(result.entity, result.filepath);
 					indexer.upsert(entity.uuid, entity);

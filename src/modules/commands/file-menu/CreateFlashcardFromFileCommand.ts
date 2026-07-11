@@ -4,6 +4,7 @@ import {
 	FlashcardWriterCreateRequestEvent,
 	FlashcardWriterCreateResponseEvent,
 } from '@/modules/events';
+import { CardType } from '@/schemas';
 import { openInSplitMode } from '@/utils/Workspace';
 import { Menu, TAbstractFile, TFile, WorkspaceLeaf, normalizePath } from 'obsidian';
 
@@ -63,8 +64,11 @@ export class CreateFlashcardFromFileCommand extends BaseCommand {
 
 		void EventBus.instance.publish(
 			new FlashcardWriterCreateRequestEvent({
-				back: '',
-				front: '',
+				content: {
+					meta_type: CardType.Basic,
+					front: '',
+					back: '',
+				},
 				source: sourcePath,
 			}),
 		);

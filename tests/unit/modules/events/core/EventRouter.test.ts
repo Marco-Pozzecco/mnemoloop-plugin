@@ -26,19 +26,19 @@ class OtherEvent extends Event<{ value: string }> {
 }
 
 class TestHandler extends EventHandler<TestEvent> {
-	handle(_event: TestEvent): void {
+	async handle(_event: TestEvent): Promise<void> {
 		/* no-op */
 	}
 }
 
 class OtherHandler extends EventHandler<OtherEvent> {
-	handle(_event: OtherEvent): void {
+	async handle(_event: OtherEvent): Promise<void> {
 		/* no-op */
 	}
 }
 
 class AnotherHandler extends EventHandler<TestEvent> {
-	handle(_event: TestEvent): void {
+	async handle(_event: TestEvent): Promise<void> {
 		/* no-op */
 	}
 }

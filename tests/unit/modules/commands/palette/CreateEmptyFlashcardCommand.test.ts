@@ -3,6 +3,7 @@ import { CreateEmptyFlashcardCommand } from '@/modules/commands/palette/CreateEm
 import { EventBus } from '@/modules/events/core/EventBus';
 import { FlashcardWriterCreateRequestEvent } from '@/modules/events';
 import { resetSingletons } from '../../../../helpers/reset-singletons';
+import { CardType } from '@/schemas';
 import { createMockPlugin } from '../../../../helpers/mock-obsidian';
 
 describe('CreateEmptyFlashcardCommand', () => {
@@ -46,8 +47,7 @@ describe('CreateEmptyFlashcardCommand', () => {
 		const event = publishSpy.mock.calls[0][0] as FlashcardWriterCreateRequestEvent;
 		expect(event.type).toBe(FlashcardWriterCreateRequestEvent.type);
 		expect(event.data).toEqual({
-			back: '',
-			front: '',
+			content: { meta_type: CardType.Basic, front: '', back: '' },
 			source: 'notes/test.md',
 		});
 	});
@@ -63,7 +63,7 @@ describe('CreateEmptyFlashcardCommand', () => {
 		expect(publishSpy).toHaveBeenCalledTimes(1);
 		const event = publishSpy.mock.calls[0][0] as FlashcardWriterCreateRequestEvent;
 		expect(event.data.source).toBe('');
-		expect(event.data.front).toBe('');
-		expect(event.data.back).toBe('');
+		expect(event.data.content).toEqual({ meta_type: CardType.Basic, front: '', back: '' });
+		expect(event.data.source).toBe('');
 	});
 });
