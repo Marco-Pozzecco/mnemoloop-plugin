@@ -1,4 +1,5 @@
 import { EventBus, FlashcardReviewSessionStartEvent } from '@/modules/events';
+import { reviewItemFactory } from '@/modules/review-items/ReviewItemFactory';
 import { FlashcardReviewQueue } from '@/modules/review-queues/FlashcardReviewQueue';
 import { CardStatus, FlashcardMetadata } from '@/schemas';
 import { IndexKey } from '@/types/indexes';
@@ -44,6 +45,7 @@ export class DashboardController implements IDashboardController {
 		};
 		const list = new FlashcardReviewQueue(
 			predicate,
+			reviewItemFactory,
 			fsrsParams as unknown as Partial<FSRSParameters>,
 		);
 

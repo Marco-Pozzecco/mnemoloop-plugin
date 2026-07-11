@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { FlashcardReviewItem } from '@/modules/review-items/FlashcardReviewItem';
 import { IReviewEngine } from '@/interfaces/IReviewEngine';
-import { Flashcard, FlashcardYaml } from '@/schemas';
+import { Flashcard, FlashcardYaml, CardType } from '@/schemas';
 import {
 	EventBus,
 	FlashcardParserParseRequestEvent,
@@ -16,7 +16,7 @@ import { IEvent } from '@/interfaces/IEvent';
 
 // Initialize static type properties on event classes before tests
 new FlashcardParserParseRequestEvent({ filepath: '' });
-new FlashcardParserParseResponseEvent({ entity: {} as Flashcard, filepath: '' });
+new FlashcardParserParseResponseEvent({ entity: {} as Flashcard, filepath: '', stats: { created_at: '', updated_at: '' }, success: true });
 new FlashcardReviewSessionScoreEvent({ filepath: '', rating: 0, ...createFlashcardYaml() });
 new FlashcardWriterFmRequestEvent({ fm: {}, filepath: '' });
 
@@ -29,8 +29,7 @@ function createMockEngine(): IReviewEngine<FlashcardYaml> {
 
 function createFlashcard(overrides: Partial<Flashcard> = {}): Flashcard {
 	return {
-		front: 'Front',
-		back: 'Back',
+		content: { meta_type: CardType.Basic, front: 'Front', back: 'Back' },
 		...createFlashcardYaml(),
 		...overrides,
 		uuid: 'test-uuid',
@@ -49,7 +48,7 @@ describe('FlashcardReviewItem', () => {
 	describe('initialize', () => {
 		it('should publish parse request on construction', () => {
 			const capturedEvents: IEvent[] = [];
-			EventBus.instance.subscribe(FlashcardParserParseRequestEvent, (e) => {
+			EventBus.instance.subscribe(FlashcardParserParseRequestEvent, async (e) => {
 				capturedEvents.push(e);
 			});
 
@@ -70,9 +69,9 @@ describe('FlashcardReviewItem', () => {
 			const item = new FlashcardReviewItem('test.md', engine);
 
 			// Simulate parser response
-			const flashcard = createFlashcard({ front: 'Q1', back: 'A1' });
+			const flashcard = createFlashcard({ content: { meta_type: CardType.Basic, front: 'Q1', back: 'A1' } });
 			EventBus.instance.publish(
-				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'test.md' }),
+				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'test.md', stats: { created_at: '', updated_at: '' }, success: true }),
 			);
 
 			expect(item.data).toEqual(flashcard);
@@ -84,7 +83,7 @@ describe('FlashcardReviewItem', () => {
 
 			const flashcard = createFlashcard();
 			EventBus.instance.publish(
-				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'other.md' }),
+				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'other.md', stats: { created_at: '', updated_at: '' }, success: true }),
 			);
 
 			expect(item.data).toBeNull();
@@ -94,14 +93,14 @@ describe('FlashcardReviewItem', () => {
 			const engine = createMockEngine();
 			const item = new FlashcardReviewItem('test.md', engine);
 
-			const flashcard1 = createFlashcard({ front: 'First' });
-			const flashcard2 = createFlashcard({ front: 'Second' });
+			const flashcard1 = createFlashcard({ content: { meta_type: CardType.Basic, front: 'First', back: 'Back' } });
+			const flashcard2 = createFlashcard({ content: { meta_type: CardType.Basic, front: 'Second', back: 'Back' } });
 
 			EventBus.instance.publish(
-				new FlashcardParserParseResponseEvent({ entity: flashcard1, filepath: 'test.md' }),
+				new FlashcardParserParseResponseEvent({ entity: flashcard1, filepath: 'test.md', stats: { created_at: '', updated_at: '' }, success: true }),
 			);
 			EventBus.instance.publish(
-				new FlashcardParserParseResponseEvent({ entity: flashcard2, filepath: 'test.md' }),
+				new FlashcardParserParseResponseEvent({ entity: flashcard2, filepath: 'test.md', stats: { created_at: '', updated_at: '' }, success: true }),
 			);
 
 			// Last one wins
@@ -123,7 +122,7 @@ describe('FlashcardReviewItem', () => {
 
 			const flashcard = createFlashcard();
 			EventBus.instance.publish(
-				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'test.md' }),
+				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'test.md', stats: { created_at: '', updated_at: '' }, success: true }),
 			);
 
 			item.review(3);
@@ -137,7 +136,7 @@ describe('FlashcardReviewItem', () => {
 
 			const flashcard = createFlashcard({ reps: 0 });
 			EventBus.instance.publish(
-				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'test.md' }),
+				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'test.md', stats: { created_at: '', updated_at: '' }, success: true }),
 			);
 
 			item.review(3);
@@ -147,7 +146,7 @@ describe('FlashcardReviewItem', () => {
 
 		it('should publish FlashcardReviewSessionScoreEvent', () => {
 			const capturedEvents: IEvent[] = [];
-			EventBus.instance.subscribe(FlashcardReviewSessionScoreEvent, (e) => {
+			EventBus.instance.subscribe(FlashcardReviewSessionScoreEvent, async (e) => {
 				capturedEvents.push(e);
 			});
 			const engine = createMockEngine();
@@ -155,7 +154,7 @@ describe('FlashcardReviewItem', () => {
 
 			const flashcard = createFlashcard({ uuid: 'uuid-123' });
 			EventBus.instance.publish(
-				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'test.md' }),
+				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'test.md', stats: { created_at: '', updated_at: '' }, success: true }),
 			);
 
 			capturedEvents.length = 0;
@@ -175,7 +174,7 @@ describe('FlashcardReviewItem', () => {
 	describe('restore', () => {
 		it('should publish FlashcardWriterFmRequestEvent', () => {
 			const capturedEvents: IEvent[] = [];
-			EventBus.instance.subscribe(FlashcardWriterFmRequestEvent, (e) => {
+			EventBus.instance.subscribe(FlashcardWriterFmRequestEvent, async (e) => {
 				capturedEvents.push(e);
 			});
 			const engine = createMockEngine();
@@ -187,7 +186,7 @@ describe('FlashcardReviewItem', () => {
 				difficulty: 3,
 			});
 			EventBus.instance.publish(
-				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'test.md' }),
+				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'test.md', stats: { created_at: '', updated_at: '' }, success: true }),
 			);
 
 			capturedEvents.length = 0;
@@ -202,7 +201,7 @@ describe('FlashcardReviewItem', () => {
 
 		it('should not publish event when data is null', () => {
 			const capturedEvents: IEvent[] = [];
-			EventBus.instance.subscribe(FlashcardWriterFmRequestEvent, (e) => {
+			EventBus.instance.subscribe(FlashcardWriterFmRequestEvent, async (e) => {
 				capturedEvents.push(e);
 			});
 
@@ -222,9 +221,9 @@ describe('FlashcardReviewItem', () => {
 			const item1 = new FlashcardReviewItem('shared.md', engine);
 			const item2 = new FlashcardReviewItem('shared.md', engine);
 
-			const flashcard = createFlashcard({ front: 'Shared' });
+			const flashcard = createFlashcard({ content: { meta_type: CardType.Basic, front: 'Shared', back: 'Back' } });
 			EventBus.instance.publish(
-				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'shared.md' }),
+				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'shared.md', stats: { created_at: '', updated_at: '' }, success: true }),
 			);
 
 			expect(item1.data).toEqual(flashcard);
@@ -241,7 +240,7 @@ describe('FlashcardReviewItem', () => {
 
 			const flashcard = createFlashcard();
 			EventBus.instance.publish(
-				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'test.md' }),
+				new FlashcardParserParseResponseEvent({ entity: flashcard, filepath: 'test.md', stats: { created_at: '', updated_at: '' }, success: true }),
 			);
 
 			expect(item.data).toBeNull();
