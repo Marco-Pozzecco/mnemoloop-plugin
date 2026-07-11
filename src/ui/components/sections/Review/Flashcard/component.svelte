@@ -1,9 +1,11 @@
 <script lang="ts">
-	import { type Flashcard } from '@/schemas';
+	import { type Flashcard, isFlashcardBase, isFlashcardSequence } from '@/schemas';
 	import { gesture } from '@/ui/actions/gestures';
 	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
 	import { Button, Card, Skeleton } from '@/ui/components';
 	import type FlashCardProps from './types';
+	import FlashcardBasicContent from './Basic/component.svelte';
+	import FlashcardSequenceContent from './Sequence/component.svelte';
 
 	let { item, showingAnswer, onShowAnswer, onSwipeLeft, onSwipeRight, onTap }: FlashCardProps =
 		$props();
@@ -33,15 +35,6 @@
 		};
 	});
 
-	// Options no longer need app - it's retrieved from context internally
-	const frontOptions: MarkdownOptions = $derived({
-		content: flashcard?.front ?? '',
-	});
-
-	const backOptions: MarkdownOptions = $derived({
-		content: flashcard?.back ?? '',
-	});
-
 	const footerOptions: MarkdownOptions = $derived({
 		content: flashcard?.source ?? '',
 	});
@@ -62,11 +55,18 @@
 	>
 		{#if flashcard}
 			<Card>
-				{#if showingAnswer}
-					<div class="ml-flashcard-front" use:renderMarkdown={frontOptions}></div>
-					<div class="ml-flashcard-back" use:renderMarkdown={backOptions}></div>
+				{#if isFlashcardBase(flashcard)}
+					<FlashcardBasicContent
+						content={flashcard.content}
+						{showingAnswer}
+					/>
+				{:else if isFlashcardSequence(flashcard)}
+					<FlashcardSequenceContent
+						content={flashcard.content}
+						{showingAnswer}
+					/>
 				{:else}
-					<div class="ml-flashcard-front" use:renderMarkdown={frontOptions}></div>
+					<Skeleton width="full" height="200px" shape="default" radius="8px" />
 				{/if}
 
 				{#snippet footer()}
@@ -120,11 +120,6 @@
 		overflow-y: auto;
 	}
 
-	.ml-flashcard-front,
-	.ml-flashcard-back {
-		line-height: 1.6;
-	}
-
 	.ml-flashcard-footer {
 		font-size: 0.9rem;
 		color: $text-muted;
@@ -140,11 +135,6 @@
 	.ml-flashcard-footer-value {
 		flex: 1;
 		font-style: italic;
-	}
-
-	.ml-flashcard-back {
-		padding-top: 1rem;
-		border-top: 1px solid $background-modifier-border;
 	}
 
 	.ml-show-answer-wrapper {
@@ -188,10 +178,6 @@
 
 		.ml-flashcard-container {
 			gap: $spacing-md;
-		}
-
-		.ml-flashcard-back {
-			padding-top: 0.75rem;
 		}
 	}
 </style>

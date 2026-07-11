@@ -4,6 +4,7 @@
 	import { modalStore } from '@/ui/store/modal.store';
 	import type FlashcardModalProps from './types';
 	import { type FlashcardModalData } from './types';
+	import { CardType } from '@/schemas';
 
 	let { controller, isLoading, error }: FlashcardModalProps = $props();
 
@@ -28,8 +29,11 @@
 		controller.confirmAction = async () => {
 			EventBus.instance.publish(
 				new FlashcardWriterCreateRequestEvent({
-					back: data.back,
-					front: data.front,
+					content: {
+						meta_type: CardType.Basic,
+						back: data.back,
+						front: data.front,
+					},
 					source: data.filepath,
 				}),
 			);

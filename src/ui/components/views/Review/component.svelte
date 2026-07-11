@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { IReviewItem } from '@/interfaces/IReviewItem';
 	import { type Flashcard } from '@/schemas';
 	import {
 		ReviewControls,
@@ -123,7 +124,7 @@
 	});
 
 	const flashCardProps: ReviewFlashcardProps = $derived({
-		item: item!,
+		item: item! as IReviewItem<Flashcard>,
 		showingAnswer,
 		onShowAnswer: handleShowAnswer,
 		onSwipeLeft: handleSwipeLeft,
