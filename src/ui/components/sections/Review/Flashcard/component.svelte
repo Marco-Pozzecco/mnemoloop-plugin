@@ -1,19 +1,28 @@
 <script lang="ts">
-	import { type Flashcard, isFlashcardBase, isFlashcardSequence } from '@/schemas';
+	import { CardType, type Flashcard } from '@/schemas';
 	import { gesture } from '@/ui/actions/gestures';
 	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
 	import { Button, Card, Skeleton } from '@/ui/components';
 	import type FlashCardProps from './types';
-	import FlashcardBasicContent from './Basic/component.svelte';
-	import FlashcardSequenceContent from './Sequence/component.svelte';
+	import FlashcardContent from './Content/component.svelte';
+	import ScoreControls from './ScoreControls/component.svelte';
 
-	let { item, showingAnswer, onShowAnswer, onSwipeLeft, onSwipeRight, onTap }: FlashCardProps =
-		$props();
+	let {
+		item,
+		showingAnswer,
+		onShowAnswer,
+		onSwipeLeft,
+		onSwipeRight,
+		onTap,
+		onSubmitRating,
+	}: FlashCardProps = $props();
 
 	let cardContainer: HTMLElement | undefined = $state();
 
 	let flashcard: Flashcard | null = $derived(item.data);
 	let timer: number | null = null;
+
+	let sequenceIsCorrect = $state(false);
 
 	$effect(() => {
 		// Watch for data changes
@@ -38,6 +47,10 @@
 	const footerOptions: MarkdownOptions = $derived({
 		content: flashcard?.source ?? '',
 	});
+
+	function handleResult(isCorrect: boolean) {
+		sequenceIsCorrect = isCorrect;
+	}
 </script>
 
 <div class="ml-flashcard-wrapper">
@@ -55,19 +68,7 @@
 	>
 		{#if flashcard}
 			<Card>
-				{#if isFlashcardBase(flashcard)}
-					<FlashcardBasicContent
-						content={flashcard.content}
-						{showingAnswer}
-					/>
-				{:else if isFlashcardSequence(flashcard)}
-					<FlashcardSequenceContent
-						content={flashcard.content}
-						{showingAnswer}
-					/>
-				{:else}
-					<Skeleton width="full" height="200px" shape="default" radius="8px" />
-				{/if}
+				<FlashcardContent {flashcard} {showingAnswer} onResult={handleResult} />
 
 				{#snippet footer()}
 					<div class="ml-flashcard-footer">
@@ -98,6 +99,17 @@
 			</Button>
 		</div>
 	{/if}
+
+	{#if showingAnswer}
+		<ScoreControls
+			cardType={flashcard?.card_type ?? CardType.Basic}
+			{onSubmitRating}
+			onContinue={() => {
+				onSubmitRating(sequenceIsCorrect ? 3 : 1);
+			}}
+			isCorrect={sequenceIsCorrect}
+		/>
+	{/if}
 </div>
 
 <style lang="scss">
@@ -108,7 +120,6 @@
 		flex-direction: column;
 		flex: 1;
 		min-height: 0;
-		overflow-y: auto;
 	}
 
 	.ml-flashcard-container {

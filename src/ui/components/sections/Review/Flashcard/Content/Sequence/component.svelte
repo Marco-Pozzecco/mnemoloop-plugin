@@ -6,10 +6,9 @@
 	} from '@dnd-kit/svelte';
 	import { isSortable } from '@dnd-kit/svelte/sortable';
 	import SortableStep from './SortableStep.svelte';
-	import type { FlashcardSequenceContent } from '@/schemas';
-	import type { FlashcardContentProps } from '../types';
+	import type ReviewFlashcardSequenceProps from './types';
 
-	let { content, showingAnswer }: FlashcardContentProps<FlashcardSequenceContent> = $props();
+	let { content, showingAnswer, onResult }: ReviewFlashcardSequenceProps = $props();
 
 	let shuffledSteps: { id: string; text: string }[] = $state([]);
 	let correctSteps: string[] = $state([]);
@@ -29,6 +28,16 @@
 				})),
 			);
 		}
+	});
+
+	const isCorrect = $derived(
+		showingAnswer &&
+			correctSteps.length > 0 &&
+			correctSteps.every((step, i) => shuffledSteps[i]?.text === step),
+	);
+
+	$effect(() => {
+		if (showingAnswer) onResult?.(isCorrect);
 	});
 
 	function fisherYatesShuffle<T>(array: T[]): T[] {

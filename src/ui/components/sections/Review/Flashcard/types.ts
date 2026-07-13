@@ -1,5 +1,6 @@
 import { IReviewItem } from '@/interfaces/IReviewItem';
 import type { Flashcard } from '@/schemas';
+import type { Rating } from 'ts-fsrs';
 
 export default interface FlashCardProps {
 	item: IReviewItem<Flashcard>;
@@ -8,10 +9,5 @@ export default interface FlashCardProps {
 	onSwipeLeft: () => void;
 	onSwipeRight: () => void;
 	onTap: () => void;
-}
-
-/** Shared shape for per-type content components. */
-export interface FlashcardContentProps<T> {
-	content: T;
-	showingAnswer: boolean;
+	onSubmitRating: (rating: Rating) => void;
 }

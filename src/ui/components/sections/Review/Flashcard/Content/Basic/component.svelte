@@ -3,7 +3,8 @@
 	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
 	import type { FlashcardContentProps } from '../types';
 
-	let { content, showingAnswer }: FlashcardContentProps<FlashcardBaseContent> = $props();
+	// eslint-disable-next-line no-unused-vars -- Basic does not auto-score; onResult is accepted for interface uniformity.
+	let { content, showingAnswer, onResult }: FlashcardContentProps<FlashcardBaseContent> = $props();
 
 	const frontOptions: MarkdownOptions = $derived({
 		content: content?.front ?? '',
