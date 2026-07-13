@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { Button, Icon } from '@/ui/components';
-	import type { RatingButton } from './types';
-	import type RatingControlsProps from './types';
 	import { tokens } from '@/utils/token';
+	import type { RatingButton } from '../types';
+	import type ManualReviewControlsProps from './types';
 
-	// props
-	let { onSubmitRating, disabled = false }: RatingControlsProps = $props();
+	let { disabled = false, onSubmitRating }: ManualReviewControlsProps = $props();
 
-	const ratings: RatingButton[] = [
+	const basicRatings: RatingButton[] = [
 		{ value: 1, label: 'Again', color: tokens['text-error'], icon: 'refresh-ccw', shortcut: '1' },
 		{ value: 2, label: 'Hard', color: tokens['text-warning'], icon: 'trending-up', shortcut: '2' },
 		{ value: 3, label: 'Good', color: tokens['text-accent'], icon: 'check', shortcut: '3' },
@@ -15,22 +14,22 @@
 	];
 </script>
 
-<div class="ml-rating-controls" class:disabled>
-	{#each ratings as rating (rating.value)}
-		<div class="ml-rating-button-wrapper">
+<div class="ml-score-controls ml-score-controls--manual" class:disabled>
+	{#each basicRatings as rating (rating.value)}
+		<div class="ml-score-controls__button-wrapper">
 			<Button
 				variant="primary"
-				className="ml-rating-button"
+				className="ml-score-controls__button"
 				onclick={() => !disabled && onSubmitRating(rating.value)}
 				{disabled}
 				ariaLabel="Rate as {rating.label}"
 			>
-				<div class="ml-rating-button-content">
+				<div class="ml-score-controls__button-content">
 					<Icon name={rating.icon || ''} size={18} />
-					<span class="ml-rating-label">{rating.label}</span>
+					<span class="ml-score-controls__label">{rating.label}</span>
 				</div>
 			</Button>
-			<span class="ml-rating-shortcut">{rating.shortcut}</span>
+			<span class="ml-score-controls__shortcut">{rating.shortcut}</span>
 		</div>
 	{/each}
 </div>
@@ -38,7 +37,7 @@
 <style lang="scss">
 	@use 'tokens' as *;
 
-	.ml-rating-controls {
+	.ml-score-controls {
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
 		gap: $spacing-md;
@@ -46,42 +45,42 @@
 		margin-top: $spacing-lg;
 	}
 
-	.ml-rating-controls.disabled {
+	.ml-score-controls.disabled {
 		opacity: 0.6;
 		pointer-events: none;
 	}
 
-	.ml-rating-button-wrapper {
+	.ml-score-controls__button-wrapper {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: $spacing-xs;
 	}
 
-	:global(button.ml-rating-button) {
+	:global(button.ml-score-controls__button) {
 		width: 100%;
 		height: 60px;
 		border-color: $background-modifier-border;
 		transition: all 0.2s ease;
 	}
 
-	:global(.ml-rating-button:hover) {
+	:global(.ml-score-controls__button:hover) {
 		background-color: $background-secondary;
 	}
 
-	.ml-rating-button-content {
+	.ml-score-controls__button-content {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: $spacing-xxs;
 	}
 
-	.ml-rating-label {
+	.ml-score-controls__label {
 		font-size: 0.8rem;
 		font-weight: 500;
 	}
 
-	.ml-rating-shortcut {
+	.ml-score-controls__shortcut {
 		font-size: 0.7rem;
 		color: $text-muted;
 		background-color: $background-secondary;
@@ -92,22 +91,22 @@
 
 	/* Mobile optimizations */
 	@media (max-width: 480px) {
-		.ml-rating-controls {
+		.ml-score-controls {
 			gap: $spacing-sm;
 			grid-template-columns: repeat(2, 1fr);
 			margin-top: $spacing-md;
 		}
 
-		:global(button.ml-rating-button) {
+		:global(button.ml-score-controls__button) {
 			height: 56px;
 			padding: $spacing-xs;
 		}
 
-		.ml-rating-label {
+		.ml-score-controls__label {
 			font-size: 0.85rem;
 		}
 
-		.ml-rating-shortcut {
+		.ml-score-controls__shortcut {
 			display: none;
 		}
 	}

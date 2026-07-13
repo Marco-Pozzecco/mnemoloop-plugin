@@ -1,8 +1,7 @@
 <script lang="ts">
 	import type { IReviewItem } from '@/interfaces/IReviewItem';
-	import { type Flashcard } from '@/schemas';
+	import { CardType, type Flashcard } from '@/schemas';
 	import {
-		ReviewControls,
 		ReviewEmptyState,
 		ReviewFlashcard,
 		ReviewHeader,
@@ -51,14 +50,10 @@
 		if (event.code === 'Space') {
 			event.preventDefault();
 			if (!showingAnswer) handleShowAnswer();
-		} else if (event.key === '1') {
-			if (showingAnswer) handleSubmitRating(1);
-		} else if (event.key === '2') {
-			if (showingAnswer) handleSubmitRating(2);
-		} else if (event.key === '3') {
-			if (showingAnswer) handleSubmitRating(3);
-		} else if (event.key === '4') {
-			if (showingAnswer) handleSubmitRating(4);
+		} else if (event.key === '1' || event.key === '2' || event.key === '3' || event.key === '4') {
+			if (showingAnswer && item?.data?.card_type !== CardType.Sequence) {
+				handleSubmitRating(Number(event.key) as Rating);
+			}
 		} else if (event.key.toLowerCase() === 'u') {
 			handleUndo();
 		}
@@ -130,6 +125,7 @@
 		onSwipeLeft: handleSwipeLeft,
 		onSwipeRight: handleSwipeRight,
 		onTap: handleTap,
+		onSubmitRating: handleSubmitRating,
 	});
 
 	const emptyStateProps: ReviewEmptyStateProps = $derived({
@@ -145,12 +141,6 @@
 	<main class="ml-review-main">
 		{#if item}
 			<ReviewFlashcard {...flashCardProps} />
-
-			{#if showingAnswer}
-				<div class="ml-controls-wrapper">
-					<ReviewControls onSubmitRating={handleSubmitRating} />
-				</div>
-			{/if}
 		{:else}
 			<ReviewEmptyState {...emptyStateProps} />
 		{/if}
@@ -180,11 +170,7 @@
 		min-height: 0;
 	}
 
-	.ml-controls-wrapper {
-		display: flex;
-		justify-content: center;
-		min-height: 100px;
-	}
+
 
 	@media (max-width: 480px) {
 		.ml-review-container {
@@ -196,8 +182,5 @@
 			gap: $spacing-md;
 		}
 
-		.ml-controls-wrapper {
-			min-height: auto;
-		}
 	}
 </style>
