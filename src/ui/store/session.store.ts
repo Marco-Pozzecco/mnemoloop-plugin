@@ -3,7 +3,6 @@ import { v4 as uuid } from 'uuid';
 import { Rating } from 'ts-fsrs';
 import { BaseStoreManager } from './base.store';
 import { IReviewQueue } from '@/interfaces/IReviewQueue';
-import { IReviewItem } from '@/interfaces/IReviewItem';
 
 export interface ReviewAction {
 	type: 'rating';
