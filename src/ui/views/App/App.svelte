@@ -19,10 +19,8 @@
 		currentView = state.currentView;
 	});
 
-	// context
-	$effect(() => {
-		setAppContext({ app, component });
-	});
+	// context — set synchronously during init; props ($props) are inherently reactive
+	setAppContext({ app, component });
 </script>
 
 <div class="ml-app-container">

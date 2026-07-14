@@ -1,14 +1,10 @@
 <script lang="ts">
-	import {
-		DragDropProvider,
-		KeyboardSensor,
-		PointerSensor,
-	} from '@dnd-kit/svelte';
+	import { DragDropProvider, KeyboardSensor, PointerSensor } from '@dnd-kit/svelte';
 	import { isSortable } from '@dnd-kit/svelte/sortable';
 	import SortableStep from './SortableStep.svelte';
 	import type ReviewFlashcardSequenceProps from './types';
 
-	let { content, showingAnswer, onResult }: ReviewFlashcardSequenceProps = $props();
+	let { content, isAnswerShowing, onSetAnswerCorrectness }: ReviewFlashcardSequenceProps = $props();
 
 	let shuffledSteps: { id: string; text: string }[] = $state([]);
 	let correctSteps: string[] = $state([]);
@@ -31,13 +27,11 @@
 	});
 
 	const isCorrect = $derived(
-		showingAnswer &&
-			correctSteps.length > 0 &&
-			correctSteps.every((step, i) => shuffledSteps[i]?.text === step),
+		correctSteps.length > 0 && correctSteps.every((step, i) => shuffledSteps[i]?.text === step),
 	);
 
 	$effect(() => {
-		if (showingAnswer) onResult?.(isCorrect);
+		onSetAnswerCorrectness?.(isCorrect);
 	});
 
 	function fisherYatesShuffle<T>(array: T[]): T[] {
@@ -57,9 +51,12 @@
 	}
 
 	function handleDragOver(event: {
-		operation: { source: import('@dnd-kit/dom').Draggable | null; target: import('@dnd-kit/dom').Droppable | null };
+		operation: {
+			source: import('@dnd-kit/dom').Draggable | null;
+			target: import('@dnd-kit/dom').Droppable | null;
+		};
 	}) {
-		if (showingAnswer) return;
+		if (isAnswerShowing) return;
 		const { source, target } = event.operation;
 		if (!isSortable(source) || !isSortable(target)) return;
 
@@ -71,14 +68,19 @@
 	}
 
 	function handleDragEnd() {
-		if (showingAnswer) return;
+		if (isAnswerShowing) return;
 		// Reordering is handled in onDragOver; nothing to do here on successful drop.
 		// On cancel, the user released the drag outside a valid target — steps retain their
 		// last onDragOver position, which is the intended behavior.
 	}
 </script>
-<DragDropProvider sensors={() => [PointerSensor, KeyboardSensor]} onDragEnd={handleDragEnd} onDragOver={handleDragOver}>
-	{#if showingAnswer}
+
+<DragDropProvider
+	sensors={() => [PointerSensor, KeyboardSensor]}
+	onDragEnd={handleDragEnd}
+	onDragOver={handleDragOver}
+>
+	{#if isAnswerShowing}
 		<div class="ml-sequence-list">
 			{#each correctSteps as step, i (i)}
 				<div

@@ -27,7 +27,11 @@
 >
 	<span class="ml-sequence-step-index">{index + 1}</span>
 	<span class="ml-sequence-step-text">{text}</span>
-	<span {@attach sortable.attachHandle} class="ml-sequence-step-handle" aria-label="Drag to reorder">
+	<span
+		{@attach sortable.attachHandle}
+		class="ml-sequence-step-handle"
+		aria-label="Drag to reorder"
+	>
 		⠿
 	</span>
 </div>

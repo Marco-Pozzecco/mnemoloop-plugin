@@ -3,7 +3,7 @@
 	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
 	import type { FlashcardContentProps } from '../types';
 
-	let { content, showingAnswer }: FlashcardContentProps<FlashcardBaseContent> = $props();
+	let { content, isAnswerShowing }: FlashcardContentProps<FlashcardBaseContent> = $props();
 
 	const frontOptions: MarkdownOptions = $derived({
 		content: content?.front ?? '',
@@ -14,7 +14,7 @@
 	});
 </script>
 
-{#if showingAnswer}
+{#if isAnswerShowing}
 	<div class="ml-flashcard-front" use:renderMarkdown={frontOptions}></div>
 	<div class="ml-flashcard-back" use:renderMarkdown={backOptions}></div>
 {:else}

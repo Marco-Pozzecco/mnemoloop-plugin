@@ -2,53 +2,62 @@
 	import { Icon } from '@/ui/components';
 	import { Platform } from 'obsidian';
 	import type AutoReviewControlsProps from './types';
+	import { Rating } from 'ts-fsrs';
 
-	let { isCorrect, disabled = false, onContinue }: AutoReviewControlsProps = $props();
+	let { isAnswerCorrect, disabled = false, onSubmitRating }: AutoReviewControlsProps = $props();
 
 	let isTouchDevice = $state(Platform.isMobile);
+	let containerRef: HTMLDivElement;
 
-	$effect(() => {
-		function onKeyDown(event: KeyboardEvent) {
-			if (disabled) return;
-			if (event.code !== 'Space') return;
-			if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-				return;
-			}
-			event.preventDefault();
-			event.stopImmediatePropagation();
-			onContinue();
-		}
+	function onContinue(isCorrect: boolean) {
+		let rating;
 
-		function onTap(event: TouchEvent) {
-			if (disabled) return;
-			event.preventDefault();
-			event.stopImmediatePropagation();
-			onContinue();
-		}
+		if (isCorrect) rating = Rating.Good;
+		else rating = Rating.Hard;
 
-		if (isTouchDevice) {
-			window.addEventListener('touchstart', onTap);
-			return () => window.removeEventListener('touchstart', onTap);
-		} else {
-			window.addEventListener('keydown', onKeyDown);
-			return () => window.removeEventListener('keydown', onKeyDown);
+		return onSubmitRating(rating);
+	}
+
+	function onKeyDown(event: KeyboardEvent) {
+		if (disabled) return;
+		if (!containerRef || containerRef.offsetParent === null) {
+			return;
 		}
-	});
+		if (event.code !== 'Space') return;
+		if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+			return;
+		}
+		event.preventDefault();
+		event.stopImmediatePropagation();
+		onContinue(isAnswerCorrect);
+	}
+
+	function onTap(event: TouchEvent) {
+		if (disabled) return;
+		if (!containerRef || containerRef.offsetParent === null) {
+			return;
+		}
+		event.preventDefault();
+		event.stopImmediatePropagation();
+		onContinue(isAnswerCorrect);
+	}
 </script>
 
-<div class="ml-score-controls ml-score-controls--auto" class:disabled>
+<svelte:window ontouchstart={onTap} onkeydown={onKeyDown} />
+
+<div bind:this={containerRef} class="ml-score-controls ml-score-controls--auto" class:disabled>
 	<div class="ml-score-controls__alert-wrapper">
 		<div
 			class="ml-score-controls__alert"
-			class:correct={isCorrect}
-			class:incorrect={!isCorrect}
+			class:correct={isAnswerCorrect}
+			class:incorrect={!isAnswerCorrect}
 		>
 			<Icon
 				className="ml-score-controls__alert-icon"
-				name={isCorrect ? 'circle-check-big' : 'circle-x'}
+				name={isAnswerCorrect ? 'circle-check-big' : 'circle-x'}
 				size={18}
 			/>
-			<p class="ml-score-controls__alert-label">{isCorrect ? 'Correct' : 'Incorrect'}</p>
+			<p class="ml-score-controls__alert-label">{isAnswerCorrect ? 'Correct' : 'Incorrect'}</p>
 		</div>
 		<span class="ml-score-controls__tip">
 			{#if isTouchDevice}

@@ -1,5 +1,7 @@
+import { Rating } from 'ts-fsrs';
+
 export default interface AutoReviewControlsProps {
-	isCorrect: boolean;
+	isAnswerCorrect: boolean;
 	disabled?: boolean;
-	onContinue: () => void;
+	onSubmitRating: (rating: Rating) => void;
 }
