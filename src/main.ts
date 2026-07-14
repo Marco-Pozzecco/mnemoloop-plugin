@@ -31,10 +31,12 @@ import {
 import { FlashcardIndexer } from './modules/indexers/FlashcardIndexer';
 import { FlashcardBasicContentParser } from './modules/parsers/content/FlashcardBasicContentParser';
 import { FlashcardSequenceContentParser } from './modules/parsers/content/FlashcardSequenceContentParser';
+import { FlashcardQuizContentParser } from './modules/parsers/content/FlashcardQuizContentParser';
 import { FlashcardParser } from './modules/parsers/entity/FlashcardParser';
 import { FlashcardReviewItem } from './modules/review-items/FlashcardReviewItem';
 import { reviewItemFactory } from './modules/review-items/ReviewItemFactory';
 import { SequenceReviewItem } from './modules/review-items/SequenceReviewItem';
+import { QuizReviewItem } from './modules/review-items/QuizReviewItem';
 import { FlashcardWriter } from './modules/writers/FlashcardWriter';
 import { CardType, FlashcardContent } from './schemas';
 import { PluginSettings } from './schemas/settings';
@@ -118,6 +120,7 @@ export default class MnemoloopPlugin extends Plugin {
 		const contentParsers: IContentParser<FlashcardContent>[] = [
 			new FlashcardBasicContentParser(settings) as IContentParser<FlashcardContent>,
 			new FlashcardSequenceContentParser(settings) as IContentParser<FlashcardContent>,
+			new FlashcardQuizContentParser(settings) as IContentParser<FlashcardContent>,
 		];
 		this._parsers.set(ParserKey.flashcard, new FlashcardParser(this, contentParsers));
 	}
@@ -145,6 +148,7 @@ export default class MnemoloopPlugin extends Plugin {
 	private loadReviewItemFactory() {
 		reviewItemFactory.register(CardType.Basic, (fp, eng) => new FlashcardReviewItem(fp, eng));
 		reviewItemFactory.register(CardType.Sequence, (fp, eng) => new SequenceReviewItem(fp, eng));
+		reviewItemFactory.register(CardType.Quiz, (fp, eng) => new QuizReviewItem(fp, eng));
 	}
 
 	/**
