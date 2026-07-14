@@ -1,26 +1,86 @@
 <script lang="ts">
+	import { AUTO_SCORED_TYPES } from '@/schemas';
+	import { Button } from '@/ui/components/elements';
 	import AutoReviewControls from './Auto/component.svelte';
 	import ManualReviewControls from './Manual/component.svelte';
-	import { CardType } from '@/schemas';
 	import type ScoreControlsProps from './types';
 
 	let {
-		cardType,
 		disabled,
+		type,
+		isAnswerShowing,
+		isAnswerCorrect,
 		onSubmitRating,
-		onContinue,
-		isCorrect: sequenceIsCorrect,
+		onShowAnswer,
 	}: ScoreControlsProps = $props();
 
-	// Registry: card types that auto-score (render AutoReviewControls).
-	// To add a new auto-scored card type, add its CardType here — no other edits needed.
-	const AUTO_SCORED_TYPES = new Set<CardType>([CardType.Sequence]);
+	const isAutoScored = $derived(type ? AUTO_SCORED_TYPES.has(type) : false);
+	let containerRef: HTMLDivElement;
 
-	let isAutoScored = $derived(AUTO_SCORED_TYPES.has(cardType));
+	function handleKeyDown(event: KeyboardEvent) {
+		// Only handle keys when the review view is actually visible (not hidden behind another tab)
+		if (!containerRef || containerRef.offsetParent === null) {
+			return;
+		}
+		if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+			return;
+		}
+		if (event.code === 'Space') {
+			event.preventDefault();
+			if (!isAnswerShowing) onShowAnswer();
+		}
+	}
 </script>
 
-{#if isAutoScored}
-	<AutoReviewControls isCorrect={sequenceIsCorrect ?? false} {disabled} {onContinue} />
-{:else}
-	<ManualReviewControls {disabled} {onSubmitRating} />
-{/if}
+<svelte:window onkeydown={handleKeyDown} />
+
+<div bind:this={containerRef} class="ml-score-controls__container">
+	{#if isAnswerShowing}
+		{#if isAutoScored}
+			<AutoReviewControls {isAnswerCorrect} {disabled} {onSubmitRating} />
+		{:else}
+			<ManualReviewControls {disabled} {onSubmitRating} />
+		{/if}
+	{:else}
+		<div class="ml-score-controls__button-wrapper">
+			<Button
+				variant="primary"
+				className="ml-score-controls__button"
+				onclick={() => onShowAnswer()}
+				ariaLabel="Show answer"
+			>
+				Show answer
+			</Button>
+			<span class="ml-score-controls__button-key-hint">Space</span>
+		</div>
+	{/if}
+</div>
+
+<style lang="scss">
+	@use 'tokens' as *;
+
+	.ml-score-controls__button-wrapper {
+		margin-top: $spacing-lg;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: $spacing-xs;
+	}
+
+	:global(.ml-score-controls__button) {
+		width: 100%;
+		max-width: 300px;
+		height: 50px;
+		font-size: $font-md;
+		border-radius: $radius-sm;
+	}
+
+	.ml-score-controls__button-key-hint {
+		font-size: 0.7rem;
+		color: $text-muted;
+		background-color: $background-secondary;
+		padding: $spacing-xxs $spacing-xs;
+		border-radius: $radius-sm;
+		border: 1px solid $background-modifier-border;
+	}
+</style>

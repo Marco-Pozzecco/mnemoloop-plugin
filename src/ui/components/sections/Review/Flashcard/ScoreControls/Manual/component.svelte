@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { Button, Icon } from '@/ui/components';
 	import { tokens } from '@/utils/token';
+	import { Rating } from 'ts-fsrs';
 	import type { RatingButton } from '../types';
 	import type ManualReviewControlsProps from './types';
 
 	let { disabled = false, onSubmitRating }: ManualReviewControlsProps = $props();
+	let containerRef: HTMLDivElement;
 
 	const basicRatings: RatingButton[] = [
 		{ value: 1, label: 'Again', color: tokens['text-error'], icon: 'refresh-ccw', shortcut: '1' },
@@ -12,9 +14,24 @@
 		{ value: 3, label: 'Good', color: tokens['text-accent'], icon: 'check', shortcut: '3' },
 		{ value: 4, label: 'Easy', color: tokens['text-success'], icon: 'zap', shortcut: '4' },
 	];
+
+	function handleKeyDown(event: KeyboardEvent) {
+		// Only handle keys when the review view is actually visible (not hidden behind another tab)
+		if (!containerRef || containerRef.offsetParent === null) {
+			return;
+		}
+		if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+			return;
+		}
+		if (event.key === '1' || event.key === '2' || event.key === '3' || event.key === '4') {
+			onSubmitRating(Number(event.key) as Rating);
+		}
+	}
 </script>
 
-<div class="ml-score-controls ml-score-controls--manual" class:disabled>
+<svelte:window onkeydown={handleKeyDown} />
+
+<div bind:this={containerRef} class="ml-score-controls ml-score-controls--manual" class:disabled>
 	{#each basicRatings as rating (rating.value)}
 		<div class="ml-score-controls__button-wrapper">
 			<Button

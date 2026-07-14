@@ -1,5 +1,5 @@
+import { CardType } from '@/schemas';
 import type { Rating } from 'ts-fsrs';
-import type { CardType } from '@/schemas';
 
 export interface RatingButton {
 	value: Rating;
@@ -10,10 +10,10 @@ export interface RatingButton {
 }
 
 export default interface ScoreControlsProps {
-	cardType: CardType;
 	disabled?: boolean;
+	type?: CardType;
+	isAnswerShowing: boolean;
+	isAnswerCorrect: boolean;
+	onShowAnswer: () => void;
 	onSubmitRating: (rating: Rating) => void;
-	onContinue: () => void;
-	/** the auto-computed correctness, used for button styling. */
-	isCorrect?: boolean;
 }
