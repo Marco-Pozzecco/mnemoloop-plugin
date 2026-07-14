@@ -16,7 +16,5 @@ export function getParentDecks(path: string): string[] {
 }
 
 export function matchesDeckFilter(cardDecks: string[], filter: string): boolean {
-	return cardDecks.some(
-		(deck) => deck === filter || deck.startsWith(`${filter}${DECK_SEPARATOR}`),
-	);
+	return cardDecks.some((deck) => deck === filter || deck.startsWith(`${filter}${DECK_SEPARATOR}`));
 }
