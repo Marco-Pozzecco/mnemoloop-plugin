@@ -12,7 +12,7 @@
 		onAllRevealed,
 		onShowAnswer,
 	}: FlashcardContentProps<FlashcardClozeContent> = $props();
-	let revealedIds: SvelteSet<string> = $state(new SvelteSet());
+	let revealedIds: SvelteSet<string> = new SvelteSet();
 	let highlightedId: string | null = $state(null);
 	let shuffledOrder: string[] = $state([]);
 	let containerRef: HTMLDivElement;
