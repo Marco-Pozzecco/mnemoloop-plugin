@@ -6,6 +6,7 @@ export enum CardType {
 	Basic = 'basic',
 	Sequence = 'sequence',
 	Quiz = 'quiz',
+	Cloze = 'cloze',
 }
 
 export enum CardStatus {
@@ -15,7 +16,7 @@ export enum CardStatus {
 	STALE = 'STALE',
 }
 
-export const CardTypeSchema = z.enum([CardType.Basic, CardType.Sequence, CardType.Quiz]);
+export const CardTypeSchema = z.enum([CardType.Basic, CardType.Sequence, CardType.Quiz, CardType.Cloze]);
 
 export const FlashcardYamlSchema = FSRSParams.extend({
 	uuid: z.uuid(),
