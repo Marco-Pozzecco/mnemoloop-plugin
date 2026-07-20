@@ -36,7 +36,7 @@
 		<div class="ml-score-controls__button-wrapper">
 			<Button
 				variant="primary"
-				className="ml-score-controls__button"
+				class="ml-score-controls__button"
 				onclick={() => !disabled && onSubmitRating(rating.value)}
 				{disabled}
 				ariaLabel="Rate as {rating.label}"

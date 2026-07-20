@@ -1,16 +1,18 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
 	import type ButtonProps from './types';
+	import { cn } from '../../utils';
 
 	let {
 		ariaLabel,
-		className,
 		disabled = false,
+		class: className,
 		onclick,
 		size = 'medium',
 		type = 'button',
 		variant = 'secondary',
 		children,
+		icon,
 	}: ButtonProps = $props();
 </script>
 
@@ -19,8 +21,13 @@
 	{onclick}
 	{type}
 	aria-label={ariaLabel}
-	class="ml-button ml-button--{variant} ml-button--{size} {className}"
+	class={cn('ml-button', `ml-button--${variant}`, `ml-button--${size}`, className, {
+		'ml-button__icon-container': !!icon,
+	})}
 >
+	{#if icon}
+		{@render icon()}
+	{/if}
 	{#if children}
 		{@render children()}
 	{/if}
@@ -98,6 +105,11 @@
 
 	:global(button.ml-button--icon:hover:not(:disabled)) {
 		color: $interactive-accent;
+	}
+
+	:global(button.ml-button__icon-container) {
+		gap: $spacing-sm;
+		align-items: center;
 	}
 
 	/* Sizes */
