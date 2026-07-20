@@ -34,3 +34,4 @@ export { default as Toggle } from './Toggle/component.svelte';
 export type { default as ToggleProps } from './Toggle/types';
 export { default as NavigationMenu } from './NavigationMenu';
 export { default as Tabs } from './Tabs';
+export { default as Tooltip } from './Tooltip';
