@@ -1,12 +1,12 @@
 import { Flashcard, FlashcardMetadata, FlashcardYaml } from '@/schemas';
 import { FSRSParameters } from 'ts-fsrs';
-import { FsrsEngine } from '../review-engines/FsrsEngine';
-import { ReviewItemFactory } from '../review-items/ReviewItemFactory';
 import {
 	EventBus,
 	FlashcardIndexQueryRequestEvent,
 	FlashcardIndexQueryResponseEvent,
 } from '../events';
+import { FsrsEngine } from '../review-engines/FsrsEngine';
+import { FlashcardReviewItem } from '../review-items/FlashcardReviewItem';
 import { BaseReviewQueue } from './BaseReviewQueue';
 
 export class FlashcardReviewQueue extends BaseReviewQueue<
@@ -18,7 +18,6 @@ export class FlashcardReviewQueue extends BaseReviewQueue<
 
 	constructor(
 		predicate: (entity: FlashcardMetadata) => boolean,
-		factory: ReviewItemFactory,
 		fsrsConfig?: Partial<FSRSParameters>,
 	) {
 		const engine = new FsrsEngine(fsrsConfig);
@@ -27,7 +26,7 @@ export class FlashcardReviewQueue extends BaseReviewQueue<
 
 		const responseHandler = async (event: FlashcardIndexQueryResponseEvent) => {
 			const sortedData = this._engine.sort(event.data);
-			this._items = sortedData.map((f) => factory.create(f.card_type, f.file, engine));
+			this._items = sortedData.map((f) => new FlashcardReviewItem(f.file, engine));
 		};
 
 		this._unsubscribe = EventBus.instance.subscribe(

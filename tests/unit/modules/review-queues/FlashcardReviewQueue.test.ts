@@ -10,9 +10,6 @@ import {
 import { CardStatus, Flashcard, FlashcardMetadata, CardType } from '@/schemas';
 import { createFlashcardMetadata } from '../../../helpers/factories';
 import { useFixedDate, restoreRealTimers } from '../../../helpers/date-fixtures';
-import { reviewItemFactory } from '@/modules/review-items/ReviewItemFactory';
-import { FlashcardReviewItem } from '@/modules/review-items/FlashcardReviewItem';
-import { SequenceReviewItem } from '@/modules/review-items/SequenceReviewItem';
 import { resetSingletons } from '../../../helpers/reset-singletons';
 import { State } from 'ts-fsrs';
 
@@ -30,8 +27,6 @@ describe('FlashcardReviewQueue', () => {
 		useFixedDate();
 		resetSingletons();
 
-		reviewItemFactory.register(CardType.Basic, (fp, eng) => new FlashcardReviewItem(fp, eng));
-		reviewItemFactory.register(CardType.Sequence, (fp, eng) => new SequenceReviewItem(fp, eng));
 
 		// Set up mock indexer that responds to query requests
 		indexerHandler = EventBus.instance.subscribe(FlashcardIndexQueryRequestEvent, async (event) => {
@@ -73,7 +68,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'card2.md' }),
 			];
 
-			const queue = new FlashcardReviewQueue(() => true, reviewItemFactory);
+			const queue = new FlashcardReviewQueue(() => true);
 
 			expect(queue.size).toBe(2);
 			expect(queue.items[0].data).not.toBeNull();
@@ -86,7 +81,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'paused.md', status: CardStatus.PAUSED }),
 			];
 
-			const queue = new FlashcardReviewQueue((f) => f.status === CardStatus.ACTIVE, reviewItemFactory);
+			const queue = new FlashcardReviewQueue((f) => f.status === CardStatus.ACTIVE);
 
 			expect(queue.size).toBe(1);
 			expect(queue.items[0].data?.status).toBe(CardStatus.ACTIVE);
@@ -98,7 +93,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'science.md', decks: ['Science'] }),
 			];
 
-			const queue = new FlashcardReviewQueue((f) => f.decks.includes('Math'), reviewItemFactory);
+			const queue = new FlashcardReviewQueue((f) => f.decks.includes('Math'));
 
 			expect(queue.size).toBe(1);
 			expect(queue.items[0].data?.decks).toContain('Math');
@@ -113,7 +108,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'future.md', due: future, state: State.Review }),
 			];
 
-			const queue = new FlashcardReviewQueue((f) => new Date(f.due).getTime() <= Date.now(), reviewItemFactory);
+			const queue = new FlashcardReviewQueue((f) => new Date(f.due).getTime() <= Date.now());
 
 			expect(queue.size).toBe(1);
 			expect((queue.items[0].data as unknown as FlashcardMetadata)?.file).toBe('past.md');
@@ -128,7 +123,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'yesterday.md', due: yesterday, state: State.Review }),
 			];
 
-			const queue = new FlashcardReviewQueue(() => true, reviewItemFactory);
+			const queue = new FlashcardReviewQueue(() => true);
 
 			expect(queue.items[0].data?.due).toBe(yesterday);
 			expect(queue.items[1].data?.due).toBe(tomorrow);
@@ -137,7 +132,7 @@ describe('FlashcardReviewQueue', () => {
 		it('should return empty queue when no cards match', () => {
 			mockFlashcards = [createFlashcardMetadata({ file: 'card.md' })];
 
-			const queue = new FlashcardReviewQueue(() => false, reviewItemFactory);
+			const queue = new FlashcardReviewQueue(() => false);
 
 			expect(queue.size).toBe(0);
 			expect(queue.current).toBeUndefined();
@@ -148,7 +143,7 @@ describe('FlashcardReviewQueue', () => {
 		it('should repopulate items from indexer', () => {
 			mockFlashcards = [createFlashcardMetadata({ file: 'card.md' })];
 
-			const queue = new FlashcardReviewQueue(() => true, reviewItemFactory);
+			const queue = new FlashcardReviewQueue(() => true);
 			expect(queue.size).toBe(1);
 
 			// Update mock data and recalc
@@ -167,7 +162,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'b.md' }),
 			];
 
-			const queue = new FlashcardReviewQueue(() => true, reviewItemFactory);
+			const queue = new FlashcardReviewQueue(() => true);
 			queue.next(); // Move to position 1
 			expect(queue.position).toBe(1);
 
@@ -185,7 +180,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'yesterday.md', due: yesterday, state: State.Review }),
 			];
 
-			const queue = new FlashcardReviewQueue(() => true, reviewItemFactory);
+			const queue = new FlashcardReviewQueue(() => true);
 			queue.next(); // position = 1
 
 			// Swap order in mock data
@@ -207,7 +202,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'b.md' }),
 			];
 
-			const queue = new FlashcardReviewQueue(() => true, reviewItemFactory);
+			const queue = new FlashcardReviewQueue(() => true);
 			const items = [...queue.items];
 
 			queue.dispose();
@@ -229,7 +224,7 @@ describe('FlashcardReviewQueue', () => {
 		it('should return first item initially', () => {
 			mockFlashcards = [createFlashcardMetadata({ file: 'card.md' })];
 
-			const queue = new FlashcardReviewQueue(() => true, reviewItemFactory);
+			const queue = new FlashcardReviewQueue(() => true);
 
 			expect(queue.current).toBeDefined();
 			expect(queue.current?.data).not.toBeNull();
@@ -241,7 +236,7 @@ describe('FlashcardReviewQueue', () => {
 				createFlashcardMetadata({ file: 'b.md' }),
 			];
 
-			const queue = new FlashcardReviewQueue(() => true, reviewItemFactory);
+			const queue = new FlashcardReviewQueue(() => true);
 			const first = queue.current;
 			const next = queue.next();
 
