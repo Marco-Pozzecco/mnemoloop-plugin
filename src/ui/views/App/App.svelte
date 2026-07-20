@@ -30,7 +30,9 @@
 			onDismiss={() => bannerStore.dismiss($bannerRef.activeBanner!.id)}
 		/>
 	{/if}
-	<Navbar bind:activeTab={currentView} />
+	{#if currentView !== 'review'}
+		<Navbar bind:activeTab={currentView} />
+	{/if}
 	<div class="ml-app-view-section">
 		{#if currentView === 'review'}
 			<Review />
