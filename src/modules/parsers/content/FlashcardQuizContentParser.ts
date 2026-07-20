@@ -2,7 +2,6 @@ import { IAdapter } from '@/interfaces/IAdapter';
 import { ParseContentResult } from '@/interfaces/parser/utils';
 import { CardType, FlashcardQuizContent, FlashcardQuizContentSchema } from '@/schemas';
 import { PluginSettings } from '@/schemas/settings';
-import { ERROR_MESSAGES } from '@/utils/constants';
 import { ContentParser } from '../_core/Content';
 
 export class FlashcardQuizContentParser extends ContentParser<FlashcardQuizContent> {
@@ -16,8 +15,8 @@ export class FlashcardQuizContentParser extends ContentParser<FlashcardQuizConte
 
 	parse = (body: string): ParseContentResult<FlashcardQuizContent> => {
 		try {
-			const after = this.splitContent(body);
-			const { question, options, correct_index } = this.extractQuizData(body, after);
+			const { before, after } = this.splitAtMarker(body, this._settings);
+			const { question, options, correct_index } = this.extractQuizData(before, after);
 
 			const result = FlashcardQuizContentSchema.parse({
 				meta_type: this.cardType,
@@ -42,33 +41,10 @@ export class FlashcardQuizContentParser extends ContentParser<FlashcardQuizConte
 		return this.parseContentResultSuccess(`${content.question}\n${marker}\n${checkboxList}`);
 	};
 
-	private splitContent(content: string): string {
-		const marker = this._settings.data.flashcard.marker;
-		const escapedMarker = marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-		const markerRegex = new RegExp(`\\n\\s*${escapedMarker}\\s*\\n`);
-
-		const match = markerRegex.exec(content);
-
-		if (!match || match.index === undefined) {
-			throw new Error(ERROR_MESSAGES.MISSING_MARKER);
-		}
-
-		const backStart = match.index + match.reduce((acc, curr) => (acc += curr.length), 0);
-
-		return content.substring(backStart).trim();
-	}
-
 	private extractQuizData(
-		fullBody: string,
+		question: string,
 		contentAfterMarker: string,
 	): { question: string; options: string[]; correct_index: number } {
-		const marker = this._settings.data.flashcard.marker;
-		const escapedMarker = marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-		const markerRegex = new RegExp(`\\n\\s*${escapedMarker}\\s*\\n`);
-		const match = markerRegex.exec(fullBody);
-
-		const question = fullBody.substring(0, match!.index).trim();
-
 		const checkboxRegex = /^\s*[-*+]\s*\[([ xX])\]\s*(.+)/gm;
 		const options: string[] = [];
 		let correct_index = -1;

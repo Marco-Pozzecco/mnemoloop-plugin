@@ -2,7 +2,6 @@ import { IAdapter } from '@/interfaces/IAdapter';
 import { ParseContentResult } from '@/interfaces/parser/utils';
 import { CardType, FlashcardSequenceContent, FlashcardSequenceContentSchema } from '@/schemas';
 import { PluginSettings } from '@/schemas/settings';
-import { ERROR_MESSAGES } from '@/utils/constants';
 import { ContentParser } from '../_core/Content';
 
 export class FlashcardSequenceContentParser extends ContentParser<FlashcardSequenceContent> {
@@ -16,7 +15,7 @@ export class FlashcardSequenceContentParser extends ContentParser<FlashcardSeque
 
 	parse = (body: string): ParseContentResult<FlashcardSequenceContent> => {
 		try {
-			const after = this.splitContent(body);
+			const after = this.splitAtMarker(body, this._settings).after;
 			const steps = this.extractSteps(after);
 
 			const result = FlashcardSequenceContentSchema.parse({ meta_type: this.cardType, steps });
@@ -32,22 +31,6 @@ export class FlashcardSequenceContentParser extends ContentParser<FlashcardSeque
 	serialize = (content: FlashcardSequenceContent): ParseContentResult<string> => {
 		return this.parseContentResultSuccess(content.steps.join('\n'));
 	};
-
-	private splitContent(content: string): string {
-		const marker = this._settings.data.flashcard.marker;
-		const escapedMarker = marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-		const markerRegex = new RegExp(`\\n\\s*${escapedMarker}\\s*\\n`);
-
-		const match = markerRegex.exec(content);
-
-		if (!match || match.index === undefined) {
-			throw new Error(ERROR_MESSAGES.MISSING_MARKER);
-		}
-
-		const backStart = match.index + match.reduce((acc, curr) => (acc += curr.length), 0);
-
-		return content.substring(backStart).trim();
-	}
 
 	private extractSteps(contentAfterMarker: string): FlashcardSequenceContent['steps'] {
 		const lines = contentAfterMarker.split('\n');
