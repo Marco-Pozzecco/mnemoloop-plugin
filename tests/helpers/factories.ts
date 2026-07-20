@@ -1,5 +1,4 @@
-import { FlashcardMetadata, FlashcardYaml, CardStatus, CardType } from '@/schemas';
-import type { FlashcardSequenceSchema } from '@/schemas';
+import { FlashcardMetadata, FlashcardYaml, CardStatus, CardType, FlashcardClozeSchema, FlashcardSequenceSchema } from '@/schemas';
 import { DEFAULT_FSRS } from '@/utils/constants';
 import { vi } from 'vitest';
 
@@ -64,6 +63,36 @@ export function createSequence(overrides: Partial<FlashcardSequenceSchema> = {})
 		content: { meta_type: CardType.Sequence, steps: ['step one', 'step two', 'step three'] },
 		...overrides,
 	} as FlashcardSequenceSchema;
+}
+
+/**
+ * Create a valid FlashcardYaml for a cloze card.
+ */
+export function createClozeYaml(overrides: Partial<FlashcardYaml> = {}): FlashcardYaml {
+	return createFlashcardYaml({
+		card_type: CardType.Cloze,
+		...overrides,
+	});
+}
+
+/**
+ * Create a valid Cloze entity.
+ */
+export function createCloze(overrides: Partial<FlashcardClozeSchema> = {}): FlashcardClozeSchema {
+	return {
+		...DEFAULT_FSRS,
+		uuid: '00000000-0000-0000-0000-000000000000',
+		source: null,
+		status: CardStatus.ACTIVE,
+		decks: [],
+		card_type: CardType.Cloze,
+		content: {
+			meta_type: CardType.Cloze,
+			text: 'The capital of  is France',
+			deletions: [{ id: 'c1', answer: 'Paris', hint: null, positions: [14] }],
+		},
+		...overrides,
+	} as FlashcardClozeSchema;
 }
 
 /**
