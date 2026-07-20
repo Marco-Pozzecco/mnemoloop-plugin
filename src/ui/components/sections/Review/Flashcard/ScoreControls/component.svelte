@@ -27,7 +27,7 @@
 		}
 		if (event.code === 'Space') {
 			event.preventDefault();
-			if (!isAnswerShowing) onShowAnswer();
+			if (!isAnswerShowing && !disabled) onShowAnswer();
 		}
 	}
 </script>
@@ -45,9 +45,10 @@
 		<div class="ml-score-controls__button-wrapper">
 			<Button
 				variant="primary"
-				className="ml-score-controls__button"
+				class="ml-score-controls__button"
 				onclick={() => onShowAnswer()}
 				ariaLabel="Show answer"
+				{disabled}
 			>
 				Show answer
 			</Button>

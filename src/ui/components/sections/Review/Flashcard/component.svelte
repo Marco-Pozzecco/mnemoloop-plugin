@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type Flashcard } from '@/schemas';
+	import { type Flashcard, CardType } from '@/schemas';
 	import FlashcardContent from './Content/component.svelte';
 	import ScoreControls from './ScoreControls/component.svelte';
 	import type FlashCardProps from './types';
@@ -16,6 +16,9 @@
 	let flashcard: Flashcard | null = $derived(item.data);
 	let timer: number | null = null;
 
+
+	let allContentRevealed = $state(true);
+	const handleAllRevealed = () => { allContentRevealed = true; };
 	$effect(() => {
 		// Watch for data changes
 		const checkData = () => {
@@ -35,17 +38,27 @@
 			}
 		};
 	});
+
+	// Reset allContentRevealed when flashcard changes (cloze cards start unrevealed)
+	$effect(() => {
+		flashcard; // track
+		if (flashcard?.card_type === CardType.Cloze) {
+			allContentRevealed = false;
+		} else {
+			allContentRevealed = true;
+		}
+	});
 </script>
 
 <div class="ml-flashcard-wrapper">
-	<FlashcardContent {flashcard} {isAnswerShowing} {onShowAnswer} {onSetAnswerCorrectness} />
+	<FlashcardContent {flashcard} {isAnswerShowing} {onShowAnswer} {onSetAnswerCorrectness} onAllRevealed={handleAllRevealed} />
 	<ScoreControls
 		{onSubmitRating}
 		{onShowAnswer}
 		{isAnswerShowing}
 		{isAnswerCorrect}
 		type={flashcard?.card_type}
-		disabled={!flashcard}
+		disabled={!flashcard || !allContentRevealed}
 	/>
 </div>
 

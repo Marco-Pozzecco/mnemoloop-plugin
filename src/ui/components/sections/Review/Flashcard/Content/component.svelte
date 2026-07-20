@@ -1,10 +1,16 @@
 <script lang="ts">
-	import { isFlashcardBase, isFlashcardQuiz, isFlashcardSequence } from '@/schemas';
+	import {
+		isFlashcardBase,
+		isFlashcardCloze,
+		isFlashcardQuiz,
+		isFlashcardSequence,
+	} from '@/schemas';
 	import type { MarkdownOptions } from '@/ui/actions/markdown';
 	import { renderMarkdown } from '@/ui/actions/markdown';
 	import { Card, Skeleton } from '@/ui/components';
 	import FlashcardBasicContent from './Basic/component.svelte';
 	import FlashcardQuizContent from './Quiz/component.svelte';
+	import FlashcardClozeContent from './Cloze/component.svelte';
 	import FlashcardSequenceContent from './Sequence/component.svelte';
 	import type FlashcardContentRouterProps from './types';
 
@@ -13,6 +19,7 @@
 		isAnswerShowing,
 		onShowAnswer,
 		onSetAnswerCorrectness,
+		onAllRevealed,
 	}: FlashcardContentRouterProps = $props();
 
 	const footerOptions: MarkdownOptions = $derived({
@@ -36,6 +43,13 @@
 				{isAnswerShowing}
 				{onShowAnswer}
 				{onSetAnswerCorrectness}
+			/>
+		{:else if isFlashcardCloze(flashcard)}
+			<FlashcardClozeContent
+				content={flashcard.content}
+				{isAnswerShowing}
+				{onShowAnswer}
+				{onAllRevealed}
 			/>
 		{/if}
 		{#snippet footer()}
