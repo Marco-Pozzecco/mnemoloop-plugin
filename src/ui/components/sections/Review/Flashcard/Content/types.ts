@@ -11,4 +11,5 @@ export default interface FlashcardContentRouterProps {
 	isAnswerShowing: boolean;
 	onShowAnswer?: () => void;
 	onSetAnswerCorrectness?: (isCorrect: boolean) => void;
+	onAllRevealed?: () => void;
 }
