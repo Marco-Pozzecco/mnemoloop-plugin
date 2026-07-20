@@ -19,6 +19,11 @@ import {
 	FlashcardQuizSchema,
 } from './flashcard.quiz';
 import {
+	FlashcardClozeContent,
+	FlashcardClozeContentSchema,
+	FlashcardClozeSchema,
+} from './flashcard.cloze';
+import {
 	FlashcardBaseContent,
 	FlashcardBaseContentSchema,
 	FlashcardBaseSchema,
@@ -31,6 +36,7 @@ export const FlashcardContentSchema = z.union([
 	FlashcardBaseContentSchema,
 	FlashcardSequenceContentSchema,
 	FlashcardQuizContentSchema,
+	FlashcardClozeContentSchema,
 ]);
 
 export const FlashcardMetadataSchema = FlashcardYamlSchema.extend({
@@ -46,7 +52,7 @@ export const FlashcardIndexSchema = z.object({
 
 export type FlashcardIndex = z.infer<typeof FlashcardIndexSchema>;
 export type FlashcardMetadata = z.infer<typeof FlashcardMetadataSchema>;
-export type Flashcard = FlashcardBaseSchema | FlashcardSequenceSchema | FlashcardQuizSchema;
+export type Flashcard = FlashcardBaseSchema | FlashcardSequenceSchema | FlashcardQuizSchema | FlashcardClozeSchema;
 
 export function isFlashcardBase(card: Flashcard): card is FlashcardBaseSchema {
 	return card.card_type === CardType.Basic;
@@ -59,10 +65,15 @@ export function isFlashcardSequence(card: Flashcard): card is FlashcardSequenceS
 export function isFlashcardQuiz(card: Flashcard): card is FlashcardQuizSchema {
 	return card.card_type === CardType.Quiz;
 }
+
+export function isFlashcardCloze(card: Flashcard): card is FlashcardClozeSchema {
+	return card.card_type === CardType.Cloze;
+}
 export type FlashcardContent =
 	| FlashcardBaseContent
 	| FlashcardSequenceContent
-	| FlashcardQuizContent;
+	| FlashcardQuizContent
+	| FlashcardClozeContent;
 
 export const DEFAULT_FLASHCARD_METADATA: Omit<FlashcardMetadata, 'uuid' | 'file'> = {
 	created_at: new Date().toISOString(),
