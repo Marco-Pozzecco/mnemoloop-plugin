@@ -16,7 +16,7 @@
 	let highlightedId: string | null = $state(null);
 	let shuffledOrder: string[] = $state([]);
 	let containerRef: HTMLDivElement;
-	let openTooltips: SvelteSet<string> = $state(new SvelteSet());
+	let openTooltips: SvelteSet<string> = new SvelteSet();
 	let isTouch = $state(Platform.isMobile);
 
 	function tooltipOpen(id: string, v: boolean) {

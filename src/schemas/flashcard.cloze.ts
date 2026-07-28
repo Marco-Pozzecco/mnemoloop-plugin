@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { CardType, FlashcardYamlSchema } from './flashcard.utils';
 
+export const FlashcardClozeRegex = /\{\{c(\d+)::(.*?)(?:::([^}]*))?\}\}/g;
+
 export const FlashcardClozeContentSchema = z.object({
 	meta_type: z.literal(CardType.Cloze),
 	text: z.string(),
