@@ -52,7 +52,11 @@ export const FlashcardIndexSchema = z.object({
 
 export type FlashcardIndex = z.infer<typeof FlashcardIndexSchema>;
 export type FlashcardMetadata = z.infer<typeof FlashcardMetadataSchema>;
-export type Flashcard = FlashcardBaseSchema | FlashcardSequenceSchema | FlashcardQuizSchema | FlashcardClozeSchema;
+export type Flashcard =
+	| FlashcardBaseSchema
+	| FlashcardSequenceSchema
+	| FlashcardQuizSchema
+	| FlashcardClozeSchema;
 
 export function isFlashcardBase(card: Flashcard): card is FlashcardBaseSchema {
 	return card.card_type === CardType.Basic;
