@@ -15,7 +15,7 @@
 		maxLength,
 		min,
 		max,
-		className = '',
+		class: className = '',
 		onchange,
 		onfocus,
 		onblur,
