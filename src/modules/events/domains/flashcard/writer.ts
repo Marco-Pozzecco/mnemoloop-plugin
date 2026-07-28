@@ -14,7 +14,7 @@ const t: Record<WriterAction, WriterEventType> = {
 	delete: 'Flashcard:Writer:Delete',
 };
 
-type FlashcardWriterCreateEventData = Pick<Flashcard, 'content' | 'source'>;
+type FlashcardWriterCreateEventData = Pick<Flashcard, 'content' | 'source' | 'decks'>;
 
 const FlashcardWriterCreateRequestEvent =
 	EventFactory.createRequest<FlashcardWriterCreateEventData>(t.create);
