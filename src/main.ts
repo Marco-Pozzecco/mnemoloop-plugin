@@ -12,10 +12,9 @@ import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
 import { StatisticsAdapter } from './modules/adapters/StatisticsAdapter';
 import {
 	CommandRegistry,
-	CreateEmptyFlashcardCommand,
-	CreateFlashcardFromFileCommand,
+	CreateFlashcardFromFileModalCommand,
+	CreateFlashcardModalCommand,
 	DebugAddTestFlashcardCommand,
-	GenerateFromSelectionCommand,
 	OpenDashboardCommand,
 	SetAllFlashcardsDueNowCommand,
 } from './modules/commands';
@@ -171,24 +170,20 @@ export default class MnemoloopPlugin extends Plugin {
 	private loadCommands(): void {
 		this._commandRegistry.register(CommandKey.openDashboard, new OpenDashboardCommand());
 		this._commandRegistry.register(
-			CommandKey.createEmptyFlashcard,
-			new CreateEmptyFlashcardCommand(),
-		);
-		this._commandRegistry.register(
-			CommandKey.generateFromSelection,
-			new GenerateFromSelectionCommand(),
-		);
-		this._commandRegistry.register(
-			CommandKey.createFlashcardFromFile,
-			new CreateFlashcardFromFileCommand(),
-		);
-		this._commandRegistry.register(
 			CommandKey.setAllFlashcardsDueNow,
 			new SetAllFlashcardsDueNowCommand(),
 		);
 		this._commandRegistry.register(
 			CommandKey.debugAddTestFlashcards,
 			new DebugAddTestFlashcardCommand(),
+		);
+		this._commandRegistry.register(
+			CommandKey.createFlashcardModal,
+			new CreateFlashcardModalCommand(),
+		);
+		this._commandRegistry.register(
+			CommandKey.createFlashcardFromFileModal,
+			new CreateFlashcardFromFileModalCommand(),
 		);
 
 		this._commandRegistry.initialize({
