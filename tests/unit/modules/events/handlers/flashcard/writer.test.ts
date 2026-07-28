@@ -74,6 +74,7 @@ describe('FlashcardWriterCreateHandler', () => {
 		const event = new FlashcardWriterCreateRequestEvent({
 			content: { meta_type: CardType.Basic, front: 'Q', back: 'A' },
 			source: 'source.md',
+			decks: [],
 		});
 
 		await handler.handle(event);
@@ -112,6 +113,7 @@ describe('FlashcardWriterCreateHandler', () => {
 		const event = new FlashcardWriterCreateRequestEvent({
 			content: { meta_type: CardType.Basic, front: 'Q', back: 'A' },
 			source: 'source.md',
+			decks: [],
 		});
 
 		await handler.handle(event);

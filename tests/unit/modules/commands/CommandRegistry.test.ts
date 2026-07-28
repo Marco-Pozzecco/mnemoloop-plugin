@@ -48,7 +48,7 @@ describe('CommandRegistry', () => {
 		const spy2 = vi.spyOn(cmd2, 'register');
 
 		registry.register(CommandKey.openDashboard, cmd1);
-		registry.register(CommandKey.createFlashcardFromFile, cmd2);
+		registry.register(CommandKey.setAllFlashcardsDueNow, cmd2);
 
 		const plugin = createMockPlugin() as unknown as Plugin;
 		registry.initialize(createMockDeps(plugin));
