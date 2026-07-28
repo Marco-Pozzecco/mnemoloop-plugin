@@ -28,11 +28,12 @@ export class FlashcardWriterCreateHandler extends EventHandler<FlashcardWriterCr
 	async handle(event: FlashcardWriterCreateRequestEvent): Promise<void> {
 		const writer = this._writers.get(WriterKey.flashcard)!;
 		const settings = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
-		const { content, source } = event.data;
+		const { content, source, decks } = event.data;
 		const flashcard = {
 			...DEFAULT_FLASHCARD_YAML,
 			uuid: uuid(),
 			source: `[[${source}]]`,
+			decks: decks ?? [],
 			content,
 			card_type: content.meta_type,
 		} as Flashcard;
