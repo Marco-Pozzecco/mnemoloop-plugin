@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FlashcardModal, ModalControls } from '@/ui/components/';
+	import { FlashcardFormModal, ModalControls } from '@/ui/components/';
 	import { modalStore, ModalViewEnum } from '@/ui/store/modal.store';
 	import { setAppContext } from '@/ui/context/AppContext';
 	import { type ModalProps } from './types';
@@ -16,7 +16,7 @@
 
 <div class="ml-modal-container">
 	{#if currentView === ModalViewEnum.flashcard}
-		<FlashcardModal {controller} {isLoading} {error} />
+		<FlashcardFormModal {controller} {isLoading} {error} />
 	{/if}
 	<ModalControls {controller} />
 </div>
