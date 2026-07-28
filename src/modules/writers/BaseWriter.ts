@@ -22,31 +22,13 @@ export abstract class BaseWriter<
 				throw new Error(`File already exists: ${filepath}`);
 			}
 
-			const body = this.extractBody(entity);
-			const serializedBody = this._parser.serializeContent(body);
+			const result = this._parser.serializeEntity(entity);
 
-			if (!serializedBody.success) {
-				throw serializedBody.error;
+			if (!result.success) {
+				throw result.error;
 			}
 
-			// Create file with body only; frontmatter will be added via processFrontMatter
-			await this.writeFile(filepath, serializedBody.entity);
-
-			// Add frontmatter using processFrontMatter
-			const metadata = this.extractMetadata(entity);
-			const normalized = normalizePath(filepath);
-			const file = this._plugin.app.vault.getAbstractFileByPath(normalized);
-
-			if (!(file instanceof TFile)) {
-				throw new Error(`File not found: ${normalized}`);
-			}
-
-			await this._plugin.app.fileManager.processFrontMatter(
-				file,
-				(frontmatter: Record<string, unknown>) => {
-					Object.assign(frontmatter, metadata);
-				},
-			);
+			await this.writeFile(filepath, result.entity);
 		} catch (e) {
 			Logger.error(e instanceof Error ? e.message : String(e));
 		}
