@@ -39,6 +39,10 @@ describe('BaseWriter', () => {
 				entity: body,
 				success: true,
 			})),
+			serializeEntity: vi.fn().mockImplementation((entity: TestEntity) => ({
+				entity: `---\nuuid: ${entity.uuid}\n---\n${entity.content}`,
+				success: true as const,
+			})),
 			parseFile: vi.fn().mockResolvedValue({
 				entity: { uuid: 'old', content: 'old body' },
 				stats: { created_at: '', updated_at: '' },
@@ -67,12 +71,13 @@ describe('BaseWriter', () => {
 	});
 
 	describe('create', () => {
-		it('should write a new file with body via vault.create and add frontmatter via processFrontMatter', async () => {
+		it('should write a new file with full frontmatter and body in one atomic call', async () => {
 			await writer.create('new.md', { uuid: 'new', content: 'hello world' });
-			expect(plugin.app.vault.create).toHaveBeenCalledWith('new.md', 'hello world');
-			expect(plugin.app.fileManager.processFrontMatter).toHaveBeenCalledTimes(1);
-			const [fileArg] = plugin.app.fileManager.processFrontMatter.mock.calls[0];
-			expect(fileArg.path).toBe('new.md');
+			expect(plugin.app.vault.create).toHaveBeenCalledWith(
+				'new.md',
+				'---\nuuid: new\n---\nhello world',
+			);
+			expect(plugin.app.fileManager.processFrontMatter).not.toHaveBeenCalled();
 		});
 
 		it('should call vault.create when file does not exist', async () => {

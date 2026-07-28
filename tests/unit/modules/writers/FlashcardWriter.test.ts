@@ -17,10 +17,14 @@ describe('FlashcardWriter', () => {
 			{ path: 'existing.md', content: '---\nuuid: old\n---\nFront\n\n?\n\nBack' },
 		]);
 		entityParser = {
-		serializeContent: vi.fn().mockImplementation((content: FlashcardContent) => {
-			const c = content as { meta_type: CardType.Basic; front: string; back: string };
-			return { entity: `${c.front}\n\n?\n\n${c.back}`, success: true };
-		}),
+			serializeContent: vi.fn().mockImplementation((content: FlashcardContent) => {
+				const c = content as { meta_type: CardType.Basic; front: string; back: string };
+				return { entity: `${c.front}\n\n?\n\n${c.back}`, success: true };
+			}),
+			serializeEntity: vi.fn().mockImplementation((entity: Flashcard) => ({
+				entity: `---\nuuid: ${entity.uuid}\n---\n${entity.content.front}\n\n?\n\n${entity.content.back}`,
+				success: true as const,
+			})),
 			parseFile: vi.fn().mockResolvedValue({
 				entity: {
 					...createFlashcardYaml(),
