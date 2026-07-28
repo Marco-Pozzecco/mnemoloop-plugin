@@ -17,6 +17,8 @@ export interface SelectProps {
 	helperText?: string;
 	className?: string;
 	onchange?: (value: string) => void;
+	/** Override the trigger-display label for the selected value without changing the value itself. */
+	displayAs?: (value: string) => string;
 }
 
 export default SelectProps;

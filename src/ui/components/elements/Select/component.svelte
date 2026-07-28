@@ -15,6 +15,7 @@
 		helperText,
 		className = '',
 		onchange,
+		displayAs,
 	}: SelectProps = $props();
 
 	// Handle value changes from bits-ui
@@ -52,7 +53,12 @@
 		<Select.Trigger {id} aria-invalid={hasError} aria-describedby={buildAriaDescribedBy()}>
 			{#snippet child({ props })}
 				<button {...props} class="ml-select" type="button">
-					<Select.Value {placeholder} />
+					<Select.Value {placeholder}>
+						{#snippet children({ selection })}
+							{@const selected = selection.type === 'single' ? selection.selected : undefined}
+							{displayAs && selected ? displayAs(selected.value) : (selected?.label ?? '')}
+						{/snippet}
+					</Select.Value>
 				</button>
 			{/snippet}
 		</Select.Trigger>
