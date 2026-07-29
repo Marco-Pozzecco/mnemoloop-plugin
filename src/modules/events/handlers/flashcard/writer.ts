@@ -39,14 +39,16 @@ export class FlashcardWriterCreateHandler extends EventHandler<FlashcardWriterCr
 		} as Flashcard;
 		const flashcardPath = settings.data.flashcard.watch.directory + `/${flashcard.uuid}.md`;
 
-		try {
-			await writer.create(flashcardPath, flashcard);
-			new Notice('Flashcard created successfully');
-			void this._bus.publish(new FlashcardWriterCreateResponseEvent({ filepath: flashcardPath }));
-		} catch (err) {
-			Logger.error('Failed to create flashcard', err);
-			new Notice('Failed to create flashcard');
-		}
+		await writer
+			.create(flashcardPath, flashcard)
+			.then(() => {
+				new Notice('Flashcard created successfully');
+				void this._bus.publish(new FlashcardWriterCreateResponseEvent({ filepath: flashcardPath }));
+			})
+			.catch((err) => {
+				Logger.error('Failed to create flashcard', err);
+				new Notice('Failed to create flashcard');
+			});
 	}
 }
 
@@ -59,7 +61,9 @@ export class FlashcardWriterUpdateHandler extends EventHandler<FlashcardWriterUp
 		const writer = this._writers.get(WriterKey.flashcard)!;
 		const settings = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		const filepath = settings.data.flashcard.watch.directory + `/${event.data.uuid}.md`;
-		await writer.update(filepath, event.data);
+		await writer.update(filepath, event.data).catch((err) => {
+			Logger.error('WriterUpdateEventError:', err);
+		});
 		void this._bus.publish(new FlashcardWriterUpdateResponseEvent({ filepath }));
 	}
 }
@@ -74,7 +78,9 @@ export class FlashcardWriterDeleteHandler extends EventHandler<FlashcardWriterDe
 		const settings = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		const { uuid } = event.data;
 		const filepath = settings.data.flashcard.watch.directory + `/${uuid}.md`;
-		await writer.delete(filepath);
+		await writer.delete(filepath).catch((err) => {
+			Logger.error('WriterUpdateEventError:', err);
+		});
 		void this._bus.publish(new FlashcardWriterDeleteResponseEvent({ filepath }));
 	}
 }
@@ -87,7 +93,9 @@ export class FlashcardWriterFmHandler extends EventHandler<FlashcardWriterFmRequ
 	async handle(event: FlashcardWriterFmRequestEvent): Promise<void> {
 		const writer = this._writers.get(WriterKey.flashcard)!;
 		const { filepath, fm } = event.data;
-		await writer.updateFrontmatter(filepath, fm);
+		await writer.updateFrontmatter(filepath, fm).catch((err) => {
+			Logger.error('WriterUpdateEventError:', err);
+		});
 		void this._bus.publish(new FlashcardWriterFmResponseEvent({ filepath }));
 	}
 }
@@ -99,7 +107,9 @@ export class FlashcardWriterBodyHandler extends EventHandler<FlashcardWriterBody
 	async handle(event: FlashcardWriterBodyRequestEvent): Promise<void> {
 		const writer = this._writers.get(WriterKey.flashcard)!;
 		const { content, filepath } = event.data;
-		await writer.updateBody(filepath, content);
+		await writer.updateBody(filepath, content).catch((err) => {
+			Logger.error('WriterUpdateEventError:', err);
+		});
 		void this._bus.publish(new FlashcardWriterBodyResponseEvent({ filepath }));
 	}
 }
