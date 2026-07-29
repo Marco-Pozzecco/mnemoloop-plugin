@@ -67,6 +67,6 @@ export class FlashcardParser extends EntityParser<Flashcard, FlashcardYaml, Flas
 	}
 
 	protected extractContentMetadata(entity: Flashcard): FlashcardContent {
-		return FlashcardContentSchema.parse(entity);
+		return FlashcardContentSchema.parse(entity.content);
 	}
 }
