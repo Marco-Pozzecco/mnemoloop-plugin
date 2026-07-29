@@ -2,9 +2,14 @@
 	import { DragDropProvider, KeyboardSensor, PointerSensor } from '@dnd-kit/svelte';
 	import { isSortable } from '@dnd-kit/svelte/sortable';
 	import SortableStep from './SortableStep.svelte';
+	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
 	import type ReviewFlashcardSequenceProps from './types';
 
 	let { content, isAnswerShowing, onSetAnswerCorrectness }: ReviewFlashcardSequenceProps = $props();
+
+	const questionOptions: MarkdownOptions = $derived({
+		content: content?.question ?? '',
+	});
 
 	let shuffledSteps: { id: string; text: string }[] = $state([]);
 	let correctSteps: string[] = $state([]);
@@ -75,37 +80,51 @@
 	}
 </script>
 
-<DragDropProvider
-	sensors={() => [PointerSensor, KeyboardSensor]}
-	onDragEnd={handleDragEnd}
-	onDragOver={handleDragOver}
->
-	{#if isAnswerShowing}
-		<div class="ml-sequence-list">
-			{#each correctSteps as step, i (i)}
-				<div
-					class="ml-sequence-step"
-					class:ml-sequence-step-correct={shuffledSteps[i]?.text === step}
-				>
-					<span class="ml-sequence-step-index">{i + 1}</span>
-					<span class="ml-sequence-step-text">{step}</span>
-					{#if shuffledSteps[i]?.text !== step}
-						<span class="ml-sequence-step-original">{shuffledSteps[i]?.text ?? ''}</span>
-					{/if}
-				</div>
-			{/each}
-		</div>
-	{:else}
-		<div class="ml-sequence-list">
-			{#each shuffledSteps as step, i (step.id)}
-				<SortableStep id={step.id} index={i} text={step.text} />
-			{/each}
-		</div>
-	{/if}
-</DragDropProvider>
+<div class="ml-sequence-content">
+	<div class="ml-sequence-question" use:renderMarkdown={questionOptions}></div>
+
+	<DragDropProvider
+		sensors={() => [PointerSensor, KeyboardSensor]}
+		onDragEnd={handleDragEnd}
+		onDragOver={handleDragOver}
+	>
+		{#if isAnswerShowing}
+			<div class="ml-sequence-list">
+				{#each correctSteps as step, i (i)}
+					<div
+						class="ml-sequence-step"
+						class:ml-sequence-step-correct={shuffledSteps[i]?.text === step}
+					>
+						<span class="ml-sequence-step-index">{i + 1}</span>
+						<span class="ml-sequence-step-text">{step}</span>
+						{#if shuffledSteps[i]?.text !== step}
+							<span class="ml-sequence-step-original">{shuffledSteps[i]?.text ?? ''}</span>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		{:else}
+			<div class="ml-sequence-list">
+				{#each shuffledSteps as step, i (step.id)}
+					<SortableStep id={step.id} index={i} text={step.text} />
+				{/each}
+			</div>
+		{/if}
+	</DragDropProvider>
+</div>
 
 <style lang="scss">
 	@use 'tokens' as *;
+
+	.ml-sequence-content {
+		display: flex;
+		flex-direction: column;
+		gap: $spacing-md;
+	}
+
+	.ml-sequence-question {
+		line-height: 1.6;
+	}
 
 	.ml-sequence-list {
 		display: flex;

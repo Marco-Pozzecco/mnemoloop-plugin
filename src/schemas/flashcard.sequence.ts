@@ -3,6 +3,7 @@ import { CardType, FlashcardYamlSchema } from './flashcard.utils';
 
 export const FlashcardSequenceContentSchema = z.object({
 	meta_type: z.literal(CardType.Sequence),
+	question: z.string(),
 	steps: z.array(z.string().min(1)).min(2),
 });
 

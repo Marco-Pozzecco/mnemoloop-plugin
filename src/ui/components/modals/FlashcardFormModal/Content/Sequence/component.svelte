@@ -8,12 +8,14 @@
 	let { mode, initialContent, onRegister }: ContentTypeProps = $props();
 
 	// --- Form state ---
+	let question = $state('');
 	let steps = $state(['', '']);
 
 	// --- Init from parent data (edit mode only) ---
 	$effect(() => {
 		if (mode === 'edit' && initialContent) {
 			const c = initialContent as FlashcardSequenceContent;
+			question = c.question;
 			steps = [...c.steps];
 		}
 	});
@@ -31,6 +33,7 @@
 	// --- Register validate + buildContent with parent ---
 	$effect(() => {
 		const validate: ValidateFn = () => {
+			if (!question.trim()) return 'Question is required.';
 			const filled = steps.filter((s) => s.trim());
 			if (filled.length < 2) return 'At least 2 steps are required.';
 			return null;
@@ -38,12 +41,14 @@
 		const buildContent: BuildContentFn = () =>
 			({
 				meta_type: CardType.Sequence,
+				question: question.trim(),
 				steps: steps.map((s) => s.trim()).filter((s) => s.length > 0),
 			}) as FlashcardContent;
 		onRegister({ validate, buildContent });
 	});
 </script>
 
+<Input label="Question" value={question} required onchange={(v) => (question = v)} />
 <FormField label="Steps">
 	{#each steps as step, i (i)}
 		<div class="ml-field-list-item">

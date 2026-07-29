@@ -6,19 +6,23 @@ import { ContentParser } from '../_core/Content';
 
 export class FlashcardSequenceContentParser extends ContentParser<FlashcardSequenceContent> {
 	readonly cardType = CardType.Sequence;
-	private _settings: IAdapter<PluginSettings>;
+	private _flashcardSettings: PluginSettings['flashcard'];
 
 	constructor(settings: IAdapter<PluginSettings>) {
 		super();
-		this._settings = settings;
+		this._flashcardSettings = settings.data.flashcard;
 	}
 
 	parse = (body: string): ParseContentResult<FlashcardSequenceContent> => {
 		try {
-			const after = this.splitAtMarker(body, this._settings).after;
+			const { before: question, after } = this.splitAtMarker(body, this._flashcardSettings.marker);
 			const steps = this.extractSteps(after);
 
-			const result = FlashcardSequenceContentSchema.parse({ meta_type: this.cardType, steps });
+			const result = FlashcardSequenceContentSchema.parse({
+				meta_type: this.cardType,
+				steps,
+				question,
+			});
 
 			return this.parseContentResultSuccess(result);
 		} catch (error) {
@@ -29,7 +33,13 @@ export class FlashcardSequenceContentParser extends ContentParser<FlashcardSeque
 	};
 
 	serialize = (content: FlashcardSequenceContent): ParseContentResult<string> => {
-		return this.parseContentResultSuccess(content.steps.join('\n'));
+		let result = '';
+
+		result += content.question + '\n\n';
+		result += this._flashcardSettings.marker + '\n\n';
+		result += content.steps.map((step) => `- ${step}`).join('\n');
+
+		return this.parseContentResultSuccess(result);
 	};
 
 	private extractSteps(contentAfterMarker: string): FlashcardSequenceContent['steps'] {
