@@ -6,16 +6,19 @@ import { ContentParser } from '../_core/Content';
 
 export class FlashcardBasicContentParser extends ContentParser<FlashcardBaseContent> {
 	readonly cardType = CardType.Basic;
-	private _settings: IAdapter<PluginSettings>;
+	private _flashcardSettings: PluginSettings['flashcard'];
 
 	constructor(settings: IAdapter<PluginSettings>) {
 		super();
-		this._settings = settings;
+		this._flashcardSettings = settings.data.flashcard;
 	}
 
 	parse = (body: string): ParseContentResult<FlashcardBaseContent> => {
 		try {
-			const { before: front, after: back } = this.splitAtMarker(body, this._settings);
+			const { before: front, after: back } = this.splitAtMarker(
+				body,
+				this._flashcardSettings.marker,
+			);
 
 			if (!front || !back) {
 				throw new Error('no content found');
@@ -30,7 +33,8 @@ export class FlashcardBasicContentParser extends ContentParser<FlashcardBaseCont
 	};
 
 	serialize = (content: FlashcardBaseContent): ParseContentResult<string> => {
-		return this.parseContentResultSuccess(`${content.front}\n\n${content.back}`);
+		return this.parseContentResultSuccess(
+			`${content.front}\n\n${this._flashcardSettings.marker}\n\n${content.back}`,
+		);
 	};
-
 }

@@ -14,11 +14,11 @@ interface ClozeMatch {
 
 export class FlashcardClozeContentParser extends ContentParser<FlashcardClozeContent> {
 	readonly cardType = CardType.Cloze;
-	private _settings: IAdapter<PluginSettings>;
+	private _flashcardSettings: PluginSettings['flashcard'];
 
 	constructor(settings: IAdapter<PluginSettings>) {
 		super();
-		this._settings = settings;
+		this._flashcardSettings = settings.data.flashcard;
 	}
 
 	parse = (body: string): ParseContentResult<FlashcardClozeContent> => {
@@ -55,7 +55,10 @@ export class FlashcardClozeContentParser extends ContentParser<FlashcardClozeCon
 			cleanText += body.slice(cursor);
 
 			// Group deletions by id (supports repeated deletion groups like c1 appearing twice)
-			const grouped = new Map<string, { answer: string; hint: string | null; positions: number[] }>();
+			const grouped = new Map<
+				string,
+				{ answer: string; hint: string | null; positions: number[] }
+			>();
 			for (const d of rawDeletions) {
 				const existing = grouped.get(d.id);
 				if (existing) {
@@ -90,10 +93,7 @@ export class FlashcardClozeContentParser extends ContentParser<FlashcardClozeCon
 
 	serialize = (content: FlashcardClozeContent): ParseContentResult<string> => {
 		// Build a position → cloze lookup for O(1) insertion during iteration
-		const positionMap = new Map<
-			number,
-			{ id: string; answer: string; hint: string | null }
-		>();
+		const positionMap = new Map<number, { id: string; answer: string; hint: string | null }>();
 		for (const del of content.deletions) {
 			for (const pos of del.positions) {
 				positionMap.set(pos, { id: del.id, answer: del.answer, hint: del.hint });
