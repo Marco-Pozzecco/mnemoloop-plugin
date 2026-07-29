@@ -13,8 +13,10 @@
 	import type { BuildContentFn, ValidateFn } from './Content/types';
 	import type { FlashcardFormModalData, FlashcardFormModalProps } from './types';
 	import { capitalize } from '@/utils/String';
+	import { getAppContext } from '@/ui/context/AppContext';
 
 	let { controller, error }: FlashcardFormModalProps = $props();
+	const { app } = getAppContext();
 
 	// Derive modal data from the store
 	let mode = $derived(
@@ -95,10 +97,14 @@
 				});
 				EventBus.instance.publish(event);
 
-				const unsub = EventBus.instance.subscribe(FlashcardWriterCreateResponseEvent, async () => {
-					unsub();
-					controller.onClose();
-				});
+				const unsub = EventBus.instance.subscribe(
+					FlashcardWriterCreateResponseEvent,
+					async (response) => {
+						unsub();
+						app.workspace.openLinkText(response.data.filepath, '', false);
+						controller.onClose();
+					},
+				);
 			} else if (card) {
 				const event = new FlashcardWriterUpdateRequestEvent({
 					uuid: card.uuid,
@@ -108,10 +114,14 @@
 				} as Partial<Flashcard>);
 				EventBus.instance.publish(event);
 
-				const unsub = EventBus.instance.subscribe(FlashcardWriterUpdateResponseEvent, async () => {
-					unsub();
-					controller.onClose();
-				});
+				const unsub = EventBus.instance.subscribe(
+					FlashcardWriterUpdateResponseEvent,
+					async (response) => {
+						unsub();
+						app.workspace.openLinkText(response.data.filepath, '', false);
+						controller.onClose();
+					},
+				);
 			}
 		} catch (e) {
 			controller.store.setError(e instanceof Error ? e.message : 'An error occurred');

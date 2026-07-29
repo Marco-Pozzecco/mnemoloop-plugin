@@ -1,5 +1,3 @@
 export { default as FlashcardFormModal } from './FlashcardFormModal/component.svelte';
-export type {
-	FlashcardFormModalData,
-	FlashcardFormModalProps,
-} from './FlashcardFormModal/types';
+export type { default as FlashcardFormModalProps } from './FlashcardFormModal/types';
+export { default as FlashcardFormModalContent } from './FlashcardFormModal/Content';
