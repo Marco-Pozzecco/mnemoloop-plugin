@@ -16,6 +16,8 @@ export { default as ChartReviewHeatmap } from './Chart/Review/Heatmap/component.
 export type { default as ChartReviewHeatmapProps } from './Chart/Review/Heatmap/types';
 export { default as ChartReviewSessions } from './Chart/Review/Sessions/component.svelte';
 export type { default as ChartReviewSessionsProps } from './Chart/Review/Sessions/types';
+export { default as Combobox } from './Combobox/component.svelte';
+export type { default as ComboboxProps } from './Combobox/types';
 export { default as ErrorWrapper } from './ErrorWrapper/component.svelte';
 export type { default as ErrorWrapperProps } from './ErrorWrapper/types';
 export { default as FormField } from './FormField/component.svelte';
