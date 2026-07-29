@@ -151,10 +151,18 @@ export class VaultWatcher {
 			return;
 		}
 
-		void EventBus.instance.publish(new VaultCreateEvent({ path: file.path, entity: 'flashcard' }));
+		this._setDebounceTimer(file.path, () => {
+			void EventBus.instance.publish(
+				new VaultCreateEvent({ path: file.path, entity: 'flashcard' }),
+			);
+		});
 	}
 
 	private _handleModify(file: TAbstractFile): void {
+		if (!(file instanceof TFile)) {
+			return;
+		}
+
 		const wasWatched = this._debounceTimers.has(file.path);
 		const isWatched = this._shouldWatchFile(file);
 
@@ -164,6 +172,16 @@ export class VaultWatcher {
 		}
 
 		if (!isWatched) {
+			return;
+		}
+
+		// if file has been created within 3 seconds ignore it
+		const ctime = file.stat.ctime;
+		const now = new Date().getTime();
+		const diff = now - ctime;
+		const threshold = 1000 * 3;
+
+		if (diff < threshold) {
 			return;
 		}
 
