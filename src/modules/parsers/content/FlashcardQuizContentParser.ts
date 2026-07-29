@@ -6,16 +6,16 @@ import { ContentParser } from '../_core/Content';
 
 export class FlashcardQuizContentParser extends ContentParser<FlashcardQuizContent> {
 	readonly cardType = CardType.Quiz;
-	private _settings: IAdapter<PluginSettings>;
+	private _flashcardSettings: PluginSettings['flashcard'];
 
 	constructor(settings: IAdapter<PluginSettings>) {
 		super();
-		this._settings = settings;
+		this._flashcardSettings = settings.data.flashcard;
 	}
 
 	parse = (body: string): ParseContentResult<FlashcardQuizContent> => {
 		try {
-			const { before, after } = this.splitAtMarker(body, this._settings);
+			const { before, after } = this.splitAtMarker(body, this._flashcardSettings.marker);
 			const { question, options, correct_index } = this.extractQuizData(before, after);
 
 			const result = FlashcardQuizContentSchema.parse({
@@ -34,11 +34,11 @@ export class FlashcardQuizContentParser extends ContentParser<FlashcardQuizConte
 	};
 
 	serialize = (content: FlashcardQuizContent): ParseContentResult<string> => {
-		const marker = this._settings.data.flashcard.marker;
+		const marker = this._flashcardSettings.marker;
 		const checkboxList = content.options
 			.map((opt, i) => (i === content.correct_index ? `- [x] ${opt}` : `- [ ] ${opt}`))
 			.join('\n');
-		return this.parseContentResultSuccess(`${content.question}\n${marker}\n${checkboxList}`);
+		return this.parseContentResultSuccess(`${content.question}\n\n${marker}\n\n${checkboxList}`);
 	};
 
 	private extractQuizData(

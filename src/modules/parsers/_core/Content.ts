@@ -5,8 +5,6 @@ import {
 	ParseContentResultWithSuccess,
 } from '@/interfaces/parser/utils';
 import { CardType } from '@/schemas';
-import { IAdapter } from '@/interfaces/IAdapter';
-import { PluginSettings } from '@/schemas/settings';
 import { ERROR_MESSAGES } from '@/utils/constants';
 
 export abstract class ContentParser<Entity> implements IContentParser<Entity> {
@@ -22,11 +20,7 @@ export abstract class ContentParser<Entity> implements IContentParser<Entity> {
 		return { entity: null, success: false, error };
 	};
 
-	protected splitAtMarker(
-		content: string,
-		settings: IAdapter<PluginSettings>,
-	): { before: string; after: string } {
-		const marker = settings.data.flashcard.marker;
+	protected splitAtMarker(content: string, marker: string): { before: string; after: string } {
 		const escapedMarker = marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 		const markerRegex = new RegExp(`\\n\\s*${escapedMarker}\\s*\\n`);
 		const match = markerRegex.exec(content);
