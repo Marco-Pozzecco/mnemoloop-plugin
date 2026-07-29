@@ -1,6 +1,7 @@
 import { IYamlEngine } from '@/interfaces/parser/IYamlParser';
 import { RecoverResult } from '@/interfaces/parser/utils';
 import { ERROR_MESSAGES } from '@/utils/constants';
+import { Logger } from '@/utils/Logger';
 import { normalizePath, parseYaml, Plugin } from 'obsidian';
 import { ZodType } from 'zod';
 
@@ -29,10 +30,16 @@ export abstract class YamlParser<
 		let fm: EntityYaml = {} as EntityYaml;
 
 		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
+			Logger.info('fm', fm);
+			Logger.info('frontmatter', frontmatter);
 			Object.assign(fm, frontmatter);
 		});
 
+		Logger.info('fm', fm);
+
 		fm = this.validate(fm);
+
+		Logger.info('fm', fm);
 
 		return fm;
 	}
@@ -87,7 +94,12 @@ export abstract class YamlParser<
 	}
 
 	validate(data: Record<string, unknown>) {
-		return this._schema.parse(data);
+		const { success, data: result, error } = this._schema.safeParse(data);
+		if (!success) {
+			Logger.error('validate:', error);
+			throw error;
+		}
+		return result;
 	}
 
 	protected removeFrontmatter(content: string): string {
