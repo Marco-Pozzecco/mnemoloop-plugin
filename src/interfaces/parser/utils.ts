@@ -17,8 +17,7 @@ export type ParseResultWithError = {
 
 // Content parser
 export type ParseContentResult<Entity> =
-	| ParseContentResultWithSuccess<Entity>
-	| ParseContentResultWithError;
+	ParseContentResultWithSuccess<Entity> | ParseContentResultWithError;
 
 export type ParseContentResultWithSuccess<Entity> = Omit<
 	ParseResultWithSuccess<Entity>,
@@ -31,9 +30,15 @@ export type RecoverResult<Entity> = RecoverResultSuccess<Entity> | RecoverResult
 export type RecoverResultSuccess<Entity> = {
 	data: Entity;
 	success: true;
+	warnings?: RecoveryWarning[];
 };
 
 export type RecoverResultError = {
 	data: null;
 	success: false;
 };
+
+export interface RecoveryWarning {
+	field: string;
+	issue: string;
+}
