@@ -445,7 +445,15 @@ describe('FlashcardIndexOnVaultCreateHandler', () => {
 		} as unknown as FlashcardIndexer;
 
 		mockDeps = {
-			plugin: {} as IEventRegistryDependencies['plugin'],
+			plugin: {
+				app: {
+					vault: {
+						getFileByPath: vi.fn().mockReturnValue({
+							stat: { ctime: 1000, mtime: 2000 },
+						}),
+					},
+				},
+			} as unknown as IEventRegistryDependencies['plugin'],
 			adapters: new Map(),
 			indexes: new Map([[IndexKey.flashcard, mockIndexer]]),
 			parsers: new Map([[ParserKey.flashcard, mockParser]]),
@@ -596,7 +604,15 @@ describe('FlashcardIndexOnVaultModifyHandler', () => {
 		} as unknown as FlashcardIndexer;
 
 		mockDeps = {
-			plugin: {} as IEventRegistryDependencies['plugin'],
+			plugin: {
+				app: {
+					vault: {
+						getFileByPath: vi.fn().mockReturnValue({
+							stat: { ctime: 1000, mtime: 2000 },
+						}),
+					},
+				},
+			} as unknown as IEventRegistryDependencies['plugin'],
 			adapters: new Map(),
 			indexes: new Map([[IndexKey.flashcard, mockIndexer]]),
 			parsers: new Map([[ParserKey.flashcard, mockParser]]),
@@ -665,7 +681,15 @@ describe('FlashcardIndexOnVaultRenameHandler', () => {
 		} as unknown as FlashcardIndexer;
 
 		mockDeps = {
-			plugin: {} as IEventRegistryDependencies['plugin'],
+			plugin: {
+				app: {
+					vault: {
+						getFileByPath: vi.fn().mockReturnValue({
+							stat: { ctime: 1000, mtime: 2000 },
+						}),
+					},
+				},
+			} as unknown as IEventRegistryDependencies['plugin'],
 			adapters: new Map(),
 			indexes: new Map([[IndexKey.flashcard, mockIndexer]]),
 			parsers: new Map([[ParserKey.flashcard, mockParser]]),
@@ -701,7 +725,10 @@ describe('FlashcardIndexOnVaultRenameHandler', () => {
 
 		expect(mockIndexer.findByFilepath).toHaveBeenCalledWith('old.md');
 		expect(mockParser.parseYaml).toHaveBeenCalledWith('new.md');
-		expect(mockIndexer.generateMetadata).toHaveBeenCalledWith({ uuid: 'test-uuid' }, 'new.md');
+		expect(mockIndexer.generateMetadata).toHaveBeenCalledWith({ uuid: 'test-uuid' }, 'new.md', {
+			created_at: '1970-01-01T00:00:01.000Z',
+			updated_at: '1970-01-01T00:00:02.000Z',
+		});
 		expect(mockIndexer.upsert).toHaveBeenCalledWith('test-uuid', expect.any(Object));
 		expect(mockIndexer.save).toHaveBeenCalledTimes(1);
 		expect(bus.publish).toHaveBeenCalledTimes(2);
