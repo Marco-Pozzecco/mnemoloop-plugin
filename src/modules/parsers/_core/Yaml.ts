@@ -30,16 +30,10 @@ export abstract class YamlParser<
 		let fm: EntityYaml = {} as EntityYaml;
 
 		await this._plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
-			Logger.info('fm', fm);
-			Logger.info('frontmatter', frontmatter);
 			Object.assign(fm, frontmatter);
 		});
 
-		Logger.info('fm', fm);
-
 		fm = this.validate(fm);
-
-		Logger.info('fm', fm);
 
 		return fm;
 	}

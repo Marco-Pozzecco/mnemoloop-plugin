@@ -253,7 +253,6 @@ export class FlashcardIndexOnVaultModifyHandler extends EventHandler<VaultModify
 		try {
 			const rawResult = await parser.parseYaml(data.path);
 			if (Array.isArray(rawResult)) return;
-			Logger.info('flashcard modify data:', rawResult);
 			const result = rawResult;
 			if (result.success) {
 				const entity = indexer.generateMetadata(result.entity, result.filepath, {
