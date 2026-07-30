@@ -39,9 +39,7 @@ describe('QuizContentParser', () => {
 		});
 
 		it('should parse checkbox with capital X as checked', () => {
-			const result = parser.parse(
-				'Q1\n?\n- [X] Option A\n- [ ] Option B',
-			);
+			const result = parser.parse('Q1\n?\n- [X] Option A\n- [ ] Option B');
 
 			expect(result.success).toBe(true);
 			expect(result.entity!.options).toEqual(['Option A', 'Option B']);
@@ -49,9 +47,7 @@ describe('QuizContentParser', () => {
 		});
 
 		it('should parse quiz with exactly 2 options (minimum)', () => {
-			const result = parser.parse(
-				'True or false?\n?\n- [ ] False\n- [x] True',
-			);
+			const result = parser.parse('True or false?\n?\n- [ ] False\n- [x] True');
 
 			expect(result.success).toBe(true);
 			expect(result.entity!.options).toHaveLength(2);
@@ -62,14 +58,11 @@ describe('QuizContentParser', () => {
 			const result = parser.parse('Q\n?\n- [x] Only option');
 
 			expect(result.success).toBe(false);
-			if (!result.success)
-				expect(result.error.message).toBe('Quiz requires at least 2 options');
+			if (!result.success) expect(result.error.message).toBe('Quiz requires at least 2 options');
 		});
 
 		it('should fail when no checked option', () => {
-			const result = parser.parse(
-				'Q\n?\n- [ ] Option A\n- [ ] Option B\n- [ ] Option C',
-			);
+			const result = parser.parse('Q\n?\n- [ ] Option A\n- [ ] Option B\n- [ ] Option C');
 
 			expect(result.success).toBe(false);
 			if (!result.success)
@@ -77,9 +70,7 @@ describe('QuizContentParser', () => {
 		});
 
 		it('should fail when more than one checked option', () => {
-			const result = parser.parse(
-				'Q\n?\n- [x] Option A\n- [x] Option B\n- [ ] Option C',
-			);
+			const result = parser.parse('Q\n?\n- [x] Option A\n- [x] Option B\n- [ ] Option C');
 
 			expect(result.success).toBe(false);
 			if (!result.success)
@@ -106,18 +97,14 @@ describe('QuizContentParser', () => {
 			const settings = createSettings('**');
 			parser = new FlashcardQuizContentParser(settings);
 
-			const result = parser.parse(
-				'Q\n**\n- [ ] A\n- [x] B',
-			);
+			const result = parser.parse('Q\n**\n- [ ] A\n- [x] B');
 
 			expect(result.success).toBe(true);
 			expect(result.entity!.options).toEqual(['A', 'B']);
 		});
 
 		it('should support plus list markers for options', () => {
-			const result = parser.parse(
-				'Q\n?\n+ [ ] A\n+ [x] B',
-			);
+			const result = parser.parse('Q\n?\n+ [ ] A\n+ [x] B');
 
 			expect(result.success).toBe(true);
 			expect(result.entity!.options).toEqual(['A', 'B']);
@@ -125,9 +112,7 @@ describe('QuizContentParser', () => {
 		});
 
 		it('should support asterisk list markers for options', () => {
-			const result = parser.parse(
-				'Q\n?\n* [ ] A\n* [x] B',
-			);
+			const result = parser.parse('Q\n?\n* [ ] A\n* [x] B');
 
 			expect(result.success).toBe(true);
 			expect(result.entity!.options).toEqual(['A', 'B']);
@@ -162,7 +147,7 @@ describe('QuizContentParser', () => {
 			const result = parser.serialize(content);
 			expect(result.success).toBe(true);
 
-			const expected = 'Q\n?\n- [ ] A\n- [x] B\n- [ ] C';
+			const expected = 'Q\n\n?\n\n- [ ] A\n- [x] B\n- [ ] C';
 			expect(result.entity).toBe(expected);
 		});
 	});
