@@ -17,38 +17,42 @@ Your notes stay pristine. Your retention improves. Your workflow never leaves Ob
 ## Why Mnemoloop?
 
 ### Your Notes Stay Pristine
-Every flashcard is a standalone Markdown file in a dedicated directory, linked back to its source note via YAML frontmatter. Your thinking space remains exactly as you designed it—no `!!` or `??` markers polluting your carefully organized literature reviews, course notes, or research documents.
+
+Every flashcard is a standalone Markdown file in a dedicated directory, linked back to its source note via YAML frontmatter. Your thinking space remains exactly as you designed it—no `!!` or `??` markers polluting your carefully organized literature reviews, course notes or research documents.
 
 ### FSRS, Inside Obsidian
+
 Mnemoloop is the only Obsidian plugin with native FSRS scheduling—the same scientifically validated algorithm powering modern Anki. Better retention. Fewer reviews. Less frustration. No context switching.
 
 ### Built for Mobile from Day One
+
 Swipe to rate. Tap to flip. Responsive layouts. Mnemoloop works as beautifully on your phone as on your desktop—no separate app required, because it runs natively inside Obsidian Mobile.
 
 ### Reliability
+
 Dual-source truth: a fast JSON index for queries, plus human-readable YAML frontmatter on every card for transparency and recovery. Even if the index is corrupted, all your SRS data lives in Markdown and can rebuild everything. Error boundaries ensure the plugin never brings down Obsidian.
 
 ---
 
 ## Features
 
-| Feature | Description |
-|---------|-------------|
-| 🧠 **FSRS Scheduling** | State-of-the-art spaced repetition algorithm for optimal retention |
-| 📄 **1 File = 1 Flashcard** | Each card is a standalone Markdown file—portable, version-controllable, never touches source notes |
-| 📊 **Learning Dashboard** | Heatmaps, deck tree, daily goals, and retention rates |
-| 🔒 **Local-First & Private** | Core features work fully offline. No telemetry. No data mining. Your knowledge belongs to you. |
-| 🏗️ **Self-Healing Data** | JSON index + YAML dual-source truth with corruption recovery |
-| ⚡ **High Performance** | Lazy card loading, debounced vault watching, and 50,000-card performance targets |
+| Feature                      | Description                                                                                        |
+| ---------------------------- | -------------------------------------------------------------------------------------------------- |
+| 🧠 **FSRS Scheduling**       | State-of-the-art spaced repetition algorithm for optimal retention                                 |
+| 📄 **1 File = 1 Flashcard**  | Each card is a standalone Markdown file—portable, version-controllable, never touches source notes |
+| 📊 **Learning Dashboard**    | Heatmaps, deck tree, daily goals, and retention rates                                              |
+| 🔒 **Local-First & Private** | Core features work fully offline. No telemetry. No data mining. Your knowledge belongs to you.     |
+| 🏗️ **Self-Healing Data**     | JSON index + YAML dual-source truth with corruption recovery                                       |
+| ⚡ **High Performance**      | Lazy card loading, debounced vault watching, and 50,000-card performance targets                   |
 
 ## Coming soon
 
-| Feature | Description | 
-|---------|-------------|
+| Feature                                | Description                                                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | 🤖 **AI-Powered Flashcard Generation** | AI generates flashcards from source notes, keeping your knowledge base up-to-date (paid feature) |
-| 📱 **Mobile Touch UI** | Swipe left/right to rate, tap to flip — native feel inside Obsidian Mobile |
-| 🔔 **Stale Detection** | Source note edits automatically flag linked flashcards as `STALE` |
-| 📈 **Learning Analytics** | Track your learning progress with real-time analytics and progress tracking |
+| 📱 **Mobile Touch UI**                 | Swipe left/right to rate, tap to flip — native feel inside Obsidian Mobile                       |
+| 🔔 **Stale Detection**                 | Source note edits automatically flag linked flashcards as `STALE`                                |
+| 📈 **Learning Analytics**              | Track your learning progress with real-time analytics and progress tracking                      |
 
 ---
 
@@ -80,6 +84,7 @@ Dual-source truth: a fast JSON index for queries, plus human-readable YAML front
 Open the **Command Palette** and run **"Mnemoloop: Open Dashboard"** to see your learning stats and start a review session.
 
 During review:
+
 - **Space** — Flip the card
 - **1 / 2 / 3 / 4** — Rate Again / Hard / Good / Easy
 - **U** — Undo last rating
@@ -108,7 +113,7 @@ Each flashcard is a Markdown file with YAML frontmatter:
 ```markdown
 ---
 uuid: 550e8400-e29b-41d4-a716-446655440000
-source: "[[Biology/Cell biology.md]]"
+source: '[[Biology/Cell biology.md]]'
 status: ACTIVE
 decks:
   - Biology::Cell structure
@@ -135,12 +140,12 @@ The `?` delimiter separates question from answer (configurable in settings). All
 
 ## Available Commands
 
-| Context | Command |  Description |
-|--- | ---------|-------------|
-| Palette | Open Dashboard |  Open the learning dashboard |
-| Palette | Create Empty Flashcard |  Create a new empty flashcard linked to the current note |
+| Context     | Command                           | Description                                                     |
+| ----------- | --------------------------------- | --------------------------------------------------------------- |
+| Palette     | Open Dashboard                    | Open the learning dashboard                                     |
+| Palette     | Create Empty Flashcard            | Create a new empty flashcard linked to the current note         |
 | Editor menu | Generate flashcard from selection | Creates a flashcard pre-filled with the currently selected text |
-| File menu | Create flashcard from file | Creates an empty flashcard linked to the selected Markdown file |
+| File menu   | Create flashcard from file        | Creates an empty flashcard linked to the selected Markdown file |
 
 ---
 
