@@ -3,7 +3,7 @@ import type { Flashcard } from '@/schemas';
 
 export type FlashcardFormMode = 'create' | 'edit';
 
-export interface FlashcardFormModalProps {
+export default interface FlashcardFormModalProps {
 	controller: ModalController;
 	isLoading: boolean;
 	error: string | null;
