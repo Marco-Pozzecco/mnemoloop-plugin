@@ -30,7 +30,7 @@ export const FlashcardYamlSchema = FSRSParams.extend({
 		.regex(/^\[\[.*\]\]$/, 'Must be valid Obsidian link format')
 		.nullable(),
 	status: z.enum(CardStatus),
-	decks: z.array(z.string()),
+	decks: z.preprocess((val) => val ?? undefined, z.array(z.string()).default([])),
 	card_type: CardTypeSchema.default(CardType.Basic),
 });
 
