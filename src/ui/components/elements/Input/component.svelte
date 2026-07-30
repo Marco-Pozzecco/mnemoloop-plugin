@@ -106,7 +106,7 @@
 	}
 
 	.ml-input-required {
-		color: -error;
+		color: $text-error;
 		font-weight: bold;
 	}
 
@@ -147,12 +147,12 @@
 	}
 
 	.ml-input-wrapper.has-error .ml-input {
-		border-color: -error;
-		background-color: color-mix(in srgb, -error 5%, transparent);
+		border-color: $text-error;
+		background-color: color-mix(in srgb, $text-error 5%, transparent);
 	}
 
 	.ml-input-wrapper.has-error .ml-input:focus {
-		box-shadow: 0 0 0 2px color-mix(in srgb, -error 10%, transparent);
+		box-shadow: 0 0 0 2px color-mix(in srgb, $text-error 10%, transparent);
 	}
 
 	.ml-input-error,
@@ -162,7 +162,7 @@
 	}
 
 	.ml-input-error {
-		color: -error;
+		color: $text-error;
 	}
 
 	.ml-input-helper {

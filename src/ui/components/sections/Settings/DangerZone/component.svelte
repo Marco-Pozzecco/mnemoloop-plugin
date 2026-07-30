@@ -61,7 +61,7 @@
 	.ml-danger-zone__title {
 		font-size: $font-md;
 		font-weight: $font-semibold;
-		color: -error;
+		color: $text-error;
 		margin: 0;
 	}
 
