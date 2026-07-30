@@ -35,12 +35,15 @@ export class DashboardController implements IDashboardController {
 		const predicate = (entity: FlashcardMetadata) => {
 			const conditions = [entity.status === CardStatus.ACTIVE, new Date(entity.due) <= new Date()];
 
-			if (deckFilter) {
+			if (deckFilter && deckFilter === 'Uncategorized') {
+				conditions.push(entity.decks.length === 0);
+			} else if (deckFilter) {
 				conditions.push(entity.decks.some((deck) => deck.includes(deckFilter)));
 			}
 
 			return conditions.every((v) => v === true);
 		};
+
 		const list = new FlashcardReviewQueue(
 			predicate,
 			fsrsParams as unknown as Partial<FSRSParameters>,
