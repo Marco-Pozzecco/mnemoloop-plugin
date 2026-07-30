@@ -10,9 +10,10 @@ describe('FlashcardYamlSchema', () => {
 		status: 'ACTIVE',
 	};
 
-	it('should throw error when YAML without decks field', () => {
+	it('should default decks to empty array when missing', () => {
 		const yaml = { ...baseYaml };
-		expect(() => FlashcardYamlSchema.parse(yaml)).toThrow();
+		const result = FlashcardYamlSchema.parse(yaml);
+		expect(result.decks).toEqual([]);
 	});
 
 	it('should parse YAML with decks array and preserve value', () => {

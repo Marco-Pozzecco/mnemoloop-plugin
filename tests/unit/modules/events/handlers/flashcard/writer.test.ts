@@ -84,7 +84,7 @@ describe('FlashcardWriterCreateHandler', () => {
 			'/flashcards/mocked-uuid.md',
 			expect.objectContaining({
 				uuid: 'mocked-uuid',
-				source: '[[source.md]]',
+				source: 'source.md',
 				card_type: CardType.Basic,
 				content: { meta_type: CardType.Basic, front: 'Q', back: 'A' },
 			}),
