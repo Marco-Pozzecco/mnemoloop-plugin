@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { v4 as uuid } from 'uuid';
 	import { Textarea } from '@/ui/components/elements';
 	import type { FlashcardClozeContent, FlashcardContent } from '@/schemas';
 	import { CardType, FlashcardClozeRegex } from '@/schemas';
 	import type ContentTypeProps from '../types';
 	import type { BuildContentFn, ValidateFn } from '../types';
 
-	let { mode, initialContent, onRegister }: ContentTypeProps = $props();
+	let { mode, initialContent, onRegister, disabled = false }: ContentTypeProps = $props();
 
 	// --- Form state ---
 	const clozePlaceholder =
@@ -52,7 +53,7 @@
 			let match: RegExpExecArray | null;
 			while ((match = regex.exec(clozeText)) !== null) {
 				deletions.push({
-					id: crypto.randomUUID(),
+					id: uuid(),
 					answer: match[2],
 					hint: match[3] ?? null,
 					positions: [match.index],
@@ -70,6 +71,8 @@
 	value={clozeText}
 	required
 	rows={5}
+	maxLength={10000}
+	{disabled}
 	onchange={(v) => (clozeText = v)}
 />
 
