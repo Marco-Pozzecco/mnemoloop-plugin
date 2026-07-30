@@ -11,7 +11,8 @@
 	import { modalStore } from '@/ui/store/modal.store';
 	import FormContent from './Content';
 	import type { BuildContentFn, ValidateFn } from './Content/types';
-	import type { FlashcardFormModalData, FlashcardFormModalProps } from './types';
+	import type { FlashcardFormModalData } from './types';
+	import type FlashcardFormModalProps from './types';
 	import { capitalize } from '@/utils/String';
 	import { getAppContext } from '@/ui/context/AppContext';
 
@@ -38,7 +39,8 @@
 	let selectedType: string = $state(CardType.Basic);
 
 	// Shared metadata (renders once for all types)
-	let deck = $state('');
+	let deck: string[] = $state([]);
+	let deckStr: string = $state('');
 	let source = $state('');
 
 	// --- Content child API ---
@@ -48,7 +50,7 @@
 	$effect(() => {
 		if (mode === 'edit' && card) {
 			selectedType = card.card_type;
-			deck = card.decks[0] ?? '';
+			deck = card.decks ?? [];
 			source = card.source ?? '';
 		} else if (mode === 'create' && prefillSource) {
 			source = prefillSource;
@@ -67,6 +69,11 @@
 		contentApi = api;
 	}
 
+	function handleDeckChange(value: string): void {
+		const decks = value.split(',').map((deck) => deck.trim());
+		deck = decks;
+	}
+
 	// --- Submission ---
 	async function handleSubmit(): Promise<void> {
 		if (!contentApi) return;
@@ -81,7 +88,7 @@
 		controller.store.setLoading(true);
 
 		const content = contentApi.buildContent();
-		const decks = deck.trim() ? [deck.trim()] : [];
+		const decks = deck.filter((d) => d.trim() !== '');
 		const sourceValue = source.trim() || null;
 
 		// Create writer wraps source with [[...]], so pass bare path.
@@ -92,7 +99,7 @@
 			if (mode === 'create') {
 				const event = new FlashcardWriterCreateRequestEvent({
 					content,
-					source: createSource,
+					source: createSource.length > 0 ? createSource : null,
 					decks,
 				});
 				EventBus.instance.publish(event);
@@ -168,7 +175,13 @@
 	{/key}
 
 	<!-- Shared metadata -->
-	<Input label="Deck" value={deck} placeholder="e.g. math" onchange={(v) => (deck = v)} />
+	<Input
+		label="Deck"
+		value={deckStr}
+		placeholder="Example::Nested, New deck"
+		helperText="Comma separeted list of decks"
+		onchange={handleDeckChange}
+	/>
 	<Input
 		label="Source"
 		value={source}
