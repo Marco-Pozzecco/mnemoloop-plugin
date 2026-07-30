@@ -108,7 +108,7 @@
 	}
 
 	.ml-slider-required {
-		color: -error;
+		color: $text-error;
 		font-weight: bold;
 	}
 
@@ -187,25 +187,25 @@
 	}
 	/* Error state */
 	.ml-slider-wrapper.has-error .ml-slider-track {
-		background-color: color-mix(in srgb, -error 20%, transparent);
+		background-color: color-mix(in srgb, $text-error 20%, transparent);
 	}
 
 	.ml-slider-wrapper.has-error .ml-slider-range {
-		background-color: -error;
+		background-color: $text-error;
 	}
 
 	.ml-slider-wrapper.has-error .ml-slider-thumb {
-		background-color: -error;
+		background-color: $text-error;
 		border-color: $background-primary;
 	}
 
 	.ml-slider-wrapper.has-error .ml-slider-thumb:hover {
-		background-color: -error;
+		background-color: $text-error;
 		filter: brightness(1.1);
 	}
 
 	.ml-slider-wrapper.has-error .ml-slider-label {
-		color: -error;
+		color: $text-error;
 	}
 
 	/* Disabled state */
@@ -232,7 +232,7 @@
 	}
 
 	.ml-slider-error {
-		color: -error;
+		color: $text-error;
 	}
 
 	.ml-slider-helper {

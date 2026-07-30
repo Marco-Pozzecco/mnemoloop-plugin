@@ -69,9 +69,9 @@
 		}
 
 		&__error {
-			color: -error;
+			color: $text-error;
 			background-color: rgba(#{$text-error-rgb}, 0.1);
-			border: 1px solid -error;
+			border: 1px solid $text-error;
 			border-radius: $radius-md;
 			padding: $spacing-sm;
 			margin-bottom: $spacing-sm;

@@ -78,7 +78,7 @@
 	}
 
 	:global(button.ml-button--danger) {
-		background-color: -error;
+		background-color: $text-error;
 		color: $text-accent-foreground;
 	}
 

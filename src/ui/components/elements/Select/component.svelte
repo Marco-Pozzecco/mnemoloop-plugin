@@ -108,7 +108,7 @@
 	}
 
 	.ml-select-required {
-		color: -error;
+		color: $text-error;
 		font-weight: bold;
 	}
 
@@ -155,12 +155,12 @@
 	}
 
 	.ml-select-wrapper.has-error .ml-select {
-		border-color: -error;
-		background-color: color-mix(in srgb, -error 5%, transparent);
+		border-color: $text-error;
+		background-color: color-mix(in srgb, $text-error 5%, transparent);
 	}
 
 	.ml-select-wrapper.has-error .ml-select:focus-visible {
-		box-shadow: 0 0 0 2px color-mix(in srgb, -error 10%, transparent);
+		box-shadow: 0 0 0 2px color-mix(in srgb, $text-error 10%, transparent);
 	}
 
 	/* Dropdown content styles */
@@ -222,7 +222,7 @@
 	}
 
 	.ml-select-error {
-		color: -error;
+		color: $text-error;
 	}
 
 	.ml-select-helper {
