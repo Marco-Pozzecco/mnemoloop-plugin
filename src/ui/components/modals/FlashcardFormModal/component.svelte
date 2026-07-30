@@ -7,16 +7,16 @@
 		FlashcardWriterUpdateResponseEvent,
 	} from '@/modules/events/domains/flashcard/writer';
 	import { CardType, Flashcard } from '@/schemas';
-	import { Input, Select } from '@/ui/components/elements';
+	import { Banner, FormField, Input, Tabs } from '@/ui/components/elements';
 	import { modalStore } from '@/ui/store/modal.store';
+	import { parseDeckList, formatDeckList } from '@/utils/deck-utils';
 	import FormContent from './Content';
 	import type { BuildContentFn, ValidateFn } from './Content/types';
 	import type { FlashcardFormModalData } from './types';
 	import type FlashcardFormModalProps from './types';
-	import { capitalize } from '@/utils/String';
 	import { getAppContext } from '@/ui/context/AppContext';
 
-	let { controller, error }: FlashcardFormModalProps = $props();
+	let { controller, error, isLoading }: FlashcardFormModalProps = $props();
 	const { app } = getAppContext();
 
 	// Derive modal data from the store
@@ -40,7 +40,7 @@
 
 	// Shared metadata (renders once for all types)
 	let deck: string[] = $state([]);
-	let deckStr: string = $state('');
+	let deckFormatted = $derived(formatDeckList(deck));
 	let source = $state('');
 
 	// --- Content child API ---
@@ -70,8 +70,7 @@
 	}
 
 	function handleDeckChange(value: string): void {
-		const decks = value.split(',').map((deck) => deck.trim());
-		deck = decks;
+		deck = parseDeckList(value);
 	}
 
 	// --- Submission ---
@@ -140,48 +139,77 @@
 </script>
 
 <div class="ml-form-modal">
-	<h3 class="ml-form-modal-title">
+	<h2 class="ml-form-modal-title">
 		{mode === 'edit' ? 'Edit flashcard' : 'Create flashcard'}
-	</h3>
+	</h2>
 
 	{#if error}
-		<div class="ml-form-error">{error}</div>
+		<Banner
+			banner={{ id: 'form-error', view: 'review', message: error, icon: 'alert-circle' }}
+			onDismiss={() => controller.store.setError(null)}
+		/>
 	{/if}
 
 	<!-- Card Type -->
-	<Select
-		label="Card type"
-		value={selectedType}
-		displayAs={capitalize}
-		options={cardTypeOptions}
-		disabled={mode === 'edit'}
-		onchange={handleTypeChange}
-	/>
+	<FormField label="Card type">
+		<Tabs.Root value={selectedType} onValueChange={handleTypeChange}>
+			<Tabs.List className="ml-card-type-tabs-list">
+				{#each cardTypeOptions as tab (tab.value)}
+					<Tabs.Trigger value={tab.value} disabled={mode === 'edit' || isLoading}>
+						{tab.label}
+					</Tabs.Trigger>
+				{/each}
+			</Tabs.List>
+		</Tabs.Root>
+	</FormField>
 
 	{#key selectedType}
 		{#if selectedType === CardType.Basic}
-			<FormContent.Basic {mode} initialContent={card?.content} onRegister={handleRegister} />
+			<FormContent.Basic
+				{mode}
+				initialContent={card?.content}
+				onRegister={handleRegister}
+				disabled={isLoading}
+			/>
 		{:else if selectedType === CardType.Sequence}
-			<FormContent.Sequence {mode} initialContent={card?.content} onRegister={handleRegister} />
+			<FormContent.Sequence
+				{mode}
+				initialContent={card?.content}
+				onRegister={handleRegister}
+				disabled={isLoading}
+			/>
 		{:else if selectedType === CardType.Quiz}
-			<FormContent.Quiz {mode} initialContent={card?.content} onRegister={handleRegister} />
+			<FormContent.Quiz
+				{mode}
+				initialContent={card?.content}
+				onRegister={handleRegister}
+				disabled={isLoading}
+			/>
 		{:else if selectedType === CardType.Cloze}
-			<FormContent.Cloze {mode} initialContent={card?.content} onRegister={handleRegister} />
+			<FormContent.Cloze
+				{mode}
+				initialContent={card?.content}
+				onRegister={handleRegister}
+				disabled={isLoading}
+			/>
 		{/if}
 	{/key}
 
 	<!-- Shared metadata -->
 	<Input
 		label="Deck"
-		value={deckStr}
+		value={deckFormatted}
 		placeholder="Example::Nested, New deck"
-		helperText="Comma separeted list of decks"
+		helperText="Comma-separated list of decks"
+		disabled={isLoading}
 		onchange={handleDeckChange}
 	/>
 	<Input
 		label="Source"
 		value={source}
 		placeholder="[[path/to/file]]"
+		helperText="Wrap the path in double brackets, e.g. [[path/to/file]]"
+		disabled={isLoading}
 		onchange={(v) => (source = v)}
 	/>
 </div>
@@ -200,8 +228,23 @@
 		font-size: $font-lg;
 	}
 
-	.ml-form-error {
-		color: $text-error;
-		font-size: $font-sm;
+	/* --- Card Type Tabs --- */
+
+	/* Allow tabs to wrap and distribute equally */
+	:global(.ml-card-type-tabs-list) {
+		flex-wrap: wrap;
+	}
+
+	:global(.ml-card-type-tabs-list .ml-tabs__trigger) {
+		flex: 1 1 0;
+		width: auto;
+		min-width: 0;
+	}
+
+	/* On narrow viewports, show 2 triggers per row (2 rows of 2) */
+	@media (max-width: 480px) {
+		:global(.ml-card-type-tabs-list .ml-tabs__trigger) {
+			flex-basis: calc(50% - #{$spacing-sm});
+		}
 	}
 </style>

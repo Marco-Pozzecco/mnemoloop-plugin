@@ -5,7 +5,7 @@
 	import type ContentTypeProps from '../types';
 	import type { BuildContentFn, ValidateFn } from '../types';
 
-	let { mode, initialContent, onRegister }: ContentTypeProps = $props();
+	let { mode, initialContent, onRegister, disabled = false }: ContentTypeProps = $props();
 
 	// --- Form state ---
 	let front = $state('');
@@ -33,5 +33,5 @@
 	});
 </script>
 
-<Input label="Front" value={front} required onchange={(v) => (front = v)} />
-<Input label="Back" value={back} required onchange={(v) => (back = v)} />
+<Input label="Front" value={front} required maxLength={1000} {disabled} onchange={(v) => (front = v)} />
+<Input label="Back" value={back} required maxLength={4000} {disabled} onchange={(v) => (back = v)} />

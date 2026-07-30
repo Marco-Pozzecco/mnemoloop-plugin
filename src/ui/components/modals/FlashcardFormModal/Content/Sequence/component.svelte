@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { FormField, Input, Button } from '@/ui/components/elements';
-	import { CardType } from '@/schemas';
-	import type { FlashcardContent, FlashcardSequenceContent } from '@/schemas';
+	import type { FlashcardSequenceContent } from '@/schemas';
 	import type ContentTypeProps from '../types';
 	import type { ValidateFn, BuildContentFn } from '../types';
+	import { validateSequence, buildSequenceContent } from './validation';
 
-	let { mode, initialContent, onRegister }: ContentTypeProps = $props();
+	let { mode, initialContent, onRegister, disabled = false }: ContentTypeProps = $props();
 
 	// --- Form state ---
 	let question = $state('');
@@ -32,23 +32,13 @@
 
 	// --- Register validate + buildContent with parent ---
 	$effect(() => {
-		const validate: ValidateFn = () => {
-			if (!question.trim()) return 'Question is required.';
-			const filled = steps.filter((s) => s.trim());
-			if (filled.length < 2) return 'At least 2 steps are required.';
-			return null;
-		};
-		const buildContent: BuildContentFn = () =>
-			({
-				meta_type: CardType.Sequence,
-				question: question.trim(),
-				steps: steps.map((s) => s.trim()).filter((s) => s.length > 0),
-			}) as FlashcardContent;
+		const validate: ValidateFn = () => validateSequence(question, steps);
+		const buildContent: BuildContentFn = () => buildSequenceContent(question, steps);
 		onRegister({ validate, buildContent });
 	});
 </script>
 
-<Input label="Question" value={question} required onchange={(v) => (question = v)} />
+<Input label="Question" value={question} required maxLength={1000} {disabled} onchange={(v) => (question = v)} />
 <FormField label="Steps">
 	{#each steps as step, i (i)}
 		<div class="ml-field-list-item">
@@ -57,19 +47,21 @@
 				label={`Steps ${i + 1}`}
 				value={step}
 				required
+				maxLength={500}
+				{disabled}
 				onchange={(v) => (steps[i] = v)}
 			/>
 			<Button
 				class="ml-field-list-item__button"
 				variant="secondary"
 				size="small"
-				disabled={steps.length <= 2}
+				disabled={steps.length <= 2 || disabled}
 				onclick={() => removeStep(i)}
 				ariaLabel="Remove">&times;</Button
 			>
 		</div>
 	{/each}
-	<Button variant="secondary" size="small" onclick={addStep}>Add step</Button>
+	<Button variant="secondary" size="small" {disabled} onclick={addStep}>Add step</Button>
 </FormField>
 
 <style lang="scss">

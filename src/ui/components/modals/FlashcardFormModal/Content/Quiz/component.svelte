@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { FlashcardContent, FlashcardQuizContent } from '@/schemas';
-	import { CardType } from '@/schemas';
+	import type { FlashcardQuizContent } from '@/schemas';
 	import { FormField, Input, Button } from '@/ui/components/elements';
 	import type ContentTypeProps from '../types';
 	import type { BuildContentFn, ValidateFn } from '../types';
+	import { validateQuiz, buildQuizContent, remapCorrectIndexAfterRemove } from './validation';
 
-	let { mode, initialContent, onRegister }: ContentTypeProps = $props();
+	let { mode, initialContent, onRegister, disabled = false }: ContentTypeProps = $props();
 
 	// --- Form state ---
 	let question = $state('');
@@ -29,53 +29,54 @@
 
 	function removeOption(index: number): void {
 		if (options.length <= 2) return;
+		correctIndex = remapCorrectIndexAfterRemove(index, correctIndex);
 		options = options.filter((_, i) => i !== index);
-		if (correctIndex >= options.length) {
-			correctIndex = options.length - 1;
-		}
 	}
 
 	// --- Register validate + buildContent with parent ---
 	$effect(() => {
-		const validate: ValidateFn = () => {
-			if (!question.trim()) return 'Question is required.';
-			const filled = options.filter((o) => o.trim());
-			if (filled.length < 2) return 'At least 2 options are required.';
-			return null;
-		};
-		const buildContent: BuildContentFn = () =>
-			({
-				meta_type: CardType.Quiz,
-				question: question.trim(),
-				options: options.map((o) => o.trim()).filter((o) => o.length > 0),
-				correct_index: correctIndex,
-			}) as FlashcardContent;
+		const validate: ValidateFn = () => validateQuiz(question, options, correctIndex);
+		const buildContent: BuildContentFn = () => buildQuizContent(question, options, correctIndex);
 		onRegister({ validate, buildContent });
 	});
 </script>
 
-<Input label="Question" value={question} required onchange={(v) => (question = v)} />
+<Input
+	label="Question"
+	value={question}
+	required
+	maxLength={1000}
+	{disabled}
+	onchange={(v) => (question = v)}
+/>
 <FormField label="Options">
 	{#each options as option, i (i)}
 		<div class="ml-field-list-item">
 			<input
-				type="radio"
+				type="checkbox"
 				class="ml-field-list-radio"
 				name="ml-quiz-correct"
 				checked={correctIndex === i}
+				{disabled}
 				onchange={() => (correctIndex = i)}
 			/>
-			<Input label={`Option ${i + 1}`} value={option} required onchange={(v) => (options[i] = v)} />
+			<Input
+				label={`Option ${i + 1}`}
+				value={option}
+				required
+				{disabled}
+				onchange={(v) => (options[i] = v)}
+			/>
 			<Button
 				variant="secondary"
-				size="medium"
-				disabled={options.length <= 2}
+				size="small"
+				disabled={options.length <= 2 || disabled}
 				onclick={() => removeOption(i)}
 				ariaLabel="Remove">&times;</Button
 			>
 		</div>
 	{/each}
-	<Button variant="secondary" size="small" onclick={addOption}>Add option</Button>
+	<Button variant="secondary" size="small" {disabled} onclick={addOption}>Add option</Button>
 </FormField>
 
 <style lang="scss">
@@ -108,5 +109,11 @@
 		width: 16px;
 		height: 16px;
 		flex-shrink: 0;
+
+		&:checked:after {
+			top: 50%;
+			left: 50%;
+			transform: translateY(-50%) translateX(-50%);
+		}
 	}
 </style>

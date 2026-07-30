@@ -15,6 +15,11 @@ export default interface ContentTypeProps {
 	 */
 	initialContent?: unknown;
 	/**
+	 * Whether the form fields should be disabled (e.g. during submission).
+	 * Forwarded from the parent modal's `isLoading` state.
+	 */
+	disabled?: boolean;
+	/**
 	 * Called on mount: the child registers its validate + buildContent fns
 	 * so the parent's submit handler can invoke them on confirm.
 	 */
