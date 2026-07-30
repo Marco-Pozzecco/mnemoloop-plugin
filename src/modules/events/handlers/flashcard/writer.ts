@@ -32,7 +32,7 @@ export class FlashcardWriterCreateHandler extends EventHandler<FlashcardWriterCr
 		const flashcard = {
 			...DEFAULT_FLASHCARD_YAML,
 			uuid: uuid(),
-			source: `[[${source}]]`,
+			source,
 			decks: decks ?? [],
 			content,
 			card_type: content.meta_type,

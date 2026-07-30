@@ -91,15 +91,11 @@
 		const decks = deck.filter((d) => d.trim() !== '');
 		const sourceValue = source.trim() || null;
 
-		// Create writer wraps source with [[...]], so pass bare path.
-		// Edit writer writes source directly to YAML, so pass wiki-link as-is.
-		const createSource = sourceValue ? sourceValue.replace(/^\[\[/, '').replace(/\]\]$/, '') : '';
-
 		try {
 			if (mode === 'create') {
 				const event = new FlashcardWriterCreateRequestEvent({
 					content,
-					source: createSource.length > 0 ? createSource : null,
+					source: sourceValue,
 					decks,
 				});
 				EventBus.instance.publish(event);
