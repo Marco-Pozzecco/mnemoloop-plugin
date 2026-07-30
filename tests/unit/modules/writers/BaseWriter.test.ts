@@ -86,8 +86,7 @@ describe('BaseWriter', () => {
 		});
 
 		it('should throw if file already exists', async () => {
-			await writer.create('test.md', { uuid: 'new', content: 'hello' });
-			expect(Logger.error).toHaveBeenCalledWith(expect.stringContaining('File already exists'));
+			await expect(writer.create('test.md', { uuid: 'new', content: 'hello' })).rejects.toThrow('File already exists');
 		});
 	});
 
@@ -102,8 +101,7 @@ describe('BaseWriter', () => {
 		});
 
 		it('should throw if file does not exist', async () => {
-			await writer.update('missing.md', { uuid: 'new', content: 'hello' });
-			expect(Logger.error).toHaveBeenCalledWith(expect.stringContaining('File not found'));
+			await expect(writer.update('missing.md', { uuid: 'new', content: 'hello' })).rejects.toThrow('File not found');
 		});
 	});
 
@@ -135,8 +133,7 @@ describe('BaseWriter', () => {
 		});
 
 		it('should throw if file not found', async () => {
-			await writer.delete('missing.md');
-			expect(Logger.error).toHaveBeenCalledWith(expect.stringContaining('File not found'));
+			await expect(writer.delete('missing.md')).rejects.toThrow('File not found');
 		});
 	});
 	describe('removeFrontmatter', () => {

@@ -1,7 +1,13 @@
 import { Logger } from '@/utils/Logger';
 import { IEntityParser } from '@/interfaces/parser/IEntityParser';
 import { FlashcardWriter } from '@/modules/writers/FlashcardWriter';
-import { CardType, Flashcard, FlashcardContent, FlashcardYaml } from '@/schemas';
+import {
+	CardType,
+	Flashcard,
+	FlashcardBaseContent,
+	FlashcardContent,
+	FlashcardYaml,
+} from '@/schemas';
 import { Plugin } from 'obsidian';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createFlashcardYaml } from '../../../helpers/factories';
@@ -22,7 +28,7 @@ describe('FlashcardWriter', () => {
 				return { entity: `${c.front}\n\n?\n\n${c.back}`, success: true };
 			}),
 			serializeEntity: vi.fn().mockImplementation((entity: Flashcard) => ({
-				entity: `---\nuuid: ${entity.uuid}\n---\n${entity.content.front}\n\n?\n\n${entity.content.back}`,
+				entity: `---\nuuid: ${entity.uuid}\n---\n${(entity.content as FlashcardBaseContent).front}\n\n?\n\n${(entity.content as FlashcardBaseContent).back}`,
 				success: true as const,
 			})),
 			parseFile: vi.fn().mockResolvedValue({
@@ -76,8 +82,7 @@ describe('FlashcardWriter', () => {
 				},
 			};
 
-			await writer.create('existing.md', entity);
-			expect(Logger.error).toHaveBeenCalledWith(expect.stringContaining('File already exists'));
+			await expect(writer.create('existing.md', entity)).rejects.toThrow('File already exists');
 		});
 	});
 
@@ -112,8 +117,7 @@ describe('FlashcardWriter', () => {
 				},
 			};
 
-			await writer.update('missing.md', entity);
-			expect(Logger.error).toHaveBeenCalledWith(expect.stringContaining('File not found'));
+			await expect(writer.update('missing.md', entity)).rejects.toThrow('File not found');
 		});
 	});
 
@@ -130,8 +134,9 @@ describe('FlashcardWriter', () => {
 		});
 
 		it('should throw if file does not exist', async () => {
-			await writer.updateFrontmatter('missing.md', { uuid: '00000000-0000-0000-0000-000000000000' });
-			expect(Logger.error).toHaveBeenCalledWith(expect.stringContaining('File not found'));
+			await expect(
+				writer.updateFrontmatter('missing.md', { uuid: '00000000-0000-0000-0000-000000000000' }),
+			).rejects.toThrow('File not found');
 		});
 	});
 
@@ -148,7 +153,11 @@ describe('FlashcardWriter', () => {
 				sections: [],
 			});
 
-			await writer.updateBody('existing.md', { meta_type: CardType.Basic, front: 'New Front', back: 'New Back' });
+			await writer.updateBody('existing.md', {
+				meta_type: CardType.Basic,
+				front: 'New Front',
+				back: 'New Back',
+			});
 
 			const content = await plugin.app.vault.adapter.read('existing.md');
 			expect(content).toContain('New Front');
@@ -157,8 +166,9 @@ describe('FlashcardWriter', () => {
 		});
 
 		it('should throw if file does not exist', async () => {
-			await writer.updateBody('missing.md', { meta_type: CardType.Basic, front: 'New', back: 'Body' });
-			expect(Logger.error).toHaveBeenCalledWith(expect.stringContaining('File not found'));
+			await expect(
+				writer.updateBody('missing.md', { meta_type: CardType.Basic, front: 'New', back: 'Body' }),
+			).rejects.toThrow('File not found');
 		});
 	});
 
@@ -170,12 +180,9 @@ describe('FlashcardWriter', () => {
 		});
 
 		it('should throw if file not found', async () => {
-			await writer.delete('missing.md');
-			expect(Logger.error).toHaveBeenCalledWith(expect.stringContaining('File not found'));
+			await expect(writer.delete('missing.md')).rejects.toThrow('File not found');
 		});
 	});
-
-
 
 	describe('extractMetadata', () => {
 		it('should extract and validate YAML fields from entity', () => {
