@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Icon } from '@/ui/components';
-	import type DeckTreeNodeProps from './types';
 	import Self from './component.svelte';
+	import type DeckTreeNodeProps from './types';
 
 	let { node, selectedDeck, onSelectDeck, onToggleExpand, level }: DeckTreeNodeProps = $props();
 

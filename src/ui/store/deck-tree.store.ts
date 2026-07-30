@@ -1,5 +1,3 @@
-import { writable } from 'svelte/store';
-import { BaseStoreManager } from './base.store';
 import {
 	EventBus,
 	FlashcardIndexGetAllRequestEvent,
@@ -8,6 +6,8 @@ import {
 } from '@/modules/events';
 import { CardStatus, FlashcardMetadata } from '@/schemas';
 import { getParentDecks, splitDeckPath } from '@/utils/deck-utils';
+import { writable } from 'svelte/store';
+import { BaseStoreManager } from './base.store';
 
 export interface DeckNode {
 	name: string;
