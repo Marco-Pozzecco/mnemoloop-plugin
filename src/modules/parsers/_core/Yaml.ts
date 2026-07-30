@@ -114,13 +114,49 @@ export abstract class YamlParser<
 				lines.push(`${key}: ${JSON.stringify(value)}`);
 			} else {
 				// eslint-disable-next-line @typescript-eslint/no-base-to-string -- value is not an object here (checked above)
-				lines.push(`${key}: ${String(value)}`);
+				const raw = String(value);
+				lines.push(`${key}: ${this.quoteIfUnsafe(raw)}`);
 			}
 		}
 
 		lines.push('---');
 
 		return lines.join('\n');
+	}
+
+	/** YAML 1.2 scalars that drift type when unquoted */
+	private static readonly UNSAFE_YAML_KEYWORDS = new Set([
+		'null',
+		'Null',
+		'NULL',
+		'~',
+		'true',
+		'True',
+		'TRUE',
+		'false',
+		'False',
+		'FALSE',
+	]);
+
+	/**
+	 * Wrap a string value in single quotes unless it is a safe YAML plain scalar.
+	 * A safe plain scalar starts with a letter/digit/underscore, contains only
+	 * letters, digits, underscore, space, dot, dash, or slash, does not end with
+	 * a colon, and is not a YAML keyword that would silently change type.
+	 *
+	 * @internal
+	 */
+	private quoteIfUnsafe(value: string): string {
+		const isSafePlain =
+			/^[A-Za-z0-9_][A-Za-z0-9_ ./-]*$/.test(value) &&
+			!value.endsWith(':') &&
+			!YamlParser.UNSAFE_YAML_KEYWORDS.has(value);
+
+		if (isSafePlain) {
+			return value;
+		}
+
+		return `'${value.replace(/'/g, "''")}'`;
 	}
 
 	decode(yaml: string): EntityYaml {
