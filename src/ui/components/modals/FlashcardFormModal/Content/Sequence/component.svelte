@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FormField, Input, Button } from '@/ui/components/elements';
+	import { FormField, Input, Button, Icon } from '@/ui/components/elements';
 	import type { FlashcardSequenceContent } from '@/schemas';
 	import type ContentTypeProps from '../types';
 	import type { ValidateFn, BuildContentFn } from '../types';
@@ -38,7 +38,14 @@
 	});
 </script>
 
-<Input label="Question" value={question} required maxLength={1000} {disabled} onchange={(v) => (question = v)} />
+<Input
+	label="Question"
+	value={question}
+	required
+	maxLength={1000}
+	{disabled}
+	onchange={(v) => (question = v)}
+/>
 <FormField label="Steps">
 	{#each steps as step, i (i)}
 		<div class="ml-field-list-item">
@@ -57,8 +64,10 @@
 				size="small"
 				disabled={steps.length <= 2 || disabled}
 				onclick={() => removeStep(i)}
-				ariaLabel="Remove">&times;</Button
+				ariaLabel="Remove"
 			>
+				<Icon name="trash-2" size={14} />
+			</Button>
 		</div>
 	{/each}
 	<Button variant="secondary" size="small" {disabled} onclick={addStep}>Add step</Button>
