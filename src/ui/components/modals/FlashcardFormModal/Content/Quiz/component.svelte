@@ -95,7 +95,7 @@
 		}
 
 		:global(.ml-input-label) {
-			grid-column: 2 / -1;
+			grid-column: 1 / -1;
 		}
 
 		:global(.ml-input-error),
