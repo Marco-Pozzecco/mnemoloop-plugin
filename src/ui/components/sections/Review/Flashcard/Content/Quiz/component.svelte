@@ -2,6 +2,7 @@
 	import { type FlashcardQuizContent } from '@/schemas';
 	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
 	import type { FlashcardContentProps } from '../types';
+	import { fisherYatesShuffle } from '../utils';
 
 	let {
 		content,
@@ -75,14 +76,6 @@
 		}
 	}
 
-	function fisherYatesShuffle<T>(array: T[]): T[] {
-		const shuffled = [...array];
-		for (let i = shuffled.length - 1; i > 0; i--) {
-			const j = Math.floor(Math.random() * (i + 1));
-			[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-		}
-		return shuffled;
-	}
 </script>
 
 <svelte:window onkeydown={handleKeyDown} />

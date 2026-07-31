@@ -4,6 +4,7 @@
 	import SortableStep from './SortableStep.svelte';
 	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
 	import type ReviewFlashcardSequenceProps from './types';
+	import { fisherYatesShuffle } from '../utils';
 
 	let { content, isAnswerShowing, onSetAnswerCorrectness }: ReviewFlashcardSequenceProps = $props();
 
@@ -38,15 +39,6 @@
 	$effect(() => {
 		onSetAnswerCorrectness?.(isCorrect);
 	});
-
-	function fisherYatesShuffle<T>(array: T[]): T[] {
-		const shuffled = [...array];
-		for (let i = shuffled.length - 1; i > 0; i--) {
-			const j = Math.floor(Math.random() * (i + 1));
-			[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-		}
-		return shuffled;
-	}
 
 	function arrayMove<T>(array: T[], from: number, to: number): T[] {
 		const result = [...array];
