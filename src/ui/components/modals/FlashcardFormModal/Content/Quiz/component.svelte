@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { FlashcardQuizContent } from '@/schemas';
-	import { FormField, Input, Button } from '@/ui/components/elements';
+	import { FormField, Input, Button, Icon } from '@/ui/components/elements';
 	import type ContentTypeProps from '../types';
 	import type { BuildContentFn, ValidateFn } from '../types';
 	import { validateQuiz, buildQuizContent, remapCorrectIndexAfterRemove } from './validation';
@@ -72,8 +72,10 @@
 				size="small"
 				disabled={options.length <= 2 || disabled}
 				onclick={() => removeOption(i)}
-				ariaLabel="Remove">&times;</Button
+				ariaLabel="Remove"
 			>
+				<Icon name="trash-2" size={14} />
+			</Button>
 		</div>
 	{/each}
 	<Button variant="secondary" size="small" {disabled} onclick={addOption}>Add option</Button>
