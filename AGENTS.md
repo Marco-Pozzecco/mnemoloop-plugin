@@ -334,55 +334,7 @@ ComponentName/
 
 ## Dependencies
 
-### Runtime Dependencies
-
-| Package                           | Purpose                          |
-| --------------------------------- | -------------------------------- |
-| `svelte` ^5.48.2                  | UI framework with runes          |
-| `ts-fsrs` ^5.2.3                  | FSRS spaced repetition algorithm |
-| `zod` ^4.3.5                      | Schema validation                |
-| `bits-ui` ^2.18.0                 | Headless Svelte UI primitives    |
-| `layerchart` ^2.0.0-next.56       | Data visualization               |
-| `uuid` ^13.0.0                    | UUID generation                  |
-| `@internationalized/date` ^3.12.1 | Date utilities                   |
-| `d3-scale` ^4.0.2                 | D3 scales for charts             |
-| `d3-hierarchy` ^3.1.2             | Hierarchy layout for deck tree   |
-| `@dnd-kit/svelte` ^0.5.0          | Drag-and-drop for sequence cards |
-
-### Dev Dependencies
-
-| Package                                             | Purpose                              |
-| --------------------------------------------------- | ------------------------------------ |
-| `obsidian` ^1.4.0                                   | Obsidian API (external, not bundled) |
-| `vite` ^6.0.0                                       | Build toolchain                      |
-| `@sveltejs/vite-plugin-svelte` ^5.0.3               | Svelte Vite integration              |
-| `svelte-preprocess` ^6.0.3                          | SCSS preprocessing                   |
-| `sass` ^1.101.0                                     | SCSS compiler                        |
-| `vitest` ^1.0.0                                     | Testing framework                    |
-| `@vitest/coverage-v8` ^1.6.1                        | Test coverage                        |
-| `typescript` ^5.0.0                                 | TypeScript compiler                  |
-| `svelte-check` ^4.4.5                               | Svelte type checking                 |
-| `eslint` ^10.4.1                                    | Linting                              |
-| `typescript-eslint` ^8.48.1                         | TypeScript ESLint plugin             |
-| `eslint-plugin-svelte` ^3.14.0                      | Svelte linting rules                 |
-| `svelte-eslint-parser` ^1.8.0                       | Svelte parser for ESLint             |
-| `eslint-plugin-obsidianmd` ^0.3.0                   | Obsidian-specific linting rules      |
-| `eslint-config-prettier` ^10.1.8                    | Prettier/ESLint integration          |
-| `@eslint/compat` ^1.4.0                             | ESLint compat utilities              |
-| `@eslint/js` ^9.39.1                                | ESLint base config                   |
-| `globals` ^16.5.0                                   | Global variable definitions          |
-| `prettier` ^3.0.0                                   | Code formatter                       |
-| `semantic-release` ^25.0.5                          | Automated releases                   |
-| `@semantic-release/changelog` ^6.0.3                | Changelog generation                 |
-| `@semantic-release/exec` ^7.1.0                     | Release automation                   |
-| `@semantic-release/git` ^10.0.1                     | Git release automation               |
-| `conventional-changelog-conventionalcommits` ^9.3.1 | Changelog format                     |
-| `@types/node` ^22                                   | Node.js type definitions             |
-| `@types/uuid` ^10.0.0                               | UUID type definitions                |
-| `@types/d3-hierarchy` ^3.1.7                        | d3-hierarchy type definitions        |
-| `@types/d3-scale` ^4.0.9                            | d3-scale type definitions            |
-
----
+Read `package.json` file to inspect dependencies
 
 ## Obsidian Integration
 
@@ -513,22 +465,11 @@ EventBus.instance.publish(new MyEvent(data));
 
 ## Important Notes
 
-1. **Always run commands from `apps/plugin/`** - The root has no build commands
-2. **Version sync**: Keep `manifest.json` version in sync with `package.json`
-3. **Fresh builds**: Use `npm run build` for production; `npm run dev` for development
-4. **Test mocks**: Obsidian API is mocked; tests run in Node environment without Obsidian
-5. **CSS variables**: Use Obsidian's CSS variables for theming compatibility
-6. **Svelte 5**: Use runes syntax (`$props`, `$state`, `$effect`) not legacy syntax
-7. **Build-time constants**: `__DEV__` and `__LOG_LEVEL__` are injected by Vite `define` block (see `vite.config.ts`). `src/env.ts` exports `LogLevel` enum and `env` object for runtime log level control. These are NOT available in tests — mock as needed.
-8. **Production build**: Uses `tsc -p tsconfig.build.json` (which sets `noEmit: false`, overriding main tsconfig's `noEmit: true`) then Vite bundles. The type check step before bundling ensures all imports resolve.
-9. **CI**: Runs on Node 22. Pipeline defined in `apps/plugin/.github/workflows/release.yml`. Uses `semantic-release` for automated versioning.
-
-<!-- OPENWIKI:START -->
-
-## OpenWiki
-
-This repository uses OpenWiki for recurring code documentation. Start with `openwiki/quickstart.md`, then follow its links to architecture, workflows, domain concepts, operations, integrations, testing guidance, and source maps.
-
-The scheduled OpenWiki GitHub Actions workflow refreshes the repository wiki. Do not hand-edit generated OpenWiki pages unless explicitly asked; prefer updating source code/docs and letting OpenWiki regenerate.
-
-<!-- OPENWIKI:END -->
+1. **Version sync**: Keep `manifest.json` version in sync with `package.json`
+2. **Fresh builds**: Use `npm run build` for production; `npm run dev` for development
+3. **Test mocks**: Obsidian API is mocked; tests run in Node environment without Obsidian
+4. **CSS variables**: Use Obsidian's CSS variables for theming compatibility
+5. **Svelte 5**: Use runes syntax (`$props`, `$state`, `$effect`) not legacy syntax
+6. **Build-time constants**: `__DEV__` and `__LOG_LEVEL__` are injected by Vite `define` block (see `vite.config.ts`). `src/env.ts` exports `LogLevel` enum and `env` object for runtime log level control. These are NOT available in tests — mock as needed.
+7. **Production build**: Uses `tsc -p tsconfig.build.json` (which sets `noEmit: false`, overriding main tsconfig's `noEmit: true`) then Vite bundles. The type check step before bundling ensures all imports resolve.
+8. **CI**: Runs on Node 22. Pipeline defined in `apps/plugin/.github/workflows/release.yml`. Uses `semantic-release` for automated versioning.
