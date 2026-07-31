@@ -38,7 +38,7 @@ export class DashboardController implements IDashboardController {
 			if (deckFilter && deckFilter === 'Uncategorized') {
 				conditions.push(entity.decks.length === 0);
 			} else if (deckFilter) {
-				conditions.push(entity.decks.some((deck) => deck.includes(deckFilter)));
+				conditions.push(entity.decks.some((deck) => deck.startsWith(deckFilter)));
 			}
 
 			return conditions.every((v) => v === true);
