@@ -1,3 +1,44 @@
+## [1.7.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.6.0...1.7.0) (2026-08-03)
+
+### Features
+
+* add Button icon support, cn utility, and class API ([007e10d](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/007e10dac1bf9e9e09200f256d6d7744186d3e83))
+* add cloze content component and wire into review flow ([9a1084f](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/9a1084fd10059bc9935e2801dffce4479f17bf11))
+* add cloze deletion card type schema ([26aad5d](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/26aad5d51d03e0782e9964447fd7ba4fc6af4a77))
+* add Combobox component and open file after flashcard save ([90399af](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/90399aff31a041e7f34ef8692e9468b9c0013dac))
+* add decks field to flashcard writer create event ([09189a5](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/09189a5db2bd8a789631e585b8977c7efcf0e305))
+* add displayAs slot to Select for custom trigger labels ([17aa94a](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/17aa94a1bf51737a268b1acfc639de4f5bbf5151))
+* add FlashcardClozeContentParser ([140df6c](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/140df6ca031e7f1973f05844dfa7fcf4cc1b04a4))
+* add FormField and Textarea shared UI components ([b0ef817](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/b0ef817dd3ec35a93364a153925178ade2063394))
+* add multi-card-type support with discriminated union schemas ([788dc24](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/788dc24b486c9c74864d97b9ef9b3e7e3f0f0eb4))
+* add per-card-type Review UI subcomponents ([5c26b91](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/5c26b91b137cb11331e8153a3f169fb4ab595c01))
+* add question field to sequence flashcards ([60c99c7](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/60c99c740f71f790f3e901d9f9d9c171f261af8a))
+* add Quiz flashcard card type ([111e522](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/111e5222ac11d8595e2f9a6163e0919e8645cdbf))
+* add recovery warnings and multi-round field recovery ([4b90371](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/4b903715dff8594a323e29106a5d6cf94302fe59))
+* add ReviewItemFactory and SequenceReviewItem for multi-card-type review ([6ba0b55](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/6ba0b55162b634077bd28972e94535245869c102))
+* add Tooltip component ([68849da](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/68849da86d039a4b3afe0904aacd30fb7920083c))
+* add Uncategorized deck filter to dashboard controller ([239c24a](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/239c24a9e20a2831564b7703845e7900a4ec55ab))
+* redesign flashcard form modal with tabs and submit-aware state ([be1caa0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/be1caa095cc17375f64768d653334062e27ee078))
+* replace FlashcardModal with multi-type FlashcardFormModal ([e645dc9](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/e645dc960c731cc6d9368cec4399874d8c67333b))
+* support multiple decks in flashcard form modal ([9f5c50f](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/9f5c50fa4b39275989d75dc2d90a6938d28512b2))
+
+### Bug Fixes
+
+* add create debounce and ctime threshold to VaultWatcher ([f073990](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/f073990dffc7b6d170524d7d9f666222e566d84b))
+* add file existence checks and timestamps to flashcard indexer ([dd688b0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/dd688b0eb2c2a9cd0d6f634e24252b8073fd29c3))
+* correct SCSS variable references for error and warning colors ([16a8f44](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/16a8f442566bc34623a1ca7e0065b6aa910fd477))
+* default decks field to empty array in flashcard schema ([42c5ea5](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/42c5ea59e1baf222a116e8c4536848150d09e4ba))
+* export FlashcardClozeRegex and fix Cloze SvelteSet init ([5ca3060](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/5ca3060c7005f49444f825ab2278127ce31175dc))
+* hide navbar during review; remove DangerZone from settings ([fa90f2c](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/fa90f2c516479774596634ab554cd6b6fb9982c9))
+* match dashboard deck filter by prefix instead of substring ([e3e1fec](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/e3e1fec66afac9ea6a10c0718ef80bf716aefdc4))
+* parse entity.content instead of entity in FlashcardParser ([e27cd8e](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/e27cd8eee4a0c90818a6e3c29e20fc57b809e9f3))
+* preserve existing frontmatter in FlashcardYamlParser recovery ([f9c2bd8](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/f9c2bd86c4ca2bc5c5f0177c943334ce96d20d4f))
+* remove redundant $state wrapper on SvelteSet initialization ([7787972](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/7787972feeedad4d81abed06c76171e24d039c20))
+* remove unused import ([28a3d67](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/28a3d67892fe851477c919359832a296d5697a6a))
+* remove wiki-link wrapping from flashcard source field ([84003d4](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/84003d47ce9e43c6ed35cf42f6c704bd9de6146e))
+* rename Input className prop to class for Svelte 5 ([0e2f8fe](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/0e2f8fef81fa47057909b676ba8208f877b841e6))
+* span flashcard form labels across full grid width ([4820ed2](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/4820ed2008f6a5d862ad10b909d1e9071379257e))
+
 ## [1.6.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.5.0...1.6.0) (2026-07-06)
 
 ### Features
