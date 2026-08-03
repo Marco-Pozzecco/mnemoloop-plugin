@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BaseReviewQueue } from '@/modules/review-queues/BaseReviewQueue';
 import { IReviewEngine } from '@/interfaces/IReviewEngine';
 import { IReviewItem } from '@/interfaces/IReviewItem';
-import { Flashcard, FlashcardMetadata, FlashcardYaml } from '@/schemas';
+import { Flashcard, FlashcardMetadata, FlashcardYaml, CardType } from '@/schemas';
 import { createFlashcardYaml } from '../../../helpers/factories';
 
 // Concrete subclass for testing abstract BaseReviewQueue
@@ -38,7 +38,7 @@ function createMockEngine(): IReviewEngine<FlashcardYaml> {
 function createMockItem(filepath: string = 'test.md'): IReviewItem<Flashcard> {
 	return {
 		id: `id-${filepath}`,
-		data: { ...createFlashcardYaml(), front: 'Q', back: 'A' } as Flashcard,
+		data: { ...createFlashcardYaml(), content: { meta_type: CardType.Basic, front: 'Q', back: 'A' } } as Flashcard,
 		review: vi.fn(),
 		restore: vi.fn(),
 		dispose: vi.fn(),

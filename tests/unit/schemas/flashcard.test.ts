@@ -10,9 +10,10 @@ describe('FlashcardYamlSchema', () => {
 		status: 'ACTIVE',
 	};
 
-	it('should throw error when YAML without decks field', () => {
+	it('should default decks to empty array when missing', () => {
 		const yaml = { ...baseYaml };
-		expect(() => FlashcardYamlSchema.parse(yaml)).toThrow();
+		const result = FlashcardYamlSchema.parse(yaml);
+		expect(result.decks).toEqual([]);
 	});
 
 	it('should parse YAML with decks array and preserve value', () => {
@@ -62,5 +63,33 @@ describe('FlashcardYamlSchema', () => {
 describe('DEFAULT_FLASHCARD_YAML', () => {
 	it('should include empty decks array', () => {
 		expect(DEFAULT_FLASHCARD_YAML.decks).toEqual([]);
+	});
+
+	it('should default card_type to basic', () => {
+		expect(DEFAULT_FLASHCARD_YAML.card_type).toEqual('basic');
+	});
+});
+
+describe('FlashcardYamlSchema - card_type', () => {
+	const baseYaml = {
+		...DEFAULT_FSRS,
+		uuid: '123e4567-e89b-12d3-a456-426614174000',
+		source: null,
+		status: 'ACTIVE',
+		decks: [],
+	};
+
+	it('should default card_type to basic when not provided', () => {
+		const result = FlashcardYamlSchema.parse(baseYaml);
+		expect(result.card_type).toEqual('basic');
+	});
+
+	it('should accept card_type: sequence', () => {
+		const result = FlashcardYamlSchema.parse({ ...baseYaml, card_type: 'sequence' });
+		expect(result.card_type).toEqual('sequence');
+	});
+
+	it('should reject invalid card_type values', () => {
+		expect(() => FlashcardYamlSchema.parse({ ...baseYaml, card_type: 'other' })).toThrow();
 	});
 });

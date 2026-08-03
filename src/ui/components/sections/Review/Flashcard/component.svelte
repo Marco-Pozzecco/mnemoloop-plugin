@@ -1,18 +1,24 @@
 <script lang="ts">
-	import { type Flashcard } from '@/schemas';
-	import { gesture } from '@/ui/actions/gestures';
-	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
-	import { Button, Card, Skeleton } from '@/ui/components';
+	import { type Flashcard, CardType } from '@/schemas';
+	import FlashcardContent from './Content/component.svelte';
+	import ScoreControls from './ScoreControls/component.svelte';
 	import type FlashCardProps from './types';
 
-	let { item, showingAnswer, onShowAnswer, onSwipeLeft, onSwipeRight, onTap }: FlashCardProps =
-		$props();
-
-	let cardContainer: HTMLElement | undefined = $state();
+	let {
+		item,
+		isAnswerCorrect,
+		isAnswerShowing,
+		onShowAnswer,
+		onSubmitRating,
+		onSetAnswerCorrectness,
+	}: FlashCardProps = $props();
 
 	let flashcard: Flashcard | null = $derived(item.data);
 	let timer: number | null = null;
 
+
+	let allContentRevealed = $state(true);
+	const handleAllRevealed = () => { allContentRevealed = true; };
 	$effect(() => {
 		// Watch for data changes
 		const checkData = () => {
@@ -33,71 +39,27 @@
 		};
 	});
 
-	// Options no longer need app - it's retrieved from context internally
-	const frontOptions: MarkdownOptions = $derived({
-		content: flashcard?.front ?? '',
-	});
-
-	const backOptions: MarkdownOptions = $derived({
-		content: flashcard?.back ?? '',
-	});
-
-	const footerOptions: MarkdownOptions = $derived({
-		content: flashcard?.source ?? '',
+	// Reset allContentRevealed when flashcard changes (cloze cards start unrevealed)
+	$effect(() => {
+		flashcard; // track
+		if (flashcard?.card_type === CardType.Cloze) {
+			allContentRevealed = false;
+		} else {
+			allContentRevealed = true;
+		}
 	});
 </script>
 
 <div class="ml-flashcard-wrapper">
-	<div
-		class="ml-flashcard-container"
-		bind:this={cardContainer}
-		use:gesture={{
-			onSwipeLeft,
-			onSwipeRight,
-			onTap,
-			swipeThreshold: 50,
-			tapMaxDuration: 200,
-			tapMaxDistance: 10,
-		}}
-	>
-		{#if flashcard}
-			<Card>
-				{#if showingAnswer}
-					<div class="ml-flashcard-front" use:renderMarkdown={frontOptions}></div>
-					<div class="ml-flashcard-back" use:renderMarkdown={backOptions}></div>
-				{:else}
-					<div class="ml-flashcard-front" use:renderMarkdown={frontOptions}></div>
-				{/if}
-
-				{#snippet footer()}
-					<div class="ml-flashcard-footer">
-						<p class="ml-flashcard-footer-key">Source:</p>
-						{#if flashcard?.source}
-							<div use:renderMarkdown={footerOptions}></div>
-						{:else}
-							<p class="ml-flashcard-footer-value">No source available</p>
-						{/if}
-					</div>
-				{/snippet}
-			</Card>
-		{:else}
-			<Skeleton width="full" height="200px" shape="default" radius="8px" />
-		{/if}
-	</div>
-
-	{#if !showingAnswer}
-		<div class="ml-show-answer-wrapper">
-			<Button
-				variant="primary"
-				className="ml-show-answer-button"
-				onclick={onShowAnswer}
-				ariaLabel="Show answer"
-			>
-				Show answer
-				<span class="ml-key-hint">Space</span>
-			</Button>
-		</div>
-	{/if}
+	<FlashcardContent {flashcard} {isAnswerShowing} {onShowAnswer} {onSetAnswerCorrectness} onAllRevealed={handleAllRevealed} />
+	<ScoreControls
+		{onSubmitRating}
+		{onShowAnswer}
+		{isAnswerShowing}
+		{isAnswerCorrect}
+		type={flashcard?.card_type}
+		disabled={!flashcard || !allContentRevealed}
+	/>
 </div>
 
 <style lang="scss">
@@ -108,90 +70,5 @@
 		flex-direction: column;
 		flex: 1;
 		min-height: 0;
-		overflow-y: auto;
-	}
-
-	.ml-flashcard-container {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		gap: $spacing-lg;
-		min-height: 0;
-		overflow-y: auto;
-	}
-
-	.ml-flashcard-front,
-	.ml-flashcard-back {
-		line-height: 1.6;
-	}
-
-	.ml-flashcard-footer {
-		font-size: 0.9rem;
-		color: $text-muted;
-		display: flex;
-		flex-direction: row;
-		gap: $spacing-xs;
-	}
-
-	.ml-flashcard-footer-key {
-		font-weight: bold;
-	}
-
-	.ml-flashcard-footer-value {
-		flex: 1;
-		font-style: italic;
-	}
-
-	.ml-flashcard-back {
-		padding-top: 1rem;
-		border-top: 1px solid $background-modifier-border;
-	}
-
-	.ml-show-answer-wrapper {
-		display: flex;
-		justify-content: center;
-		min-height: 100px;
-		padding: $spacing-md 0;
-	}
-
-	:global(button.ml-show-answer-button) {
-		width: 100%;
-		max-width: 300px;
-		height: 50px;
-		font-size: 1.1rem;
-		position: relative;
-	}
-
-	.ml-key-hint {
-		position: absolute;
-		right: 1rem;
-		font-size: 0.7rem;
-		opacity: 0.6;
-		border: 1px solid currentColor;
-		padding: $spacing-xxs $spacing-xxs;
-		border-radius: $radius-sm;
-	}
-
-	@media (max-width: 480px) {
-		.ml-key-hint {
-			display: none;
-		}
-
-		:global(button.ml-show-answer-button) {
-			height: 44px;
-		}
-
-		.ml-show-answer-wrapper {
-			min-height: 60px;
-			padding: $spacing-xs 0;
-		}
-
-		.ml-flashcard-container {
-			gap: $spacing-md;
-		}
-
-		.ml-flashcard-back {
-			padding-top: 0.75rem;
-		}
 	}
 </style>

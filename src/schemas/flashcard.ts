@@ -1,36 +1,49 @@
-import { DEFAULT_FSRS } from '@/utils/constants';
 import { z } from 'zod';
-import { FSRSParams } from './srs';
+import { DEFAULT_FSRS } from '@/utils/constants';
+import {
+	CardType,
+	CardStatus,
+	CardTypeSchema,
+	DEFAULT_FLASHCARD_YAML,
+	FlashcardYamlSchema,
+	type FlashcardYaml,
+} from './flashcard.utils';
+import {
+	FlashcardSequenceContent,
+	FlashcardSequenceContentSchema,
+	FlashcardSequenceSchema,
+} from './flashcard.sequence';
+import {
+	FlashcardQuizContent,
+	FlashcardQuizContentSchema,
+	FlashcardQuizSchema,
+} from './flashcard.quiz';
+import {
+	FlashcardClozeContent,
+	FlashcardClozeContentSchema,
+	FlashcardClozeSchema,
+} from './flashcard.cloze';
+import {
+	FlashcardBaseContent,
+	FlashcardBaseContentSchema,
+	FlashcardBaseSchema,
+} from './flashcard.base';
 
-export enum CardStatus {
-	ACTIVE = 'ACTIVE',
-	DELETED = 'DELETED',
-	PAUSED = 'PAUSED',
-	STALE = 'STALE',
-}
+export { CardType, CardStatus, CardTypeSchema, DEFAULT_FLASHCARD_YAML, FlashcardYamlSchema };
+export type { FlashcardYaml };
 
-export const FlashcardYamlSchema = FSRSParams.extend({
-	uuid: z.uuid(),
-	source: z
-		.string()
-		.regex(/^\[\[.*\]\]$/, 'Must be valid Obsidian link format')
-		.nullable(),
-	status: z.enum(CardStatus),
-	decks: z.array(z.string()),
-});
+export const FlashcardContentSchema = z.union([
+	FlashcardBaseContentSchema,
+	FlashcardSequenceContentSchema,
+	FlashcardQuizContentSchema,
+	FlashcardClozeContentSchema,
+]);
 
 export const FlashcardMetadataSchema = FlashcardYamlSchema.extend({
 	file: z.string().min(1),
 	created_at: z.iso.datetime(),
 	updated_at: z.iso.datetime(),
 });
-
-export const FlashcardContentSchema = z.object({
-	front: z.string(),
-	back: z.string(),
-});
-
-export const FlashcardSchema = FlashcardYamlSchema.extend(FlashcardContentSchema.shape);
 
 export const FlashcardIndexSchema = z.object({
 	flashcards: z.array(FlashcardMetadataSchema),
@@ -39,25 +52,44 @@ export const FlashcardIndexSchema = z.object({
 
 export type FlashcardIndex = z.infer<typeof FlashcardIndexSchema>;
 export type FlashcardMetadata = z.infer<typeof FlashcardMetadataSchema>;
-export type FlashcardYaml = z.infer<typeof FlashcardYamlSchema>;
-export type FlashcardContent = z.infer<typeof FlashcardContentSchema>;
-export type Flashcard = z.infer<typeof FlashcardSchema>;
+export type Flashcard =
+	| FlashcardBaseSchema
+	| FlashcardSequenceSchema
+	| FlashcardQuizSchema
+	| FlashcardClozeSchema;
 
-export const DEFAULT_FLASHCARD_YAML: Omit<FlashcardYaml, 'uuid'> = {
-	...DEFAULT_FSRS,
-	source: null,
-	status: CardStatus.ACTIVE,
-	decks: [],
-};
+export function isFlashcardBase(card: Flashcard): card is FlashcardBaseSchema {
+	return card.card_type === CardType.Basic;
+}
+
+export function isFlashcardSequence(card: Flashcard): card is FlashcardSequenceSchema {
+	return card.card_type === CardType.Sequence;
+}
+
+export function isFlashcardQuiz(card: Flashcard): card is FlashcardQuizSchema {
+	return card.card_type === CardType.Quiz;
+}
+
+export function isFlashcardCloze(card: Flashcard): card is FlashcardClozeSchema {
+	return card.card_type === CardType.Cloze;
+}
+export type FlashcardContent =
+	| FlashcardBaseContent
+	| FlashcardSequenceContent
+	| FlashcardQuizContent
+	| FlashcardClozeContent;
 
 export const DEFAULT_FLASHCARD_METADATA: Omit<FlashcardMetadata, 'uuid' | 'file'> = {
 	created_at: new Date().toISOString(),
 	updated_at: new Date().toISOString(),
 	...DEFAULT_FSRS,
 	...DEFAULT_FLASHCARD_YAML,
+	card_type: CardType.Basic,
 };
 
 export const DEFAULT_FLASHCARD_INDEX: FlashcardIndex = {
 	flashcards: [],
 	updated_at: null,
 };
+
+export const AUTO_SCORED_TYPES = new Set<CardType>([CardType.Sequence, CardType.Quiz]);

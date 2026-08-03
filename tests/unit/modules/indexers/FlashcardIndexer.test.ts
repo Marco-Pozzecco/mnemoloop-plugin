@@ -1,9 +1,13 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { Plugin } from 'obsidian';
 import { FlashcardIndexer } from '@/modules/indexers/FlashcardIndexer';
-import { FlashcardParser } from '@/modules/parsers/FlashcardParser';
+import { FlashcardParser } from '@/modules/parsers/entity/FlashcardParser';
+import { FlashcardBasicContentParser } from '@/modules/parsers/content/FlashcardBasicContentParser';
+import { FlashcardSequenceContentParser } from '@/modules/parsers/content/FlashcardSequenceContentParser';
 import { FlashcardAdapter } from '@/modules/adapters/FlashcardAdapter';
 import { IAdapter } from '@/interfaces/IAdapter';
+import { IContentParser } from '@/interfaces/parser/IContentParser';
+import { FlashcardContent } from '@/schemas';
 import { PluginSettings } from '@/schemas/settings';
 import { createMockPlugin } from '../../../helpers/mock-obsidian';
 import { createFlashcardMetadata, createFlashcardYaml } from '../../../helpers/factories';
@@ -36,7 +40,10 @@ describe('FlashcardIndexer', () => {
 			},
 		} as IAdapter<PluginSettings>;
 
-		parser = new FlashcardParser(plugin as Plugin, settings);
+		parser = new FlashcardParser(plugin as Plugin, [
+			new FlashcardBasicContentParser(settings) as unknown as IContentParser<FlashcardContent>,
+			new FlashcardSequenceContentParser(settings) as unknown as IContentParser<FlashcardContent>,
+		]);
 		adapter = new FlashcardAdapter(plugin as Plugin);
 		indexer = new FlashcardIndexer(parser, adapter, settings);
 	});
@@ -50,7 +57,7 @@ describe('FlashcardIndexer', () => {
 			const initializeSpy = vi.spyOn(adapter, 'initialize');
 			const card = createFlashcardMetadata();
 			adapter.set({ flashcards: [card], updated_at: '2024-01-01T00:00:00.000Z' });
-			vi.spyOn(parser, 'parseAll').mockResolvedValue([]);
+			vi.spyOn(parser, 'parseDir').mockResolvedValue([]);
 
 			await indexer.initialize();
 
@@ -60,7 +67,7 @@ describe('FlashcardIndexer', () => {
 		});
 
 		it('should parse all flashcards and merge into cache', async () => {
-			vi.spyOn(parser, 'parseAll').mockResolvedValue([
+			vi.spyOn(parser, 'parseDir').mockResolvedValue([
 				{
 					entity: createFlashcardYaml(),
 					filepath: '/flashcards/1.md',
@@ -72,7 +79,7 @@ describe('FlashcardIndexer', () => {
 
 			await indexer.initialize();
 
-			expect(parser.parseAll).toHaveBeenCalledWith('/flashcards');
+			expect(parser.parseDir).toHaveBeenCalledWith('/flashcards');
 			expect(adapterUpdateSpy).toHaveBeenCalled();
 		});
 
@@ -86,7 +93,7 @@ describe('FlashcardIndexer', () => {
 			});
 			adapter.set({ flashcards: [existingCard], updated_at: oldTimestamp });
 
-			vi.spyOn(parser, 'parseAll').mockResolvedValue([
+			vi.spyOn(parser, 'parseDir').mockResolvedValue([
 				{
 					entity: createFlashcardYaml({ uuid: existingCard.uuid }),
 					stats: { created_at: new Date().toISOString(), updated_at: new Date().toISOString() },

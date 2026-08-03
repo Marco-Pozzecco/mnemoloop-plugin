@@ -1,23 +1,23 @@
-import { describe, expect, it, beforeEach } from 'vitest';
-import { Plugin } from 'obsidian';
-import { FlashcardYamlEngine } from '@/modules/yaml-engines/FlashcardYamlEngine';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
+import { Plugin, parseYaml } from 'obsidian';
+import { FlashcardYamlParser } from '@/modules/parsers/yaml/FlashcardYamlParser';
 import { createMockPlugin } from '../../../helpers/mock-obsidian';
 import { createFlashcardYaml } from '../../../helpers/factories';
 import { CardStatus } from '@/schemas';
 
 describe('FlashcardYamlEngine', () => {
 	let plugin: ReturnType<typeof createMockPlugin>;
-	let engine: FlashcardYamlEngine;
+	let engine: FlashcardYamlParser;
 
 	beforeEach(() => {
 		plugin = createMockPlugin([]);
-		engine = new FlashcardYamlEngine(plugin as unknown as Plugin);
+		engine = new FlashcardYamlParser(plugin as unknown as Plugin);
 	});
 
 	describe('recover', () => {
 		it('should call processFrontMatter with default YAML', async () => {
 			plugin = createMockPlugin([{ path: 'test.md', content: '' }]);
-			engine = new FlashcardYamlEngine(plugin as unknown as Plugin);
+			engine = new FlashcardYamlParser(plugin as unknown as Plugin);
 
 			await engine.recover('test.md');
 
@@ -28,13 +28,62 @@ describe('FlashcardYamlEngine', () => {
 
 		it('should preserve body when recovering', async () => {
 			plugin = createMockPlugin([{ path: 'test.md', content: 'existing body' }]);
-			engine = new FlashcardYamlEngine(plugin as unknown as Plugin);
+			engine = new FlashcardYamlParser(plugin as unknown as Plugin);
 
 			await engine.recover('test.md');
 
 			const file = plugin.app.vault.getAbstractFileByPath('test.md');
 			const content = await plugin.app.vault.read(file);
 			expect(content).toContain('existing body');
+		});
+
+		it('should preserve valid UUID during recovery', async () => {
+			const realUuid = '550e8400-e29b-41d4-a716-446655440000';
+			// Override the global parseYaml mock (which returns {}) to return actual parsed YAML
+			vi.mocked(parseYaml).mockReturnValue({ uuid: realUuid, status: 'ACTIVE' });
+
+			plugin = createMockPlugin([
+				{ path: 'test.md', content: `---\nuuid: ${realUuid}\nstatus: ACTIVE\n---\nbody` },
+			]);
+			engine = new FlashcardYamlParser(plugin as unknown as Plugin);
+
+			const result = await engine.recover('test.md');
+
+			expect(result.success).toBe(true);
+			if (result.success) {
+				expect(result.data.uuid).toBe(realUuid);
+			}
+		});
+
+		it('should default only broken fields, preserve valid ones', async () => {
+			const realUuid = '550e8400-e29b-41d4-a716-446655440000';
+			// Override parseYaml to return the raw frontmatter as if parsed from the file
+			vi.mocked(parseYaml).mockReturnValue({
+				uuid: realUuid,
+				status: 'ACTIVE',
+				card_type: 'bogus',
+				stability: -5,
+			});
+
+			plugin = createMockPlugin([
+				{
+					path: 'test.md',
+					content: `---\nuuid: ${realUuid}\nstatus: ACTIVE\ncard_type: bogus\nstability: -5\n---\nbody`,
+				},
+			]);
+			engine = new FlashcardYamlParser(plugin as unknown as Plugin);
+
+			const result = await engine.recover('test.md');
+
+			expect(result.success).toBe(true);
+			if (result.success) {
+				expect(result.data.uuid).toBe(realUuid); // preserved
+				expect(result.data.status).toBe(CardStatus.ACTIVE); // preserved
+				expect(result.data.card_type).toBe('basic'); // fixed
+				expect(result.data.stability).toBe(0); // fixed
+				expect(result.warnings).toBeDefined();
+				expect(result.warnings!.length).toBeGreaterThanOrEqual(2);
+			}
 		});
 	});
 
@@ -70,12 +119,14 @@ describe('FlashcardYamlEngine', () => {
 		});
 
 		it('should throw when no frontmatter in content', () => {
-			expect(() => engine.extractFmFromContent('no frontmatter')).toThrow('Invalid YAML frontmatter');
+			expect(() => engine.extractFmFromContent('no frontmatter')).toThrow(
+				'Invalid YAML frontmatter',
+			);
 		});
 
 		it('should call processFrontMatter while preserving body', async () => {
 			plugin = createMockPlugin([{ path: 'test.md', content: '---\nuuid: old\n---\nbody text' }]);
-			engine = new FlashcardYamlEngine(plugin as unknown as Plugin);
+			engine = new FlashcardYamlParser(plugin as unknown as Plugin);
 
 			await engine.write('test.md', createFlashcardYaml());
 

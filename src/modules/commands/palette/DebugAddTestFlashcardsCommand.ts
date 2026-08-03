@@ -2,7 +2,7 @@ import { BaseCommand } from '@/modules/commands/BaseCommand';
 import { IndexKey } from '@/types/indexes';
 import { WriterKey } from '@/types/writers';
 import { AdapterKey } from '@/types/adapters';
-import { CardStatus, FlashcardMetadataSchema, type Flashcard } from '@/schemas';
+import { CardStatus, CardType, FlashcardMetadataSchema, type Flashcard } from '@/schemas';
 import type { FlashcardMetadata } from '@/schemas';
 import type { SettingsAdapter } from '@/modules/adapters/SettingsAdapter';
 import { Notice } from 'obsidian';
@@ -116,8 +116,8 @@ export class DebugAddTestFlashcardCommand extends BaseCommand {
 					source: null,
 					status: Math.random() < 0.95 ? CardStatus.ACTIVE : CardStatus.PAUSED,
 					decks: randomSubset(['math', 'language', 'science', 'history', 'programming'], 3),
-					front: question.front,
-					back: question.back,
+					card_type: CardType.Basic,
+					content: { meta_type: CardType.Basic, front: question.front, back: question.back },
 					stability: Math.random() * 10,
 					difficulty: Math.random() * 10,
 					scheduled_days: randomInt(0, 30),

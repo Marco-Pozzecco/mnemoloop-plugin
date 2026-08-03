@@ -10,29 +10,29 @@ import {
 } from '@/modules/events/domains';
 
 export class VaultWatcher {
-       private _initialized = false;
-       private _debounceTimers: Map<string, number> = new Map();
+	private _initialized = false;
+	private _debounceTimers: Map<string, number> = new Map();
 
-       constructor(
-               private _plugin: Plugin,
-               private _settingsAdapter: IAdapter<PluginSettings>,
-       ) {
-               // Vault event registration is deferred to initialize()
-               // so we don't receive the startup flood of Vault:Create
-               // events for every existing file.
-       }
+	constructor(
+		private _plugin: Plugin,
+		private _settingsAdapter: IAdapter<PluginSettings>,
+	) {
+		// Vault event registration is deferred to initialize()
+		// so we don't receive the startup flood of Vault:Create
+		// events for every existing file.
+	}
 
-       /**
-        * Register vault event handlers. MUST be called inside
-        * workspace.onLayoutReady() so that the startup flood
-        * of Vault:Create events for existing files is skipped.
-        * Safe to call multiple times — subsequent calls are no-ops.
-        */
-       initialize(): void {
-               if (this._initialized) return;
-               this._initialized = true;
-               this._registerVaultEvents();
-       }
+	/**
+	 * Register vault event handlers. MUST be called inside
+	 * workspace.onLayoutReady() so that the startup flood
+	 * of Vault:Create events for existing files is skipped.
+	 * Safe to call multiple times — subsequent calls are no-ops.
+	 */
+	initialize(): void {
+		if (this._initialized) return;
+		this._initialized = true;
+		this._registerVaultEvents();
+	}
 
 	/**
 	 * Register vault event handlers via plugin.registerEvent()
@@ -151,10 +151,18 @@ export class VaultWatcher {
 			return;
 		}
 
-		void EventBus.instance.publish(new VaultCreateEvent({ path: file.path, entity: 'flashcard' }));
+		this._setDebounceTimer(file.path, () => {
+			void EventBus.instance.publish(
+				new VaultCreateEvent({ path: file.path, entity: 'flashcard' }),
+			);
+		});
 	}
 
 	private _handleModify(file: TAbstractFile): void {
+		if (!(file instanceof TFile)) {
+			return;
+		}
+
 		const wasWatched = this._debounceTimers.has(file.path);
 		const isWatched = this._shouldWatchFile(file);
 
@@ -164,6 +172,16 @@ export class VaultWatcher {
 		}
 
 		if (!isWatched) {
+			return;
+		}
+
+		// if file has been created within 3 seconds ignore it
+		const ctime = file.stat.ctime;
+		const now = new Date().getTime();
+		const diff = now - ctime;
+		const threshold = 1000 * 3;
+
+		if (diff < threshold) {
 			return;
 		}
 

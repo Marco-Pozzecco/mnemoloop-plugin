@@ -176,5 +176,7 @@ vi.mock('obsidian', () => ({
 	},
 
 	// Platform object
-	Platform: {},
+	Platform: {
+		isMobile: false,
+	},
 }));

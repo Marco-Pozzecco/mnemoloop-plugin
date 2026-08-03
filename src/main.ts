@@ -5,16 +5,16 @@ import { Plugin } from 'obsidian';
 import { IAdapter } from './interfaces/IAdapter';
 import { IEvent } from './interfaces/IEvent';
 import { IEventRegistryDependencies } from './interfaces/IEventRegistry';
+import { IContentParser } from './interfaces/parser/IContentParser';
+import { EventLogAdapter } from './modules/adapters/EventLogAdapter';
 import { FlashcardAdapter } from './modules/adapters/FlashcardAdapter';
 import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
 import { StatisticsAdapter } from './modules/adapters/StatisticsAdapter';
-import { EventLogAdapter } from './modules/adapters/EventLogAdapter';
 import {
 	CommandRegistry,
-	CreateEmptyFlashcardCommand,
-	CreateFlashcardFromFileCommand,
+	CreateFlashcardFromFileModalCommand,
+	CreateFlashcardModalCommand,
 	DebugAddTestFlashcardCommand,
-	GenerateFromSelectionCommand,
 	OpenDashboardCommand,
 	SetAllFlashcardsDueNowCommand,
 } from './modules/commands';
@@ -28,8 +28,13 @@ import {
 	StatisticsAdapterInitEvent,
 } from './modules/events';
 import { FlashcardIndexer } from './modules/indexers/FlashcardIndexer';
-import { FlashcardParser } from './modules/parsers/FlashcardParser';
+import { FlashcardBasicContentParser } from './modules/parsers/content/FlashcardBasicContentParser';
+import { FlashcardClozeContentParser } from './modules/parsers/content/FlashcardClozeContentParser';
+import { FlashcardQuizContentParser } from './modules/parsers/content/FlashcardQuizContentParser';
+import { FlashcardSequenceContentParser } from './modules/parsers/content/FlashcardSequenceContentParser';
+import { FlashcardParser } from './modules/parsers/entity/FlashcardParser';
 import { FlashcardWriter } from './modules/writers/FlashcardWriter';
+import { FlashcardContent } from './schemas';
 import { PluginSettings } from './schemas/settings';
 import { AdapterKey, Adapters } from './types/adapters';
 import { CommandKey } from './types/commands';
@@ -107,12 +112,20 @@ export default class MnemoloopPlugin extends Plugin {
 		const settings = this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>;
 		if (!settings) throw new Error('failed to initialize adapters');
 
-		this._parsers.set(ParserKey.flashcard, new FlashcardParser(this, settings));
+		const contentParsers: IContentParser<FlashcardContent>[] = [
+			new FlashcardBasicContentParser(settings) as IContentParser<FlashcardContent>,
+			new FlashcardSequenceContentParser(settings) as IContentParser<FlashcardContent>,
+			new FlashcardQuizContentParser(settings) as IContentParser<FlashcardContent>,
+			new FlashcardClozeContentParser(settings) as IContentParser<FlashcardContent>,
+		];
+		this._parsers.set(ParserKey.flashcard, new FlashcardParser(this, contentParsers));
 	}
 
 	private loadWriters() {
-		const parser = this._parsers.get(ParserKey.flashcard) as FlashcardParser;
-		this._writers.set(WriterKey.flashcard, new FlashcardWriter(this, parser));
+		this._writers.set(
+			WriterKey.flashcard,
+			new FlashcardWriter(this, this._parsers.get(ParserKey.flashcard)!),
+		);
 	}
 
 	private loadIndexes() {
@@ -157,24 +170,20 @@ export default class MnemoloopPlugin extends Plugin {
 	private loadCommands(): void {
 		this._commandRegistry.register(CommandKey.openDashboard, new OpenDashboardCommand());
 		this._commandRegistry.register(
-			CommandKey.createEmptyFlashcard,
-			new CreateEmptyFlashcardCommand(),
-		);
-		this._commandRegistry.register(
-			CommandKey.generateFromSelection,
-			new GenerateFromSelectionCommand(),
-		);
-		this._commandRegistry.register(
-			CommandKey.createFlashcardFromFile,
-			new CreateFlashcardFromFileCommand(),
-		);
-		this._commandRegistry.register(
 			CommandKey.setAllFlashcardsDueNow,
 			new SetAllFlashcardsDueNowCommand(),
 		);
 		this._commandRegistry.register(
 			CommandKey.debugAddTestFlashcards,
 			new DebugAddTestFlashcardCommand(),
+		);
+		this._commandRegistry.register(
+			CommandKey.createFlashcardModal,
+			new CreateFlashcardModalCommand(),
+		);
+		this._commandRegistry.register(
+			CommandKey.createFlashcardFromFileModal,
+			new CreateFlashcardFromFileModalCommand(),
 		);
 
 		this._commandRegistry.initialize({

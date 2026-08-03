@@ -44,7 +44,7 @@ describe('FlashcardAdapter', () => {
 		it('should throw when file not found', async () => {
 			// Remove the file from fileMap so adapter.read throws
 			const vault = getVault(plugin);
-	vault.fileMap.delete('/test-plugin/flashcard-index.json');
+			(vault.fileMap as Map<string, unknown>).delete('/test-plugin/flashcard-index.json');
 
 			await expect(
 				(adapter as unknown as Record<string, () => Promise<unknown>>).loadData(),

@@ -15,6 +15,15 @@ $blue: var(--color-blue);
 $purple: var(--color-purple);
 $pink: var(--color-pink);
 
+$red-rgb: var(--color-red-rgb);
+$orange-rgb: var(--color-orange-rgb);
+$yellow-rgb: var(--color-yellow-rgb);
+$green-rgb: var(--color-green-rgb);
+$cyan-rgb: var(--color-cyan-rgb);
+$blue-rgb: var(--color-blue-rgb);
+$purple-rgb: var(--color-purple-rgb);
+$pink-rgb: var(--color-pink-rgb);
+
 // -- Text Colors --
 $text-normal: var(--text-normal);
 $text-muted: var(--text-muted);
@@ -63,6 +72,11 @@ $status-info: var(--color-blue);
 $status-success: var(--color-green);
 $status-warning: var(--color-orange);
 $status-error: var(--color-red);
+
+$status-info-background: rgba($blue-rgb, 0.1);
+$status-success-background: rgba($green-rgb, 0.1);
+$status-warning-background: rgba($orange-rgb, 0.1);
+$status-error-background: rgba($red-rgb, 0.1);
 
 // -- Font size --
 $font-xs: var(--font-ui-smaller);

@@ -212,13 +212,13 @@ describe('StatisticsAdapterUpdateHandler', () => {
 	it('should call adapter.update() and publish response and state events', async () => {
 		const handler = new StatisticsAdapterUpdateHandler(mockDeps);
 		const event = new StatisticsAdapterUpdateRequestEvent({
-			flashcard: { daily_goal: 20 },
+			flashcard: { ...DEFAULT_STATISTICS.flashcard, daily_goal: 20 },
 		});
 
 		await handler.handle(event);
 
 		expect(mockAdapter.update).toHaveBeenCalledTimes(1);
-		expect(mockAdapter.update).toHaveBeenCalledWith({ flashcard: { daily_goal: 20 } });
+		expect(mockAdapter.update).toHaveBeenCalledWith(expect.objectContaining({ flashcard: expect.objectContaining({ daily_goal: 20 }) }));
 		expect(bus.publish).toHaveBeenCalledTimes(2);
 		expect(bus.publish).toHaveBeenCalledWith(expect.any(StatisticsAdapterUpdateResponseEvent));
 		expect(bus.publish).toHaveBeenCalledWith(expect.any(StatisticsAdapterStateEvent));

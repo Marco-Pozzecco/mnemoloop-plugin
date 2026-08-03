@@ -1,4 +1,4 @@
-import { FlashcardParser } from '@/modules/parsers/FlashcardParser';
+import { FlashcardParser } from '@/modules/parsers/entity/FlashcardParser';
 
 export enum ParserKey {
 	flashcard = 'flashcard',
