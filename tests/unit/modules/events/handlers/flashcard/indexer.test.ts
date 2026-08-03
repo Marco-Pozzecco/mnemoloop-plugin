@@ -39,14 +39,14 @@ import {
 	VaultRenameEvent,
 } from '@/modules/events/domains/vault';
 import { FlashcardIndexer } from '@/modules/indexers/FlashcardIndexer';
-import { CardStatus, FlashcardMetadata } from '@/schemas/flashcard';
+import { CardStatus, CardType, FlashcardMetadata } from '@/schemas/flashcard';
 import { IndexKey } from '@/types/indexes';
 import { ParserKey } from '@/types/parsers';
 import { IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
 import { resetSingletons } from '../../../../../helpers/reset-singletons';
 import { State } from 'ts-fsrs';
 import { Logger } from '@/utils/Logger';
-import { FlashcardParser } from '@/modules/parsers/FlashcardParser';
+import { FlashcardParser } from '@/modules/parsers/entity/FlashcardParser';
 
 function createMockMetadata(overrides: Partial<FlashcardMetadata> = {}): FlashcardMetadata {
 	return {
@@ -56,6 +56,7 @@ function createMockMetadata(overrides: Partial<FlashcardMetadata> = {}): Flashca
 		updated_at: new Date().toISOString(),
 		status: CardStatus.ACTIVE,
 		decks: [],
+		card_type: CardType.Basic,
 		stability: 0,
 		difficulty: 0,
 		scheduled_days: 0,
@@ -429,9 +430,9 @@ describe('FlashcardIndexOnVaultCreateHandler', () => {
 		mockData = createMockMetadata({ uuid: 'test-uuid', file: 'test.md' });
 
 		mockParser = {
-			parseMetadata: vi
+			parseYaml: vi
 				.fn()
-				.mockResolvedValue({ entity: { uuid: 'test-uuid' }, filepath: 'test.md', success: true }),
+				.mockResolvedValue({ entity: { uuid: 'test-uuid' }, stats: { created_at: '', updated_at: '' }, filepath: 'test.md', success: true }),
 		} as unknown as FlashcardParser;
 
 		mockIndexer = {
@@ -444,7 +445,15 @@ describe('FlashcardIndexOnVaultCreateHandler', () => {
 		} as unknown as FlashcardIndexer;
 
 		mockDeps = {
-			plugin: {} as IEventRegistryDependencies['plugin'],
+			plugin: {
+				app: {
+					vault: {
+						getFileByPath: vi.fn().mockReturnValue({
+							stat: { ctime: 1000, mtime: 2000 },
+						}),
+					},
+				},
+			} as unknown as IEventRegistryDependencies['plugin'],
 			adapters: new Map(),
 			indexes: new Map([[IndexKey.flashcard, mockIndexer]]),
 			parsers: new Map([[ParserKey.flashcard, mockParser]]),
@@ -462,7 +471,7 @@ describe('FlashcardIndexOnVaultCreateHandler', () => {
 		await handler.handle(event);
 
 		expect(mockIndexer.isPathInWatchedDir).toHaveBeenCalledWith('test.md');
-		expect(mockParser.parseMetadata).toHaveBeenCalledWith('test.md');
+		expect(mockParser.parseYaml).toHaveBeenCalledWith('test.md');
 		expect(mockIndexer.upsert).toHaveBeenCalledWith('test-uuid', expect.any(Object));
 		expect(mockIndexer.save).toHaveBeenCalledTimes(1);
 		expect(bus.publish).toHaveBeenCalledTimes(2);
@@ -477,7 +486,7 @@ describe('FlashcardIndexOnVaultCreateHandler', () => {
 		await handler.handle(event);
 
 		expect(mockIndexer.isPathInWatchedDir).not.toHaveBeenCalled();
-		expect(mockParser.parseMetadata).not.toHaveBeenCalled();
+		expect(mockParser.parseYaml).not.toHaveBeenCalled();
 		expect(bus.publish).not.toHaveBeenCalled();
 	});
 
@@ -490,7 +499,7 @@ describe('FlashcardIndexOnVaultCreateHandler', () => {
 		await handler.handle(event);
 
 		expect(mockIndexer.isPathInWatchedDir).toHaveBeenCalledWith('test.md');
-		expect(mockParser.parseMetadata).not.toHaveBeenCalled();
+		expect(mockParser.parseYaml).not.toHaveBeenCalled();
 		expect(bus.publish).not.toHaveBeenCalled();
 	});
 });
@@ -578,9 +587,9 @@ describe('FlashcardIndexOnVaultModifyHandler', () => {
 		mockData = createMockMetadata({ uuid: 'test-uuid', file: 'test.md' });
 
 		mockParser = {
-			parseMetadata: vi
+			parseYaml: vi
 				.fn()
-				.mockResolvedValue({ entity: { uuid: 'test-uuid' }, filepath: 'test.md', success: true }),
+				.mockResolvedValue({ entity: { uuid: 'test-uuid' }, stats: { created_at: '', updated_at: '' }, filepath: 'test.md', success: true }),
 		} as unknown as FlashcardParser;
 
 		mockIndexer = {
@@ -595,7 +604,15 @@ describe('FlashcardIndexOnVaultModifyHandler', () => {
 		} as unknown as FlashcardIndexer;
 
 		mockDeps = {
-			plugin: {} as IEventRegistryDependencies['plugin'],
+			plugin: {
+				app: {
+					vault: {
+						getFileByPath: vi.fn().mockReturnValue({
+							stat: { ctime: 1000, mtime: 2000 },
+						}),
+					},
+				},
+			} as unknown as IEventRegistryDependencies['plugin'],
 			adapters: new Map(),
 			indexes: new Map([[IndexKey.flashcard, mockIndexer]]),
 			parsers: new Map([[ParserKey.flashcard, mockParser]]),
@@ -618,7 +635,7 @@ describe('FlashcardIndexOnVaultModifyHandler', () => {
 	});
 
 	it('should delete and save when parseMetadata throws', async () => {
-		mockParser.parseMetadata = vi.fn().mockRejectedValue(new Error('parse failed'));
+		mockParser.parseYaml = vi.fn().mockRejectedValue(new Error('parse failed'));
 
 		const handler = new FlashcardIndexOnVaultModifyHandler(mockDeps);
 		const event = new VaultModifyEvent({ entity: 'flashcard', path: 'test.md' });
@@ -649,9 +666,9 @@ describe('FlashcardIndexOnVaultRenameHandler', () => {
 		mockData = createMockMetadata({ uuid: 'test-uuid', file: 'test.md' });
 
 		mockParser = {
-			parseMetadata: vi
+			parseYaml: vi
 				.fn()
-				.mockResolvedValue({ entity: { uuid: 'test-uuid' }, filepath: 'new.md', success: true }),
+				.mockResolvedValue({ entity: { uuid: 'test-uuid' }, stats: { created_at: '', updated_at: '' }, filepath: 'new.md', success: true }),
 		} as unknown as FlashcardParser;
 		mockIndexer = {
 			isPathInWatchedDir: vi.fn().mockReturnValue(true),
@@ -664,7 +681,15 @@ describe('FlashcardIndexOnVaultRenameHandler', () => {
 		} as unknown as FlashcardIndexer;
 
 		mockDeps = {
-			plugin: {} as IEventRegistryDependencies['plugin'],
+			plugin: {
+				app: {
+					vault: {
+						getFileByPath: vi.fn().mockReturnValue({
+							stat: { ctime: 1000, mtime: 2000 },
+						}),
+					},
+				},
+			} as unknown as IEventRegistryDependencies['plugin'],
 			adapters: new Map(),
 			indexes: new Map([[IndexKey.flashcard, mockIndexer]]),
 			parsers: new Map([[ParserKey.flashcard, mockParser]]),
@@ -699,8 +724,11 @@ describe('FlashcardIndexOnVaultRenameHandler', () => {
 		await handler.handle(event);
 
 		expect(mockIndexer.findByFilepath).toHaveBeenCalledWith('old.md');
-		expect(mockParser.parseMetadata).toHaveBeenCalledWith('new.md');
-		expect(mockIndexer.generateMetadata).toHaveBeenCalledWith({ uuid: 'test-uuid' }, 'new.md');
+		expect(mockParser.parseYaml).toHaveBeenCalledWith('new.md');
+		expect(mockIndexer.generateMetadata).toHaveBeenCalledWith({ uuid: 'test-uuid' }, 'new.md', {
+			created_at: '1970-01-01T00:00:01.000Z',
+			updated_at: '1970-01-01T00:00:02.000Z',
+		});
 		expect(mockIndexer.upsert).toHaveBeenCalledWith('test-uuid', expect.any(Object));
 		expect(mockIndexer.save).toHaveBeenCalledTimes(1);
 		expect(bus.publish).toHaveBeenCalledTimes(2);

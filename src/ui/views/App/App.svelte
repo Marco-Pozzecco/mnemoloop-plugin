@@ -19,10 +19,8 @@
 		currentView = state.currentView;
 	});
 
-	// context
-	$effect(() => {
-		setAppContext({ app, component });
-	});
+	// context — set synchronously during init; props ($props) are inherently reactive
+	setAppContext({ app, component });
 </script>
 
 <div class="ml-app-container">
@@ -32,7 +30,9 @@
 			onDismiss={() => bannerStore.dismiss($bannerRef.activeBanner!.id)}
 		/>
 	{/if}
-	<Navbar bind:activeTab={currentView} />
+	{#if currentView !== 'review'}
+		<Navbar bind:activeTab={currentView} />
+	{/if}
 	<div class="ml-app-view-section">
 		{#if currentView === 'review'}
 			<Review />

@@ -1,20 +1,17 @@
 <script lang="ts">
-	import { settingsStore } from '@/ui/store/settings.store';
 	import type { PluginSettings } from '@/schemas/settings';
+	import DataManagement from '@/ui/components/sections/Settings/DataManagement/component.svelte';
 	import FlashcardConfig from '@/ui/components/sections/Settings/FlashcardConfig/component.svelte';
 	import FsrsParams from '@/ui/components/sections/Settings/FsrsParams/component.svelte';
-	import DataManagement from '@/ui/components/sections/Settings/DataManagement/component.svelte';
-	import DangerZone from '@/ui/components/sections/Settings/DangerZone/component.svelte';
+	import { settingsStore } from '@/ui/store/settings.store';
 
 	// Access the individual Svelte stores from the SettingsStore instance
 	const settingsWritable = settingsStore.settings;
-	const isLoadingWritable = settingsStore.isLoading;
 	const saveErrorWritable = settingsStore.saveError;
 	const fieldErrorsWritable = settingsStore.fieldErrors;
 
 	// Use $derived to subscribe to stores with Svelte 5 runes
 	const settings = $derived($settingsWritable);
-	const isLoading = $derived($isLoadingWritable);
 	const saveError = $derived($saveErrorWritable);
 	const fieldErrors = $derived($fieldErrorsWritable);
 
@@ -27,11 +24,6 @@
 	async function handleFieldChange(key: string, value: unknown) {
 		const typedValue = value as PluginSettings[keyof PluginSettings];
 		await settingsStore.updateField(key as keyof PluginSettings, typedValue);
-		await settingsStore.save();
-	}
-
-	async function handleReset() {
-		await settingsStore.reset();
 		await settingsStore.save();
 	}
 
@@ -60,8 +52,6 @@
 		<FsrsParams {settings} onNestedFieldChange={handleNestedFieldChange} {hasError} {getError} />
 
 		<DataManagement {settings} onFieldChange={handleFieldChange} {hasError} {getError} />
-
-		<DangerZone onReset={handleReset} {isLoading} />
 	</div>
 </div>
 
@@ -79,9 +69,9 @@
 		}
 
 		&__error {
-			color: -error;
+			color: $text-error;
 			background-color: rgba(#{$text-error-rgb}, 0.1);
-			border: 1px solid -error;
+			border: 1px solid $text-error;
 			border-radius: $radius-md;
 			padding: $spacing-sm;
 			margin-bottom: $spacing-sm;

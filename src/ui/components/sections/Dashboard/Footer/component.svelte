@@ -60,7 +60,7 @@
 	<Button
 		variant="primary"
 		size="large"
-		className="ml-start-button"
+		class="ml-start-button"
 		disabled={isDisabled}
 		onclick={onStartReview}
 	>

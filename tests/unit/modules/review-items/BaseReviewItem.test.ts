@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { BaseReviewItem } from '@/modules/review-items/BaseReviewItem';
 import { IReviewEngine } from '@/interfaces/IReviewEngine';
-import { FlashcardYaml, Flashcard } from '@/schemas';
+import { FlashcardYaml, Flashcard, CardType } from '@/schemas';
 import { createFlashcardYaml } from '../../../helpers/factories';
 import { useFixedDate, restoreRealTimers } from '../../../helpers/date-fixtures';
 
@@ -90,7 +90,7 @@ describe('BaseReviewItem', () => {
 		it('should return data after it is set', () => {
 			const engine = createMockEngine();
 			const item = new TestReviewItem('test.md', engine);
-			const flashcard = { ...createFlashcardYaml(), front: 'Q', back: 'A' } as Flashcard;
+			const flashcard = { ...createFlashcardYaml(), content: { meta_type: CardType.Basic, front: 'Q', back: 'A' } } as Flashcard;
 
 			item.setData(flashcard);
 
@@ -102,7 +102,7 @@ describe('BaseReviewItem', () => {
 		it('should mutate due field', () => {
 			const engine = createMockEngine();
 			const item = new TestReviewItem('test.md', engine);
-			const flashcard = { ...createFlashcardYaml(), front: 'Q', back: 'A' } as Flashcard;
+			const flashcard = { ...createFlashcardYaml(), content: { meta_type: CardType.Basic, front: 'Q', back: 'A' } } as Flashcard;
 
 			item.setData(flashcard);
 			item.restore('2026-01-01T00:00:00.000Z', null, null);
@@ -113,7 +113,7 @@ describe('BaseReviewItem', () => {
 		it('should mutate stability field', () => {
 			const engine = createMockEngine();
 			const item = new TestReviewItem('test.md', engine);
-			const flashcard = { ...createFlashcardYaml(), front: 'Q', back: 'A' } as Flashcard;
+			const flashcard = { ...createFlashcardYaml(), content: { meta_type: CardType.Basic, front: 'Q', back: 'A' } } as Flashcard;
 
 			item.setData(flashcard);
 			item.restore(null, 5.5, null);
@@ -124,7 +124,7 @@ describe('BaseReviewItem', () => {
 		it('should mutate difficulty field', () => {
 			const engine = createMockEngine();
 			const item = new TestReviewItem('test.md', engine);
-			const flashcard = { ...createFlashcardYaml(), front: 'Q', back: 'A' } as Flashcard;
+			const flashcard = { ...createFlashcardYaml(), content: { meta_type: CardType.Basic, front: 'Q', back: 'A' } } as Flashcard;
 
 			item.setData(flashcard);
 			item.restore(null, null, 3.2);
@@ -142,7 +142,7 @@ describe('BaseReviewItem', () => {
 		it('should mutate multiple fields at once', () => {
 			const engine = createMockEngine();
 			const item = new TestReviewItem('test.md', engine);
-			const flashcard = { ...createFlashcardYaml(), front: 'Q', back: 'A' } as Flashcard;
+			const flashcard = { ...createFlashcardYaml(), content: { meta_type: CardType.Basic, front: 'Q', back: 'A' } } as Flashcard;
 
 			item.setData(flashcard);
 			item.restore('2026-01-01T00:00:00.000Z', 5.5, 3.2);

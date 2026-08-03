@@ -6,7 +6,8 @@ export default interface ButtonProps {
 	disabled?: boolean;
 	ariaLabel?: string;
 	type?: 'button' | 'submit' | 'reset';
-	className?: string;
+	class?: string;
 	onclick?: (event: MouseEvent) => void;
+	icon?: Snippet;
 	children?: Snippet;
 }

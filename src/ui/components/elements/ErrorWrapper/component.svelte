@@ -145,7 +145,7 @@
 		gap: $spacing-md;
 		padding: $spacing-xl;
 		background-color: $background-secondary;
-		border: 1px solid -warning;
+		border: 1px solid $text-warning;
 		border-radius: 12px;
 		color: $text-normal;
 		max-width: 600px;

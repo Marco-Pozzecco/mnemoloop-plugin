@@ -3,7 +3,7 @@ import { EventBus } from '@/modules/events/core/EventBus';
 import { resetSingletons } from '../../../../../helpers/reset-singletons';
 import { ParserKey } from '@/types/parsers';
 import { IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
-import { FlashcardParser } from '@/modules/parsers/FlashcardParser';
+import { FlashcardParser } from '@/modules/parsers/entity/FlashcardParser';
 import {
 	FlashcardParserParseHandler,
 	FlashcardParserParseContentHandler,
@@ -32,7 +32,7 @@ describe('FlashcardParserParseHandler', () => {
 		vi.spyOn(bus, 'publish');
 
 		mockParser = {
-			parse: vi.fn().mockResolvedValue({ entity: { uuid: 'test' }, filepath: 'test.md' }),
+			parseFile: vi.fn().mockResolvedValue({ entity: { uuid: 'test' }, stats: { created_at: '', updated_at: '' }, filepath: 'test.md', success: true }),
 		} as unknown as FlashcardParser;
 
 		mockDeps = {
@@ -51,8 +51,8 @@ describe('FlashcardParserParseHandler', () => {
 
 		await handler.handle(event);
 
-		expect(mockParser.parse).toHaveBeenCalledTimes(1);
-		expect(mockParser.parse).toHaveBeenCalledWith('test.md');
+		expect(mockParser.parseFile).toHaveBeenCalledTimes(1);
+		expect(mockParser.parseFile).toHaveBeenCalledWith('test.md');
 		expect(bus.publish).toHaveBeenCalledTimes(1);
 		expect(bus.publish).toHaveBeenCalledWith(expect.any(FlashcardParserParseResponseEvent));
 	});
@@ -69,7 +69,7 @@ describe('FlashcardParserParseContentHandler', () => {
 		vi.spyOn(bus, 'publish');
 
 		mockParser = {
-			parseContent: vi.fn().mockReturnValue({ entity: { uuid: 'test' } }),
+			parseContent: vi.fn().mockReturnValue({ entity: { uuid: 'test' }, success: true }),
 		} as unknown as FlashcardParser;
 
 		mockDeps = {
@@ -106,7 +106,7 @@ describe('FlashcardParserParseMetadataHandler', () => {
 		vi.spyOn(bus, 'publish');
 
 		mockParser = {
-			parseMetadata: vi.fn().mockResolvedValue({ entity: { uuid: 'test' }, filepath: 'test.md' }),
+			parseYaml: vi.fn().mockResolvedValue({ entity: { uuid: 'test' }, stats: { created_at: '', updated_at: '' }, filepath: 'test.md', success: true }),
 		} as unknown as FlashcardParser;
 
 		mockDeps = {
@@ -125,8 +125,8 @@ describe('FlashcardParserParseMetadataHandler', () => {
 
 		await handler.handle(event);
 
-		expect(mockParser.parseMetadata).toHaveBeenCalledTimes(1);
-		expect(mockParser.parseMetadata).toHaveBeenCalledWith('test.md');
+		expect(mockParser.parseYaml).toHaveBeenCalledTimes(1);
+		expect(mockParser.parseYaml).toHaveBeenCalledWith('test.md');
 		expect(bus.publish).toHaveBeenCalledTimes(1);
 		expect(bus.publish).toHaveBeenCalledWith(expect.any(FlashcardParserParseMetadataResponseEvent));
 	});
@@ -143,7 +143,7 @@ describe('FlashcardParserParseAllHandler', () => {
 		vi.spyOn(bus, 'publish');
 
 		mockParser = {
-			parseAll: vi.fn().mockResolvedValue([{ entity: { uuid: 'test' }, filepath: 'test.md' }]),
+			parseDir: vi.fn().mockResolvedValue([{ entity: { uuid: 'test' }, stats: { created_at: '', updated_at: '' }, filepath: 'test.md', success: true }]),
 		} as unknown as FlashcardParser;
 
 		mockDeps = {
@@ -162,8 +162,8 @@ describe('FlashcardParserParseAllHandler', () => {
 
 		await handler.handle(event);
 
-		expect(mockParser.parseAll).toHaveBeenCalledTimes(1);
-		expect(mockParser.parseAll).toHaveBeenCalledWith('/flashcards');
+		expect(mockParser.parseDir).toHaveBeenCalledTimes(1);
+		expect(mockParser.parseDir).toHaveBeenCalledWith('/flashcards');
 		expect(bus.publish).toHaveBeenCalledTimes(1);
 		expect(bus.publish).toHaveBeenCalledWith(expect.any(FlashcardParserParseAllResponseEvent));
 	});

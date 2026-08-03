@@ -90,7 +90,7 @@ describe('FlashcardAdapterResetHandler', () => {
 
 	it('should call adapter.reset() and publish state event', async () => {
 		const handler = new FlashcardAdapterResetHandler(mockDeps);
-		const event = new FlashcardAdapterResetEvent();
+		const event = new FlashcardAdapterResetEvent({ flashcards: [], updated_at: null });
 
 		await handler.handle(event);
 

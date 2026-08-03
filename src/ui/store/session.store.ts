@@ -16,7 +16,8 @@ export interface ReviewAction {
 
 export interface SessionState<T = unknown> {
 	queue: IReviewQueue<T> | null;
-	isAnswerShowing: boolean;
+	is_answer_showing: boolean;
+	is_answer_correct: boolean | null;
 	session_id: string | null;
 	review_type: string;
 	deck_filter: string | null;
@@ -36,7 +37,8 @@ export interface SessionState<T = unknown> {
 
 export const DefaultSessionState: SessionState = {
 	queue: null,
-	isAnswerShowing: false,
+	is_answer_showing: false,
+	is_answer_correct: null,
 	session_id: null,
 	review_type: '',
 	deck_filter: null,
@@ -68,15 +70,29 @@ export class SessionStore<T = unknown> extends BaseStoreManager<SessionState<T>>
 	}
 
 	get isAnswerShowing(): boolean {
-		return this.state.isAnswerShowing;
+		return this.state.is_answer_showing;
+	}
+
+	get isAnswerCorrect(): boolean | null {
+		return this.state.is_answer_correct;
 	}
 
 	showAnswer(): void {
-		this.store.update((state) => ({ ...state, isAnswerShowing: true }));
+		this.store.update((state) => ({
+			...state,
+			is_answer_showing: true,
+		}));
+	}
+
+	setAnswerCorrectness(isCorrect?: boolean) {
+		this.store.update((state) => ({
+			...state,
+			is_answer_correct: isCorrect ?? null,
+		}));
 	}
 
 	hideAnswer(): void {
-		this.store.update((state) => ({ ...state, isAnswerShowing: false }));
+		this.store.update((state) => ({ ...state, is_answer_showing: false, is_answer_correct: null }));
 	}
 
 	startSession(reviewType: string, deckFilter?: string): void {

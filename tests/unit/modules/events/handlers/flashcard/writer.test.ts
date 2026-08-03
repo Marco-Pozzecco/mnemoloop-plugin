@@ -27,6 +27,7 @@ import {
 	FlashcardWriterBodyRequestEvent,
 	FlashcardWriterBodyResponseEvent,
 } from '@/modules/events/domains/flashcard/writer';
+import { CardType } from '@/schemas';
 
 vi.mock('uuid', () => ({
 	v4: vi.fn(() => 'mocked-uuid'),
@@ -71,9 +72,9 @@ describe('FlashcardWriterCreateHandler', () => {
 	it('should call writer.create and publish response on success', async () => {
 		const handler = new FlashcardWriterCreateHandler(mockDeps);
 		const event = new FlashcardWriterCreateRequestEvent({
-			front: 'Q',
-			back: 'A',
+			content: { meta_type: CardType.Basic, front: 'Q', back: 'A' },
 			source: 'source.md',
+			decks: [],
 		});
 
 		await handler.handle(event);
@@ -83,9 +84,9 @@ describe('FlashcardWriterCreateHandler', () => {
 			'/flashcards/mocked-uuid.md',
 			expect.objectContaining({
 				uuid: 'mocked-uuid',
-				front: 'Q',
-				back: 'A',
-				source: '[[source.md]]',
+				source: 'source.md',
+				card_type: CardType.Basic,
+				content: { meta_type: CardType.Basic, front: 'Q', back: 'A' },
 			}),
 		);
 		expect(bus.publish).toHaveBeenCalledTimes(1);
@@ -110,9 +111,9 @@ describe('FlashcardWriterCreateHandler', () => {
 
 		const handler = new FlashcardWriterCreateHandler(mockDeps);
 		const event = new FlashcardWriterCreateRequestEvent({
-			front: 'Q',
-			back: 'A',
+			content: { meta_type: CardType.Basic, front: 'Q', back: 'A' },
 			source: 'source.md',
+			decks: [],
 		});
 
 		await handler.handle(event);
@@ -165,8 +166,7 @@ describe('FlashcardWriterUpdateHandler', () => {
 		const handler = new FlashcardWriterUpdateHandler(mockDeps);
 		const event = new FlashcardWriterUpdateRequestEvent({
 			uuid: 'test-uuid',
-			front: 'Q',
-			back: 'A',
+			content: { meta_type: CardType.Basic, front: 'Q', back: 'A' },
 			source: 'source.md',
 		});
 
@@ -181,9 +181,8 @@ describe('FlashcardWriterUpdateHandler', () => {
 		expect(updatedCard).toEqual(
 			expect.objectContaining({
 				uuid: 'test-uuid',
-				front: 'Q',
-				back: 'A',
 				source: 'source.md',
+				content: { meta_type: CardType.Basic, front: 'Q', back: 'A' },
 			}),
 		);
 		expect(bus.publish).toHaveBeenCalledTimes(1);
@@ -318,8 +317,7 @@ describe('FlashcardWriterBodyHandler', () => {
 		const handler = new FlashcardWriterBodyHandler(mockDeps);
 		const event = new FlashcardWriterBodyRequestEvent({
 			filepath: 'test.md',
-			front: 'Q',
-			back: 'A',
+			content: { meta_type: CardType.Basic, front: 'Q', back: 'A' },
 		});
 
 		await handler.handle(event);
@@ -327,7 +325,7 @@ describe('FlashcardWriterBodyHandler', () => {
 		expect(mockWriter.updateBody).toHaveBeenCalledTimes(1);
 		expect(mockWriter.updateBody).toHaveBeenCalledWith(
 			'test.md',
-			{ front: 'Q', back: 'A' },
+			{ meta_type: CardType.Basic, front: 'Q', back: 'A' },
 		);
 		expect(bus.publish).toHaveBeenCalledTimes(1);
 		expect(bus.publish).toHaveBeenCalledWith(

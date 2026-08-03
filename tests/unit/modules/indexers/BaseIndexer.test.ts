@@ -1,12 +1,20 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { BaseIndexer } from '@/modules/indexers/BaseIndexer';
-import type { IParser, ParseResult } from '@/interfaces/IParser';
+import type { IEntityParser } from '@/interfaces/parser/IEntityParser';
+import type { ParseContentResult, ParseResult } from '@/interfaces/parser/utils';
 import type { IAdapter } from '@/interfaces/IAdapter';
 import type { PluginSettings } from '@/schemas';
 
-interface TestEntity {
+interface TestYaml {
 	uuid: string;
+}
+
+interface TestContent {
 	name: string;
+}
+
+interface TestEntity extends TestYaml {
+	content: TestContent;
 }
 
 interface TestMetadata {
@@ -14,19 +22,54 @@ interface TestMetadata {
 	name: string;
 }
 
-interface TestYaml {
-	uuid: string;
-}
 
 type TestIndex = Record<string, TestMetadata>;
 
-const mockParser: IParser<TestEntity, TestYaml> = {
-	marker: '#test',
-	parse: async (filepath) => ({ entity: { uuid: 'test', name: 'Test' }, filepath }),
-	parseContent: (_content) => ({ entity: { uuid: 'test', name: 'Test' } }),
-	parseMetadata: async (filepath) => ({ entity: { uuid: 'test' }, filepath }),
-	parseAll: async (_dirPath) => [],
-};
+const mockParser = {
+	parseFile: async (filepath: string) =>
+		({
+			entity: { uuid: 'test', content: { name: 'Test' } } as TestEntity,
+			filepath,
+			stats: { created_at: '', updated_at: '' },
+			success: true,
+		}) as ParseResult<TestEntity>,
+	parseDir: async (_dirPath: string) => [] as ParseResult<TestYaml>[],
+	parseEntity: (_content: string) =>
+		({
+			entity: { uuid: 'test', content: { name: 'Test' } } as TestEntity,
+			success: true,
+		}) as ParseContentResult<TestEntity>,
+	parseContent: (_content: string) =>
+		({
+			entity: { name: 'Test' } as TestContent,
+			success: true,
+		}) as ParseContentResult<TestContent>,
+	parseYaml: async (filepath: string) =>
+		({
+			entity: { uuid: 'test' } as TestYaml,
+			filepath,
+			stats: { created_at: '', updated_at: '' },
+			success: true,
+		}) as ParseResult<TestYaml>,
+	parseYamlFromCache: (filepath: string) =>
+		({
+			entity: { uuid: 'test' } as TestYaml,
+			filepath,
+			stats: { created_at: '', updated_at: '' },
+			success: true,
+		}) as ParseResult<TestYaml>,
+	parseYamlFromContent: (_content: string) =>
+		({
+			entity: { uuid: 'test' } as TestYaml,
+			success: true,
+		}) as ParseContentResult<TestYaml>,
+	serializeEntity: (_entity: TestEntity) =>
+		({ entity: '', success: true }) as ParseContentResult<string>,
+	serializeContent: (_content: TestContent) =>
+		({ entity: '', success: true }) as ParseContentResult<string>,
+	serializeYaml: (_yaml: TestYaml) =>
+		({ entity: '', success: true }) as ParseContentResult<string>,
+} satisfies IEntityParser<TestEntity, TestYaml, TestContent>;
 
 const mockSettingsAdapter: IAdapter<PluginSettings> = {
 	data: {} as PluginSettings,
@@ -48,11 +91,11 @@ const mockIndexAdapter: IAdapter<TestIndex> = {
 	initialize: async () => {},
 };
 
-class TestIndexer extends BaseIndexer<TestEntity, TestMetadata, TestYaml, TestIndex> {
+class TestIndexer extends BaseIndexer<TestEntity, TestMetadata, TestYaml, TestContent, TestIndex> {
 	initialize = async () => {};
 	save = async () => {};
-	generateMetadata(data: ParseResult<TestEntity>): TestMetadata {
-		return data.entity;
+	generateMetadata(data: TestEntity, _filepath: string): TestMetadata {
+		return { uuid: data.uuid, name: data.content.name };
 	}
 }
 

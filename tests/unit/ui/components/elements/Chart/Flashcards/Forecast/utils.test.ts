@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { computeForecastData } from '@/ui/components/elements/Chart/Flashcards/Forecast/utils';
-import { CardStatus } from '@/schemas';
+import { CardStatus, CardType } from '@/schemas';
 import type { FlashcardMetadata } from '@/schemas';
 import { State } from 'ts-fsrs';
 
@@ -21,6 +21,7 @@ function makeFlashcard(overrides: Partial<FlashcardMetadata> = {}): FlashcardMet
 		state: State.New,
 		last_review: null,
 		source: null,
+		card_type: CardType.Basic,
 		created_at: now,
 		updated_at: now,
 		...overrides,

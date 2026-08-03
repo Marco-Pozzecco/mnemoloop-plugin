@@ -13,3 +13,8 @@ coverage/
 .idea/
 .pi-subagents-output
 docs
+
+# AI tooling
+.omp
+openspec
+openwiki

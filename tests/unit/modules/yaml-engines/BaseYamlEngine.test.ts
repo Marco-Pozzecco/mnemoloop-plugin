@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Plugin } from 'obsidian';
 import { z } from 'zod';
-import { BaseYamlEngine } from '@/modules/yaml-engines/BaseYamlEngine';
+import { YamlParser } from '@/modules/parsers/_core/Yaml';
 import { createMockPlugin } from '../../../helpers/mock-obsidian';
 
 interface TestEntity {
@@ -12,7 +12,7 @@ interface TestEntity {
 }
 
 // Engine with all-optional schema for tests that rely on parseYaml mock (returns {})
-class TestEngineOptional extends BaseYamlEngine<TestEntity> {
+class TestEngineOptional extends YamlParser<TestEntity> {
 	constructor(plugin: Plugin = {} as Plugin) {
 		super(
 			plugin,
@@ -24,10 +24,10 @@ class TestEngineOptional extends BaseYamlEngine<TestEntity> {
 		);
 	}
 
-	recover = async () => {};
+	recover = async () => ({ data: null, success: false as const });
 }
 
-describe('BaseYamlEngine.decode', () => {
+describe('YamlParser.decode', () => {
 	it('should parse yaml and validate against schema', () => {
 		const engine = new TestEngineOptional();
 		const result = engine.decode('uuid: test-123');
@@ -35,7 +35,7 @@ describe('BaseYamlEngine.decode', () => {
 	});
 });
 
-describe('BaseYamlEngine.extractFmFromContent', () => {
+describe('YamlParser.extractFmFromContent', () => {
 	it('should extract frontmatter and body from content', () => {
 		const engine = new TestEngineOptional();
 		const content = '---\nuuid: test-123\n---\nbody text';
@@ -52,7 +52,7 @@ describe('BaseYamlEngine.extractFmFromContent', () => {
 	});
 });
 
-describe('BaseYamlEngine.removeFrontmatter', () => {
+describe('YamlParser.removeFrontmatter', () => {
 	it('should strip frontmatter from content', () => {
 		const engine = new TestEngineOptional();
 		const content = '---\nuuid: test\n---\nbody text';
@@ -68,7 +68,7 @@ describe('BaseYamlEngine.removeFrontmatter', () => {
 	});
 });
 
-describe('BaseYamlEngine.write', () => {
+describe('YamlParser.write', () => {
 	it('should call processFrontMatter with validated data', async () => {
 		const plugin = createMockPlugin([
 			{ path: 'test.md', content: '---\nuuid: old\n---\nbody content' },
@@ -80,7 +80,7 @@ describe('BaseYamlEngine.write', () => {
 		expect(fileArg.path).toBe('test.md');
 	});
 });
-describe('BaseYamlEngine.extractFmFromFile', () => {
+describe('YamlParser.extractFmFromFile', () => {
 	it('should extract frontmatter via processFrontMatter and return validated data', async () => {
 		const plugin = createMockPlugin([
 			{ path: 'test.md', content: '---\nuuid: test\n---\nbody' },
@@ -98,7 +98,7 @@ describe('BaseYamlEngine.extractFmFromFile', () => {
 	});
 });
 
-describe('BaseYamlEngine.extractFmFromCache', () => {
+describe('YamlParser.extractFmFromCache', () => {
 	it('should extract frontmatter from metadataCache', () => {
 		const plugin = createMockPlugin([]);
 		plugin.app.metadataCache.getFileCache = vi.fn().mockReturnValue({
@@ -126,7 +126,7 @@ describe('BaseYamlEngine.extractFmFromCache', () => {
 	});
 });
 
-describe('BaseYamlEngine.encode', () => {
+describe('YamlParser.encode', () => {
 	it('should encode data into YAML frontmatter string', () => {
 		const engine = new TestEngineOptional();
 		const result = engine.encode({ uuid: 'test', status: 'active' });
@@ -144,7 +144,7 @@ describe('BaseYamlEngine.encode', () => {
 	});
 });
 
-describe('BaseYamlEngine.write', () => {
+describe('YamlParser.write', () => {
 	it('should throw file not found when file does not exist', async () => {
 		const plugin = createMockPlugin([]);
 		const engine = new TestEngineOptional(plugin as unknown as Plugin);

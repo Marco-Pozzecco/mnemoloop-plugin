@@ -1,14 +1,15 @@
+import { Logger } from '@/utils/Logger';
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { Plugin, parseYaml } from 'obsidian';
-import { z } from 'zod';
 import { BaseWriter } from '@/modules/writers/BaseWriter';
-import { BaseYamlEngine } from '@/modules/yaml-engines/BaseYamlEngine';
+import { IEntityParser } from '@/interfaces/parser/IEntityParser';
 import { createMockPlugin } from '../../../helpers/mock-obsidian';
 
 interface TestEntity {
 	[key: string]: unknown;
 	uuid: string;
-	content: string;
+	tags?: string[];
+	content: TestBody;
 }
 
 interface TestMetadata {
@@ -16,26 +17,14 @@ interface TestMetadata {
 	uuid: string;
 	tags?: string[];
 }
-
-interface TestBody {
-	content: string;
-}
-
-class TestYamlEngine extends BaseYamlEngine<TestMetadata> {
-	constructor(plugin: Plugin) {
-		super(plugin, z.object({
-			uuid: z.string(),
-			tags: z.array(z.string()).optional(),
-		}));
-	}
-	recover = async () => {};
-}
+type TestBody = string;
 
 class TestWriter extends BaseWriter<TestEntity, TestMetadata, TestBody> {
-	serializeBody = (body: TestBody) => body.content;
-	deserializeBody = (content: string) => ({ content });
+	constructor(plugin: Plugin, parser: IEntityParser<TestEntity, TestMetadata, TestBody>) {
+		super(plugin, parser);
+	}
 	extractMetadata = (entity: TestEntity) => ({ uuid: entity.uuid });
-	extractBody = (entity: TestEntity) => ({ content: entity.content });
+	extractBody = (entity: TestEntity) => entity.content;
 	getMetadataKeys = () => ['uuid', 'tags'];
 }
 
@@ -45,8 +34,24 @@ describe('BaseWriter', () => {
 
 	beforeEach(() => {
 		plugin = createMockPlugin([{ path: 'test.md', content: '---\nuuid: old\n---\nold body' }]);
-		const yaml = new TestYamlEngine(plugin as unknown as Plugin);
-		writer = new TestWriter(plugin as unknown as Plugin, yaml);
+		const parser: IEntityParser<TestEntity, TestMetadata, TestBody> = {
+			serializeContent: vi.fn().mockImplementation((body: string) => ({
+				entity: body,
+				success: true,
+			})),
+			serializeEntity: vi.fn().mockImplementation((entity: TestEntity) => ({
+				entity: `---\nuuid: ${entity.uuid}\n---\n${entity.content}`,
+				success: true as const,
+			})),
+			parseFile: vi.fn().mockResolvedValue({
+				entity: { uuid: 'old', content: 'old body' },
+				stats: { created_at: '', updated_at: '' },
+				filepath: 'test.md',
+				success: true,
+			}),
+		} as unknown as IEntityParser<TestEntity, TestMetadata, TestBody>;
+		writer = new TestWriter(plugin as unknown as Plugin, parser);
+		vi.spyOn(Logger, 'error').mockImplementation(() => {});
 		vi.mocked(parseYaml).mockImplementation((yaml: string) => {
 			const result: Record<string, unknown> = {};
 			for (const line of yaml.split('\n')) {
@@ -66,12 +71,13 @@ describe('BaseWriter', () => {
 	});
 
 	describe('create', () => {
-		it('should write a new file with body via vault.create and add frontmatter via processFrontMatter', async () => {
+		it('should write a new file with full frontmatter and body in one atomic call', async () => {
 			await writer.create('new.md', { uuid: 'new', content: 'hello world' });
-			expect(plugin.app.vault.create).toHaveBeenCalledWith('new.md', 'hello world');
-			expect(plugin.app.fileManager.processFrontMatter).toHaveBeenCalledTimes(1);
-			const [fileArg] = plugin.app.fileManager.processFrontMatter.mock.calls[0];
-			expect(fileArg.path).toBe('new.md');
+			expect(plugin.app.vault.create).toHaveBeenCalledWith(
+				'new.md',
+				'---\nuuid: new\n---\nhello world',
+			);
+			expect(plugin.app.fileManager.processFrontMatter).not.toHaveBeenCalled();
 		});
 
 		it('should call vault.create when file does not exist', async () => {
@@ -80,9 +86,7 @@ describe('BaseWriter', () => {
 		});
 
 		it('should throw if file already exists', async () => {
-			await expect(writer.create('test.md', { uuid: 'new', content: 'hello' })).rejects.toThrow(
-				'File already exists',
-			);
+			await expect(writer.create('test.md', { uuid: 'new', content: 'hello' })).rejects.toThrow('File already exists');
 		});
 	});
 
@@ -97,9 +101,7 @@ describe('BaseWriter', () => {
 		});
 
 		it('should throw if file does not exist', async () => {
-			await expect(writer.update('missing.md', { uuid: 'new', content: 'hello' })).rejects.toThrow(
-				'File not found',
-			);
+			await expect(writer.update('missing.md', { uuid: 'new', content: 'hello' })).rejects.toThrow('File not found');
 		});
 	});
 
@@ -115,7 +117,7 @@ describe('BaseWriter', () => {
 
 	describe('updateBody', () => {
 		it('should update only body via vault.modify while preserving frontmatter', async () => {
-			await writer.updateBody('test.md', { content: 'new body' });
+			await writer.updateBody('test.md', 'new body');
 			expect(plugin.app.vault.modify).toHaveBeenCalledWith(
 				expect.objectContaining({ path: 'test.md' }),
 				'new body',
