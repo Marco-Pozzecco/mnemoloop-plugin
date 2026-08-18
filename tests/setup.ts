@@ -5,6 +5,10 @@ import { vi } from 'vitest';
 // Use getters so vi.useFakeTimers can intercept them
 globalThis.window ??= {} as typeof globalThis.window;
 for (const fn of ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] as const) {
+	// In a real DOM environment (jsdom) window already provides these and window ===
+	// globalThis, so defining a getter here would recurse infinitely. Only polyfill
+	// when they are missing (plain Node environment).
+	if (fn in globalThis.window) continue;
 	Object.defineProperty(globalThis.window, fn, {
 		get: () => (globalThis as Record<string, unknown>)[fn],
 		configurable: true,
@@ -179,4 +183,55 @@ vi.mock('obsidian', () => ({
 	Platform: {
 		isMobile: false,
 	},
+
+	// View base classes
+	Modal: class MockModal {
+		constructor(_app: unknown) {}
+		open = vi.fn();
+		close = vi.fn();
+		onOpen = vi.fn();
+		onClose = vi.fn();
+	},
+
+	ItemView: class MockItemView {
+		contentEl: HTMLElement;
+		constructor(_leaf?: unknown) {
+			this.contentEl = {} as HTMLElement;
+		}
+		getViewType = vi.fn().mockReturnValue('');
+		getDisplayText = vi.fn().mockReturnValue('');
+		getIcon = vi.fn().mockReturnValue('');
+		onOpen = vi.fn();
+		onClose = vi.fn();
+	},
+
+	App: class MockApp {
+		workspace = {
+			getLeaf: vi.fn(),
+			getLeavesOfType: vi.fn(() => []),
+			getActiveFile: vi.fn(),
+		};
+		vault = {
+			getFiles: vi.fn(() => []),
+			read: vi.fn(),
+			getAbstractFileByPath: vi.fn(),
+		};
+		metadataCache = {
+			getFileCache: vi.fn(),
+			getFirstLinkpathDest: vi.fn(),
+		};
+	},
+
+	PluginSettingTab: class MockPluginSettingTab {
+		constructor(_app: unknown, _plugin: unknown) {}
+		display = vi.fn();
+		hide = vi.fn();
+	},
+
+	MarkdownRenderer: {
+		render: vi.fn(),
+		renderer: vi.fn(),
+	},
+
+	setIcon: vi.fn(),
 }));
