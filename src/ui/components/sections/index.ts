@@ -14,6 +14,16 @@ export { default as DashboardProgress } from './Dashboard/Progress/component.sve
 export type { default as DashboardProgressProps } from './Dashboard/Progress/types';
 export { default as DashboardStatsGrid } from './Dashboard/StatsGrid/component.svelte';
 export type { default as DashboardStatsGridProps } from './Dashboard/StatsGrid/types';
+export { default as ManageFilterBar } from './Manage/FilterBar/component.svelte';
+export type { default as ManageFilterBarProps } from './Manage/FilterBar/types';
+export { default as ManageHeader } from './Manage/Header/component.svelte';
+export type { default as ManageHeaderProps } from './Manage/Header/types';
+export { default as ManageLoadingState } from './Manage/LoadingState/component.svelte';
+export type { default as ManageLoadingStateProps } from './Manage/LoadingState/types';
+export { default as ManagePagination } from './Manage/Pagination/component.svelte';
+export type { default as ManagePaginationProps } from './Manage/Pagination/types';
+export { default as ManageResults } from './Manage/Results/component.svelte';
+export type { default as ManageResultsProps } from './Manage/Results/types';
 export { default as ModalControls } from './Modal/Controls/component.svelte';
 export type { default as ModalControlsProps } from './Modal/Controls/types';
 export { default as Navbar } from './Navbar/component.svelte';
