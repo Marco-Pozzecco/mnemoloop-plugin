@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Banner, Dashboard, Review } from '@/ui/components';
-	import { Analytics } from '@/ui/components/views';
+	import { Analytics, Manage } from '@/ui/components/views';
 	import { Navbar } from '@/ui/components/sections';
 	import { setAppContext } from '@/ui/context/AppContext';
 	import { uiStore } from '@/ui/store/ui.store';
@@ -38,6 +38,8 @@
 			<Review />
 		{:else if currentView === 'dashboard'}
 			<Dashboard />
+		{:else if currentView === 'manage'}
+			<Manage />
 		{:else}
 			<Analytics />
 		{/if}

@@ -6,12 +6,13 @@
 
 	const tabs = [
 		{ value: 'dashboard', icon: 'layout-dashboard', label: 'Dashboard' },
+		{ value: 'manage', icon: 'table-2', label: 'Manage' },
 		{ value: 'analytics', icon: 'bar-chart-3', label: 'Analytics' },
 	] as const;
 
 	function handleValueChange(value: string) {
 		if (value.length === 0 || value === activeTab) return;
-		const tab = value as 'dashboard' | 'analytics';
+		const tab = value as 'dashboard' | 'manage' | 'analytics';
 		activeTab = tab;
 		onTabChange?.(tab);
 	}
