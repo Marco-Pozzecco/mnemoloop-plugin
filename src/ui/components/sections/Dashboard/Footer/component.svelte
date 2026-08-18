@@ -65,7 +65,7 @@
 		onclick={onStartReview}
 	>
 		{#if isLoading}
-			<Icon name="loader-2" className="ml-spin" size={20} />
+			<Icon name="loader-2" class="ml-spin" size={20} />
 			<span>Loading...</span>
 		{:else if hasNextReview}
 			<Icon name="clock" size={20} />

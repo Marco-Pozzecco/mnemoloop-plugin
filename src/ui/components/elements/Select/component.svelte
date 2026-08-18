@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Select } from 'bits-ui';
 	import type { SelectProps } from './types';
+	import { Icon } from '..';
 
 	let {
 		id = `ml-select-${Math.random().toString(36).substring(2, 9)}`,
@@ -14,6 +15,7 @@
 		errorMessage = '',
 		helperText,
 		className = '',
+		ariaLabel = '',
 		onchange,
 		displayAs,
 	}: SelectProps = $props();
@@ -50,7 +52,12 @@
 		{disabled}
 		required={required || false}
 	>
-		<Select.Trigger {id} aria-invalid={hasError} aria-describedby={buildAriaDescribedBy()}>
+		<Select.Trigger
+			{id}
+			aria-label={ariaLabel || undefined}
+			aria-invalid={hasError}
+			aria-describedby={buildAriaDescribedBy()}
+		>
 			{#snippet child({ props })}
 				<button {...props} class="ml-select" type="button">
 					<Select.Value {placeholder}>
@@ -59,6 +66,7 @@
 							{displayAs && selected ? displayAs(selected.value) : (selected?.label ?? '')}
 						{/snippet}
 					</Select.Value>
+					<Icon class="ml-select__icon" name="chevron-down" size={14} />
 				</button>
 			{/snippet}
 		</Select.Trigger>
@@ -139,6 +147,11 @@
 	.ml-select[data-state='open'] {
 		border-color: $interactive-accent;
 		box-shadow: 0 0 0 2px $background-modifier-border-focus;
+
+		& :global(.ml-select__icon) {
+			transform: rotate(180deg);
+			transition: transform $transition-fast;
+		}
 	}
 
 	.ml-select:focus-visible {
