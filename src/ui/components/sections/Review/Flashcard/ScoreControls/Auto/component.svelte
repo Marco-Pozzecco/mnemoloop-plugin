@@ -53,7 +53,7 @@
 			class:incorrect={!isAnswerCorrect}
 		>
 			<Icon
-				className="ml-score-controls__alert-icon"
+				class="ml-score-controls__alert-icon"
 				name={isAnswerCorrect ? 'circle-check-big' : 'circle-x'}
 				size={18}
 			/>
