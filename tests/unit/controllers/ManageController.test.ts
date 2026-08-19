@@ -16,6 +16,7 @@ import { CardStatus, CardType } from '@/schemas';
 import type { Flashcard } from '@/schemas';
 import { ManageController } from '@/ui/controllers/ManageController';
 import { manageStore } from '@/ui/store/manage.store';
+import { Notice } from 'obsidian';
 import { createFlashcardMetadata, createFlashcardYaml } from '../../helpers/factories';
 import { resetSingletons } from '../../helpers/reset-singletons';
 
@@ -36,6 +37,7 @@ describe('ManageController', () => {
 	beforeEach(() => {
 		resetSingletons();
 		manageStore.reset();
+		vi.mocked(Notice).mockClear();
 	});
 
 	afterEach(() => {
@@ -65,9 +67,7 @@ describe('ManageController', () => {
 		const controller = new ManageController();
 		const cards = [createFlashcardMetadata({ uuid: 'uuid-1', file: 'a.md' })];
 
-		await EventBus.instance.publish(
-			new FlashcardIndexStateEvent({ flashcards: cards, total: 1 }),
-		);
+		await EventBus.instance.publish(new FlashcardIndexStateEvent({ flashcards: cards, total: 1 }));
 
 		expect(manageStore.state.flashcards).toEqual(cards);
 		expect(manageStore.state.previews).toEqual({});
@@ -109,10 +109,7 @@ describe('ManageController', () => {
 
 	it('publishes a delete request with the card uuid and removes it optimistically', () => {
 		const card = createFlashcardMetadata({ uuid: 'uuid-1', file: 'a.md' });
-		manageStore.setFlashcards([
-			card,
-			createFlashcardMetadata({ uuid: 'uuid-2', file: 'b.md' }),
-		]);
+		manageStore.setFlashcards([card, createFlashcardMetadata({ uuid: 'uuid-2', file: 'b.md' })]);
 		const controller = new ManageController();
 		const publishSpy = vi.spyOn(EventBus.instance, 'publish');
 
@@ -180,6 +177,7 @@ describe('ManageController', () => {
 		);
 
 		expect(manageStore.state.flashcards[0]?.status).toBe(CardStatus.PAUSED);
+		expect(Notice).toHaveBeenCalledWith('Status saved.');
 		controller.dispose();
 	});
 
@@ -208,6 +206,7 @@ describe('ManageController', () => {
 		);
 
 		expect(manageStore.state.flashcards[0]?.status).toBe(CardStatus.ACTIVE);
+		expect(Notice).toHaveBeenCalledWith("Couldn't save status. Restored the last saved value.");
 		controller.dispose();
 	});
 
@@ -233,6 +232,7 @@ describe('ManageController', () => {
 
 		expect(manageStore.state.flashcards).toHaveLength(1);
 		expect(manageStore.state.flashcards[0]?.uuid).toBe('uuid-1');
+		expect(Notice).toHaveBeenCalledWith('Couldn’t delete flashcard. It has been restored.');
 		controller.dispose();
 	});
 
@@ -256,6 +256,7 @@ describe('ManageController', () => {
 		);
 
 		expect(manageStore.state.flashcards).toEqual([]);
+		expect(Notice).toHaveBeenCalledWith('Flashcard deleted.');
 		controller.dispose();
 	});
 
