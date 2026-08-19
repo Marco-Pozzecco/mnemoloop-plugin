@@ -3,13 +3,25 @@
 	import { cn } from '../../utils';
 	import type ComboboxChipProps from './types';
 
-	let { class: className = '', children, onDelete, icon }: ComboboxChipProps = $props();
+	let {
+		class: className = '',
+		children,
+		onDelete,
+		removeLabel = 'Remove item',
+		icon,
+	}: ComboboxChipProps = $props();
 </script>
 
 <span class={cn('ml-chip', className)}>
 	{@render children?.()}
 	{#if onDelete}
-		<Button class="ml-chip__remove-button" variant="icon" size="small" onclick={onDelete}>
+		<Button
+			class="ml-chip__remove-button"
+			variant="icon"
+			size="small"
+			ariaLabel={removeLabel}
+			onclick={onDelete}
+		>
 			{#if icon}
 				<Icon class="ml-chip__remove-button-icon" name={icon} size={14} />
 			{:else}

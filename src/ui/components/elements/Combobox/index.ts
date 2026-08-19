@@ -35,8 +35,8 @@ import { default as ComboboxCreate } from './Create/component.svelte';
  * - `Root` — holds value/open/inputValue state; bindable for controlled mode.
  * - `Label` — optional visible label.
  * - `Input` — searchable text input (driven by Root's `inputValue`).
- * - `Trigger` — chevron toggle button, absolutely positioned; place it in a `position: relative` container.
- * - `Content` — floating dropdown panel.
+ * - `Trigger` — toggle button and the default floating anchor; it may be positioned inside a `position: relative` container.
+ * - `Content` — floating dropdown panel. Pass `customAnchor` only to override the trigger anchor.
  * - `Viewport` — scrollable item container.
  * - `Item` — pre-styled listbox option (default shows label + check indicator when selected).
  * - `ItemLabel` / `ItemIndicator` — styled parts for custom item content.

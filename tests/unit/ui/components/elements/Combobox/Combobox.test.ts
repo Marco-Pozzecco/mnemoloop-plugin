@@ -6,6 +6,7 @@ import ComboboxRoot from '@/ui/components/elements/Combobox/Root/component.svelt
 import ComboboxInput from '@/ui/components/elements/Combobox/Input/component.svelte';
 import ComboboxTrigger from '@/ui/components/elements/Combobox/Trigger/component.svelte';
 import ComboboxItem from '@/ui/components/elements/Combobox/Item/component.svelte';
+import Chip from '@/ui/components/elements/Chip/component.svelte';
 import { canCreateNew, filterOptions } from '@/ui/components/elements/Combobox/utils';
 
 describe('filterOptions', () => {
@@ -71,5 +72,14 @@ describe('Combobox compound', () => {
 		});
 		expect(body).toContain('ml-combobox');
 		expect(body).toContain('inner content');
+	});
+
+	it('forwards an accessible remove label to a chip button', () => {
+		const children = createRawSnippet(() => ({ render: () => 'Math' }));
+		const onDelete = () => {};
+		const { body } = render(Chip, {
+			props: { children, onDelete, removeLabel: 'Remove Math' },
+		});
+		expect(body).toContain('aria-label="Remove Math"');
 	});
 });

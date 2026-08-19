@@ -41,7 +41,7 @@ function tick() {
 }
 
 function plusButton(label: string): HTMLButtonElement {
-	const plus = document.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`);
+	const plus = activeDocument.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`);
 	if (!plus) throw new Error(`plus not found: ${label}`);
 	return plus;
 }
@@ -60,7 +60,7 @@ function openPicker(label: string): void {
 }
 
 function inputEl(): HTMLInputElement {
-	const input = document.querySelector<HTMLInputElement>('input.ml-combobox__input');
+	const input = activeDocument.querySelector<HTMLInputElement>('input.ml-combobox__input');
 	if (!input) throw new Error('combobox input not found');
 	return input;
 }
@@ -77,18 +77,18 @@ function pressKey(key: string): void {
 }
 
 function openContentCount(): number {
-	return document.querySelectorAll('.ml-combobox__content').length;
+	return activeDocument.querySelectorAll('.ml-combobox__content').length;
 }
 
 function chips(rowSelector: string): string[] {
-	return Array.from(
-		document.querySelectorAll<HTMLElement>(`${rowSelector} .ml-chip`),
-	).map((el) => el.textContent?.trim() ?? '');
+	return Array.from(activeDocument.querySelectorAll<HTMLElement>(`${rowSelector} .ml-chip`)).map(
+		(el) => el.textContent?.trim() ?? '',
+	);
 }
 
 function selectedItemLabels(): string[] {
 	return Array.from(
-		document.querySelectorAll<HTMLElement>(
+		activeDocument.querySelectorAll<HTMLElement>(
 			'.ml-combobox__item[data-selected] .ml-combobox__item-label',
 		),
 	).map((el) => el.textContent?.trim() ?? '');
@@ -99,8 +99,8 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 	let instance: ReturnType<typeof mount>;
 
 	beforeEach(() => {
-		target = document.createElement('div');
-		document.body.appendChild(target);
+		target = activeDocument.createElement('div');
+		activeDocument.body.appendChild(target);
 	});
 
 	afterEach(() => {
@@ -131,11 +131,11 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 		expect(selectedItemLabels()).toEqual(['Math', 'Lang']);
 		// The display shows the card's decks as plain chips — no draft/remove controls.
 		expect(chips('.desktop-row')).toEqual(['Math', 'Lang']);
-		expect(document.querySelectorAll('.ml-combobox__chip')).toHaveLength(0);
+		expect(activeDocument.querySelectorAll('.ml-combobox__chip')).toHaveLength(0);
 
 		markStep('select');
 		const spanish = Array.from(
-			document.querySelectorAll<HTMLElement>('.ml-combobox__item'),
+			activeDocument.querySelectorAll<HTMLElement>('.ml-combobox__item'),
 		).find((el) => el.textContent?.includes('Spanish'));
 		expect(spanish).toBeTruthy();
 		spanish!.dispatchEvent(
@@ -160,7 +160,7 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 		expect(selectedItemLabels()).toEqual(['Math', 'Lang']);
 
 		const mathItem = Array.from(
-			document.querySelectorAll<HTMLElement>('.ml-combobox__item'),
+			activeDocument.querySelectorAll<HTMLElement>('.ml-combobox__item'),
 		).find((el) => el.textContent?.trim() === 'Math');
 		expect(mathItem).toBeTruthy();
 		mathItem!.dispatchEvent(
@@ -189,7 +189,7 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 		await tick();
 		await tick();
 		expect(
-			Array.from(document.querySelectorAll<HTMLElement>('.ml-combobox__create')).some((el) =>
+			Array.from(activeDocument.querySelectorAll<HTMLElement>('.ml-combobox__create')).some((el) =>
 				el.textContent?.includes('NewDeck'),
 			),
 		).toBe(true);
@@ -268,7 +268,7 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 		// Simulate focus leaving the overlay: the dismissible layer tracks focus-inside
 		// via a blur-capture listener, so blur the input, then focus an element outside.
 		inputEl().dispatchEvent(new FocusEvent('blur', { bubbles: false }));
-		document.body.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+		activeDocument.body.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
 		await tick();
 		await tick();
 
@@ -302,7 +302,7 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 		expect(openContentCount()).toBe(1);
 
 		const mathItem = Array.from(
-			document.querySelectorAll<HTMLElement>('.ml-combobox__item'),
+			activeDocument.querySelectorAll<HTMLElement>('.ml-combobox__item'),
 		).find((el) => el.textContent?.trim() === 'Math');
 		expect(mathItem).toBeTruthy();
 		mathItem!.dispatchEvent(

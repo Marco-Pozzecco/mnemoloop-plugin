@@ -94,7 +94,7 @@
 			<span class="ml-manage-deck-cell__muted">No decks</span>
 		{:else}
 			{#each card.decks as deck (deck)}
-				<Chip onDelete={() => onRemoveDeck(deck)}>{deck}</Chip>
+				<Chip removeLabel={`Remove ${deck}`} onDelete={() => onRemoveDeck(deck)}>{deck}</Chip>
 			{/each}
 		{/if}
 		<Combobox.Trigger class="ml-manage-deck-cell__plus" ariaLabel={`Add deck to ${card.file}`}>

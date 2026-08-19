@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Combobox } from 'bits-ui';
+	import { getComboboxContext } from '../context';
 	import type ComboboxContentProps from './types';
 
 	let {
@@ -7,16 +8,21 @@
 		align = 'start',
 		sideOffset = 4,
 		forceMount = false,
+		customAnchor,
 		class: className = '',
 		children,
 		...rest
 	}: ComboboxContentProps = $props();
+
+	const context = getComboboxContext();
+	const resolvedAnchor = $derived(customAnchor === undefined ? context.trigger : customAnchor);
 
 	let ContentProps = $derived({
 		...rest,
 		side,
 		align,
 		sideOffset,
+		customAnchor: resolvedAnchor,
 	});
 </script>
 

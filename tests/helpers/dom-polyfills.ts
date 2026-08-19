@@ -6,6 +6,9 @@
 
 const g = globalThis as unknown as Record<string, unknown>;
 
+// Obsidian routes DOM work through this active-window-aware global.
+g.activeDocument = g.document;
+
 if (typeof g.ResizeObserver === 'undefined') {
 	class ResizeObserverStub {
 		observe(): void {}
@@ -41,8 +44,8 @@ if (typeof g.matchMedia === 'undefined') {
 
 if (typeof g.requestAnimationFrame === 'undefined') {
 	g.requestAnimationFrame = (cb: FrameRequestCallback) =>
-		setTimeout(() => cb(Date.now()), 0) as unknown as number;
-	g.cancelAnimationFrame = (id: number) => clearTimeout(id);
+		window.setTimeout(() => cb(Date.now()), 0) as unknown as number;
+	g.cancelAnimationFrame = (id: number) => window.clearTimeout(id);
 }
 
 if (typeof g.PointerEvent === 'undefined') {
