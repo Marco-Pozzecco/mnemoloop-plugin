@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { get } from 'svelte/store';
 import { settingsStore } from '@/ui/store/settings.store';
-import { EventBus, SettingsAdapterStateEvent } from '@/modules/events';
+import {
+	EventBus,
+	SettingsAdapterStateEvent,
+} from '@/modules/events';
 import { DEFAULT_PLUGIN_SETTINGS } from '@/schemas/settings';
 
 describe('SettingsStore', () => {
@@ -40,5 +44,43 @@ describe('SettingsStore', () => {
 
 		expect(listener).toHaveBeenCalledWith(mockSettings);
 		unsubscribe();
+	});
+
+	it('publishes a valid source-note nested update', async () => {
+		const publish = vi.spyOn(EventBus.instance, 'publish').mockResolvedValue('request-id');
+
+		const updated = await settingsStore.updateNestedField(
+			['source_note', 'watch', 'directory'],
+			' /notes ',
+		);
+
+		expect(updated).toBe(true);
+		expect(publish).toHaveBeenCalledWith(
+			expect.objectContaining({
+				data: expect.objectContaining({
+					source_note: expect.objectContaining({
+						watch: expect.objectContaining({ directory: '/notes' }),
+					}),
+				}),
+			}),
+		);
+		publish.mockRestore();
+	});
+
+	it('rejects invalid source-note nested updates without publishing', async () => {
+		const publish = vi.spyOn(EventBus.instance, 'publish').mockResolvedValue('request-id');
+
+		const updated = await settingsStore.updateNestedField(
+			['source_note', 'watch', 'tags'],
+			['#biology', 'biology'],
+		);
+
+		expect(updated).toBe(false);
+		expect(publish).not.toHaveBeenCalled();
+		expect(get(settingsStore.fieldErrors)['source_note.watch.tags']).toContain(
+			'Source note tags must start with',
+		);
+		expect(get(settingsStore.isLoading)).toBe(false);
+		publish.mockRestore();
 	});
 });

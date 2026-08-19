@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { Plugin } from 'obsidian';
 import { SettingsAdapter } from '@/modules/adapters/SettingsAdapter';
-import { DEFAULT_PLUGIN_SETTINGS } from '@/schemas/settings';
+import { DEFAULT_PLUGIN_SETTINGS, PluginSettingsSchema } from '@/schemas/settings';
 import { createMockPlugin } from '../../../helpers/mock-obsidian';
 
 describe('SettingsAdapter', () => {
@@ -62,6 +62,104 @@ describe('SettingsAdapter', () => {
 			expect(p.saveData).toHaveBeenCalledWith(
 				expect.objectContaining({ debounce_timeout_ms: 1000 }),
 			);
+		});
+	});
+
+	describe('source-note settings', () => {
+		it('keeps source detection disabled by default', () => {
+			expect(adapter.data.source_note.watch).toEqual({ directory: '', tags: [] });
+		});
+
+		it('accepts and normalizes source-note settings', async () => {
+			const p = plugin as Record<string, unknown>;
+			p.loadData = vi.fn().mockResolvedValue({
+				...DEFAULT_PLUGIN_SETTINGS,
+				source_note: {
+					watch: {
+						directory: ' /notes ',
+						tags: [' #biology ', '#chemistry'],
+					},
+				},
+			});
+
+			await adapter.initialize();
+
+			expect(adapter.data.source_note.watch).toEqual({
+				directory: '/notes',
+				tags: ['#biology', '#chemistry'],
+			});
+			expect(p.saveData).not.toHaveBeenCalled();
+		});
+
+		it('accepts explicit empty source-note criteria', async () => {
+			const p = plugin as Record<string, unknown>;
+			p.loadData = vi.fn().mockResolvedValue({
+				...DEFAULT_PLUGIN_SETTINGS,
+				source_note: { watch: { directory: '', tags: [] } },
+			});
+
+			await adapter.initialize();
+
+			expect(adapter.data.source_note.watch).toEqual({ directory: '', tags: [] });
+			expect(p.saveData).not.toHaveBeenCalled();
+		});
+
+		it('recovers invalid source-note settings from defaults', async () => {
+			const p = plugin as Record<string, unknown>;
+			p.loadData = vi.fn().mockResolvedValue({
+				...DEFAULT_PLUGIN_SETTINGS,
+				source_note: {
+					watch: {
+						directory: 'notes',
+						tags: ['#biology'],
+					},
+				},
+			});
+
+			await adapter.initialize();
+
+			expect(adapter.data.source_note.watch).toEqual({
+				directory: '',
+				tags: ['#biology'],
+			});
+			expect(p.saveData).toHaveBeenCalledTimes(1);
+		});
+
+		it('recovers missing source-note settings without discarding legacy values', async () => {
+			const p = plugin as Record<string, unknown>;
+			const legacySettings = {
+				...DEFAULT_PLUGIN_SETTINGS,
+				source_note: undefined,
+				debounce_timeout_ms: 1000,
+			};
+			delete legacySettings.source_note;
+			p.loadData = vi.fn().mockResolvedValue(legacySettings);
+
+			await adapter.initialize();
+
+			expect(adapter.data.debounce_timeout_ms).toBe(1000);
+			expect(adapter.data.source_note.watch).toEqual({ directory: '', tags: [] });
+			expect(p.saveData).toHaveBeenCalledTimes(1);
+			expect(p.saveData).toHaveBeenCalledWith(
+				expect.objectContaining({
+					debounce_timeout_ms: 1000,
+					source_note: { watch: { directory: '', tags: [] } },
+				}),
+			);
+		});
+
+		it('rejects invalid source directories and tags', () => {
+			const result = PluginSettingsSchema.safeParse({
+				...DEFAULT_PLUGIN_SETTINGS,
+				source_note: {
+					watch: {
+						directory: 'notes',
+						tags: ['biology'],
+					},
+				},
+			});
+
+			expect(result.success).toBe(false);
 		});
 	});
 });
