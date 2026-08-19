@@ -36,6 +36,10 @@ describe('ManageDeleteConfirmation interaction', () => {
 
 		const dialog = target.querySelector<HTMLElement>('[role="alertdialog"]');
 		expect(dialog).toBeTruthy();
+		expect(dialog?.getAttribute('role')).toBe('alertdialog');
+		expect(dialog?.textContent).toContain('Front content');
+		expect(dialog?.textContent).toContain('permanently removed from your vault');
+		expect(dialog?.textContent).toContain('Delete flashcard');
 		expect(dialog?.getAttribute('aria-labelledby')).toBeTruthy();
 		expect(dialog?.getAttribute('aria-describedby')).toBeTruthy();
 		expect(dialog?.querySelectorAll('button')).toHaveLength(2);
