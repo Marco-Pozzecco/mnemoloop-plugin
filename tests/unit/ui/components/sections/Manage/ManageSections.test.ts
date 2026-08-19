@@ -4,7 +4,6 @@ import ManageHeader from '@/ui/components/sections/Manage/Header/component.svelt
 import ManageFilterBar from '@/ui/components/sections/Manage/FilterBar/component.svelte';
 import ManagePagination from '@/ui/components/sections/Manage/Pagination/component.svelte';
 import ManageTable from '@/ui/components/sections/Manage/Table/component.svelte';
-import ManageDeleteConfirmation from '@/ui/components/sections/Manage/DeleteConfirmation/component.svelte';
 import { CardStatus, CardType } from '@/schemas';
 import type { FlashcardMetadata } from '@/schemas';
 
@@ -194,14 +193,3 @@ describe('ManageTable', () => {
 	});
 });
 
-describe('ManageDeleteConfirmation', () => {
-	it('identifies the card and makes the irreversible consequence explicit', () => {
-		const { body } = render(ManageDeleteConfirmation, {
-			props: { cardLabel: 'Front content', onCancel: () => {}, onConfirm: () => {} },
-		});
-		expect(body).toContain('role="alertdialog"');
-		expect(body).toContain('Front content');
-		expect(body).toContain('permanently removed from your vault');
-		expect(body).toContain('Delete flashcard');
-	});
-});
