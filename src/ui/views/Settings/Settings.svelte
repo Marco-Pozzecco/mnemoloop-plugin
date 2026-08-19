@@ -3,6 +3,7 @@
 	import DataManagement from '@/ui/components/sections/Settings/DataManagement/component.svelte';
 	import FlashcardConfig from '@/ui/components/sections/Settings/FlashcardConfig/component.svelte';
 	import FsrsParams from '@/ui/components/sections/Settings/FsrsParams/component.svelte';
+	import SourceNoteConfig from '@/ui/components/sections/Settings/SourceNoteConfig/component.svelte';
 	import { settingsStore } from '@/ui/store/settings.store';
 
 	// Access the individual Svelte stores from the SettingsStore instance
@@ -17,8 +18,10 @@
 
 	// Event handlers
 	async function handleNestedFieldChange(path: string[], value: unknown) {
-		await settingsStore.updateNestedField(path, value);
-		await settingsStore.save();
+		const updated = await settingsStore.updateNestedField(path, value);
+		if (updated) {
+			await settingsStore.save();
+		}
 	}
 
 	async function handleFieldChange(key: string, value: unknown) {
@@ -44,6 +47,13 @@
 		<FlashcardConfig
 			{settings}
 			onFieldChange={handleFieldChange}
+			onNestedFieldChange={handleNestedFieldChange}
+			{hasError}
+			{getError}
+		/>
+
+		<SourceNoteConfig
+			{settings}
 			onNestedFieldChange={handleNestedFieldChange}
 			{hasError}
 			{getError}
