@@ -1,3 +1,4 @@
+import { normalizePath } from 'obsidian';
 import { z } from 'zod';
 
 // Watch configuration schema per entity
@@ -7,6 +8,39 @@ const StepUnitSchema = z.string().regex(/^\d+[mhd]$/);
 export const WatchConfigSchema = z.object({
 	directory: z.string().min(1).startsWith('/'), // relative to vault root
 	tags: z.array(z.string().startsWith('#')),
+});
+
+export function normalizeSourceNoteDirectory(directory: string): string {
+	const trimmedDirectory = directory.trim();
+	if (trimmedDirectory === '') {
+		return '';
+	}
+
+	const normalizedDirectory = normalizePath(trimmedDirectory);
+	return normalizedDirectory === '/' ? normalizedDirectory : normalizedDirectory.replace(/\/+$/, '');
+}
+
+export function normalizeSourceNoteTag(tag: string): string {
+	return tag.trim();
+}
+
+const SourceNoteDirectorySchema = z
+	.string()
+	.transform(normalizeSourceNoteDirectory)
+	.refine((directory) => directory === '' || directory.startsWith('/'), {
+		message: 'Source note directory must be empty or start with /',
+	});
+
+const SourceNoteTagSchema = z
+	.string()
+	.transform(normalizeSourceNoteTag)
+	.refine((tag) => tag.startsWith('#'), {
+		message: "Source note tags must start with '#'",
+	});
+
+export const SourceNoteWatchConfigSchema = z.object({
+	directory: SourceNoteDirectorySchema,
+	tags: z.array(SourceNoteTagSchema),
 });
 
 export const FsrsConfigSchema = z.object({
@@ -23,6 +57,9 @@ export const PluginSettingsSchema = z.object({
 		watch: WatchConfigSchema,
 		marker: z.string().min(1),
 		fsrs: FsrsConfigSchema,
+	}),
+	source_note: z.object({
+		watch: SourceNoteWatchConfigSchema,
 	}),
 	debounce_timeout_ms: z.number().min(100).max(5000),
 	enable_soft_delete: z.boolean(),
@@ -48,6 +85,12 @@ export const DEFAULT_PLUGIN_SETTINGS: PluginSettings = {
 		},
 		fsrs: DEFAULT_FSRS_CONFIG,
 	},
+	source_note: {
+		watch: {
+			directory: '',
+			tags: [],
+		},
+	},
 	debounce_timeout_ms: 500,
 	enable_soft_delete: true,
 	soft_delete_hours: 24,
@@ -56,6 +99,7 @@ export const DEFAULT_PLUGIN_SETTINGS: PluginSettings = {
 
 export type PluginSettings = z.infer<typeof PluginSettingsSchema>;
 export type WatchConfig = z.infer<typeof WatchConfigSchema>;
+export type SourceNoteWatchConfig = z.infer<typeof SourceNoteWatchConfigSchema>;
 export type FsrsConfig = z.infer<typeof FsrsConfigSchema>;
 export const RETENTION_PERIOD_OPTIONS = [
 	{ value: 1, label: '1 hour' },
