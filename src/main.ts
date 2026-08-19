@@ -72,6 +72,7 @@ export default class MnemoloopPlugin extends Plugin {
 		this._vaultWatcher = new VaultWatcher(
 			this,
 			this._adapter.get(AdapterKey.settings) as IAdapter<PluginSettings>,
+			this._indexes.get(IndexKey.flashcard)!,
 		);
 		this.app.workspace.onLayoutReady(() => {
 			this._vaultWatcher?.initialize();
