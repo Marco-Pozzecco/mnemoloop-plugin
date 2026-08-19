@@ -4,6 +4,7 @@ import ManageHeader from '@/ui/components/sections/Manage/Header/component.svelt
 import ManageFilterBar from '@/ui/components/sections/Manage/FilterBar/component.svelte';
 import ManagePagination from '@/ui/components/sections/Manage/Pagination/component.svelte';
 import ManageTable from '@/ui/components/sections/Manage/Table/component.svelte';
+import ManageDeleteConfirmation from '@/ui/components/sections/Manage/DeleteConfirmation/component.svelte';
 import { CardStatus, CardType } from '@/schemas';
 import type { FlashcardMetadata } from '@/schemas';
 
@@ -68,7 +69,7 @@ describe('ManageHeader', () => {
 });
 
 describe('ManageFilterBar', () => {
-	it('renders Type, Status, and Deck selects plus Reset', () => {
+	it('renders Type and Status selects, a searchable deck combobox, and Reset', () => {
 		const { body } = render(ManageFilterBar, {
 			props: {
 				filters: { type: '', status: '', deck: '' },
@@ -80,6 +81,9 @@ describe('ManageFilterBar', () => {
 		expect(body).toContain('>Type');
 		expect(body).toContain('>Status');
 		expect(body).toContain('>Deck');
+		expect(body).toContain('Search filename or deck');
+		expect(body).toContain('All decks');
+		expect(body).toContain('ml-combobox__trigger');
 		expect(body).toContain('Reset filters');
 		expect(body).toContain('ml-manage__filter-select');
 	});
@@ -138,14 +142,34 @@ describe('ManagePagination', () => {
 		expect(buttonTagWithLabel(body, 'Previous page')).not.toContain('disabled');
 		expect(buttonTagWithLabel(body, 'Next page')).not.toContain('disabled');
 	});
+
+	it('renders a result range, first/last controls, and direct page entry', () => {
+		const { body } = render(ManagePagination, {
+			props: {
+				currentPage: 2,
+				totalPages: 5,
+				totalItems: 42,
+				pageSize: 10,
+				onPageChange: () => {},
+			},
+		});
+		expect(body).toContain('Showing 11–20 of 42');
+		expect(body).toContain('Page 2 of 5');
+		expect(buttonTagWithLabel(body, 'First page')).not.toContain('disabled');
+		expect(buttonTagWithLabel(body, 'Last page')).not.toContain('disabled');
+		expect(body).toContain('aria-label="Page number"');
+		expect(body).toContain('>Go');
+	});
 });
 
 describe('ManageTable', () => {
-	it('renders the six column headers', () => {
+	it('renders the six column headers and an accessible table caption', () => {
 		const { body } = render(ManageTable, { props: tableProps() });
 		for (const header of ['Type', 'Content Preview', 'Decks', 'Status', 'Due Date', 'Actions']) {
 			expect(body).toContain(header);
 		}
+		expect(body).toContain('<caption');
+		expect(body).toContain('Manage flashcards');
 	});
 
 	it('renders a row per card with preview, deck chips, and card-specific labels', () => {
@@ -167,5 +191,17 @@ describe('ManageTable', () => {
 		});
 		expect(body).toContain('A');
 		expect(body).toContain('B');
+	});
+});
+
+describe('ManageDeleteConfirmation', () => {
+	it('identifies the card and makes the irreversible consequence explicit', () => {
+		const { body } = render(ManageDeleteConfirmation, {
+			props: { cardLabel: 'Front content', onCancel: () => {}, onConfirm: () => {} },
+		});
+		expect(body).toContain('role="alertdialog"');
+		expect(body).toContain('Front content');
+		expect(body).toContain('permanently removed from your vault');
+		expect(body).toContain('Delete flashcard');
 	});
 });

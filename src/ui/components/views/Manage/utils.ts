@@ -10,10 +10,20 @@ export function filterFlashcards(
 	cards: FlashcardMetadata[],
 	filters: ManageFilters,
 ): FlashcardMetadata[] {
+	const query = (filters.query ?? '').trim().toLowerCase();
+	const selectedDeck = filters.deck.trim().toLowerCase();
+
 	return cards.filter((card) => {
 		if (filters.type && card.card_type !== filters.type) return false;
 		if (filters.status && card.status !== filters.status) return false;
-		if (filters.deck && !card.decks.includes(filters.deck)) return false;
+		if (selectedDeck && !card.decks.some((deck) => deck.trim().toLowerCase() === selectedDeck))
+			return false;
+		if (
+			query &&
+			!card.file.toLowerCase().includes(query) &&
+			!card.decks.some((deck) => deck.toLowerCase().includes(query))
+		)
+			return false;
 		return true;
 	});
 }

@@ -10,9 +10,11 @@ export interface ManageFilters {
 	status: CardStatus | '';
 	/** '' = all decks */
 	deck: string;
+	/** Session-only, case-insensitive search over filename/path and deck names. */
+	query?: string;
 }
 
-export const EMPTY_MANAGE_FILTERS: ManageFilters = { type: '', status: '', deck: '' };
+export const EMPTY_MANAGE_FILTERS: ManageFilters = { type: '', status: '', deck: '', query: '' };
 
 type ManageState = {
 	flashcards: FlashcardMetadata[];
@@ -64,6 +66,15 @@ export class ManageStore extends BaseStoreManager<ManageState> {
 
 	setFilters(filters: ManageFilters): void {
 		this.store.update((state) => ({ ...state, filters, currentPage: 1 }));
+	}
+
+	/** Update the session query and return to the first result page. */
+	setQuery(query: string): void {
+		this.store.update((state) => ({
+			...state,
+			filters: { ...state.filters, query },
+			currentPage: 1,
+		}));
 	}
 
 	setCurrentPage(page: number): void {

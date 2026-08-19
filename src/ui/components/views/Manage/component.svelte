@@ -10,7 +10,7 @@
 	import { ManageController } from '@/ui/controllers/ManageController';
 	import { getAppContext } from '@/ui/context/AppContext';
 	import { modalStore, ModalViewEnum } from '@/ui/store/modal.store';
-	import { manageStore } from '@/ui/store/manage.store';
+	import { EMPTY_MANAGE_FILTERS, manageStore } from '@/ui/store/manage.store';
 	import type { ManageFilters } from '@/ui/store/manage.store';
 	import { SvelteModal } from '@/ui/views/Modal/ModalView';
 	import { ModalClassNames } from '@/ui/views/Modal/types';
@@ -113,7 +113,7 @@
 		filters={storeState.filters}
 		{deckOptions}
 		onChange={handleFilterChange}
-		onReset={() => manageStore.setFilters({ type: '', status: '', deck: '' })}
+		onReset={() => manageStore.setFilters({ ...EMPTY_MANAGE_FILTERS })}
 	/>
 
 	<!-- Results -->
@@ -130,7 +130,7 @@
 		onEdit={(card) => void handleEdit(card)}
 		onDelete={handleDelete}
 		onAdd={handleAdd}
-		onReset={() => manageStore.setFilters({ type: '', status: '', deck: '' })}
+		onReset={() => manageStore.setFilters({ ...EMPTY_MANAGE_FILTERS })}
 	/>
 
 	{#if filtered.length > 0}
@@ -138,8 +138,9 @@
 		<ManagePagination
 			currentPage={paged.safePage}
 			totalPages={paged.totalPages}
-			onPrevious={() => manageStore.setCurrentPage(storeState.currentPage - 1)}
-			onNext={() => manageStore.setCurrentPage(storeState.currentPage + 1)}
+			totalItems={filtered.length}
+			pageSize={MANAGE_PAGE_SIZE}
+			onPageChange={(page) => manageStore.setCurrentPage(page)}
 		/>
 	{/if}
 </div>
