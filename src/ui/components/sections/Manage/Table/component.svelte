@@ -27,7 +27,7 @@
 
 <div class="ml-manage-table {className ?? ''}">
 	<div class="ml-manage-table__wrap">
-		<Table.Root className="ml-manage-table__grid">
+		<Table.Root caption="Manage flashcards" className="ml-manage-table__grid">
 			<Table.Head>
 				<Table.Row>
 					<Table.Th scope="col">Type</Table.Th>
@@ -58,7 +58,7 @@
 	<!-- Mobile stacked-card presentation -->
 	<div class="ml-manage-table__mobile">
 		{#each cards as card (card.uuid)}
-			<article class="ml-manage-card">
+			<article class="ml-manage-card" aria-label={`Flashcard: ${labelFor(card)}`}>
 				<header class="ml-manage-card__header">
 					<span class="ml-manage-card__badge ml-manage-card__badge--{card.card_type}">
 						{card.card_type}
@@ -213,7 +213,7 @@
 	}
 
 	.ml-manage-card__badge--cloze {
-		color: $text-error;
+		color: $text-normal;
 	}
 
 	@media (max-width: 480px) {

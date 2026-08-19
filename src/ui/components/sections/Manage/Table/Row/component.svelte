@@ -83,7 +83,7 @@
 	}
 
 	.ml-manage-row__badge--cloze {
-		color: $text-error;
+		color: $text-normal;
 	}
 
 	.ml-manage-row__preview {
