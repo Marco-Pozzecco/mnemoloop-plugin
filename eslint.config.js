@@ -19,6 +19,7 @@ export default defineConfig(
 			'main.js',
 			'**/*.json',
 			'vitest.config.ts',
+			'vitest.dom.config.ts',
 		],
 	},
 	prettier,
