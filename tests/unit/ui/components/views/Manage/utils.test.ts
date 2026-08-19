@@ -1,15 +1,39 @@
 import { describe, expect, it } from 'vitest';
 import { CardStatus, CardType } from '@/schemas';
 import type { Flashcard } from '@/schemas';
-import { MANAGE_PAGE_SIZE, buildCardPreview, filterFlashcards, paginate } from '@/ui/components/views/Manage/utils';
-import { createCloze, createFlashcardMetadata, createSequence } from '../../../../../helpers/factories';
+import {
+	MANAGE_PAGE_SIZE,
+	buildCardPreview,
+	filterFlashcards,
+	paginate,
+} from '@/ui/components/views/Manage/utils';
+import {
+	createCloze,
+	createFlashcardMetadata,
+	createSequence,
+} from '../../../../../helpers/factories';
 
 describe('Manage utils', () => {
 	describe('filterFlashcards', () => {
 		const cards = [
-			createFlashcardMetadata({ uuid: 'a', card_type: CardType.Basic, status: CardStatus.ACTIVE, decks: ['Maths'] }),
-			createFlashcardMetadata({ uuid: 'b', card_type: CardType.Quiz, status: CardStatus.PAUSED, decks: ['Maths'] }),
-			createFlashcardMetadata({ uuid: 'c', card_type: CardType.Basic, status: CardStatus.ACTIVE, decks: ['Science'] }),
+			createFlashcardMetadata({
+				uuid: 'a',
+				card_type: CardType.Basic,
+				status: CardStatus.ACTIVE,
+				decks: ['Maths'],
+			}),
+			createFlashcardMetadata({
+				uuid: 'b',
+				card_type: CardType.Quiz,
+				status: CardStatus.PAUSED,
+				decks: ['Maths'],
+			}),
+			createFlashcardMetadata({
+				uuid: 'c',
+				card_type: CardType.Basic,
+				status: CardStatus.ACTIVE,
+				decks: ['Science'],
+			}),
 		];
 
 		it('filters by card type', () => {
@@ -39,6 +63,29 @@ describe('Manage utils', () => {
 		it('returns all cards when every filter is "All"', () => {
 			const result = filterFlashcards(cards, { type: '', status: '', deck: '' });
 			expect(result).toHaveLength(3);
+		});
+
+		it('searches filename/path and deck names case-insensitively without card content', () => {
+			const result = filterFlashcards(
+				[
+					createFlashcardMetadata({ uuid: 'path', file: 'Lessons/Algebra.md', decks: ['Maths'] }),
+					createFlashcardMetadata({ uuid: 'deck', file: 'notes/biology.md', decks: ['SCIENCE'] }),
+					createFlashcardMetadata({
+						uuid: 'other',
+						file: 'notes/history.md',
+						decks: ['Humanities'],
+					}),
+				],
+				{ type: '', status: '', deck: '', query: '  SCI  ' },
+			);
+			expect(result.map((card) => card.uuid)).toEqual(['deck']);
+
+			expect(
+				filterFlashcards(
+					[createFlashcardMetadata({ uuid: 'path', file: 'Lessons/Algebra.md', decks: [] })],
+					{ type: '', status: '', deck: '', query: 'algebra' },
+				),
+			).toHaveLength(1);
 		});
 	});
 
@@ -74,7 +121,11 @@ describe('Manage utils', () => {
 		it('builds a Basic preview from the front field', () => {
 			const card = {
 				...createFlashcardMetadata({ card_type: CardType.Basic }),
-				content: { meta_type: CardType.Basic, front: 'What is the capital of France?', back: 'Paris' },
+				content: {
+					meta_type: CardType.Basic,
+					front: 'What is the capital of France?',
+					back: 'Paris',
+				},
 			} as unknown as Flashcard;
 			expect(buildCardPreview(card)).toBe('What is the capital of France?');
 		});
@@ -87,7 +138,12 @@ describe('Manage utils', () => {
 		it('builds a Quiz preview from the question field', () => {
 			const card = {
 				...createFlashcardMetadata({ card_type: CardType.Quiz }),
-				content: { meta_type: CardType.Quiz, question: 'Pick one', options: ['a', 'b'], correct_index: 0 },
+				content: {
+					meta_type: CardType.Quiz,
+					question: 'Pick one',
+					options: ['a', 'b'],
+					correct_index: 0,
+				},
 			} as unknown as Flashcard;
 			expect(buildCardPreview(card)).toBe('Pick one');
 		});
