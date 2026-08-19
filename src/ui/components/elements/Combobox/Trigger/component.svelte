@@ -1,12 +1,34 @@
 <script lang="ts">
 	import { Combobox } from 'bits-ui';
+	import { getComboboxContext } from '../context';
 	import Icon from '../../Icon/component.svelte';
 	import type ComboboxTriggerProps from './types';
 
-	let { ariaLabel, class: className = '', children, ...rest }: ComboboxTriggerProps = $props();
+	let {
+		ref = $bindable(null),
+		ariaLabel,
+		'aria-label': htmlAriaLabel,
+		class: className = '',
+		children,
+		...rest
+	}: ComboboxTriggerProps = $props();
+
+	const context = getComboboxContext();
+
+	$effect(() => {
+		context.trigger = ref;
+		return () => {
+			if (context.trigger === ref) context.trigger = null;
+		};
+	});
 </script>
 
-<Combobox.Trigger {...rest} aria-label={ariaLabel} class="ml-combobox__trigger {className}">
+<Combobox.Trigger
+	bind:ref
+	{...rest}
+	aria-label={ariaLabel ?? htmlAriaLabel ?? 'Open combobox'}
+	class="ml-combobox__trigger {className}"
+>
 	{#if children}
 		{@render children()}
 	{:else}
@@ -26,6 +48,8 @@
 		align-items: center;
 		justify-content: center;
 		padding: $spacing-xxs;
+		min-width: 32px;
+		min-height: 32px;
 		color: $text-muted;
 		background: none;
 		border: none;
@@ -40,7 +64,15 @@
 
 	:global(.ml-combobox__trigger:focus-visible) {
 		color: $interactive-accent;
-		outline: none;
+		outline: 2px solid $interactive-accent;
+		outline-offset: 2px;
+	}
+
+	@media (pointer: coarse) {
+		:global(.ml-combobox__trigger) {
+			min-width: 44px;
+			min-height: 44px;
+		}
 	}
 
 	:global(.ml-combobox__trigger[data-state='open'] .ml-icon svg) {

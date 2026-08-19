@@ -25,6 +25,8 @@
 	:global(.ml-combobox__input) {
 		width: 100%;
 		padding: $spacing-xs $spacing-sm;
+		/* Keep typed text clear of the overlaid trigger. */
+		padding-right: calc($spacing-xl + $spacing-xs);
 		font-family: inherit;
 		font-size: $font-sm;
 		color: $text-normal;
@@ -50,7 +52,16 @@
 	@media (max-width: 480px) {
 		:global(.ml-combobox__input) {
 			padding: $spacing-xs $spacing-sm;
+			padding-right: calc($spacing-xl + $spacing-xs);
 			font-size: 1rem; /* Prevent iOS zoom */
+		}
+	}
+
+	@media (pointer: coarse) {
+		:global(.ml-combobox__input) {
+			min-height: 44px;
+			/* The coarse-pointer trigger is at least 44px wide. */
+			padding-right: calc($spacing-xl + $spacing-md);
 		}
 	}
 </style>
