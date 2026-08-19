@@ -185,10 +185,37 @@ describe('FlashcardWriterUpdateHandler', () => {
 				content: { meta_type: CardType.Basic, front: 'Q', back: 'A' },
 			}),
 		);
-		expect(bus.publish).toHaveBeenCalledTimes(1);
 		expect(bus.publish).toHaveBeenCalledWith(
-			expect.any(FlashcardWriterUpdateResponseEvent),
+			expect.objectContaining({
+				data: {
+					filepath: '/flashcards/test-uuid.md',
+					requestId: event.id,
+					success: true,
+				},
+			}),
 		);
+		expect(bus.publish).toHaveBeenCalledTimes(1);
+		expect(bus.publish).toHaveBeenCalledWith(expect.any(FlashcardWriterUpdateResponseEvent));
+	});
+	it('publishes a correlated failure response when writer.update rejects', async () => {
+		const loggerError = vi.spyOn(Logger, 'error').mockImplementation(() => {});
+		mockWriter.update = vi.fn().mockRejectedValue(new Error('write failed'));
+		const handler = new FlashcardWriterUpdateHandler(mockDeps);
+		const event = new FlashcardWriterUpdateRequestEvent({ uuid: 'failed-uuid' });
+
+		await handler.handle(event);
+
+		expect(loggerError).toHaveBeenCalledWith('WriterUpdateEventError:', expect.any(Error));
+		expect(bus.publish).toHaveBeenCalledWith(
+			expect.objectContaining({
+				data: {
+					filepath: '/flashcards/failed-uuid.md',
+					requestId: event.id,
+					success: false,
+				},
+			}),
+		);
+		loggerError.mockRestore();
 	});
 });
 
