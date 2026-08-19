@@ -36,6 +36,12 @@ describe('Table element', () => {
 			const { body } = render(TableRoot, { props: { className: 'ml-custom-table' } });
 			expect(body).toContain('ml-custom-table');
 		});
+
+		it('renders a visually-hidden caption when supplied', () => {
+			const { body } = render(TableRoot, { props: { caption: 'Manage flashcards' } });
+			expect(body).toContain('<caption');
+			expect(body).toContain('Manage flashcards');
+		});
 	});
 
 	describe('Table.Head', () => {
