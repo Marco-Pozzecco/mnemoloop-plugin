@@ -2,6 +2,8 @@
 	import { Button, Table } from '@/ui/components/elements';
 	import ManageLoadingState from '../LoadingState/component.svelte';
 	import ManageTable from '../Table/component.svelte';
+	import ManageDeleteConfirmation from '../DeleteConfirmation/component.svelte';
+	import type { FlashcardMetadata } from '@/schemas';
 	import type ManageResultsProps from './types';
 
 	let {
@@ -20,6 +22,17 @@
 		onReset,
 		className,
 	}: ManageResultsProps = $props();
+
+	let pendingDelete = $state<FlashcardMetadata | null>(null);
+
+	function requestDelete(card: FlashcardMetadata): void {
+		pendingDelete = card;
+	}
+
+	function confirmDelete(): void {
+		if (pendingDelete) onDelete(pendingDelete);
+		pendingDelete = null;
+	}
 </script>
 
 <div class="ml-manage-results {className ?? ''}">
@@ -52,7 +65,15 @@
 			{onRemoveDeck}
 			{onStatusChange}
 			{onEdit}
-			{onDelete}
+			onDelete={requestDelete}
+		/>
+	{/if}
+
+	{#if pendingDelete}
+		<ManageDeleteConfirmation
+			cardLabel={previews[pendingDelete.file] ?? 'this flashcard'}
+			onCancel={() => (pendingDelete = null)}
+			onConfirm={confirmDelete}
 		/>
 	{/if}
 </div>
