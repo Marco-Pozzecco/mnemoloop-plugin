@@ -20,6 +20,10 @@ interface TestCard {
 	status: CardStatus;
 }
 
+type SourceFileLookup = ((path: string) => { basename: string } | null) & {
+	mockReturnValue(value: { basename: string } | null): unknown;
+};
+
 describe('FlashcardStaleOnSourceNoteModifyHandler', () => {
 	let bus: EventBus;
 	let cards: TestCard[];
@@ -29,6 +33,7 @@ describe('FlashcardStaleOnSourceNoteModifyHandler', () => {
 	let writerRequests: FlashcardWriterUpdateRequestEvent[];
 	let handler: FlashcardStaleOnSourceNoteModifyHandler;
 	let unsubscribers: Array<() => void>;
+	let getFileByPath: SourceFileLookup;
 	beforeEach(() => {
 		resetSingletons();
 		vi.clearAllMocks();
@@ -36,12 +41,19 @@ describe('FlashcardStaleOnSourceNoteModifyHandler', () => {
 		cards = [];
 		writerRequests = [];
 		unsubscribers = [];
+		getFileByPath = vi.fn().mockReturnValue({ basename: 'biology' });
 		query = vi.fn<[predicate: (card: FlashcardMetadata) => boolean], FlashcardMetadata[]>(
 			(predicate) => (cards as unknown as FlashcardMetadata[]).filter(predicate),
 		);
 		const indexer = { query } as unknown as FlashcardIndexer;
 		const deps: IEventRegistryDependencies = {
-			plugin: {} as IEventRegistryDependencies['plugin'],
+			plugin: {
+				app: {
+					vault: {
+						getFileByPath,
+					},
+				},
+			} as unknown as IEventRegistryDependencies['plugin'],
 			adapters: new Map(),
 			indexes: new Map([[IndexKey.flashcard, indexer]]),
 			parsers: new Map(),
@@ -88,7 +100,7 @@ describe('FlashcardStaleOnSourceNoteModifyHandler', () => {
 	}
 
 	it('ignores non-source vault entities', async () => {
-		cards = [activeCard('card-1', '[[notes/biology.md]]')];
+		cards = [activeCard('card-1', '[[biology]]')];
 		registerWriter();
 
 		await handler.handle(new VaultModifyEvent({ path: 'notes/biology.md', entity: 'flashcard' }));
@@ -97,19 +109,22 @@ describe('FlashcardStaleOnSourceNoteModifyHandler', () => {
 		expect(Notice).not.toHaveBeenCalled();
 	});
 
-	it('matches only the exact normalized full-path wikilink', async () => {
+	it('matches only the exact basename wikilink from the source file', async () => {
 		cards = [
-			activeCard('exact', '[[notes/biology.md]]'),
-			activeCard('extensionless', '[[notes/biology]]'),
-			activeCard('alias', '[[notes/biology.md|Biology]]'),
-			activeCard('heading', '[[notes/biology.md#Heading]]'),
-			activeCard('block', '[[notes/biology.md#^block]]'),
+			activeCard('exact', '[[biology]]'),
+			activeCard('path', '[[notes/biology.md]]'),
+			activeCard('extensionless', '[[biology.md]]'),
+			activeCard('alias', '[[biology|Biology]]'),
+			activeCard('heading', '[[biology#Heading]]'),
+			activeCard('block', '[[biology#^block]]'),
 			activeCard('null', null),
-			activeCard('other', '[[notes/other.md]]'),
+			activeCard('other', '[[other]]'),
+			activeCard('other-path', '[[notes/other.md]]'),
 		];
 		registerWriter();
 
 		await handler.handle(sourceEvent());
+		expect(getFileByPath).toHaveBeenCalledWith('notes/biology.md');
 
 		expect(query).toHaveBeenCalledTimes(1);
 		expect(writerRequests).toHaveLength(1);
@@ -119,10 +134,22 @@ describe('FlashcardStaleOnSourceNoteModifyHandler', () => {
 		expect(Notice).toHaveBeenCalledWith('1 flashcard became stale');
 	});
 
+	it('ignores source events for files missing from the vault', async () => {
+		getFileByPath.mockReturnValue(null);
+		cards = [activeCard('card-1', '[[biology]]')];
+		registerWriter();
+
+		await handler.handle(sourceEvent());
+
+		expect(query).not.toHaveBeenCalled();
+		expect(writerRequests).toHaveLength(0);
+		expect(Notice).not.toHaveBeenCalled();
+	});
+
 	it('does nothing for an empty direct query or already-stale cards', async () => {
 		cards = [
-			activeCard('other', '[[notes/other.md]]'),
-			{ uuid: 'stale', source: '[[notes/biology.md]]', status: CardStatus.STALE },
+			activeCard('other', '[[other]]'),
+			{ uuid: 'stale', source: '[[biology]]', status: CardStatus.STALE },
 		];
 		registerWriter();
 
@@ -132,7 +159,7 @@ describe('FlashcardStaleOnSourceNoteModifyHandler', () => {
 	});
 
 	it('continues after failed writes and reports only successful transitions', async () => {
-		cards = [activeCard('fail', '[[notes/biology.md]]'), activeCard('success', '[[notes/biology.md]]')];
+		cards = [activeCard('fail', '[[biology]]'), activeCard('success', '[[biology]]')];
 		registerWriter({ fail: false, success: true });
 
 		await handler.handle(sourceEvent());
@@ -143,17 +170,17 @@ describe('FlashcardStaleOnSourceNoteModifyHandler', () => {
 	});
 
 	it('shows no notification when every writer update fails', async () => {
-		cards = [activeCard('fail-1', '[[notes/biology.md]]'), activeCard('fail-2', '[[notes/biology.md]]')];
+		cards = [activeCard('fail-1', '[[biology]]'), activeCard('fail-2', '[[biology]]')];
 		registerWriter({ 'fail-1': false, 'fail-2': false });
-
 		await handler.handle(sourceEvent());
 
 		expect(writerRequests).toHaveLength(2);
 		expect(cards.every((card) => card.status === CardStatus.ACTIVE)).toBe(true);
 		expect(Notice).not.toHaveBeenCalled();
 	});
+
 	it('uses plural notification text for multiple successful transitions', async () => {
-		cards = [activeCard('one', '[[notes/biology.md]]'), activeCard('two', '[[notes/biology.md]]')];
+		cards = [activeCard('one', '[[biology]]'), activeCard('two', '[[biology]]')];
 		registerWriter();
 
 		await handler.handle(sourceEvent());
@@ -162,7 +189,7 @@ describe('FlashcardStaleOnSourceNoteModifyHandler', () => {
 	});
 
 	it('makes repeated source events idempotent after index updates', async () => {
-		cards = [activeCard('card-1', '[[notes/biology.md]]')];
+		cards = [activeCard('card-1', '[[biology]]')];
 		registerWriter();
 
 		await handler.handle(sourceEvent());
