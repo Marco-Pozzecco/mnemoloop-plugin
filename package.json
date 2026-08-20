@@ -20,7 +20,7 @@
 		"typecheck": "tsc --noEmit",
 		"test": "vitest",
 		"test:dom": "vitest --run --config vitest.dom.config.ts",
-		"lint": "eslint",
+		"lint": "eslint --concurrency auto .",
 		"lint:css-prefix": "python scripts/check-css-prefix.py",
 		"format": "prettier --write src/**/*.{ts,tsx,svelte}",
 		"generate-barrels": "python scripts/generate-barrels.py"
