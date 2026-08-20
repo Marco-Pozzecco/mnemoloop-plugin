@@ -161,7 +161,7 @@
 		.ml-card-header,
 		.ml-card-content,
 		.ml-card-footer {
-		padding: $spacing-sm $spacing-md;
+			padding: $spacing-sm $spacing-md;
 		}
 	}
 
@@ -177,7 +177,7 @@
 	}
 
 	:global(.ml-card.ml-card.padding-medium.ml-settings-card .ml-card-content) {
-		padding: $setting-items-padding;
+		padding: $spacing-lg;
 	}
 
 	:global(.ml-card.ml-settings-card .ml-card-content) {
