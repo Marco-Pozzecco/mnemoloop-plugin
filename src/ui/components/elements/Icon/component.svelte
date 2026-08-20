@@ -6,7 +6,7 @@
 		name,
 		size = 16,
 		color,
-		className = '',
+		class: className = '',
 		flipHorizontal = false,
 		flipVertical = false,
 		rotation = 0,
@@ -50,7 +50,7 @@
 	@use 'tokens' as *;
 
 	.ml-icon {
-		display: inline-flex;
+		display: flex;
 		align-items: center;
 		justify-content: center;
 		width: var(--icon-size);

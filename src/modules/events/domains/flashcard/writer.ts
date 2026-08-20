@@ -31,10 +31,16 @@ const FlashcardWriterUpdateRequestEvent =
 	EventFactory.createRequest<FlashcardWriterUpdateEventData>(t.update);
 type FlashcardWriterUpdateRequestEvent = IEvent<FlashcardWriterUpdateEventData>;
 
-const FlashcardWriterUpdateResponseEvent = EventFactory.createResponse<{ filepath: string }>(
-	t.update,
-);
-type FlashcardWriterUpdateResponseEvent = IEvent<{ filepath: string }>;
+const FlashcardWriterUpdateResponseEvent = EventFactory.createResponse<{
+	filepath: string;
+	requestId: string;
+	success: boolean;
+}>(t.update);
+type FlashcardWriterUpdateResponseEvent = IEvent<{
+	filepath: string;
+	requestId: string;
+	success: boolean;
+}>;
 
 type FlashcardWriterDeleteEventData = Pick<Flashcard, 'uuid'>;
 

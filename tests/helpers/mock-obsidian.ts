@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
 import { TFile, TFolder } from 'obsidian';
+import type { TagCache } from 'obsidian';
 
 export interface MockFile {
 	path: string;
@@ -187,19 +188,32 @@ export function createMockEditor(value: string = '', selection: string = ''): an
 }
 
 /**
- * Create a mock MetadataCache with configurable frontmatter.
+ * Create a mock MetadataCache with configurable frontmatter and complete tags.
  */
-export function createMockMetadataCache(frontmatter?: Record<string, unknown>): any {
+interface MockMethod {
+	mockReturnValue(value: unknown): MockMethod;
+}
+
+interface MockMetadataCache {
+	getFileCache: MockMethod;
+	getFirstLinkpathDest: MockMethod;
+}
+
+export function createMockMetadataCache(
+	frontmatter?: Record<string, unknown>,
+	tags?: TagCache[],
+): MockMetadataCache {
+	const hasCache = frontmatter !== undefined || tags !== undefined;
 	return {
 		getFileCache: vi.fn().mockReturnValue(
-			frontmatter
+			hasCache
 				? {
 						frontmatter,
 						frontmatterPosition: null,
 						headings: [],
 						links: [],
 						embeds: [],
-						tags: [],
+						tags,
 						blocks: {},
 						sections: [],
 					}

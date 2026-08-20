@@ -1,5 +1,7 @@
 import type { IAdapter } from '@/interfaces/IAdapter';
+import type { FlashcardIndexer } from '@/modules/indexers/FlashcardIndexer';
 import type { PluginSettings } from '@/schemas/settings';
+import { normalizeSourceNoteDirectory, normalizeSourceNoteTag } from '@/schemas/settings';
 import { normalizePath, Plugin, TAbstractFile, TFile } from 'obsidian';
 import { EventBus } from '@/modules/events/core';
 import {
@@ -16,6 +18,7 @@ export class VaultWatcher {
 	constructor(
 		private _plugin: Plugin,
 		private _settingsAdapter: IAdapter<PluginSettings>,
+		private _flashcardIndexer: FlashcardIndexer,
 	) {
 		// Vault event registration is deferred to initialize()
 		// so we don't receive the startup flood of Vault:Create
@@ -76,6 +79,86 @@ export class VaultWatcher {
 		if (this._hasWatchedTags(file)) return true;
 
 		return false;
+	}
+
+	private _shouldWatchSourceNote(file: TAbstractFile): boolean {
+		if (!(file instanceof TFile) || file.extension !== 'md') {
+			return false;
+		}
+
+		const { directory, tags } = this._settingsAdapter.data.source_note.watch;
+		if (directory === '' && tags.length === 0) {
+			return false;
+		}
+
+		const matchesCriteria =
+			this._isInSourceNoteDirectory(file.path) || this._hasSourceNoteTags(file);
+		return matchesCriteria && !this._flashcardIndexer.findByFilepath(normalizePath(file.path));
+	}
+
+	private _isInSourceNoteDirectory(filepath: string): boolean {
+		const watchedDirectory = normalizeSourceNoteDirectory(
+			this._settingsAdapter.data.source_note.watch.directory,
+		);
+		if (watchedDirectory === '') {
+			return false;
+		}
+
+		const normalizedPath = normalizePath(filepath).replace(/^\/+/, '');
+		const normalizedDirectory = watchedDirectory.replace(/^\/+/, '');
+		if (normalizedDirectory === '') {
+			return true;
+		}
+
+		return (
+			normalizedPath === normalizedDirectory ||
+			normalizedPath.startsWith(`${normalizedDirectory}/`)
+		);
+	}
+
+	private _hasSourceNoteTags(file: TFile): boolean {
+		const watchedTags = this._settingsAdapter.data.source_note.watch.tags
+			.map(normalizeSourceNoteTag)
+			.filter((tag) => tag.length > 0);
+		if (watchedTags.length === 0) {
+			return false;
+		}
+
+		const cache = this._plugin.app.metadataCache.getFileCache(file);
+		if (cache?.tags !== undefined) {
+			const cachedTags = cache.tags
+				.map((tag) => this._normalizeObservedTag(tag.tag))
+				.filter((tag): tag is string => tag !== undefined);
+			return watchedTags.some((tag) => cachedTags.includes(tag));
+		}
+
+		const frontmatter: unknown = cache?.frontmatter;
+		const frontmatterTags =
+			typeof frontmatter === 'object' && frontmatter !== null && 'tags' in frontmatter
+				? frontmatter.tags
+				: undefined;
+		if (frontmatterTags === undefined) {
+			return false;
+		}
+
+		const tags = Array.isArray(frontmatterTags) ? frontmatterTags : [frontmatterTags];
+		const normalizedTags = tags
+			.map((tag) => this._normalizeObservedTag(tag))
+			.filter((tag): tag is string => tag !== undefined);
+		return watchedTags.some((tag) => normalizedTags.includes(tag));
+	}
+
+	private _normalizeObservedTag(tag: unknown): string | undefined {
+		if (typeof tag !== 'string') {
+			return undefined;
+		}
+
+		const normalizedTag = normalizeSourceNoteTag(tag);
+		if (normalizedTag === '') {
+			return undefined;
+		}
+
+		return normalizedTag.startsWith('#') ? normalizedTag : `#${normalizedTag}`;
 	}
 
 	/**
@@ -164,7 +247,9 @@ export class VaultWatcher {
 		}
 
 		const wasWatched = this._debounceTimers.has(file.path);
-		const isWatched = this._shouldWatchFile(file);
+		const isFlashcardWatched = this._shouldWatchFile(file);
+		const isSourceNoteWatched = this._shouldWatchSourceNote(file);
+		const isWatched = isFlashcardWatched || isSourceNoteWatched;
 
 		if (!isWatched && wasWatched) {
 			this._clearDebounceTimer(file.path);
@@ -186,9 +271,16 @@ export class VaultWatcher {
 		}
 
 		this._setDebounceTimer(file.path, () => {
-			void EventBus.instance.publish(
-				new VaultModifyEvent({ path: file.path, entity: 'flashcard' }),
-			);
+			if (isFlashcardWatched) {
+				void EventBus.instance.publish(
+					new VaultModifyEvent({ path: file.path, entity: 'flashcard' }),
+				);
+			}
+			if (this._shouldWatchSourceNote(file)) {
+				void EventBus.instance.publish(
+					new VaultModifyEvent({ path: normalizePath(file.path), entity: 'source_note' }),
+				);
+			}
 		});
 	}
 

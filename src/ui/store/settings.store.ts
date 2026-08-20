@@ -7,7 +7,7 @@ import {
 	SettingsAdapterStateEvent,
 	SettingsAdapterUpdateRequestEvent,
 } from '@/modules/events';
-import { DEFAULT_PLUGIN_SETTINGS, PluginSettings } from '@/schemas/settings';
+import { DEFAULT_PLUGIN_SETTINGS, PluginSettings, PluginSettingsSchema } from '@/schemas/settings';
 import { writable, Writable } from 'svelte/store';
 import { simpleClone } from '@/utils/Clone';
 import { BaseStoreManager } from './base.store';
@@ -33,13 +33,12 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this.saveError = saveErrorStore;
 		this.fieldErrors = fieldErrorsStore;
 
-		 
 		const handler = async (event: SettingsAdapterStateEvent) => {
 			this.settings.update((state) => {
 				const updated = { ...state, ...event.data };
 				// If the watch config has changed, trigger a flashcard index re-initialize
 				if (state.flashcard.watch.directory !== updated.flashcard.watch.directory) {
-			void EventBus.instance.publish(new FlashcardIndexInitEvent());
+					void EventBus.instance.publish(new FlashcardIndexInitEvent());
 				}
 				return updated;
 			});
@@ -50,7 +49,6 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this._unsubscribe = EventBus.instance.subscribe(SettingsAdapterStateEvent, handler);
 	}
 
-	 
 	async updateField<K extends keyof PluginSettings>(
 		field: K,
 		value: PluginSettings[K],
@@ -62,19 +60,36 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		void EventBus.instance.publish(request);
 	}
 
-	 
-	async updateNestedField(path: string[], value: unknown): Promise<void> {
+	async updateNestedField(path: string[], value: unknown): Promise<boolean> {
 		this.isLoading.update(() => true);
 		this.saveError.update(() => null);
 
 		const currentSettings = simpleClone(this.currentSettings);
 		this.setValueAtPath(currentSettings, path, value);
+		const result = PluginSettingsSchema.safeParse(currentSettings);
 
-		const request = new SettingsAdapterUpdateRequestEvent(currentSettings);
+		if (!result.success) {
+			const fieldPath = path.join('.');
+			const issue =
+				result.error.issues.find((candidate) =>
+					path.every((segment, index) => candidate.path[index] === segment),
+				) ?? result.error.issues[0];
+			this.fieldErrors.update(() => ({ [fieldPath]: issue?.message ?? 'Invalid setting' }));
+			this.isLoading.update(() => false);
+			return false;
+		}
+
+		this.fieldErrors.update((errors) => {
+			const nextErrors = { ...errors };
+			delete nextErrors[path.join('.')];
+			return nextErrors;
+		});
+
+		const request = new SettingsAdapterUpdateRequestEvent(result.data);
 		void EventBus.instance.publish(request);
+		return true;
 	}
 
-	 
 	async reset(): Promise<void> {
 		this.isLoading.update(() => true);
 		this.saveError.update(() => null);
@@ -83,7 +98,6 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		void EventBus.instance.publish(request);
 	}
 
-	 
 	async save(): Promise<void> {
 		this.isLoading.update(() => true);
 		this.saveError.update(() => null);

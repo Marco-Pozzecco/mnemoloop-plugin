@@ -16,6 +16,8 @@ export { default as ChartReviewHeatmap } from './Chart/Review/Heatmap/component.
 export type { default as ChartReviewHeatmapProps } from './Chart/Review/Heatmap/types';
 export { default as ChartReviewSessions } from './Chart/Review/Sessions/component.svelte';
 export type { default as ChartReviewSessionsProps } from './Chart/Review/Sessions/types';
+export { default as Chip } from './Chip/component.svelte';
+export type { default as ChipProps } from './Chip/types';
 export { default as ErrorWrapper } from './ErrorWrapper/component.svelte';
 export type { default as ErrorWrapperProps } from './ErrorWrapper/types';
 export { default as FormField } from './FormField/component.svelte';
@@ -36,6 +38,9 @@ export { default as Textarea } from './Textarea/component.svelte';
 export type { default as TextareaProps } from './Textarea/types';
 export { default as Toggle } from './Toggle/component.svelte';
 export type { default as ToggleProps } from './Toggle/types';
+export { default as Combobox } from './Combobox';
 export { default as NavigationMenu } from './NavigationMenu';
+export { default as Table } from './Table';
 export { default as Tabs } from './Tabs';
 export { default as Tooltip } from './Tooltip';
+export { default as AlertDialog } from './AlertDialog';

@@ -61,10 +61,22 @@ export class FlashcardWriterUpdateHandler extends EventHandler<FlashcardWriterUp
 		const writer = this._writers.get(WriterKey.flashcard)!;
 		const settings = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		const filepath = settings.data.flashcard.watch.directory + `/${event.data.uuid}.md`;
-		await writer.update(filepath, event.data).catch((err) => {
+		let success = false;
+
+		try {
+			await writer.update(filepath, event.data);
+			success = true;
+		} catch (err) {
 			Logger.error('WriterUpdateEventError:', err);
-		});
-		void this._bus.publish(new FlashcardWriterUpdateResponseEvent({ filepath }));
+		}
+
+		void this._bus.publish(
+			new FlashcardWriterUpdateResponseEvent({
+				filepath,
+				requestId: event.id,
+				success,
+			}),
+		);
 	}
 }
 

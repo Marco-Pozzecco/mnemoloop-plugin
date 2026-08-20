@@ -23,6 +23,7 @@
 	aria-label={ariaLabel}
 	class={cn('ml-button', `ml-button--${variant}`, `ml-button--${size}`, className, {
 		'ml-button__icon-container': !!icon,
+		'ml-button__icon-only': !children,
 	})}
 >
 	{#if icon}
@@ -36,7 +37,7 @@
 <style lang="scss">
 	@use 'tokens' as *;
 
-	:global(button.ml-button) {
+	:global .ml-button[data-button-root='true'] {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -55,102 +56,106 @@
 		/* Ensure minimum touch target size for accessibility */
 		min-height: 44px;
 		padding: 0 16px;
-	}
 
-	/* Variants */
-	:global(button.ml-button--primary) {
-		background-color: $interactive-accent;
-		color: $text-accent-foreground;
-	}
+		&.ml-button--primary {
+			background-color: $interactive-accent;
+			color: $text-accent-foreground;
 
-	:global(button.ml-button--primary:hover:not(:disabled)) {
-		background-color: $interactive-accent-hover;
-	}
-
-	:global(button.ml-button--secondary) {
-		background-color: $background-modifier-border;
-		color: $text-normal;
-		border: $border-width solid $background-modifier-border-focus;
-	}
-
-	:global(button.ml-button--secondary:hover:not(:disabled)) {
-		background-color: $background-modifier-hover;
-	}
-
-	:global(button.ml-button--danger) {
-		background-color: $text-error;
-		color: $text-accent-foreground;
-	}
-
-	:global(button.ml-button--danger:hover:not(:disabled)) {
-		filter: brightness(1.1);
-	}
-
-	:global(button.ml-button--ghost) {
-		background-color: transparent;
-		color: $text-normal;
-		border: 1px solid $background-modifier-border;
-		box-shadow: none;
-	}
-
-	:global(button.ml-button--ghost:hover:not(:disabled)) {
-		color: $interactive-accent;
-	}
-
-	:global(button.ml-button--icon) {
-		background-color: transparent;
-		color: $text-normal;
-		box-shadow: none;
-	}
-
-	:global(button.ml-button--icon:hover:not(:disabled)) {
-		color: $interactive-accent;
-	}
-
-	:global(button.ml-button__icon-container) {
-		gap: $spacing-sm;
-		align-items: center;
-	}
-
-	/* Sizes */
-	:global(button.ml-button--small) {
-		min-height: 32px;
-		padding: 0 12px;
-		font-size: $font-xs;
-	}
-
-	:global(button.ml-button--medium) {
-		min-height: 44px;
-		padding: 0 20px;
-		font-size: $font-sm;
-	}
-
-	:global(button.ml-button--large) {
-		min-height: 52px;
-		padding: 0 28px;
-		font-size: $font-md;
-	}
-
-	/* States */
-	:global(button.ml-button:disabled) {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	:global(button.ml-button:focus-visible) {
-		outline: 2px solid $interactive-accent;
-		outline-offset: 2px;
-	}
-
-	/* Mobile-first responsive adjustments */
-	@media (max-width: 480px) {
-		:global(button.ml-button--small) {
-			min-height: 40px;
-			padding: 0 14px;
+			&:hover:not(:disabled) {
+				background-color: $interactive-accent-hover;
+			}
 		}
 
-		:global(button.ml-button--large) {
-			width: 100%;
+		&.ml-button--secondary {
+			background-color: $background-modifier-border;
+			color: $text-normal;
+			border: $border-width solid $background-modifier-border-focus;
+
+			&:hover:not(:disabled) {
+				background-color: $background-modifier-hover;
+			}
+		}
+
+		&.ml-button--danger {
+			background-color: $text-error;
+			color: $text-accent-foreground;
+
+			&:hover:not(:disabled) {
+				filter: brightness(1.1);
+			}
+		}
+
+		&.ml-button--ghost {
+			background-color: transparent;
+			color: $text-normal;
+			border: 1px solid $background-modifier-border;
+			box-shadow: none;
+
+			&:hover:not(:disabled) {
+				color: $interactive-accent;
+			}
+		}
+
+		&.ml-button--icon {
+			background-color: transparent;
+			color: $text-normal;
+			box-shadow: none;
+
+			&:hover:not(:disabled) {
+				color: $interactive-accent;
+			}
+		}
+
+		&.ml-button__icon-container:not(.ml-button__icon-only) {
+			gap: $spacing-xs;
+			align-items: center;
+			padding: 0 $spacing-sm 0 $spacing-xs;
+		}
+
+		&.ml-button__icon-only {
+			padding: 0 $spacing-sm;
+		}
+
+		/* Sizes */
+		&.ml-button--small {
+			min-height: 32px;
+			padding: 0 $spacing-sm;
+			font-size: $font-xs;
+		}
+
+		&.ml-button--medium {
+			min-height: 44px;
+			padding: 0 $spacing-md;
+			font-size: $font-sm;
+		}
+
+		&.ml-button--large {
+			min-height: 52px;
+			padding: 0 $spacing-lg;
+			font-size: $font-md;
+		}
+
+		/* States */
+		&:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+
+		&:focus-visible {
+			outline: 2px solid $interactive-accent;
+			outline-offset: 2px;
+		}
+
+		/* Mobile-first responsive adjustments */
+		@media (max-width: 480px) {
+			&.ml-button--small {
+				min-height: 40px;
+				padding: 0 14px;
+			}
+
+			&.ml-button--large {
+				width: 100%;
+			}
 		}
 	}
 </style>

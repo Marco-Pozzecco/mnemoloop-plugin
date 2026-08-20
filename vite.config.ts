@@ -70,6 +70,7 @@ export default defineConfig(({ mode }) => {
 					'@lezer/lr',
 				],
 				output: {
+					inlineDynamicImports: true,
 					banner: banner,
 					assetFileNames: 'styles.css',
 				},
