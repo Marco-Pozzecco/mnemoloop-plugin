@@ -2,10 +2,7 @@
 	import type { FlashcardMetadata } from '@/schemas';
 	import ManageDeckCell from '@/ui/components/sections/Manage/Table/DeckCell/component.svelte';
 
-	let {
-		cards,
-		deckOptions,
-	}: { cards: FlashcardMetadata[]; deckOptions: string[] } = $props();
+	let { cards, deckOptions }: { cards: FlashcardMetadata[]; deckOptions: string[] } = $props();
 
 	const optionsDerived = $derived(deckOptions);
 
@@ -38,7 +35,7 @@
 
 <!-- Desktop + hidden mobile presentation, like the real Manage table. -->
 {#each cardsState as card (card.uuid)}
-	<div class="desktop-row">
+	<div class="ml-desktop-row">
 		<ManageDeckCell
 			{card}
 			deckOptions={optionsDerived}
@@ -46,7 +43,7 @@
 			onRemoveDeck={(deck) => removeDeck(card, deck)}
 		/>
 	</div>
-	<div class="mobile-row" style="display:none">
+	<div class="ml-mobile-row" style="display:none">
 		<ManageDeckCell
 			{card}
 			deckOptions={optionsDerived}
