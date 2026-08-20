@@ -1,3 +1,33 @@
+## [1.8.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.7.0...1.8.0) (2026-08-20)
+
+### Features
+
+* **a11y:** improve management table semantics ([bf24f67](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/bf24f6735aed226bfde5eea5e31f85e47058b60b))
+* add editable flashcard management table ([5381188](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/5381188f303ee1f14e2be23b261a941abda2bc17))
+* add flashcard management filters and result states ([0036fed](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/0036fed38d8c9be54318f00031fa5533eb765b5e))
+* add flashcard management navigation view ([421a7a1](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/421a7a1ca4413b2c097c82060701cc0df76cc36d))
+* add flashcard management state and controller ([879c1e0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/879c1e081af11cc2757b00f520c052f1fd606f38))
+* add reusable Chip component ([c749df8](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/c749df860daca0886496f03902d998b76dab4219))
+* add reusable combobox components ([0fa5c54](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/0fa5c543d94867c104b3ecd265eb4466735e5fdf))
+* add reusable table components ([b37165d](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/b37165de858d402d67c07b0a694a19e2b8904d7c))
+* **events:** mark linked flashcards stale ([1026ea7](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/1026ea7aeed242dd6265f41ca7a242128f41cab2))
+* **manage:** add searchable filters and pagination controls ([002ef3d](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/002ef3df9be82049bcb4978108a59e92af6c5736))
+* **settings:** add source-note watch configuration ([916dfcb](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/916dfcbd924e9ce97a4aaecda62eed3efc89d72a))
+* **ui:** add alert dialog and delete confirmation ([a8e6b85](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/a8e6b85f664ff89f5c5f0088bcfff47f8d5e6e96))
+* **ui:** add source-note settings controls ([72e1389](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/72e1389447d57c351497db1091c81495332b375a))
+* **ui:** improve combobox accessibility and anchoring ([71e81bd](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/71e81bd46f7208fa43495b6b1b68166db1668d3e))
+* **watcher:** publish source-note modification events ([76b7153](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/76b71531551be68d562978ce3835b3ddd5e01e5d))
+
+### Bug Fixes
+
+* lint ([ac08f98](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/ac08f98305d7a4c4fc31fbc2b937dfb9768b5e42))
+* **manage:** reconcile metadata and deletion outcomes ([9a70ed3](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/9a70ed3d7b54a38ad7cef91807bf29f8a2de26c3))
+* replace settings-items-padding variable with fixed value ([ddd1eeb](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/ddd1eeb96862611b2d0913adfade28242ccb884c))
+
+### Performance Improvements
+
+* improve eslint execution time ([96eebab](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/96eebabddb6f05baa3de5ebc4c0897f25ab5a366))
+
 ## [1.7.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.6.0...1.7.0) (2026-08-03)
 
 ### Features
