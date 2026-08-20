@@ -46,13 +46,13 @@ Dual-source truth: a fast JSON index for queries, plus human-readable YAML front
 | ⚡ **High Performance**      | Lazy card loading, debounced vault watching, and 50,000-card performance targets                   |
 | 📈 **Learning Analytics**    | Track retention, forecast, and cumulative progress over time                                       |
 | 📱 **Mobile Touch UI**       | Swipe left/right to rate, tap to flip: native feel inside Obsidian Mobile                          |
+| 🔔 **Stale Detection**       | Source note edits automatically flag linked flashcards as `STALE`                                  |
 
 ## Coming soon
 
 | Feature                                | Description                                                                                      |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | 🤖 **AI-Powered Flashcard Generation** | AI generates flashcards from source notes, keeping your knowledge base up-to-date (paid feature) |
-| 🔔 **Stale Detection**                 | Source note edits automatically flag linked flashcards as `STALE`                                |
 
 ---
 
