@@ -130,7 +130,7 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 		// Existing decks render as selected items with a visible indicator.
 		expect(selectedItemLabels()).toEqual(['Math', 'Lang']);
 		// The display shows the card's decks as plain chips — no draft/remove controls.
-		expect(chips('.desktop-row')).toEqual(['Math', 'Lang']);
+		expect(chips('.ml-desktop-row')).toEqual(['Math', 'Lang']);
 		expect(activeDocument.querySelectorAll('.ml-combobox__chip')).toHaveLength(0);
 
 		markStep('select');
@@ -145,7 +145,7 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 		await tick();
 
 		// The deck is added to the card; the portal stays open after the toggle.
-		expect(chips('.desktop-row')).toEqual(['Math', 'Lang', 'Spanish']);
+		expect(chips('.ml-desktop-row')).toEqual(['Math', 'Lang', 'Spanish']);
 		expect(openContentCount()).toBe(1);
 		expect(logs).toEqual([]);
 	});
@@ -169,7 +169,7 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 		await tick();
 		await tick();
 
-		expect(chips('.desktop-row')).toEqual(['Lang']);
+		expect(chips('.ml-desktop-row')).toEqual(['Lang']);
 		expect(openContentCount()).toBe(1);
 		expect(logs).toEqual([]);
 	});
@@ -199,7 +199,7 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 		await tick();
 		await tick();
 
-		expect(chips('.desktop-row')).toEqual(['Math', 'Lang', 'NewDeck']);
+		expect(chips('.ml-desktop-row')).toEqual(['Math', 'Lang', 'NewDeck']);
 		expect(openContentCount()).toBe(0);
 		expect(logs).toEqual([]);
 	});
@@ -217,7 +217,7 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 		await tick();
 		await tick();
 
-		expect(chips('.desktop-row')).toEqual(['Math', 'Lang', 'Spanish']);
+		expect(chips('.ml-desktop-row')).toEqual(['Math', 'Lang', 'Spanish']);
 		expect(openContentCount()).toBe(0);
 		expect(logs).toEqual([]);
 	});
@@ -233,7 +233,7 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 		await tick();
 		await tick();
 
-		expect(chips('.desktop-row')).toEqual(['Math', 'Lang']);
+		expect(chips('.ml-desktop-row')).toEqual(['Math', 'Lang']);
 		expect(openContentCount()).toBe(1);
 		expect(logs).toEqual([]);
 	});
@@ -251,7 +251,7 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 		await tick();
 		await tick();
 
-		expect(chips('.desktop-row')).toEqual(['Math', 'Lang']);
+		expect(chips('.ml-desktop-row')).toEqual(['Math', 'Lang']);
 		expect(openContentCount()).toBe(0);
 		expect(logs).toEqual([]);
 	});
@@ -272,7 +272,7 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 		await tick();
 		await tick();
 
-		expect(chips('.desktop-row')).toEqual(['Math', 'Lang']);
+		expect(chips('.ml-desktop-row')).toEqual(['Math', 'Lang']);
 		expect(openContentCount()).toBe(0);
 		expect(logs).toEqual([]);
 	});
@@ -313,8 +313,8 @@ describe('ManageDeckCell interaction (dual presentation)', () => {
 
 		// The portal stays open after the toggle; A keeps its decks; B gains Math.
 		expect(openContentCount()).toBe(1);
-		expect(chips('.desktop-row')).toEqual(['Math', 'Lang', 'Spanish', 'Math']);
-		expect(chips('.mobile-row')).toEqual(['Math', 'Lang', 'Spanish', 'Math']);
+		expect(chips('.ml-desktop-row')).toEqual(['Math', 'Lang', 'Spanish', 'Math']);
+		expect(chips('.ml-mobile-row')).toEqual(['Math', 'Lang', 'Spanish', 'Math']);
 		expect(logs).toEqual([]);
 	});
 });
