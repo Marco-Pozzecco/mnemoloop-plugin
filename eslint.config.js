@@ -99,6 +99,7 @@ export default defineConfig(
 		},
 
 		rules: {
+			'obsidianmd/no-unsupported-api': 'error',
 			// Enforce ml- prefix on CSS classes in Svelte templates.
 			// Change 'warn' to 'error' once all violations are resolved.
 			'local/require-class-prefix': [
