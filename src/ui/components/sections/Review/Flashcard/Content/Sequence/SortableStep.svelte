@@ -1,21 +1,28 @@
 <script lang="ts">
 	import { createSortable } from '@dnd-kit/svelte/sortable';
+	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
 
 	let {
 		id,
 		index,
 		text,
+		sourcePath,
 		showAnswer = false,
 		isCorrect = false,
 	}: {
 		id: string;
 		index: number;
 		text: string;
+		sourcePath: string;
 		showAnswer?: boolean;
 		isCorrect?: boolean;
 	} = $props();
 
 	const sortable = $derived(createSortable({ id, index }));
+	const textOptions: MarkdownOptions = $derived({
+		content: text,
+		sourcePath,
+	});
 </script>
 
 <div
@@ -26,7 +33,7 @@
 	class:ml-sequence-step-answer={showAnswer}
 >
 	<span class="ml-sequence-step-index">{index + 1}</span>
-	<span class="ml-sequence-step-text">{text}</span>
+	<div class="ml-sequence-step-text" use:renderMarkdown={textOptions}></div>
 	<span
 		{@attach sortable.attachHandle}
 		class="ml-sequence-step-handle"
@@ -41,7 +48,7 @@
 
 	.ml-sequence-step {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		gap: $spacing-sm;
 		padding: $spacing-sm $spacing-md;
 		margin-bottom: $spacing-xs;
@@ -89,9 +96,9 @@
 
 	.ml-sequence-step-text {
 		flex: 1;
+		min-width: 0;
 		line-height: 1.4;
 	}
-
 	.ml-sequence-step-handle {
 		cursor: grab;
 		padding: $spacing-xxs;

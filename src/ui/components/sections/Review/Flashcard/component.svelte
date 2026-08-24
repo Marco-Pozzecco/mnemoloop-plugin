@@ -51,7 +51,14 @@
 </script>
 
 <div class="ml-flashcard-wrapper">
-	<FlashcardContent {flashcard} {isAnswerShowing} {onShowAnswer} {onSetAnswerCorrectness} onAllRevealed={handleAllRevealed} />
+	<FlashcardContent
+		{flashcard}
+		sourcePath={item.filepath}
+		{isAnswerShowing}
+		{onShowAnswer}
+		{onSetAnswerCorrectness}
+		onAllRevealed={handleAllRevealed}
+	/>
 	<ScoreControls
 		{onSubmitRating}
 		{onShowAnswer}

@@ -6,6 +6,7 @@
 
 	let {
 		content,
+		sourcePath,
 		isAnswerShowing,
 		onSetAnswerCorrectness,
 		onShowAnswer,
@@ -25,6 +26,7 @@
 
 	const questionOptions: MarkdownOptions = $derived({
 		content: content?.question ?? '',
+		sourcePath,
 	});
 
 	const isCorrect = $derived(
@@ -75,6 +77,13 @@
 			selectOption(numKey - 1);
 		}
 	}
+	function handleOptionKeyDown(event: KeyboardEvent, index: number) {
+		if (isAnswerShowing) return;
+		if (event.key === 'Enter' || event.key === ' ' || event.code === 'Space') {
+			event.preventDefault();
+			selectOption(index);
+		}
+	}
 
 </script>
 
@@ -83,25 +92,29 @@
 <div bind:this={containerRef} class="ml-quiz-content">
 	<div class="ml-quiz-question" use:renderMarkdown={questionOptions}></div>
 
-	<div class="ml-quiz-options">
+	<div class="ml-quiz-options" role="radiogroup" aria-label="Answer options">
 		{#each shuffledOptions as option, i (option.id)}
 			{@const isSelected = selectedShuffledIndex === i}
 			{@const isCorrectOption = option.original_index === correctOriginalIndex}
-			<button
+			<div
 				class="ml-quiz-option"
 				class:ml-quiz-option-selected={isSelected && !isAnswerShowing}
 				class:ml-quiz-option-correct={isAnswerShowing && isCorrectOption}
 				class:ml-quiz-option-incorrect={isAnswerShowing && isSelected && !isCorrectOption}
 				class:ml-quiz-option-dimmed={isAnswerShowing && !isSelected && !isCorrectOption}
+				role="radio"
+				tabindex={isAnswerShowing ? -1 : 0}
+				aria-checked={isSelected}
+				aria-disabled={isAnswerShowing}
 				onclick={() => selectOption(i)}
-				disabled={isAnswerShowing}
-				type="button"
+				onkeydown={(event) => handleOptionKeyDown(event, i)}
 			>
 				<span class="ml-quiz-option-key">{i + 1}</span>
-				<div class="ml-quiz-option-text" use:renderMarkdown={{ content: option.text }}></div>
-			</button>
+				<div class="ml-quiz-option-text" use:renderMarkdown={{ content: option.text, sourcePath }}></div>
+			</div>
 		{/each}
 	</div>
+
 </div>
 
 <style lang="scss">
@@ -142,13 +155,14 @@
 			border-color $transition-fast,
 			background $transition-fast;
 
-		&:hover:not(:disabled) {
+		&:hover:not([aria-disabled='true']) {
 			background: $background-modifier-hover;
 		}
 
-		&:disabled {
+		&[aria-disabled='true'] {
 			cursor: default;
 		}
+
 	}
 
 	.ml-quiz-option-selected {

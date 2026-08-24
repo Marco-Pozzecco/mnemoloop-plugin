@@ -6,10 +6,11 @@
 	import type ReviewFlashcardSequenceProps from './types';
 	import { fisherYatesShuffle } from '../utils';
 
-	let { content, isAnswerShowing, onSetAnswerCorrectness }: ReviewFlashcardSequenceProps = $props();
+	let { content, sourcePath, isAnswerShowing, onSetAnswerCorrectness }: ReviewFlashcardSequenceProps = $props();
 
 	const questionOptions: MarkdownOptions = $derived({
 		content: content?.question ?? '',
+		sourcePath,
 	});
 
 	let shuffledSteps: { id: string; text: string }[] = $state([]);
@@ -88,9 +89,12 @@
 						class:ml-sequence-step-correct={shuffledSteps[i]?.text === step}
 					>
 						<span class="ml-sequence-step-index">{i + 1}</span>
-						<span class="ml-sequence-step-text">{step}</span>
+						<div class="ml-sequence-step-text" use:renderMarkdown={{ content: step, sourcePath }}></div>
 						{#if shuffledSteps[i]?.text !== step}
-							<span class="ml-sequence-step-original">{shuffledSteps[i]?.text ?? ''}</span>
+							<div
+								class="ml-sequence-step-original"
+								use:renderMarkdown={{ content: shuffledSteps[i]?.text ?? '', sourcePath }}
+							></div>
 						{/if}
 					</div>
 				{/each}
@@ -98,7 +102,7 @@
 		{:else}
 			<div class="ml-sequence-list">
 				{#each shuffledSteps as step, i (step.id)}
-					<SortableStep id={step.id} index={i} text={step.text} />
+					<SortableStep id={step.id} index={i} text={step.text} {sourcePath} />
 				{/each}
 			</div>
 		{/if}
@@ -126,7 +130,7 @@
 
 	.ml-sequence-step {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		gap: $spacing-sm;
 		padding: $spacing-sm $spacing-md;
 		border: 1px solid $background-modifier-border;
@@ -152,14 +156,16 @@
 	}
 
 	.ml-sequence-step-text {
+		min-width: 0;
 		flex: 1;
 		line-height: 1.4;
 	}
 
 	.ml-sequence-step-original {
+		min-width: 0;
+		flex: 1;
 		font-size: 0.8rem;
 		color: $text-muted;
 		text-decoration: line-through;
-		flex-shrink: 0;
 	}
 </style>
