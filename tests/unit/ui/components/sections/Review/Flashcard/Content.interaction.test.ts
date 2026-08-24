@@ -228,7 +228,7 @@ describe('review flashcard renderer handoff', () => {
 
 		const expected = [QUIZ_QUESTION, ...QUIZ_OPTIONS];
 		expectRendererHandoff(expected);
-		expect(target.querySelector('.ml-quiz-question [data-rendered-content]')?.dataset.renderedContent).toBe(
+		expect(target.querySelector<HTMLElement>('.ml-quiz-question [data-rendered-content]')?.dataset.renderedContent).toBe(
 			QUIZ_QUESTION,
 		);
 		expect(target.querySelectorAll('.ml-quiz-option-text [data-rendered-content]')).toHaveLength(3);
@@ -272,7 +272,7 @@ describe('review flashcard renderer handoff', () => {
 		const expected = [SEQUENCE_QUESTION, ...SEQUENCE_STEPS];
 		expectRendererHandoff(expected);
 		expect(
-			target.querySelector('.ml-sequence-question [data-rendered-content]')?.dataset.renderedContent,
+			target.querySelector<HTMLElement>('.ml-sequence-question [data-rendered-content]')?.dataset.renderedContent,
 		).toBe(SEQUENCE_QUESTION);
 		expect(
 			Array.from(target.querySelectorAll<HTMLElement>('.ml-sequence-step-text [data-rendered-content]')).map(
@@ -318,7 +318,7 @@ describe('review flashcard renderer handoff', () => {
 			[CLOZE_INITIAL, CLOZE_HINT],
 			[CLOZE_INITIAL, CLOZE_INITIAL_INACTIVE, CLOZE_HINT],
 		);
-		expect(target.querySelector('.ml-cloze-hint [data-rendered-content]')?.dataset.renderedContent).toBe(
+		expect(target.querySelector<HTMLElement>('.ml-cloze-hint [data-rendered-content]')?.dataset.renderedContent).toBe(
 			CLOZE_HINT,
 		);
 
@@ -331,10 +331,12 @@ describe('review flashcard renderer handoff', () => {
 			[CLOZE_INITIAL, CLOZE_HINT, CLOZE_REVEALED],
 			[CLOZE_INITIAL, CLOZE_INITIAL_INACTIVE, CLOZE_HINT, CLOZE_REVEALED],
 		);
-		expect(target.querySelector('.ml-cloze-text [data-rendered-content]')?.dataset.renderedContent).toBe(
+		expect(target.querySelector<HTMLElement>('.ml-cloze-text [data-rendered-content]')?.dataset.renderedContent).toBe(
 			CLOZE_REVEALED,
 		);
 		expect(target.querySelector('.ml-cloze-hint')).toBeNull();
+		expect(target.querySelector('button.ml-cloze-hint__button')).toBeNull();
+		expect(target.querySelector('.ml-cloze-hint__disclosure')).toBeNull();
 		expect(onAllRevealed).toHaveBeenCalledTimes(1);
 		expect(onShowAnswer).toHaveBeenCalledTimes(1);
 	});
