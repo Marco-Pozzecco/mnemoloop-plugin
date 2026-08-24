@@ -1,5 +1,7 @@
 node_modules/
 dist/
+main.js
+styles.css
 build/
 *.log
 .env*
