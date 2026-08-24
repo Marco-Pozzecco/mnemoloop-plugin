@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { FlashcardClozeContentParser } from '@/modules/parsers/content/FlashcardClozeContentParser';
 import { IAdapter } from '@/interfaces/IAdapter';
+import { CardType } from '@/schemas';
 import { PluginSettings } from '@/schemas/settings';
 
 function createSettings(): IAdapter<PluginSettings> {
@@ -83,6 +84,26 @@ describe('ClozeContentParser', () => {
 			expect(parsed2.success).toBe(true);
 			expect(parsed2.entity!.text).toBe(parsed1.entity!.text);
 			expect(parsed2.entity!.deletions).toHaveLength(parsed1.entity!.deletions.length);
+		});
+	});
+
+	describe('serialize', () => {
+		it('should serialize the canonical form payload without duplicate markers', () => {
+			const result = parser.serialize({
+				meta_type: CardType.Cloze,
+				text: 'Test ',
+				deletions: [
+					{
+						id: 'c1',
+						answer: 'cloze',
+						hint: 'hint',
+						positions: [5],
+					},
+				],
+			});
+
+			expect(result.success).toBe(true);
+			expect(result.entity).toBe('Test {{c1::cloze::hint}}');
 		});
 	});
 
