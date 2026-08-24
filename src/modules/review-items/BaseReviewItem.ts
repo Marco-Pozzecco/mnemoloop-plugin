@@ -21,6 +21,10 @@ export abstract class BaseReviewItem<
 		return this._id;
 	}
 
+	get filepath(): string {
+		return this._filepath;
+	}
+
 	get data() {
 		return this._data;
 	}
