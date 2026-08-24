@@ -55,7 +55,13 @@ export function renderMarkdown(
 		node.replaceChildren(target);
 
 		currentChild = component.addChild(new Component());
-		void MarkdownRenderer.render(app, currentOptions.content, target, currentOptions.sourcePath, currentChild);
+		void MarkdownRenderer.render(
+			app,
+			currentOptions.content,
+			target,
+			currentOptions.sourcePath,
+			currentChild,
+		);
 	}
 
 	node.addEventListener('click', handleClick);
