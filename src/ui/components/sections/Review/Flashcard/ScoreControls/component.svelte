@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Platform } from 'obsidian';
 	import { AUTO_SCORED_TYPES } from '@/schemas';
 	import { Button } from '@/ui/components/elements';
 	import AutoReviewControls from './Auto/component.svelte';
@@ -15,6 +16,7 @@
 	}: ScoreControlsProps = $props();
 
 	const isAutoScored = $derived(type ? AUTO_SCORED_TYPES.has(type) : false);
+	const isTouchDevice = Platform.isMobile;
 	let containerRef: HTMLDivElement;
 
 	function handleKeyDown(event: KeyboardEvent) {
@@ -29,6 +31,11 @@
 			event.preventDefault();
 			if (!isAnswerShowing && !disabled) onShowAnswer();
 		}
+	}
+
+	function handleShowAnswer(): void {
+		if (disabled || isAnswerShowing) return;
+		onShowAnswer();
 	}
 </script>
 
@@ -46,13 +53,13 @@
 			<Button
 				variant="primary"
 				class="ml-score-controls__button"
-				onclick={() => onShowAnswer()}
+				onclick={handleShowAnswer}
 				ariaLabel="Show answer"
 				{disabled}
 			>
 				Show answer
 			</Button>
-			<span class="ml-score-controls__button-key-hint">Space</span>
+			<span class="ml-score-controls__button-key-hint">{isTouchDevice ? 'Tap' : 'Space'}</span>
 		</div>
 	{/if}
 </div>
