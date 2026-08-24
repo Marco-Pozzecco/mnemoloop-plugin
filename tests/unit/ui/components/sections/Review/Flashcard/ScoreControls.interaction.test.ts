@@ -8,7 +8,7 @@ import ScoreControls from '@/ui/components/sections/Review/Flashcard/ScoreContro
 
 describe('ScoreControls interaction', () => {
 	let target: HTMLDivElement;
-	let unmountScoreControls: (() => void) | undefined;
+	let unmountScoreControls: (() => Promise<void>) | undefined;
 	let initialIsMobile: boolean;
 
 	function mountScoreControls(isMobile: boolean) {
@@ -36,8 +36,8 @@ describe('ScoreControls interaction', () => {
 		initialIsMobile = Platform.isMobile;
 	});
 
-	afterEach(() => {
-		unmountScoreControls?.();
+	afterEach(async () => {
+		await unmountScoreControls?.();
 		unmountScoreControls = undefined;
 		target?.remove();
 		activeDocument.body.innerHTML = '';

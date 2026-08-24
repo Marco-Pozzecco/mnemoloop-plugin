@@ -7,7 +7,22 @@ import Cloze from '@/ui/components/sections/Review/Flashcard/Content/Cloze/compo
 vi.mock('@/ui/actions/markdown', () => ({
 	renderMarkdown(node: HTMLElement, options: { content: string }) {
 		const render = (nextOptions: { content: string }) => {
-			node.innerHTML = nextOptions.content;
+			const marker = activeDocument.createElement('div');
+			marker.dataset.renderedContent = nextOptions.content;
+			marker.textContent = `Rendered Markdown: ${nextOptions.content}`;
+			node.replaceChildren(marker);
+
+			const placeholderPattern =
+				/<span class="([^"]+)" data-cloze-id="([^"]+)" role="button" tabindex="0">\[\.\.\.\]<\/span>/g;
+			for (const match of nextOptions.content.matchAll(placeholderPattern)) {
+				const placeholder = activeDocument.createElement('span');
+				placeholder.className = match[1];
+				placeholder.dataset.clozeId = match[2];
+				placeholder.setAttribute('role', 'button');
+				placeholder.tabIndex = 0;
+				placeholder.textContent = '[...]';
+				node.append(placeholder);
+			}
 		};
 		render(options);
 		return {
@@ -25,7 +40,7 @@ const content = {
 
 describe('Cloze interaction', () => {
 	let target: HTMLDivElement;
-	let unmountCloze: (() => void) | undefined;
+	let unmountCloze: (() => Promise<void>) | undefined;
 
 	function mountCloze() {
 		target = activeDocument.createElement('div');
@@ -39,9 +54,9 @@ describe('Cloze interaction', () => {
 	unmountCloze = () => unmount(instance);
 		return { onAllRevealed, onShowAnswer };
 	}
-
-	afterEach(() => {
-	unmountCloze?.();
+	afterEach(async () => {
+		await unmountCloze?.();
+		unmountCloze = undefined;
 		target?.remove();
 		activeDocument.body.innerHTML = '';
 	});
