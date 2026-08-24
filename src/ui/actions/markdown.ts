@@ -1,9 +1,9 @@
-import { MarkdownRenderer } from 'obsidian';
+import { Component, MarkdownRenderer } from 'obsidian';
 import { getAppContext } from '@/ui/context/AppContext';
 
 export interface MarkdownOptions {
 	content: string;
-	sourcePath?: string;
+	sourcePath: string;
 }
 
 /**
@@ -23,33 +23,43 @@ export function renderMarkdown(
 
 	const { app, component } = context;
 	let currentOptions = options;
+	let currentChild: Component | null = null;
+	let destroyed = false;
 
 	function handleClick(event: MouseEvent) {
-		const target = event.target as HTMLElement;
-		const link = target.closest('a');
+		const target = event.target;
+		const link = target instanceof Element ? target.closest('a') : null;
 		if (!link) return;
 
+		event.stopPropagation();
 		if (link.classList.contains('internal-link')) {
-			const href = link.getAttribute('data-href') || link.textContent;
+			const href = link.getAttribute('data-href') || link.textContent || '';
 			event.preventDefault();
-			void app.workspace.openLinkText(href, currentOptions.sourcePath ?? '', false);
+			void app.workspace.openLinkText(href, currentOptions.sourcePath, false);
 		}
-		// external links: let browser handle or window.open()
 	}
 
-	async function doRender() {
-		node.empty();
-		node.addEventListener('click', handleClick);
-		await MarkdownRenderer.render(
-			app,
-			currentOptions.content,
-			node,
-			currentOptions.sourcePath ?? '',
-			component,
-		);
+	function removeCurrentChild() {
+		if (!currentChild) return;
+		component.removeChild(currentChild);
+		currentChild = null;
 	}
 
-	void doRender();
+	function doRender() {
+		if (destroyed) return;
+
+		removeCurrentChild();
+
+		const target = document.createElement('div');
+		target.classList.add('ml-markdown-rendered', 'markdown-rendered');
+		node.replaceChildren(target);
+
+		currentChild = component.addChild(new Component());
+		void MarkdownRenderer.render(app, currentOptions.content, target, currentOptions.sourcePath, currentChild);
+	}
+
+	node.addEventListener('click', handleClick);
+	doRender();
 
 	return {
 		update(newOptions: MarkdownOptions) {
@@ -58,13 +68,15 @@ export function renderMarkdown(
 				newOptions.sourcePath !== currentOptions.sourcePath
 			) {
 				currentOptions = newOptions;
-				void doRender();
+				doRender();
 			}
 		},
 		destroy() {
-			node.empty();
+			if (destroyed) return;
+			destroyed = true;
+			removeCurrentChild();
+			node.replaceChildren();
 			node.removeEventListener('click', handleClick);
-			// Component cleanup is handled automatically when ItemView closes
 		},
 	};
 }
