@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { v4 as uuid } from 'uuid';
 	import { Textarea } from '@/ui/components/elements';
-	import type { FlashcardClozeContent, FlashcardContent } from '@/schemas';
-	import { CardType, FlashcardClozeRegex } from '@/schemas';
+	import type { FlashcardClozeContent } from '@/schemas';
 	import type ContentTypeProps from '../types';
 	import type { BuildContentFn, ValidateFn } from '../types';
+	import { buildClozeContent, validateCloze } from './validation';
 
 	let { mode, initialContent, onRegister, disabled = false }: ContentTypeProps = $props();
 
@@ -42,25 +41,8 @@
 
 	// --- Register validate + buildContent with parent ---
 	$effect(() => {
-		const validate: ValidateFn = () => {
-			const matches = [...clozeText.matchAll(FlashcardClozeRegex)];
-			if (matches.length === 0) return 'At least one {{c1::answer}} marker is required.';
-			return null;
-		};
-		const buildContent: BuildContentFn = () => {
-			const deletions: FlashcardClozeContent['deletions'] = [];
-			const regex = new RegExp(FlashcardClozeRegex.source, FlashcardClozeRegex.flags);
-			let match: RegExpExecArray | null;
-			while ((match = regex.exec(clozeText)) !== null) {
-				deletions.push({
-					id: uuid(),
-					answer: match[2],
-					hint: match[3] ?? null,
-					positions: [match.index],
-				});
-			}
-			return { meta_type: CardType.Cloze, text: clozeText, deletions } as FlashcardContent;
-		};
+		const validate: ValidateFn = () => validateCloze(clozeText);
+		const buildContent: BuildContentFn = () => buildClozeContent(clozeText);
 		onRegister({ validate, buildContent });
 	});
 </script>
