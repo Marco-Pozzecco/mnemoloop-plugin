@@ -32,11 +32,7 @@
 {#if flashcard}
 	<Card>
 		{#if isFlashcardBase(flashcard)}
-			<FlashcardBasicContent
-				content={flashcard.content}
-				{sourcePath}
-				{isAnswerShowing}
-			/>
+			<FlashcardBasicContent content={flashcard.content} {sourcePath} {isAnswerShowing} />
 		{:else if isFlashcardSequence(flashcard)}
 			<FlashcardSequenceContent
 				content={flashcard.content}
@@ -65,7 +61,7 @@
 			<div class="ml-flashcard-footer">
 				<p class="ml-flashcard-footer-key">Source:</p>
 				{#if flashcard?.source}
-					<div use:renderMarkdown={footerOptions}></div>
+					<div class="ml-flashcard-footer-value" use:renderMarkdown={footerOptions}></div>
 				{:else}
 					<p class="ml-flashcard-footer-value">No source available</p>
 				{/if}
@@ -91,6 +87,8 @@
 		}
 
 		&-value {
+			display: flex;
+			align-items: center;
 			flex: 1;
 			font-style: italic;
 		}
