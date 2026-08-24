@@ -105,6 +105,54 @@ describe('SequenceContentParser', () => {
 			expect(result.success).toBe(true);
 			expect(result.entity!.steps).toEqual(['step one', 'step two']);
 		});
+
+		it('preserves multiline table, blank, and fenced-code step bodies through serialization', () => {
+			const source = [
+				'front',
+				'?',
+				'- intro',
+				'  | Name | Value |',
+				'  | --- | --- |',
+				'  | one | two |',
+				'',
+				'  ```ts',
+				'  const value = 1;',
+				'  ```',
+				'- finish',
+			].join('\n');
+
+			const result = parser.parse(source);
+
+			expect(result.success).toBe(true);
+			expect(result.entity!.steps).toEqual([
+				'intro\n| Name | Value |\n| --- | --- |\n| one | two |\n\n```ts\nconst value = 1;\n```',
+				'finish',
+			]);
+
+			const serialized = parser.serialize(result.entity!);
+			expect(serialized.success).toBe(true);
+			expect(serialized.entity).toBe(
+				[
+					'front',
+					'',
+					'?',
+					'',
+					'- intro',
+					'  | Name | Value |',
+					'  | --- | --- |',
+					'  | one | two |',
+					'  ',
+					'  ```ts',
+					'  const value = 1;',
+					'  ```',
+					'- finish',
+				].join('\n'),
+			);
+
+			const reparsed = parser.parse(serialized.entity!);
+			expect(reparsed.success).toBe(true);
+			expect(reparsed.entity).toEqual(result.entity);
+		});
 	});
 
 	describe('cardType', () => {

@@ -38,6 +38,7 @@ function createMockEngine(): IReviewEngine<FlashcardYaml> {
 function createMockItem(filepath: string = 'test.md'): IReviewItem<Flashcard> {
 	return {
 		id: `id-${filepath}`,
+		filepath,
 		data: { ...createFlashcardYaml(), content: { meta_type: CardType.Basic, front: 'Q', back: 'A' } } as Flashcard,
 		review: vi.fn(),
 		restore: vi.fn(),

@@ -177,6 +177,16 @@ vi.mock('obsidian', () => ({
 	// Component base class
 	Component: class MockComponent {
 		registerEvent = vi.fn();
+		load = vi.fn();
+		unload = vi.fn();
+		addChild = vi.fn((child: MockComponent) => {
+			child.load();
+			return child;
+		});
+		removeChild = vi.fn((child: MockComponent) => {
+			child.unload();
+			return child;
+		});
 	},
 
 	// Platform object

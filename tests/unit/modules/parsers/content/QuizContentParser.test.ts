@@ -117,6 +117,55 @@ describe('QuizContentParser', () => {
 			expect(result.success).toBe(true);
 			expect(result.entity!.options).toEqual(['A', 'B']);
 		});
+
+		it('preserves multiline table, blank, and fenced-code option bodies through serialization', () => {
+			const source = [
+				'Question',
+				'?',
+				'- [ ] first option',
+				'  | Name | Value |',
+				'  | --- | --- |',
+				'  | one | two |',
+				'',
+				'  ```ts',
+				'  const value = 1;',
+				'  ```',
+				'- [x] second option',
+			].join('\n');
+
+			const result = parser.parse(source);
+
+			expect(result.success).toBe(true);
+			expect(result.entity!.options).toEqual([
+				'first option\n| Name | Value |\n| --- | --- |\n| one | two |\n\n```ts\nconst value = 1;\n```',
+				'second option',
+			]);
+			expect(result.entity!.correct_index).toBe(1);
+
+			const serialized = parser.serialize(result.entity!);
+			expect(serialized.success).toBe(true);
+			expect(serialized.entity).toBe(
+				[
+					'Question',
+					'',
+					'?',
+					'',
+					'- [ ] first option',
+					'  | Name | Value |',
+					'  | --- | --- |',
+					'  | one | two |',
+					'  ',
+					'  ```ts',
+					'  const value = 1;',
+					'  ```',
+					'- [x] second option',
+				].join('\n'),
+			);
+
+			const reparsed = parser.parse(serialized.entity!);
+			expect(reparsed.success).toBe(true);
+			expect(reparsed.entity).toEqual(result.entity);
+		});
 	});
 
 	describe('serialize', () => {
