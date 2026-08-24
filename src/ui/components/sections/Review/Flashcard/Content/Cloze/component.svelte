@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { type FlashcardClozeContent } from '@/schemas';
 	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
-	import { Button, Icon } from '@/ui/components/elements';
+	import { Platform } from 'obsidian';
+	import { Icon } from '@/ui/components/elements';
 	import { SvelteSet } from 'svelte/reactivity';
 	import type { FlashcardContentProps } from '../types';
 	import { fisherYatesShuffle } from '../utils';
@@ -15,6 +16,7 @@
 		onShowAnswer,
 	}: FlashcardContentProps<FlashcardClozeContent> = $props();
 
+	let isMobile = $state(Platform.isMobile);
 	let revealedIds: SvelteSet<string> = new SvelteSet();
 	let highlightedId: string | null = $state(null);
 	let shuffledOrder: string[] = $state([]);
@@ -95,7 +97,7 @@
 
 	function handleClozeClick(event: MouseEvent) {
 		const id = getPlaceholderId(event.target);
-		if (id !== highlightedId || isAnswerShowing) return;
+		if (id !== highlightedId || isAnswerShowing || !id) return;
 		event.preventDefault();
 		revealCloze(id);
 	}
@@ -123,6 +125,19 @@
 		) {
 			return;
 		}
+		if (
+			(event.key === 'h' || event.key === 'H') &&
+			!event.ctrlKey &&
+			!event.altKey &&
+			!event.metaKey &&
+			!event.isComposing &&
+			!isAnswerShowing &&
+			highlightedCloze?.hint
+		) {
+			event.preventDefault();
+			toggleHint();
+			return;
+		}
 		if (event.code === 'Space' && highlightedId) {
 			event.preventDefault();
 			revealCloze(highlightedId);
@@ -145,6 +160,10 @@
 		if (isAnswerShowing || !highlightedCloze?.hint) return;
 		isHintShowing = !isHintShowing;
 	}
+
+	function keepHintButtonUnfocused(event: FocusEvent): void {
+		(event.currentTarget as HTMLButtonElement).blur();
+	}
 </script>
 
 <svelte:window onkeydown={handleWindowKeyDown} />
@@ -159,20 +178,31 @@
 			use:renderMarkdown={bodyOptions}
 		></div>
 
-		<Button
-			variant="ghost"
-			class="ml-cloze-hint__button"
-			disabled={isAnswerShowing || !highlightedCloze?.hint}
-			onclick={toggleHint}
-		>
-			{#snippet icon()}
-				<Icon name="lightbulb" size={18} />
-			{/snippet}
-			Show hint
-		</Button>
+		{#if highlightedCloze?.hint && !isAnswerShowing}
+			<div class="ml-cloze-hint__disclosure">
+				<button
+					type="button"
+					class="ml-cloze-hint__button"
+					tabindex="-1"
+					aria-expanded={isHintShowing}
+					aria-keyshortcuts="H"
+					onclick={toggleHint}
+					onfocus={keepHintButtonUnfocused}
+				>
+					<Icon name="lightbulb" size={18} />
+					<span class="ml-cloze-hint__label">{isHintShowing ? 'Hide hint' : 'Show hint'}</span>
+					{#if !isMobile}
+						<kbd class="ml-cloze-hint__key">H</kbd>
+					{/if}
+				</button>
 
-		{#if isHintShowing && highlightedCloze?.hint && !isAnswerShowing}
-			<div class="ml-cloze-hint" use:renderMarkdown={hintOptions}></div>
+				{#if isHintShowing}
+					<div class="ml-cloze-hint" role="region" aria-label="Hint">
+						<div class="ml-cloze-hint__header">Hint</div>
+						<div class="ml-cloze-hint__body" use:renderMarkdown={hintOptions}></div>
+					</div>
+				{/if}
+			</div>
 		{/if}
 	{/if}
 </div>
@@ -208,18 +238,107 @@
 		font-weight: bold;
 	}
 
-	:global(.ml-cloze-hint__button) {
-		display: inline-flex;
+	.ml-cloze-hint__disclosure {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: $spacing-xs;
 		margin-top: $spacing-sm;
+		width: 100%;
+	}
+
+	.ml-cloze-hint__button {
+		display: inline-flex;
+		align-items: center;
+		gap: $spacing-xs;
+		min-height: 44px;
+		padding: 0 $spacing-sm;
+		border: $border-width solid $background-modifier-border;
+		border-radius: $radius-md;
+		background: $background-secondary;
+		color: $text-normal;
+		font: inherit;
+		font-size: $font-sm;
+		font-weight: $font-medium;
+		line-height: 1;
+		cursor: pointer;
+		user-select: none;
+		transition:
+			background-color $transition-fast,
+			border-color $transition-fast,
+			color $transition-fast,
+			transform $transition-fast,
+			box-shadow $transition-fast;
+
+		&[aria-expanded='true'] {
+			border-color: $interactive-accent;
+		}
+
+		&:active {
+			transform: scale(0.98);
+		}
+
+		&:focus-visible {
+			outline: 2px solid $interactive-accent;
+			outline-offset: 2px;
+		}
+
+		@media (hover: hover) and (pointer: fine) {
+			&:hover {
+				border-color: $background-modifier-border-hover;
+				box-shadow: $shadow-sm;
+				transform: translateY(-1px);
+			}
+		}
+	}
+
+	:global(.ml-cloze-hint__button .ml-icon) {
+		color: $text-muted;
+	}
+
+	.ml-cloze-hint__label {
+		font-weight: $font-medium;
+	}
+
+	.ml-cloze-hint__key {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 1.5rem;
+		height: 1.5rem;
+		margin-left: auto;
+		padding: 0 $spacing-xxs;
+		border: $border-width solid $background-modifier-border;
+		border-radius: $radius-xs;
+		background: $background-primary-alt;
+		color: $text-muted;
+		font-family: $font-monospace;
+		font-size: $font-xs;
+		font-weight: $font-medium;
+		line-height: 1;
 	}
 
 	.ml-cloze-hint {
 		min-width: 0;
-		margin-top: $spacing-xs;
-		padding: $spacing-sm $spacing-md;
-		border-left: 2px solid $interactive-accent;
+		width: 100%;
+		border: $border-width solid $background-modifier-border;
+		border-inline-start-color: $interactive-accent;
+		border-radius: $radius-md;
 		background: $background-secondary;
-		border-radius: $radius-sm;
+		overflow: hidden;
+	}
+
+	.ml-cloze-hint__header {
+		padding: $spacing-xs $spacing-md 0;
+		color: $text-muted;
+		font-size: $font-xs;
+		font-weight: $font-medium;
+	}
+
+	.ml-cloze-hint__body {
+		padding: $spacing-xs $spacing-md $spacing-sm;
+		color: $text-normal;
+		line-height: $line-height-normal;
 	}
 
 	@media (max-width: $tablet-breakpoint) {
@@ -229,7 +348,7 @@
 			}
 		}
 
-		:global(.ml-cloze-hint__button) {
+		.ml-cloze-hint__button {
 			width: 100%;
 		}
 	}
