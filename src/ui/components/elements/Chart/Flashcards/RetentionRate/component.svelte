@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ChartEmptyState } from '@/ui/components';
-	import { AnnotationLine, Axis, Chart, Highlight, Layer, Spline, Tooltip } from 'layerchart';
+	import { AnnotationLine, Axis, Chart, Highlight, Layer, Points, Spline, Tooltip } from 'layerchart';
 	import type RetentionRateChartProps from './types';
 	import { computeRetentionRateOverTime } from './utils';
 	import { tokens } from '@/utils/token';
@@ -20,6 +20,7 @@
 			{data}
 			x="date"
 			y="retention"
+			yDomain={[0, 1]}
 			padding={{ top: 16, right: 16, bottom: 40, left: 48 }}
 			height={260}
 			tooltipContext={{ mode: 'quadtree-x' }}
@@ -35,7 +36,14 @@
 				<Axis placement="bottom" label="Date" labelProps={{ 'font-size': '12px' }} rule />
 
 				<Highlight lines points opacity={0.7} />
-				<Spline stroke={tokens['interactive-accent']} strokeWidth={2} />
+				<Spline y="trendRetention" stroke={tokens['interactive-accent']} strokeWidth={2} />
+				<Points
+					r={4}
+					fill={tokens['background-secondary']}
+					stroke={tokens['text-muted']}
+					strokeWidth={1.5}
+					opacity={0.7}
+				/>
 
 				<AnnotationLine
 					y={requestRetention}
@@ -53,8 +61,13 @@
 					<Tooltip.Header value={tooltipData.date.toLocaleDateString()} />
 					<Tooltip.List>
 						<Tooltip.Item
-							label="Retention"
+							label="Spot retention"
 							value={tooltipData.retention}
+							format={(v: number) => `${Math.round(v * 100)}%`}
+						/>
+						<Tooltip.Item
+							label="Linear trend"
+							value={tooltipData.trendRetention}
 							format={(v: number) => `${Math.round(v * 100)}%`}
 						/>
 					</Tooltip.List>
