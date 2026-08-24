@@ -1,6 +1,15 @@
 <script lang="ts">
 	import { ChartEmptyState } from '@/ui/components';
-	import { AnnotationLine, Axis, Chart, Highlight, Layer, Points, Spline, Tooltip } from 'layerchart';
+	import {
+		AnnotationLine,
+		Axis,
+		Chart,
+		Highlight,
+		Layer,
+		Points,
+		Spline,
+		Tooltip,
+	} from 'layerchart';
 	import type RetentionRateChartProps from './types';
 	import { computeRetentionRateOverTime } from './utils';
 	import { tokens } from '@/utils/token';
@@ -40,7 +49,7 @@
 				<Points
 					r={4}
 					fill={tokens['background-secondary']}
-					stroke={tokens['text-muted']}
+					stroke={tokens['text-accent']}
 					strokeWidth={1.5}
 					opacity={0.7}
 				/>
