@@ -1,57 +1,67 @@
 <script lang="ts">
 	import { type FlashcardClozeContent } from '@/schemas';
-	import { gesture } from '@/ui/actions/gestures';
-	import { Button, Icon, Tooltip } from '@/ui/components/elements';
-	import { Platform } from 'obsidian';
-	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
+	import { Button, Icon } from '@/ui/components/elements';
+	import { SvelteSet } from 'svelte/reactivity';
 	import type { FlashcardContentProps } from '../types';
 	import { fisherYatesShuffle } from '../utils';
+	import { buildClozeMarkdown } from './utils';
 
 	let {
 		content,
+		sourcePath,
 		isAnswerShowing,
 		onAllRevealed,
 		onShowAnswer,
 	}: FlashcardContentProps<FlashcardClozeContent> = $props();
-	let revealedIds: SvelteSet<string> = $state(new SvelteSet());
+
+	let revealedIds: SvelteSet<string> = new SvelteSet();
 	let highlightedId: string | null = $state(null);
 	let shuffledOrder: string[] = $state([]);
 	let containerRef: HTMLDivElement;
-	let openTooltips: SvelteSet<string> = $state(new SvelteSet());
-	let isTouch = $state(Platform.isMobile);
-
-	function tooltipOpen(id: string, v: boolean) {
-		if (v) openTooltips = new SvelteSet([...openTooltips, id]);
-		else {
-			const n = new SvelteSet(openTooltips);
-			n.delete(id);
-			openTooltips = n;
-		}
-	}
-	const isOpen = (id: string) => openTooltips.has(id);
-
-	function handleOutsideTap(e: TouchEvent) {
-		if (!isTouch || openTooltips.size === 0) return;
-		const target = e.target as Node | null;
-		if (target && containerRef && !containerRef.contains(target)) {
-			openTooltips = new SvelteSet();
-		}
-	}
-
+	let isHintShowing = $state(false);
 	let lastContentKey = $state('');
+	let lastHintKey = $state('');
+
+	const bodyOptions: MarkdownOptions = $derived({
+		content: content
+			? buildClozeMarkdown(content, revealedIds, isAnswerShowing, highlightedId)
+			: '',
+		sourcePath,
+	});
+
+	const highlightedCloze = $derived(
+		content?.deletions.find((deletion) => deletion.id === highlightedId) ?? null,
+	);
+
+	const hintOptions: MarkdownOptions = $derived({
+		content: highlightedCloze?.hint ?? '',
+		sourcePath,
+	});
 
 	$effect(() => {
-		if (!content) return;
-		const currentKey = JSON.stringify(content.deletions.map((d) => d.id));
-		if (currentKey !== lastContentKey) {
-			lastContentKey = currentKey;
+		const currentKey = content ? JSON.stringify(content) : '';
+		if (currentKey === lastContentKey) return;
+		lastContentKey = currentKey;
+		if (content) {
 			initOrder();
+		} else {
+			revealedIds = new SvelteSet();
+			shuffledOrder = [];
+			highlightedId = null;
 		}
+	});
+
+	$effect(() => {
+		const currentHintKey = `${highlightedId ?? ''}:${isAnswerShowing ? 'answer' : 'question'}`;
+		if (currentHintKey === lastHintKey) return;
+		lastHintKey = currentHintKey;
+		isHintShowing = false;
 	});
 
 	function initOrder() {
 		if (!content) return;
-		shuffledOrder = fisherYatesShuffle(content.deletions.map((d) => d.id));
+		shuffledOrder = fisherYatesShuffle(content.deletions.map((deletion) => deletion.id));
 		revealedIds = new SvelteSet();
 		highlightedId = shuffledOrder[0] ?? null;
 	}
@@ -64,7 +74,7 @@
 	}
 
 	function revealCloze(id: string) {
-		if (revealedIds.has(id)) return;
+		if (isAnswerShowing || id !== highlightedId || revealedIds.has(id)) return;
 		const newRevealed = new SvelteSet(revealedIds);
 		newRevealed.add(id);
 		revealedIds = newRevealed;
@@ -76,126 +86,94 @@
 		}
 	}
 
-	function handleKeyDown(event: KeyboardEvent) {
-		if (!containerRef || containerRef.offsetParent === null) return;
-		if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)
+	function getPlaceholderId(target: EventTarget | null): string | null {
+		if (!(target instanceof Element)) return null;
+		const placeholder = target.closest<HTMLElement>('.ml-cloze-placeholder');
+		if (!placeholder || !containerRef?.contains(placeholder)) return null;
+		return placeholder.dataset.clozeId ?? null;
+	}
+
+	function handleClozeClick(event: MouseEvent) {
+		const id = getPlaceholderId(event.target);
+		if (id !== highlightedId || isAnswerShowing) return;
+		event.preventDefault();
+		revealCloze(id);
+	}
+
+	function handleClozeKeyDown(event: KeyboardEvent) {
+		const id = getPlaceholderId(event.target);
+		if (
+			id === null ||
+			id !== highlightedId ||
+			isAnswerShowing ||
+			(event.key !== 'Enter' && event.key !== ' ' && event.code !== 'Space')
+		) {
 			return;
+		}
+		event.preventDefault();
+		revealCloze(id);
+	}
+
+	function handleWindowKeyDown(event: KeyboardEvent) {
+		if (!containerRef || containerRef.offsetParent === null) return;
+		if (getPlaceholderId(event.target)) return;
+		if (
+			event.target instanceof Element &&
+			event.target.closest('button, a, input, textarea, select, [contenteditable="true"]')
+		) {
+			return;
+		}
 		if (event.code === 'Space' && highlightedId) {
 			event.preventDefault();
 			revealCloze(highlightedId);
 		}
 	}
 
-	function handleClozeClick(id: string) {
-		if (id === highlightedId && !isAnswerShowing) {
-			revealCloze(id);
-		}
+	function clozeInteractions(node: HTMLElement): { destroy: () => void } {
+		node.addEventListener('click', handleClozeClick);
+		node.addEventListener('keydown', handleClozeKeyDown);
+
+		return {
+			destroy() {
+				node.removeEventListener('click', handleClozeClick);
+				node.removeEventListener('keydown', handleClozeKeyDown);
+			},
+		};
 	}
 
-	interface ClozeSegment {
-		type: 'text';
-		text: string;
+	function toggleHint() {
+		if (isAnswerShowing || !highlightedCloze?.hint) return;
+		isHintShowing = !isHintShowing;
 	}
-
-	interface ClozePlaceholder {
-		type: 'cloze';
-		id: string;
-		answer: string;
-		hint: string | null;
-	}
-
-	const segments: Array<ClozeSegment | ClozePlaceholder> = $derived.by(() => {
-		if (!content) return [];
-
-		const result: Array<ClozeSegment | ClozePlaceholder> = [];
-		const posMap = new SvelteMap<number, FlashcardClozeContent['deletions'][0]>();
-		for (const del of content.deletions) {
-			for (const pos of del.positions) {
-				posMap.set(pos, del);
-			}
-		}
-
-		const sortedPositions = [...posMap.keys()].sort((a, b) => a - b);
-		let cursor = 0;
-
-		for (const pos of sortedPositions) {
-			const del = posMap.get(pos)!;
-			if (pos > cursor) {
-				result.push({ type: 'text', text: content.text.slice(cursor, pos) });
-			}
-			result.push({ type: 'cloze', id: del.id, answer: del.answer, hint: del.hint });
-			cursor = pos;
-		}
-
-		if (cursor < content.text.length) {
-			result.push({ type: 'text', text: content.text.slice(cursor) });
-		}
-
-		return result;
-	});
-
-	const highlightedCloze = $derived(
-		segments.find((s) => s.type === 'cloze' && s.id === highlightedId) as
-			| ClozePlaceholder
-			| undefined,
-	);
 </script>
 
-<svelte:window onkeydown={handleKeyDown} ontouchstart={handleOutsideTap} />
+<svelte:window onkeydown={handleWindowKeyDown} />
 
 <div bind:this={containerRef} class="ml-cloze-content">
 	{#if content}
-		<Tooltip.Provider delayDuration={700} disableHoverableContent>
-			<p class="ml-cloze-text">
-				{#each segments as segment, i (i)}
-					{#if segment.type === 'text'}
-						{segment.text}
-					{:else if isAnswerShowing || revealedIds.has(segment.id)}
-						<span class="ml-cloze-revealed">{segment.answer}</span>
-					{:else if segment.id === highlightedId}
-						<Tooltip.Root bind:open={() => isOpen(segment.id), (v) => tooltipOpen(segment.id, v)}>
-							<Tooltip.Trigger disabled={isAnswerShowing}>
-								{#snippet child({ props })}
-									<span
-										{...props}
-										class="ml-cloze-highlighted"
-										onclick={() => handleClozeClick(segment.id)}
-										use:gesture={isTouch
-											? { longPressDuration: 300, onLongPress: () => tooltipOpen(segment.id, true) }
-											: {}}>[...]</span
-									>
-								{/snippet}
-							</Tooltip.Trigger>
-							<Tooltip.Portal>
-								{#if segment.hint}
-									<Tooltip.Content side="top" sideOffset={6}>
-										{segment.hint}
-										<Tooltip.Arrow />
-									</Tooltip.Content>
-								{/if}
-							</Tooltip.Portal>
-						</Tooltip.Root>
-					{:else}
-						<span class="ml-cloze-obscured">[...]</span>
-					{/if}
-				{/each}
-			</p>
+		<div
+			class="ml-cloze-text"
+			role="group"
+			aria-label="Cloze content"
+			use:clozeInteractions
+			use:renderMarkdown={bodyOptions}
+		></div>
 
-			<Button
-				variant="ghost"
-				class="ml-cloze-hint__button"
-				disabled={isAnswerShowing || !highlightedCloze?.hint}
-				onclick={() => {
-					if (!highlightedCloze) return;
-					tooltipOpen(highlightedCloze.id, !isOpen(highlightedCloze.id));
-				}}
-			>
-				{#snippet icon()}
-					<Icon name="lightbulb" size={18} />
-				{/snippet}
-				Show hint
-			</Button>
-		</Tooltip.Provider>
+		<Button
+			variant="ghost"
+			class="ml-cloze-hint__button"
+			disabled={isAnswerShowing || !highlightedCloze?.hint}
+			onclick={toggleHint}
+		>
+			{#snippet icon()}
+				<Icon name="lightbulb" size={18} />
+			{/snippet}
+			Show hint
+		</Button>
+
+		{#if isHintShowing && highlightedCloze?.hint && !isAnswerShowing}
+			<div class="ml-cloze-hint" use:renderMarkdown={hintOptions}></div>
+		{/if}
 	{/if}
 </div>
 
@@ -206,20 +184,16 @@
 	.ml-cloze-content {
 		width: 100%;
 		position: relative;
-
-		:global .ml-cloze-hint__button {
-			display: none;
-		}
 	}
 
 	.ml-cloze-text {
 		line-height: 1.8;
 		font-size: 1.1rem;
-		white-space: wrap;
 		word-break: break-word;
 	}
 
-	.ml-cloze-obscured {
+	.ml-cloze-text :global(.ml-cloze-placeholder) {
+		display: inline-block;
 		background-color: $background-secondary;
 		color: $text-muted;
 		padding: 0 4px;
@@ -227,17 +201,25 @@
 		cursor: default;
 	}
 
-	.ml-cloze-highlighted {
+	.ml-cloze-text :global(.ml-cloze-placeholder-active) {
 		background-color: $interactive-accent;
 		color: $text-accent-foreground;
-		padding: 0 4px;
-		border-radius: 3px;
 		cursor: pointer;
 		font-weight: bold;
 	}
-	.ml-cloze-revealed {
-		color: $text-normal;
-		font-weight: bold;
+
+	:global(.ml-cloze-hint__button) {
+		display: inline-flex;
+		margin-top: $spacing-sm;
+	}
+
+	.ml-cloze-hint {
+		min-width: 0;
+		margin-top: $spacing-xs;
+		padding: $spacing-sm $spacing-md;
+		border-left: 2px solid $interactive-accent;
+		background: $background-secondary;
+		border-radius: $radius-sm;
 	}
 
 	@media (max-width: $tablet-breakpoint) {
@@ -245,11 +227,10 @@
 			.ml-cloze-text {
 				font-size: 1rem;
 			}
+		}
 
-			:global .ml-cloze-hint__button {
-				display: inline-flex;
-				width: 100%;
-			}
+		:global(.ml-cloze-hint__button) {
+			width: 100%;
 		}
 	}
 </style>

@@ -16,6 +16,7 @@
 
 	let {
 		flashcard,
+		sourcePath,
 		isAnswerShowing,
 		onShowAnswer,
 		onSetAnswerCorrectness,
@@ -24,22 +25,29 @@
 
 	const footerOptions: MarkdownOptions = $derived({
 		content: flashcard?.source ?? '',
+		sourcePath,
 	});
 </script>
 
 {#if flashcard}
 	<Card>
 		{#if isFlashcardBase(flashcard)}
-			<FlashcardBasicContent content={flashcard.content} {isAnswerShowing} />
+			<FlashcardBasicContent
+				content={flashcard.content}
+				{sourcePath}
+				{isAnswerShowing}
+			/>
 		{:else if isFlashcardSequence(flashcard)}
 			<FlashcardSequenceContent
 				content={flashcard.content}
+				{sourcePath}
 				{isAnswerShowing}
 				{onSetAnswerCorrectness}
 			/>
 		{:else if isFlashcardQuiz(flashcard)}
 			<FlashcardQuizContent
 				content={flashcard.content}
+				{sourcePath}
 				{isAnswerShowing}
 				{onShowAnswer}
 				{onSetAnswerCorrectness}
@@ -47,6 +55,7 @@
 		{:else if isFlashcardCloze(flashcard)}
 			<FlashcardClozeContent
 				content={flashcard.content}
+				{sourcePath}
 				{isAnswerShowing}
 				{onShowAnswer}
 				{onAllRevealed}

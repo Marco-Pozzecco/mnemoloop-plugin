@@ -1,2 +1,52 @@
 @use 'mobile';
 @use 'theme';
+
+.ml-markdown-rendered {
+	min-width: 0;
+	max-width: 100%;
+	overflow-wrap: anywhere;
+
+	table,
+	pre,
+	.math-block,
+	.math.math-block,
+	.math-inline,
+	mjx-container[display='true'] {
+		max-width: 100%;
+		overflow-x: auto;
+		overflow-y: hidden;
+	}
+
+	.math-inline {
+		display: inline-block;
+		vertical-align: middle;
+	}
+
+	table {
+		display: block;
+		width: max-content;
+		min-width: 100%;
+	}
+
+	pre code {
+		display: block;
+		max-width: 100%;
+		overflow-x: auto;
+	}
+
+	img,
+	video,
+	audio,
+	iframe,
+	embed,
+	object,
+	canvas,
+	svg {
+		max-width: 100%;
+	}
+
+	img,
+	video {
+		height: auto;
+	}
+}

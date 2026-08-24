@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { FlashcardBaseContent, FlashcardContent } from '@/schemas';
 	import { CardType } from '@/schemas';
-	import { Input } from '@/ui/components/elements';
+	import { Textarea } from '@/ui/components/elements';
 	import type ContentTypeProps from '../types';
 	import type { BuildContentFn, ValidateFn } from '../types';
 
@@ -33,5 +33,5 @@
 	});
 </script>
 
-<Input label="Front" value={front} required maxLength={1000} {disabled} onchange={(v) => (front = v)} />
-<Input label="Back" value={back} required maxLength={4000} {disabled} onchange={(v) => (back = v)} />
+<Textarea label="Front" value={front} required rows={5} maxLength={1000} {disabled} onchange={(v) => (front = v)} />
+<Textarea label="Back" value={back} required rows={5} maxLength={4000} {disabled} onchange={(v) => (back = v)} />

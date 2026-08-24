@@ -33,26 +33,71 @@ export class FlashcardSequenceContentParser extends ContentParser<FlashcardSeque
 	};
 
 	serialize = (content: FlashcardSequenceContent): ParseContentResult<string> => {
-		let result = '';
-
-		result += content.question + '\n\n';
-		result += this._flashcardSettings.marker + '\n\n';
-		result += content.steps.map((step) => `- ${step}`).join('\n');
+		const steps = content.steps
+			.map((step) =>
+				step
+					.split('\n')
+					.map((line, index) => `${index === 0 ? '- ' : '  '}${line}`)
+					.join('\n'),
+			)
+			.join('\n');
+		const result = content.question + '\n\n' + this._flashcardSettings.marker + '\n\n' + steps;
 
 		return this.parseContentResultSuccess(result);
 	};
 
 	private extractSteps(contentAfterMarker: string): FlashcardSequenceContent['steps'] {
 		const lines = contentAfterMarker.split('\n');
-		const listItemRegex = /^\s*(?:\d+[.)]\s+|[-*+]\s+)(.+)/;
+		const listItemRegex = /^([ \t]*)(?:\d+[.)][ \t]+|[-*+][ \t]+)(.*)$/;
 		const items: string[] = [];
+		let listIndent: string | null = null;
+		let currentItem: string[] | null = null;
+		let pendingBlankLines = 0;
+
+		const flushCurrentItem = () => {
+			if (currentItem) {
+				items.push(currentItem.join('\n'));
+			}
+		};
 
 		for (const line of lines) {
 			const match = listItemRegex.exec(line);
-			if (match && match[1]) {
-				items.push(match[1].trim());
+			if (match && match[2].trim().length > 0) {
+				const indent = match[1];
+
+				if (listIndent === null) {
+					listIndent = indent;
+				}
+
+				if (indent === listIndent) {
+					flushCurrentItem();
+					currentItem = [match[2]];
+					pendingBlankLines = 0;
+					continue;
+				}
 			}
+
+			if (currentItem && listIndent !== null) {
+				const continuationPrefix = `${listIndent}  `;
+				if (line.startsWith(continuationPrefix)) {
+					while (pendingBlankLines > 0) {
+						currentItem.push('');
+						pendingBlankLines--;
+					}
+					currentItem.push(line.slice(continuationPrefix.length));
+					continue;
+				}
+
+				if (line === '') {
+					pendingBlankLines++;
+					continue;
+				}
+			}
+
+			pendingBlankLines = 0;
 		}
+
+		flushCurrentItem();
 
 		if (items.length < 2) {
 			throw new Error('Sequence requires at least 2 steps');

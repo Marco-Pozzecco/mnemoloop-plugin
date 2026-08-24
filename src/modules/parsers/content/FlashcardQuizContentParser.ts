@@ -36,7 +36,13 @@ export class FlashcardQuizContentParser extends ContentParser<FlashcardQuizConte
 	serialize = (content: FlashcardQuizContent): ParseContentResult<string> => {
 		const marker = this._flashcardSettings.marker;
 		const checkboxList = content.options
-			.map((opt, i) => (i === content.correct_index ? `- [x] ${opt}` : `- [ ] ${opt}`))
+			.map((option, index) => {
+				const prefix = index === content.correct_index ? '- [x] ' : '- [ ] ';
+				return option
+					.split('\n')
+					.map((line, lineIndex) => `${lineIndex === 0 ? prefix : '  '}${line}`)
+					.join('\n');
+			})
 			.join('\n');
 		return this.parseContentResultSuccess(`${content.question}\n\n${marker}\n\n${checkboxList}`);
 	};
@@ -45,23 +51,68 @@ export class FlashcardQuizContentParser extends ContentParser<FlashcardQuizConte
 		question: string,
 		contentAfterMarker: string,
 	): { question: string; options: string[]; correct_index: number } {
-		const checkboxRegex = /^\s*[-*+]\s*\[([ xX])\]\s*(.+)/gm;
+		const checkboxRegex = /^([ \t]*)[-*+][ \t]*\[([ xX])\][ \t]*(.*)$/;
 		const options: string[] = [];
 		let correct_index = -1;
+		let listIndent: string | null = null;
+		let currentOption: { checked: boolean; lines: string[] } | null = null;
+		let pendingBlankLines = 0;
 
-		let m: RegExpExecArray | null;
-		while ((m = checkboxRegex.exec(contentAfterMarker)) !== null) {
-			const isChecked = m[1].toLowerCase() === 'x';
-			const text = m[2].trim();
-			options.push(text);
+		const flushCurrentOption = () => {
+			if (!currentOption) {
+				return;
+			}
 
-			if (isChecked) {
+			options.push(currentOption.lines.join('\n'));
+			if (currentOption.checked) {
 				if (correct_index !== -1) {
 					throw new Error('Quiz requires exactly one checked option');
 				}
 				correct_index = options.length - 1;
 			}
+		};
+
+		for (const line of contentAfterMarker.split('\n')) {
+			const match = checkboxRegex.exec(line);
+			if (match && match[3].trim().length > 0) {
+				const indent = match[1];
+
+				if (listIndent === null) {
+					listIndent = indent;
+				}
+
+				if (indent === listIndent) {
+					flushCurrentOption();
+					currentOption = {
+						checked: match[2].toLowerCase() === 'x',
+						lines: [match[3]],
+					};
+					pendingBlankLines = 0;
+					continue;
+				}
+			}
+
+			if (currentOption && listIndent !== null) {
+				const continuationPrefix = `${listIndent}  `;
+				if (line.startsWith(continuationPrefix)) {
+					while (pendingBlankLines > 0) {
+						currentOption.lines.push('');
+						pendingBlankLines--;
+					}
+					currentOption.lines.push(line.slice(continuationPrefix.length));
+					continue;
+				}
+
+				if (line === '') {
+					pendingBlankLines++;
+					continue;
+				}
+			}
+
+			pendingBlankLines = 0;
 		}
+
+		flushCurrentOption();
 
 		if (correct_index === -1) {
 			throw new Error('Quiz requires exactly one checked option');

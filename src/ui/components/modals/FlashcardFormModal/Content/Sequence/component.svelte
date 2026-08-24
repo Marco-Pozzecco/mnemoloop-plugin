@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FormField, Input, Button, Icon } from '@/ui/components/elements';
+	import { FormField, Textarea, Button, Icon } from '@/ui/components/elements';
 	import type { FlashcardSequenceContent } from '@/schemas';
 	import type ContentTypeProps from '../types';
 	import type { ValidateFn, BuildContentFn } from '../types';
@@ -38,10 +38,11 @@
 	});
 </script>
 
-<Input
+<Textarea
 	label="Question"
 	value={question}
 	required
+	rows={5}
 	maxLength={1000}
 	{disabled}
 	onchange={(v) => (question = v)}
@@ -49,11 +50,12 @@
 <FormField label="Steps">
 	{#each steps as step, i (i)}
 		<div class="ml-field-list-item">
-			<Input
-				class="ml-field-list-item__input"
+			<Textarea
+				className="ml-field-list-item__input"
 				label={`Steps ${i + 1}`}
 				value={step}
 				required
+				rows={3}
 				maxLength={500}
 				{disabled}
 				onchange={(v) => (steps[i] = v)}
@@ -82,16 +84,16 @@
 		gap: $spacing-sm;
 		align-items: center;
 
-		:global(.ml-input-wrapper) {
+		:global(.ml-textarea-wrapper) {
 			display: contents;
 		}
 
-		:global(.ml-input-label) {
+		:global(.ml-textarea-label) {
 			grid-column: 1 / -1;
 		}
 
-		:global(.ml-input-error),
-		:global(.ml-input-helper) {
+		:global(.ml-textarea-error),
+		:global(.ml-textarea-helper) {
 			grid-column: 1 / -1;
 		}
 	}

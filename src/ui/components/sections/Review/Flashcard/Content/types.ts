@@ -8,6 +8,7 @@ export interface FlashcardContentProps<T> extends Omit<FlashcardContentRouterPro
 /** Props for the root content router component. */
 export default interface FlashcardContentRouterProps {
 	flashcard: Flashcard | null;
+	sourcePath: string;
 	isAnswerShowing: boolean;
 	onShowAnswer?: () => void;
 	onSetAnswerCorrectness?: (isCorrect: boolean) => void;

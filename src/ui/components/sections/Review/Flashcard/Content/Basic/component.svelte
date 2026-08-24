@@ -3,14 +3,16 @@
 	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
 	import type { FlashcardContentProps } from '../types';
 
-	let { content, isAnswerShowing }: FlashcardContentProps<FlashcardBaseContent> = $props();
+	let { content, sourcePath, isAnswerShowing }: FlashcardContentProps<FlashcardBaseContent> = $props();
 
 	const frontOptions: MarkdownOptions = $derived({
 		content: content?.front ?? '',
+		sourcePath,
 	});
 
 	const backOptions: MarkdownOptions = $derived({
 		content: content?.back ?? '',
+		sourcePath,
 	});
 </script>
 
