@@ -50,8 +50,6 @@ export { default as ReviewFlashcardScoreControls } from './Review/Flashcard/Scor
 export type { default as ReviewFlashcardScoreControlsProps } from './Review/Flashcard/ScoreControls/types';
 export { default as ReviewFlashcard } from './Review/Flashcard/component.svelte';
 export type { default as ReviewFlashcardProps } from './Review/Flashcard/types';
-export { default as ReviewFooter } from './Review/Footer/component.svelte';
-export type { default as ReviewFooterProps } from './Review/Footer/types';
 export { default as ReviewHeader } from './Review/Header/component.svelte';
 export type { default as ReviewHeaderProps } from './Review/Header/types';
 export { default as SettingsDangerZone } from './Settings/DangerZone/component.svelte';
