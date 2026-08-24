@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { FlashcardQuizContent } from '@/schemas';
-	import { FormField, Input, Button, Icon } from '@/ui/components/elements';
+	import { FormField, Textarea, Button, Icon } from '@/ui/components/elements';
 	import type ContentTypeProps from '../types';
 	import type { BuildContentFn, ValidateFn } from '../types';
 	import { validateQuiz, buildQuizContent, remapCorrectIndexAfterRemove } from './validation';
@@ -41,10 +41,11 @@
 	});
 </script>
 
-<Input
+<Textarea
 	label="Question"
 	value={question}
 	required
+	rows={5}
 	maxLength={1000}
 	{disabled}
 	onchange={(v) => (question = v)}
@@ -60,10 +61,11 @@
 				{disabled}
 				onchange={() => (correctIndex = i)}
 			/>
-			<Input
+			<Textarea
 				label={`Option ${i + 1}`}
 				value={option}
 				required
+				rows={3}
 				{disabled}
 				onchange={(v) => (options[i] = v)}
 			/>
@@ -90,19 +92,18 @@
 		gap: $spacing-sm;
 		align-items: center;
 
-		:global(.ml-input-wrapper) {
+		:global(.ml-textarea-wrapper) {
 			display: contents;
 		}
 
-		:global(.ml-input-label) {
+		:global(.ml-textarea-label) {
 			grid-column: 1 / -1;
 		}
 
-		:global(.ml-input-error),
-		:global(.ml-input-helper) {
+		:global(.ml-textarea-error),
+		:global(.ml-textarea-helper) {
 			grid-column: 1 / -1;
 		}
-	}
 
 	.ml-field-list-radio {
 		grid-row: 2;
@@ -117,5 +118,6 @@
 			left: 50%;
 			transform: translateY(-50%) translateX(-50%);
 		}
+	}
 	}
 </style>
