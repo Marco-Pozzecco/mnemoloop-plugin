@@ -1,3 +1,23 @@
+## [1.9.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.8.0...1.9.0) (2026-08-25)
+
+### Features
+
+* **forms:** support multiline flashcard source fields ([77579fc](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/77579fc3c038942afd23f7579acd782a2e337a8b))
+* **markdown:** isolate Obsidian markdown render generations ([21cf28f](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/21cf28f671308385ea67c0a56bc09b63b746b867))
+* **parsers:** preserve multiline flashcard markdown ([504a7c9](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/504a7c97ae616463adaf214057ea35bc2550148a))
+* **review:** add cloze hint disclosure controls ([6b349b4](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/6b349b4aa9e1da50ff91011e106c7e96c69e562c))
+* **review:** expose flashcard file paths ([e9d521a](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/e9d521adb4fa25eafb93d2b15c67e78a11b7d08b))
+* **review:** render rich flashcard content ([3128aaa](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/3128aaa3317351c240155b28743ac1aeef529c24))
+
+### Bug Fixes
+
+* **chart:** highlight retention spot markers ([99649e2](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/99649e2d80d439dda81d1d006de6c39cc9d74d99))
+* **chart:** render retention regression trend ([04785cd](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/04785cd76a907e65fd06d31e6bdfc932fc3d1b19))
+* **cloze:** make reveal and hint state reactive ([3db597d](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/3db597d8ea7f14f2ae4d3830637cdbb02e66079b))
+* **review:** align rendered source content ([a597581](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/a59758171a749f666ae24de858989adeb2c45441))
+* **review:** show touch-friendly answer hint ([c520492](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/c520492c7e95c59a8c56b27cfbdd30172c7a66ae))
+* **tests:** resolve interaction test lint errors ([6ade5e3](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/6ade5e3f5c21dd5a1dee2a0ff4ff653290233668))
+
 ## [1.8.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.7.0...1.8.0) (2026-08-20)
 
 ### Features
