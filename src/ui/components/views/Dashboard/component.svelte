@@ -15,13 +15,18 @@
 	import { statsStore } from '@/ui/store/stats.store';
 	import { uiStore } from '@/ui/store/ui.store';
 	import { onMount } from 'svelte';
+	import { getAppContext } from '@/ui/context/AppContext';
+	import { PrimingController } from '@/ui/controllers/PrimingController';
+	import { settingsStore } from '@/ui/store/settings.store';
 
 	// Store references for automatic subscription with $ prefix
 	const statsStoreRef = statsStore.store;
 	const uiStoreRef = uiStore.store;
 	const deckTreeRef = deckTreeStore.store;
+	const settingsRef = settingsStore.settings;
 
 	const controller = $derived(new DashboardController());
+	const app = getAppContext().app;
 
 	// state - using $derived with $ prefix for automatic store subscription
 	let stats = $derived($statsStoreRef);
@@ -29,9 +34,20 @@
 	let selectedDeck = $derived(deckTree.selectedDeck);
 	let isLoading = $derived($uiStoreRef.isLoading);
 	let isReviewDisabled = $derived(stats.flashcard.due_now === 0);
+	let difficultyThreshold = $derived($settingsRef.source_note.priming.difficulty_threshold);
+	let isPrimingDisabled = $derived(
+		(selectedDeck ? selectedDeck.dueNow : stats.flashcard.due_now) === 0,
+	);
 
 	function onStartReview() {
 		controller.startReview(IndexKey.flashcard, selectedDeck?.fullPath);
+	}
+	function onStartPriming() {
+		const primingController = new PrimingController(app);
+		void primingController.start({
+			deckFilter: selectedDeck?.fullPath,
+			deckLabel: selectedDeck?.name ?? 'All decks',
+		});
 	}
 
 	function onSelectDeck(fullPath: string | null) {
@@ -78,7 +94,10 @@
 		<DashboardFooter
 			{stats}
 			{onStartReview}
+			{onStartPriming}
 			isDisabled={isReviewDisabled}
+			isPrimingDisabled={isPrimingDisabled}
+			difficultyThreshold={difficultyThreshold}
 			{isLoading}
 			{selectedDeck}
 		/>

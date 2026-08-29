@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Priming } from '@/ui/components/views';
 	import { Banner, Dashboard, Review } from '@/ui/components';
 	import { Analytics, Manage } from '@/ui/components/views';
 	import { Navbar } from '@/ui/components/sections';
@@ -30,12 +31,14 @@
 			onDismiss={() => bannerStore.dismiss($bannerRef.activeBanner!.id)}
 		/>
 	{/if}
-	{#if currentView !== 'review'}
+	{#if currentView !== 'review' && currentView !== 'priming'}
 		<Navbar bind:activeTab={currentView} />
 	{/if}
 	<div class="ml-app-view-section">
 		{#if currentView === 'review'}
 			<Review />
+		{:else if currentView === 'priming'}
+			<Priming />
 		{:else if currentView === 'dashboard'}
 			<Dashboard />
 		{:else if currentView === 'manage'}

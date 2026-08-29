@@ -4,3 +4,5 @@ export { default as Dashboard } from './Dashboard/component.svelte';
 export { default as Manage } from './Manage/component.svelte';
 export type { default as ManageProps } from './Manage/types';
 export { default as Review } from './Review/component.svelte';
+export { default as Priming } from './Priming/component.svelte';
+export type { default as PrimingProps } from './Priming/types';

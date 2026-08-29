@@ -152,7 +152,8 @@ function deriveClusterTitle(
 		if (common === null) {
 			common = ancestry;
 		} else {
-			common = new Set([...common].filter((path) => ancestry.has(path)));
+			const currentCommon: Set<string> = common;
+			common = new Set([...currentCommon].filter((path) => ancestry.has(path)));
 		}
 	}
 
@@ -482,7 +483,7 @@ export class PrimingController {
 		return new Promise((resolve, reject) => {
 			const unsubscribe = EventBus.instance.subscribe(
 				FlashcardIndexQueryResponseEvent,
-				(event) => {
+				async (event) => {
 					unsubscribe();
 					resolve(event.data);
 				},

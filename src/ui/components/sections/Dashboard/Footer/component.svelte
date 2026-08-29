@@ -6,7 +6,10 @@
 	let {
 		stats,
 		onStartReview,
+		onStartPriming,
 		isDisabled = false,
+		isPrimingDisabled = false,
+		difficultyThreshold = 7,
 		isLoading = false,
 		selectedDeck = null,
 		className,
@@ -56,7 +59,20 @@
 	}
 </script>
 
-<div class="ml-dashboard__footer-actions {className}">
+	
+	<div class="ml-dashboard__footer-actions {className}">
+		<Button
+			variant="secondary"
+			size="large"
+			class="ml-prime-button"
+			disabled={isPrimingDisabled}
+			onclick={onStartPriming}
+		>
+		<span class="ml-prime-button__label">Prime difficult notes</span>
+		<span class="ml-prime-button__context">
+			{`${selectedDeck ? selectedDeck.name : 'All decks'} · difficulty > ${difficultyThreshold.toFixed(1)}`}
+		</span>
+	</Button>
 	<Button
 		variant="primary"
 		size="large"
@@ -97,6 +113,35 @@
 		width: max-content;
 		max-width: 400px;
 		gap: $spacing-sm;
+	}
+	:global(.ml-prime-button) {
+		width: max-content;
+		max-width: 400px;
+		align-items: center;
+		gap: 2px;
+	}
+
+	:global(.ml-prime-button__label) {
+		font-weight: $font-semibold;
+	}
+
+	:global(.ml-prime-button__context) {
+		font-size: $font-xs;
+		color: $text-muted;
+	}
+
+	@media (max-width: 480px) {
+		.ml-dashboard__footer-actions {
+			flex-direction: column;
+			align-items: stretch;
+			width: 100%;
+		}
+
+		:global(.ml-prime-button),
+		:global(.ml-start-button) {
+			width: 100%;
+			max-width: none;
+		}
 	}
 
 	:global(.ml-spin) {

@@ -50,7 +50,7 @@ function makeCard(overrides: Partial<FlashcardMetadata> = {}): FlashcardMetadata
 }
 
 function wireIndexerResponse(getCards: () => FlashcardMetadata[]): void {
-	EventBus.instance.subscribe(FlashcardIndexQueryRequestEvent, (event) => {
+	EventBus.instance.subscribe(FlashcardIndexQueryRequestEvent, async (event) => {
 		const predicate = event.data.predicate;
 		void EventBus.instance.publish(
 			new FlashcardIndexQueryResponseEvent(getCards().filter(predicate)),
