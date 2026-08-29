@@ -116,7 +116,13 @@ export function createMockVault(files: MockFile[] = []): any {
 		modify: vi.fn<any, any>().mockImplementation(async (file: any, content: string) => {
 			fileMap.set(file.path, content);
 		}),
-		cachedRead: vi.fn<any, any>(),
+		cachedRead: vi.fn<any, any>().mockImplementation(async (file: any) => {
+			const content = fileMap.get(file.path);
+			if (content === undefined) {
+				throw new Error(`File not found: ${file.path}`);
+			}
+			return content;
+		}),
 		append: vi.fn<any, any>(),
 		on: vi.fn<any, any>(),
 		fileMap,
@@ -188,7 +194,8 @@ export function createMockEditor(value: string = '', selection: string = ''): an
 }
 
 /**
- * Create a mock MetadataCache with configurable frontmatter and complete tags.
+ * Create a mock MetadataCache with configurable frontmatter, complete tags,
+ * resolved-link metadata, and link-target resolution.
  */
 interface MockMethod {
 	mockReturnValue(value: unknown): MockMethod;
@@ -197,11 +204,16 @@ interface MockMethod {
 interface MockMetadataCache {
 	getFileCache: MockMethod;
 	getFirstLinkpathDest: MockMethod;
+	resolvedLinks: Record<string, Record<string, number>>;
 }
 
 export function createMockMetadataCache(
 	frontmatter?: Record<string, unknown>,
 	tags?: TagCache[],
+	options: {
+		resolvedLinks?: Record<string, Record<string, number>>;
+		linkTargets?: Record<string, string>;
+	} = {},
 ): MockMetadataCache {
 	const hasCache = frontmatter !== undefined || tags !== undefined;
 	return {
@@ -219,7 +231,15 @@ export function createMockMetadataCache(
 					}
 				: null,
 		),
-		getFirstLinkpathDest: vi.fn(),
+		getFirstLinkpathDest: vi.fn().mockImplementation((linkpath: string) => {
+			const target = options.linkTargets?.[linkpath];
+			if (!target) {
+				return null;
+			}
+			const basename = target.split('/').pop()?.replace('.md', '') || '';
+			return new (TFile as any)(target, basename);
+		}),
+		resolvedLinks: options.resolvedLinks ?? {},
 	};
 }
 

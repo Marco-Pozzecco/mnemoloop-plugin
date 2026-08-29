@@ -65,6 +65,7 @@ vi.mock('obsidian', () => ({
 			metadataCache: {
 				getFileCache: vi.fn<any, any>(),
 				getFirstLinkpathDest: vi.fn<any, any>(),
+				resolvedLinks: {},
 			},
 		};
 		registerEvent = vi.fn();
@@ -168,11 +169,13 @@ vi.mock('obsidian', () => ({
 	MetadataCache: class MockMetadataCache {
 		getFileCache = vi.fn();
 		getFirstLinkpathDest = vi.fn();
+		resolvedLinks = {};
 	},
 
 	// Utility functions
 	normalizePath: (path: string) => path,
 	parseYaml: vi.fn((_yaml: string) => ({})),
+	getLinkpath: (linktext: string) => linktext.split('#')[0].split('|')[0],
 
 	// Component base class
 	Component: class MockComponent {
@@ -229,6 +232,7 @@ vi.mock('obsidian', () => ({
 		metadataCache = {
 			getFileCache: vi.fn(),
 			getFirstLinkpathDest: vi.fn(),
+			resolvedLinks: {},
 		};
 	},
 
