@@ -27,7 +27,10 @@ describe('SourceNoteConfig interaction', () => {
 			props: {
 				settings: {
 					...DEFAULT_PLUGIN_SETTINGS,
-					source_note: { watch: { directory: '/notes', tags: ['#biology', '#chemistry'] } },
+					source_note: {
+						watch: { directory: '/notes', tags: ['#biology', '#chemistry'] },
+						priming: DEFAULT_PLUGIN_SETTINGS.source_note.priming,
+					},
 				},
 				onNestedFieldChange: vi.fn(),
 			},
@@ -37,12 +40,19 @@ describe('SourceNoteConfig interaction', () => {
 		const inputs = target.querySelectorAll<HTMLInputElement>('input');
 		expect(inputs[0]?.value).toBe('/notes');
 		expect(inputs[1]?.value).toBe('#biology, #chemistry');
+		expect(inputs[2]?.value).toBe('7');
+		expect(inputs[2]?.type).toBe('number');
+		expect(inputs[2]?.getAttribute('min')).toBe('0');
+		expect(inputs[2]?.getAttribute('step')).toBe('0.1');
 		expect(target.textContent).toContain('matching is recursive');
 		expect(target.textContent).toContain('comma-separated # tags');
 		expect(target.textContent).toContain('OR criteria');
 		expect(target.textContent).toContain('Complete cached tags');
 		expect(target.textContent).toContain('frontmatter tags');
 		expect(target.textContent).toContain('disables source-note detection');
+		expect(target.textContent).toContain(
+			'Include a source note when at least one active card due now in the selected deck has a difficulty greater than this value.',
+		);
 	});
 
 	it('submits directory and trimmed tag values, including empty criteria', async () => {
@@ -84,6 +94,39 @@ describe('SourceNoteConfig interaction', () => {
 		);
 	});
 
+	it('submits decimal thresholds and preserves empty input as NaN', async () => {
+		target = activeDocument.createElement('div');
+		activeDocument.body.appendChild(target);
+		const onNestedFieldChange = vi.fn();
+		instance = mount(SourceNoteConfig, {
+			target,
+			props: {
+				settings: DEFAULT_PLUGIN_SETTINGS,
+				onNestedFieldChange,
+			},
+		});
+		await flush();
+
+		const thresholdInput = target.querySelectorAll<HTMLInputElement>('input')[2];
+		thresholdInput.value = '8.4';
+		thresholdInput.dispatchEvent(new Event('change', { bubbles: true }));
+		thresholdInput.value = '';
+		thresholdInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+		expect(onNestedFieldChange).toHaveBeenNthCalledWith(
+			1,
+			['source_note', 'priming', 'difficulty_threshold'],
+			8.4,
+		);
+		expect(onNestedFieldChange.mock.calls[1]?.[0]).toEqual([
+			'source_note',
+			'priming',
+			'difficulty_threshold',
+		]);
+		expect(Number.isNaN(onNestedFieldChange.mock.calls[1]?.[1])).toBe(true);
+	});
+
+
 	it('renders validation errors on the matching inputs', async () => {
 		target = activeDocument.createElement('div');
 		activeDocument.body.appendChild(target);
@@ -92,15 +135,26 @@ describe('SourceNoteConfig interaction', () => {
 			props: {
 				settings: DEFAULT_PLUGIN_SETTINGS,
 				onNestedFieldChange: vi.fn(),
-				hasError: (key: string) => key === 'source_note.watch.tags',
-				getError: (key: string) =>
-					key === 'source_note.watch.tags' ? 'Source note tags must start with' : undefined,
+				hasError: (key: string) =>
+					key === 'source_note.watch.tags' ||
+					key === 'source_note.priming.difficulty_threshold',
+				getError: (key: string) => {
+					if (key === 'source_note.watch.tags') {
+						return 'Source note tags must start with';
+					}
+					return key === 'source_note.priming.difficulty_threshold'
+						? 'Enter a non-negative number.'
+						: undefined;
+				},
 			},
 		});
 		await flush();
 
 		const tagsInput = target.querySelectorAll<HTMLInputElement>('input')[1];
+		const thresholdInput = target.querySelectorAll<HTMLInputElement>('input')[2];
 		expect(tagsInput.getAttribute('aria-invalid')).toBe('true');
+		expect(thresholdInput.getAttribute('aria-invalid')).toBe('true');
 		expect(target.textContent).toContain('Source note tags must start with');
+		expect(target.textContent).toContain('Enter a non-negative number.');
 	});
 });

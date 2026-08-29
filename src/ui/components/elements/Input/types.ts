@@ -12,6 +12,7 @@ export default interface InputProps {
 	maxLength?: number;
 	min?: number;
 	max?: number;
+	step?: number;
 	class?: string;
 	onchange?: (value: string) => void;
 	onfocus?: () => void;

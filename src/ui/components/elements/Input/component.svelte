@@ -15,6 +15,7 @@
 		maxLength,
 		min,
 		max,
+		step,
 		class: className = '',
 		onchange,
 		onfocus,
@@ -70,6 +71,7 @@
 		maxlength={maxLength}
 		{min}
 		{max}
+		{step}
 		aria-invalid={hasError}
 		aria-describedby={hasError ? `${id}-error` : helperText ? `${id}-helper` : undefined}
 		class="ml-input"

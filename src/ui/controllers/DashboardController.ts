@@ -2,6 +2,7 @@ import { EventBus, FlashcardReviewSessionStartEvent } from '@/modules/events';
 import { FlashcardReviewQueue } from '@/modules/review-queues/FlashcardReviewQueue';
 import { CardStatus, FlashcardMetadata } from '@/schemas';
 import { IndexKey } from '@/types/indexes';
+import { matchesDeckFilter } from '@/utils/deck-utils';
 import { settingsStore } from '@/ui/store/settings.store';
 import { uiStore, UIStore } from '@/ui/store/ui.store';
 import { FSRSParameters } from 'ts-fsrs';
@@ -38,7 +39,7 @@ export class DashboardController implements IDashboardController {
 			if (deckFilter && deckFilter === 'Uncategorized') {
 				conditions.push(entity.decks.length === 0);
 			} else if (deckFilter) {
-				conditions.push(entity.decks.some((deck) => deck.startsWith(deckFilter)));
+				conditions.push(matchesDeckFilter(entity.decks, deckFilter));
 			}
 
 			return conditions.every((v) => v === true);

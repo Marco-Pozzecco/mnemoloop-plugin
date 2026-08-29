@@ -38,7 +38,10 @@ describe('VaultWatcher source-note classification', () => {
 				...DEFAULT_PLUGIN_SETTINGS.flashcard,
 				watch: { directory: '/flashcards', tags: ['#flashcard'] },
 			},
-			source_note: { watch: { directory: '', tags: [] } },
+			source_note: {
+				watch: { directory: '', tags: [] },
+				priming: { difficulty_threshold: 7.0 },
+			},
 			debounce_timeout_ms: 100,
 		};
 		findByFilepath = vi.fn<[filepath: string], unknown>().mockReturnValue(undefined);

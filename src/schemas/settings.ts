@@ -52,6 +52,13 @@ export const FsrsConfigSchema = z.object({
 	relearning_steps: z.array(StepUnitSchema).min(1),
 });
 
+export const SourceNotePrimingConfigSchema = z.object({
+	difficulty_threshold: z
+		.number({ error: 'Enter a non-negative number.' })
+		.finite('Enter a non-negative number.')
+		.min(0, 'Enter a non-negative number.'),
+});
+
 export const PluginSettingsSchema = z.object({
 	flashcard: z.object({
 		watch: WatchConfigSchema,
@@ -60,6 +67,7 @@ export const PluginSettingsSchema = z.object({
 	}),
 	source_note: z.object({
 		watch: SourceNoteWatchConfigSchema,
+		priming: SourceNotePrimingConfigSchema,
 	}),
 	debounce_timeout_ms: z.number().min(100).max(5000),
 	enable_soft_delete: z.boolean(),
@@ -90,6 +98,9 @@ export const DEFAULT_PLUGIN_SETTINGS: PluginSettings = {
 			directory: '',
 			tags: [],
 		},
+		priming: {
+			difficulty_threshold: 7.0,
+		},
 	},
 	debounce_timeout_ms: 500,
 	enable_soft_delete: true,
@@ -100,6 +111,7 @@ export const DEFAULT_PLUGIN_SETTINGS: PluginSettings = {
 export type PluginSettings = z.infer<typeof PluginSettingsSchema>;
 export type WatchConfig = z.infer<typeof WatchConfigSchema>;
 export type SourceNoteWatchConfig = z.infer<typeof SourceNoteWatchConfigSchema>;
+export type SourceNotePrimingConfig = z.infer<typeof SourceNotePrimingConfigSchema>;
 export type FsrsConfig = z.infer<typeof FsrsConfigSchema>;
 export const RETENTION_PERIOD_OPTIONS = [
 	{ value: 1, label: '1 hour' },

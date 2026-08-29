@@ -21,6 +21,10 @@
 			.filter((tag) => tag.length > 0);
 		onNestedFieldChange(['source_note', 'watch', 'tags'], tags);
 	}
+	function handleDifficultyThresholdChange(value: string) {
+		const threshold = value.trim() === '' ? NaN : Number(value);
+		onNestedFieldChange(['source_note', 'priming', 'difficulty_threshold'], threshold);
+	}
 </script>
 
 <section class="ml-source-note-config-section">
@@ -46,6 +50,24 @@
 				hasError={hasError('source_note.watch.tags')}
 				errorMessage={getError('source_note.watch.tags')}
 				onchange={handleTagsChange}
+			/>
+		</div>
+	</Card>
+
+	<h3 class="ml-section-header">Study settings</h3>
+
+	<Card className="ml-settings-card">
+		<div class="ml-settings-group">
+			<Input
+				label="Difficulty threshold"
+				type="number"
+				value={settings.source_note.priming.difficulty_threshold.toString()}
+				min={0}
+				step={0.1}
+				helperText="Include a source note when at least one active card due now in the selected deck has a difficulty greater than this value."
+				hasError={hasError('source_note.priming.difficulty_threshold')}
+				errorMessage={getError('source_note.priming.difficulty_threshold')}
+				onchange={handleDifficultyThresholdChange}
 			/>
 		</div>
 	</Card>

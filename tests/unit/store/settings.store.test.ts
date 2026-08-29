@@ -67,6 +67,28 @@ describe('SettingsStore', () => {
 		publish.mockRestore();
 	});
 
+	it('publishes a valid decimal priming threshold update', async () => {
+		const publish = vi.spyOn(EventBus.instance, 'publish').mockResolvedValue('request-id');
+
+		const updated = await settingsStore.updateNestedField(
+			['source_note', 'priming', 'difficulty_threshold'],
+			8.4,
+		);
+
+		expect(updated).toBe(true);
+		expect(publish).toHaveBeenCalledWith(
+			expect.objectContaining({
+				data: expect.objectContaining({
+					source_note: expect.objectContaining({
+						priming: { difficulty_threshold: 8.4 },
+					}),
+				}),
+			}),
+		);
+		publish.mockRestore();
+	});
+
+
 	it('rejects invalid source-note nested updates without publishing', async () => {
 		const publish = vi.spyOn(EventBus.instance, 'publish').mockResolvedValue('request-id');
 
@@ -79,6 +101,23 @@ describe('SettingsStore', () => {
 		expect(publish).not.toHaveBeenCalled();
 		expect(get(settingsStore.fieldErrors)['source_note.watch.tags']).toContain(
 			'Source note tags must start with',
+		);
+		expect(get(settingsStore.isLoading)).toBe(false);
+		publish.mockRestore();
+	});
+
+	it('rejects invalid priming thresholds without publishing', async () => {
+		const publish = vi.spyOn(EventBus.instance, 'publish').mockResolvedValue('request-id');
+
+		const updated = await settingsStore.updateNestedField(
+			['source_note', 'priming', 'difficulty_threshold'],
+			NaN,
+		);
+
+		expect(updated).toBe(false);
+		expect(publish).not.toHaveBeenCalled();
+		expect(get(settingsStore.fieldErrors)['source_note.priming.difficulty_threshold']).toBe(
+			'Enter a non-negative number.',
 		);
 		expect(get(settingsStore.isLoading)).toBe(false);
 		publish.mockRestore();
