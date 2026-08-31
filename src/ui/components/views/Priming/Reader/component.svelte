@@ -18,9 +18,6 @@
 	<article class="ml-priming__reader">
 		<header class="ml-priming__reader-header">
 			<h2 class="ml-priming__reader-title">{state.currentContent.title}</h2>
-			<span class="ml-priming__reader-metric">
-				Average difficulty {state.currentContent.averageDifficulty.toFixed(1)}
-			</span>
 		</header>
 
 		<div class="ml-priming__reader-divider"></div>
@@ -32,41 +29,41 @@
 				sourcePath: state.currentContent.path,
 			}}
 		></div>
+	</article>
 
-		<div class="ml-priming__reader-controls">
+	<div class="ml-priming__reader-controls">
+		<Button
+			variant="secondary"
+			size="medium"
+			class="ml-priming__control"
+			disabled={state.currentIndex === 0}
+			onclick={onPrevious}
+		>
+			Previous note
+		</Button>
+
+		<span class="ml-priming__reader-controls-spacer"></span>
+
+		{#if isLastNote}
 			<Button
-				variant="secondary"
+				variant="primary"
 				size="medium"
 				class="ml-priming__control"
-				disabled={state.currentIndex === 0}
-				onclick={onPrevious}
+				onclick={onNextOrBeginReview}
 			>
-				Previous note
+				Begin review
 			</Button>
-
-			<span class="ml-priming__reader-controls-spacer"></span>
-
-			{#if isLastNote}
-				<Button
-					variant="primary"
-					size="medium"
-					class="ml-priming__control"
-					onclick={onNextOrBeginReview}
-				>
-					Begin review
-				</Button>
-			{:else}
-				<Button
-					variant="primary"
-					size="medium"
-					class="ml-priming__control"
-					onclick={onNextOrBeginReview}
-				>
-					Next note
-				</Button>
-			{/if}
-		</div>
-	</article>
+		{:else}
+			<Button
+				variant="primary"
+				size="medium"
+				class="ml-priming__control"
+				onclick={onNextOrBeginReview}
+			>
+				Next note
+			</Button>
+		{/if}
+	</div>
 {/if}
 
 <style lang="scss">
@@ -98,13 +95,6 @@
 		line-height: 1.45;
 	}
 
-	.ml-priming__reader-metric {
-		color: $text-muted;
-		font-size: $font-xs;
-		font-weight: $font-semibold;
-		white-space: nowrap;
-	}
-
 	.ml-priming__reader-divider {
 		height: 1px;
 		background-color: $background-modifier-border;
@@ -122,10 +112,11 @@
 	}
 
 	.ml-priming__reader-controls {
+		grid-column: 2 / 2;
+		width: 100%;
 		display: flex;
 		align-items: center;
 		gap: $spacing-sm;
-		padding: $spacing-md;
 	}
 
 	.ml-priming__reader-controls-spacer {
@@ -134,7 +125,7 @@
 
 	@media (max-width: 480px) {
 		.ml-priming__reader-controls {
-			flex-direction: column-reverse;
+			flex-direction: column;
 			align-items: stretch;
 			gap: $spacing-sm;
 		}

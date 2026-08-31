@@ -62,6 +62,7 @@
 
 <style lang="scss">
 	@use 'tokens' as *;
+	@use 'breakpoints' as *;
 
 	.ml-priming {
 		display: flex;
@@ -93,7 +94,7 @@
 		}
 	}
 
-	@media (max-width: 480px) {
+	@media (max-width: $tablet-breakpoint) {
 		.ml-priming {
 			padding: $spacing-md;
 			gap: $spacing-md;
