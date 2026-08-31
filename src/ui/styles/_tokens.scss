@@ -47,13 +47,14 @@ $background-tertiary-alt: var(--background-tertiary-alt);
 $background-modifier-border: var(--background-modifier-border);
 $background-modifier-border-focus: var(--background-modifier-border-focus);
 $background-modifier-border-hover: var(--background-modifier-border-hover);
+$background-modifier-border-selected: color-mix(in oklch, var(--color-accent) 70%, transparent);
 
 $background-modifier-hover: var(--background-modifier-hover);
 $background-modifier-active: var(--background-modifier-active);
 $background-modifier-active-hover: var(--background-modifier-active-hover);
 $background-modifier-error: var(--background-modifier-error);
 $background-modifier-error-hover: var(--background-modifier-error-hover);
-$background-modifier-selected: var(--background-modifier-selected);
+$background-modifier-selected: color-mix(in oklch, var(--color-accent) 15%, transparent);
 
 $background-modifier-form-field: var(--background-modifier-form-field);
 $background-modifier-form-field-hover: var(--background-modifier-form-field-hover);
