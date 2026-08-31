@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '../../../../../helpers/dom-polyfills';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mount, unmount } from 'svelte';
+import { mount, tick, unmount } from 'svelte';
 import { Component } from 'obsidian';
 import {
 	EventBus,
@@ -9,24 +9,18 @@ import {
 	FlashcardIndexQueryResponseEvent,
 } from '@/modules/events';
 import { FlashcardMetadata } from '@/schemas';
-import {
-	PrimingCluster,
-	PrimingNote,
-	primingStore,
-} from '@/ui/store/priming.store';
+import { PrimingCluster, PrimingNote, primingStore } from '@/ui/store/priming.store';
 import { sessionStore } from '@/ui/store/session.store';
 import { uiStore } from '@/ui/store/ui.store';
 import { createFlashcardMetadata } from '../../../../../helpers/factories';
-import {
-	createMockMetadataCache,
-	createMockPlugin,
-} from '../../../../../helpers/mock-obsidian';
+import { createMockMetadataCache, createMockPlugin } from '../../../../../helpers/mock-obsidian';
 import { resetSingletons } from '../../../../../helpers/reset-singletons';
 import PrimingHarness from '../../../../../helpers/PrimingHarness.svelte';
 
 async function flush(): Promise<void> {
 	await Promise.resolve();
 	await Promise.resolve();
+	await tick();
 }
 
 function wireIndexerResponse(getCards: () => FlashcardMetadata[]): void {
@@ -113,6 +107,77 @@ describe('Priming view interaction', () => {
 		});
 	}
 
+	function seedReadyWithTwoClusters(index = 0) {
+		const alpha = plugin.app.vault.getFileByPath('notes/Alpha.md');
+		const beta = plugin.app.vault.getFileByPath('notes/Beta.md');
+		const alphaNote: PrimingNote = {
+			path: 'notes/Alpha.md',
+			title: 'Alpha',
+			averageDifficulty: 8.2,
+			inboundLinkCount: 5,
+			file: alpha,
+			cards: [],
+		};
+		const betaNote: PrimingNote = {
+			path: 'notes/Beta.md',
+			title: 'Beta',
+			averageDifficulty: 7.5,
+			inboundLinkCount: 2,
+			file: beta,
+			cards: [],
+		};
+		const clusters: PrimingCluster[] = [
+			{ title: 'Graph algorithms', averageDifficulty: 8.2, notes: [alphaNote] },
+			{ title: 'Distributed systems', averageDifficulty: 7.5, notes: [betaNote] },
+		];
+		const currentNote = index === 0 ? alphaNote : betaNote;
+
+		primingStore.store.set({
+			status: 'ready',
+			selection: { deckFilter: 'Informatics', deckLabel: 'Informatics' },
+			threshold: 7,
+			clusters,
+			notes: [alphaNote, betaNote],
+			currentIndex: index,
+			currentContent: {
+				path: currentNote.path,
+				title: currentNote.title,
+				averageDifficulty: currentNote.averageDifficulty,
+				file: currentNote.file,
+				content: currentNote.path === alphaNote.path ? '# Alpha body' : '# Beta body',
+			},
+			error: null,
+		});
+	}
+
+	function expectMobileOutlineNote(title: string) {
+		const rows = target.querySelectorAll<HTMLButtonElement>(
+			'.ml-priming__outline-stack-mobile .ml-priming__note-row',
+		);
+		expect(rows).toHaveLength(1);
+		expect(rows[0]?.textContent).toContain(title);
+	}
+
+	function expectClass(element: Element, className: string, expected: boolean) {
+		expect(element.classList.contains(className)).toBe(expected);
+	}
+
+	function getDesktopClusters() {
+		const roots = target.querySelectorAll<HTMLElement>(
+			'.ml-priming__outline-stack-desktop .ml-priming__cluster',
+		);
+		const contents = target.querySelectorAll<HTMLElement>(
+			'.ml-priming__outline-stack-desktop .ml-priming__cluster-content',
+		);
+		const headings = target.querySelectorAll<HTMLElement>(
+			'.ml-priming__outline-stack-desktop .ml-priming__cluster-disclosure',
+		);
+		expect(roots).toHaveLength(2);
+		expect(contents).toHaveLength(2);
+		expect(headings).toHaveLength(2);
+		return { contents, headings };
+	}
+
 	function findButton(text: string): HTMLButtonElement | null {
 		const buttons = Array.from(target.querySelectorAll<HTMLButtonElement>('button'));
 		for (const button of buttons) {
@@ -126,7 +191,8 @@ describe('Priming view interaction', () => {
 	it('renders the loading state with header, context chips, and exit', async () => {
 		await mountView();
 
-		expect(target.textContent).toContain('← Dashboard');
+		expect(target.querySelector('.ml-priming__exit')).not.toBeNull();
+		expect(target.querySelector('.ml-priming__exit .ml-icon')).not.toBeNull();
 		expect(target.textContent).toContain('Prime difficult notes');
 		expect(target.textContent).toContain('Review the connected material before your cards');
 		expect(target.textContent).toContain('All decks');
@@ -196,20 +262,63 @@ describe('Priming view interaction', () => {
 		await mountView();
 
 		expect(target.textContent).toContain('1 of 2 notes');
-		expect(target.textContent).toContain('Backlink clusters');
-		expect(target.textContent).toContain('Graph algorithms');
-		expect(target.textContent).toContain('Cluster average 7.9');
+		expect(target.querySelector('[aria-label="Backlink clusters"]')).not.toBeNull();
+		expect(target.textContent).toContain('avg. 7.9');
 		expect(target.textContent).toContain('5 inbound links');
 		expect(target.textContent).toContain('Average difficulty 8.2');
 		expect(target.textContent).toContain('Alpha');
+	});
+
+	it('discloses only the rendered cluster on desktop and mobile', async () => {
+		seedReadyWithTwoClusters(0);
+		await mountView();
+
+		let desktop = getDesktopClusters();
+		expect(desktop.contents[0]?.getAttribute('data-state')).toBe('open');
+		expectClass(desktop.headings[0], 'ml-priming__cluster-disclosure--active', true);
+		expectClass(desktop.headings[0], 'ml-priming__cluster-disclosure--dimmed', false);
+		expectClass(desktop.headings[1], 'ml-priming__cluster-disclosure--active', false);
+		expectClass(desktop.headings[1], 'ml-priming__cluster-disclosure--dimmed', false);
+
+		const next = findButton('Next note');
+		expect(next).not.toBeNull();
+		next?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		await flush();
+		await flush();
+
+		desktop = getDesktopClusters();
+		expect(desktop.contents[0]?.getAttribute('data-state')).toBe('closed');
+		expect(desktop.contents[1]?.getAttribute('data-state')).toBe('open');
+		expectClass(desktop.headings[0], 'ml-priming__cluster-disclosure--active', false);
+		expectClass(desktop.headings[0], 'ml-priming__cluster-disclosure--dimmed', true);
+		expectClass(desktop.headings[1], 'ml-priming__cluster-disclosure--active', true);
+		expectClass(desktop.headings[1], 'ml-priming__cluster-disclosure--dimmed', false);
+		expectMobileOutlineNote('Beta');
+
+		const previous = findButton('Previous note');
+		expect(previous).not.toBeNull();
+		previous?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		await flush();
+		await flush();
+
+		desktop = getDesktopClusters();
+		expect(desktop.contents[0]?.getAttribute('data-state')).toBe('open');
+		expect(desktop.contents[1]?.getAttribute('data-state')).toBe('closed');
+		expectClass(desktop.headings[0], 'ml-priming__cluster-disclosure--active', true);
+		expectClass(desktop.headings[0], 'ml-priming__cluster-disclosure--dimmed', false);
+		expectMobileOutlineNote('Alpha');
 	});
 
 	it('toggles the current cluster disclosure with mouse and keyboard', async () => {
 		seedReady(0);
 		await mountView();
 
-		const disclosure = target.querySelector<HTMLButtonElement>('.ml-priming__disclosure');
-		const content = target.querySelector<HTMLElement>('.ml-priming__mobile-outline-content');
+		const disclosure = target.querySelector<HTMLButtonElement>(
+			'.ml-priming__outline-stack-mobile .ml-priming__cluster-disclosure',
+		);
+		const content = target.querySelector<HTMLElement>(
+			'.ml-priming__outline-stack-mobile .ml-priming__cluster-content',
+		);
 
 		expect(disclosure).not.toBeNull();
 		expect(content).not.toBeNull();
@@ -267,10 +376,9 @@ describe('Priming view interaction', () => {
 		await mountView();
 
 		const rows = target.querySelectorAll<HTMLButtonElement>(
-			'.ml-priming__outline-stack .ml-priming__note-row',
+			'.ml-priming__outline-stack-desktop .ml-priming__note-row',
 		);
-		expect(rows.length).toBe(2);
-		expect(rows[0].getAttribute('aria-current')).toBe('true');
+		expect(rows[0].classList.contains('ml-priming__note-row--selected')).toBe(true);
 
 		rows[1]?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 		await flush();
