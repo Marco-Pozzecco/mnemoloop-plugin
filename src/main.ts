@@ -164,6 +164,10 @@ export default class MnemoloopPlugin extends Plugin {
 
 	private initializeViews() {
 		this.registerView(APP_VIEW, (leaf) => new AppView(this.app, leaf));
+		this.registerHoverLinkSource(APP_VIEW, {
+			display: this.manifest.name,
+			defaultMod: false,
+		});
 
 		this.addSettingTab(new SettingsView(this));
 	}

@@ -1,12 +1,15 @@
 import { Logger } from '@/utils/Logger';
-import { App, ItemView, WorkspaceLeaf } from 'obsidian';
+import { ItemView } from 'obsidian';
+import type { App, HoverParent, HoverPopover, WorkspaceLeaf } from 'obsidian';
 import { mount, unmount } from 'svelte';
 import { default as Home } from './App.svelte';
 import { AppProps } from './types';
+import { APP_VIEW } from './constants';
 
-export const APP_VIEW = 'mnemoloop-home';
+export { APP_VIEW } from './constants';
 
-export class AppView extends ItemView {
+export class AppView extends ItemView implements HoverParent {
+	hoverPopover: HoverPopover | null = null;
 	private _app: App;
 
 	private _component: ReturnType<typeof mount> | null = null;
@@ -41,7 +44,7 @@ export class AppView extends ItemView {
 	/**
 	 * Called when the view is opened in the workspace
 	 */
-	 
+
 	async onOpen(): Promise<void> {
 		try {
 			// Load the Svelte component

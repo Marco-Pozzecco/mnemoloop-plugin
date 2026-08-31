@@ -1,9 +1,16 @@
 import { Component, MarkdownRenderer } from 'obsidian';
+import type { HoverParent } from 'obsidian';
+import { APP_VIEW } from '@/ui/views/App/constants';
 import { getAppContext } from '@/ui/context/AppContext';
 
 export interface MarkdownOptions {
 	content: string;
 	sourcePath: string;
+}
+
+export interface MarkdownAction {
+	update(options: MarkdownOptions): void;
+	destroy(): void;
 }
 
 /**
@@ -12,10 +19,7 @@ export interface MarkdownOptions {
  *
  * Gets App and Component from Svelte context (set in App.svelte)
  */
-export function renderMarkdown(
-	node: HTMLElement,
-	options: MarkdownOptions,
-): { destroy: () => void; update: (options: MarkdownOptions) => void } {
+export function renderMarkdown(node: HTMLElement, options: MarkdownOptions): MarkdownAction {
 	const context = getAppContext();
 	if (!context) {
 		throw new Error('renderMarkdown must be used within an AppContext provider');
@@ -39,6 +43,28 @@ export function renderMarkdown(
 		}
 	}
 
+	function isHoverParent(value: Component): value is Component & HoverParent {
+		return 'hoverPopover' in value;
+	}
+
+	function handleMouseOver(event: MouseEvent) {
+		const target = event.target;
+		const link = target instanceof Element ? target.closest('a.internal-link') : null;
+		if (!link || !isHoverParent(component)) return;
+
+		const linktext = link.getAttribute('data-href') || link.textContent || '';
+		if (!linktext) return;
+
+		app.workspace.trigger('hover-link', {
+			event,
+			source: APP_VIEW,
+			hoverParent: component,
+			targetEl: link,
+			linktext,
+			sourcePath: currentOptions.sourcePath,
+		});
+	}
+
 	function removeCurrentChild() {
 		if (!currentChild) return;
 		component.removeChild(currentChild);
@@ -50,7 +76,7 @@ export function renderMarkdown(
 
 		removeCurrentChild();
 
-		const target = document.createElement('div');
+		const target = activeDocument.createElement('div');
 		target.classList.add('ml-markdown-rendered', 'markdown-rendered');
 		node.replaceChildren(target);
 
@@ -65,6 +91,7 @@ export function renderMarkdown(
 	}
 
 	node.addEventListener('click', handleClick);
+	node.addEventListener('mouseover', handleMouseOver);
 	doRender();
 
 	return {
@@ -83,6 +110,7 @@ export function renderMarkdown(
 			removeCurrentChild();
 			node.replaceChildren();
 			node.removeEventListener('click', handleClick);
+			node.removeEventListener('mouseover', handleMouseOver);
 		},
 	};
 }
