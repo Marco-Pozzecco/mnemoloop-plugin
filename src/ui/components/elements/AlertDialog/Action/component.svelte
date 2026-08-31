@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { AlertDialog } from 'bits-ui';
 	import type AlertDialogActionProps from './types';
-	import { Button } from '@/ui/components';
+	import Button from '@/ui/components/elements/Button/component.svelte';
 
 	let {
 		class: className = '',
