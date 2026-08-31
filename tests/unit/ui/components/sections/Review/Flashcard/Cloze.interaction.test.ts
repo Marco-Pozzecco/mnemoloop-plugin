@@ -107,7 +107,7 @@ describe('Cloze interaction', () => {
 		if (!clozeContainer) throw new Error('Cloze container not found');
 		Object.defineProperty(clozeContainer, 'offsetParent', {
 			configurable: true,
-			value: document.body,
+			value: activeDocument.body,
 		});
 
 		const showEvent = new KeyboardEvent('keydown', { key: 'h', bubbles: true, cancelable: true });

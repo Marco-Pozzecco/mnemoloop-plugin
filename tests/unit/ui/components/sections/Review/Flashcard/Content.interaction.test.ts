@@ -72,7 +72,7 @@ type MountedHarness = Record<string, any>;
 const renderMock = vi.mocked(MarkdownRenderer.render);
 
 function appendDeterministicRendererDom(target: HTMLElement, content: string): void {
-	const marker = document.createElement('div');
+	const marker = activeDocument.createElement('div');
 	marker.dataset.renderedContent = content;
 	marker.textContent = `Rendered Markdown: ${content}`;
 	target.append(marker);
@@ -82,7 +82,7 @@ function appendDeterministicRendererDom(target: HTMLElement, content: string): v
 	const placeholderPattern =
 		/<span class="([^"]+)" data-cloze-id="([^"]+)" role="button" tabindex="0">\[\.\.\.\]<\/span>/g;
 	for (const match of content.matchAll(placeholderPattern)) {
-		const placeholder = document.createElement('span');
+		const placeholder = activeDocument.createElement('span');
 		placeholder.className = match[1];
 		placeholder.dataset.clozeId = match[2];
 		placeholder.setAttribute('role', 'button');
@@ -191,8 +191,8 @@ describe('review flashcard renderer handoff', () => {
 			onAllRevealed?: () => void;
 		} = {},
 	): void {
-		target = document.createElement('div');
-		document.body.append(target);
+		target = activeDocument.createElement('div');
+		activeDocument.body.append(target);
 		instance = mount(FlashcardContentHarness, {
 			target,
 			props: {
@@ -257,7 +257,7 @@ describe('review flashcard renderer handoff', () => {
 		if (!quizContainer) throw new Error('Quiz container not found');
 		Object.defineProperty(quizContainer, 'offsetParent', {
 			configurable: true,
-			value: document.body,
+			value: activeDocument.body,
 		});
 		window.dispatchEvent(new KeyboardEvent('keydown', { key: '1', bubbles: true, cancelable: true }));
 		await settle();

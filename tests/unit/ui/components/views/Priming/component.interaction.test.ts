@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '../../../../../helpers/dom-polyfills';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { mount, tick, unmount } from 'svelte';
 import { Component } from 'obsidian';
 import {
@@ -194,7 +194,7 @@ describe('Priming view interaction', () => {
 		expect(target.querySelector('.ml-priming__exit')).not.toBeNull();
 		expect(target.querySelector('.ml-priming__exit .ml-icon')).not.toBeNull();
 		expect(target.textContent).toContain('Prime difficult notes');
-		expect(target.textContent).toContain('Review the connected material before your cards');
+		expect(target.textContent).toContain('Review the source material before your study session');
 		expect(target.textContent).toContain('All decks');
 		expect(target.textContent).toContain('Difficulty > 7.0');
 		expect(target.textContent).toContain('Finding difficult notes');
