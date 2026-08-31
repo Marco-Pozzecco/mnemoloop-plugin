@@ -3,8 +3,8 @@
 	import { PrimingController } from '@/ui/controllers/PrimingController';
 	import { primingStore } from '@/ui/store/priming.store';
 	import PrimingHeader from './Header/component.svelte';
-	import PrimingProgress from './Progress/component.svelte';
 	import PrimingOutline from './Outline/component.svelte';
+	import PrimingProgress from './Progress/component.svelte';
 	import PrimingReader from './Reader/component.svelte';
 	import PrimingStateView from './StateView/component.svelte';
 

@@ -1,10 +1,6 @@
 <script lang="ts">
 	import { ProgressBar } from '@/ui/components/elements';
-	import type { PrimingState } from '@/ui/store/priming.store';
-
-	interface Props {
-		state: PrimingState;
-	}
+	import type Props from './types';
 
 	let { state }: Props = $props();
 </script>

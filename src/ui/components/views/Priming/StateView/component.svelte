@@ -1,13 +1,6 @@
 <script lang="ts">
 	import Button from '@/ui/components/elements/Button/component.svelte';
-	import type { PrimingState } from '@/ui/store/priming.store';
-
-	interface Props {
-		state: PrimingState;
-		onBeginReview: () => void;
-		onRetry: () => void;
-		onDashboard: () => void;
-	}
+	import Props from './types';
 
 	let { state, onBeginReview, onRetry, onDashboard }: Props = $props();
 </script>

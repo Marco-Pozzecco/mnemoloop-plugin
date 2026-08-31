@@ -1,11 +1,6 @@
 <script lang="ts">
 	import { Button, Chip, Icon } from '@/ui/components/elements';
-	import type { PrimingState } from '@/ui/store/priming.store';
-
-	interface Props {
-		state: PrimingState;
-		onExit: () => void;
-	}
+	import type Props from './types';
 
 	let { state, onExit }: Props = $props();
 </script>
@@ -20,7 +15,7 @@
 	<div class="ml-priming__header-content">
 		<div class="ml-priming__header-title">
 			<h1 class="ml-priming__title">Prime difficult notes</h1>
-			<p class="ml-priming__subtitle">Review the connected material before your cards</p>
+			<p class="ml-priming__subtitle">Review the source material before your study session</p>
 		</div>
 
 		<div class="ml-priming__chips">

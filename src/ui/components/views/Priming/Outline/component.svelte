@@ -1,14 +1,10 @@
 <script lang="ts">
 	import { Button, Collapsible, Icon } from '@/ui/components/elements';
 	import { cn } from '@/ui/components/utils';
-	import type { PrimingCluster, PrimingNote, PrimingState } from '@/ui/store/priming.store';
+	import type { PrimingCluster, PrimingNote } from '@/ui/store/priming.store';
+	import type PrimingOutlineProps from './types';
 
-	interface Props {
-		primingState: PrimingState;
-		onSelect: (index: number) => void;
-	}
-
-	let { primingState, onSelect }: Props = $props();
+	let { primingState, onSelect }: PrimingOutlineProps = $props();
 
 	let indexByPath = $derived(new Map(primingState.notes.map((note, index) => [note.path, index])));
 	let currentClusterIndex = $derived(

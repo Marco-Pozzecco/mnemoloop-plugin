@@ -1,14 +1,8 @@
 <script lang="ts">
-	import Button from '@/ui/components/elements/Button/component.svelte';
 	import { renderMarkdown } from '@/ui/actions/markdown';
-	import type { PrimingState } from '@/ui/store/priming.store';
 	import { Icon } from '@/ui/components/elements';
-
-	interface Props {
-		state: PrimingState;
-		onPrevious: () => void;
-		onNextOrBeginReview: () => void;
-	}
+	import Button from '@/ui/components/elements/Button/component.svelte';
+	import type Props from './types';
 
 	let { state, onPrevious, onNextOrBeginReview }: Props = $props();
 
