@@ -163,7 +163,9 @@ function deriveClusterTitle(
 
 	let candidates = [...common];
 	if (selection.deckFilter && selection.deckFilter !== 'Uncategorized') {
-		candidates = candidates.filter((path) => path.startsWith(`${selection.deckFilter}${DECK_SEPARATOR}`));
+		candidates = candidates.filter((path) =>
+			path.startsWith(`${selection.deckFilter}${DECK_SEPARATOR}`),
+		);
 	}
 
 	candidates.sort((a, b) => splitDeckPath(b).length - splitDeckPath(a).length);
@@ -255,8 +257,7 @@ export function buildPrimingClusters(
 		}
 
 		const orderedNotes = [...component].sort((a, b) => {
-			const inboundDiff =
-				(inboundByPath.get(b.path) ?? 0) - (inboundByPath.get(a.path) ?? 0);
+			const inboundDiff = (inboundByPath.get(b.path) ?? 0) - (inboundByPath.get(a.path) ?? 0);
 			if (inboundDiff !== 0) {
 				return inboundDiff;
 			}
@@ -347,7 +348,7 @@ export class PrimingController {
 
 		let clusters: PrimingCluster[];
 		try {
-			clusters = this.computeClusters(candidates, selection, now);
+			clusters = this.computeClusters(candidates, selection);
 		} catch (error) {
 			if (generation !== globalGeneration) {
 				return;
@@ -496,7 +497,7 @@ export class PrimingController {
 							filterPrimingCandidates([entity], selection, threshold, now).length > 0,
 					}),
 				)
-				.catch((error) => {
+				.catch((error: Error) => {
 					unsubscribe();
 					if (generation !== globalGeneration) {
 						reject(new PrimingRequestCancelledError());
@@ -510,7 +511,6 @@ export class PrimingController {
 	private computeClusters(
 		candidates: FlashcardMetadata[],
 		selection: PrimingSelection,
-		now: Date,
 	): PrimingCluster[] {
 		const notes = discoverPrimingCandidates(candidates, this.app);
 		const resolvedLinks = this.app.metadataCache.resolvedLinks ?? {};
