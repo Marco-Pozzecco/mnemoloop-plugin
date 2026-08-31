@@ -38,7 +38,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: $spacing-xxs;
-		padding: 1px $spacing-xs;
+		padding: $spacing-xxs $spacing-xs;
 		border-radius: $radius-sm;
 		background-color: $background-modifier-hover;
 		font-size: $font-xs;
