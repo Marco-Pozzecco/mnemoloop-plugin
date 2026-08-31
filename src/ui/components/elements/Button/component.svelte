@@ -96,6 +96,18 @@
 			}
 		}
 
+		&.ml-button--link {
+			background-color: transparent;
+			color: $text-normal;
+			border: none;
+			box-shadow: none;
+			padding: 0 !important;
+
+			&:hover:not(:disabled) {
+				color: $interactive-accent;
+			}
+		}
+
 		&.ml-button--icon {
 			background-color: transparent;
 			color: $text-normal;
