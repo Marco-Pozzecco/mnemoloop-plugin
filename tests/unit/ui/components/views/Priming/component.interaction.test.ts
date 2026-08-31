@@ -204,6 +204,35 @@ describe('Priming view interaction', () => {
 		expect(target.textContent).toContain('Alpha');
 	});
 
+	it('toggles the current cluster disclosure with mouse and keyboard', async () => {
+		seedReady(0);
+		await mountView();
+
+		const disclosure = target.querySelector<HTMLButtonElement>('.ml-priming__disclosure');
+		const content = target.querySelector<HTMLElement>('.ml-priming__mobile-outline-content');
+
+		expect(disclosure).not.toBeNull();
+		expect(content).not.toBeNull();
+		if (!disclosure || !content) return;
+
+		expect(disclosure.type).toBe('button');
+		expect(disclosure.getAttribute('aria-expanded')).toBe('true');
+		expect(content.getAttribute('data-state')).toBe('open');
+
+		disclosure.click();
+		await flush();
+
+		expect(disclosure.getAttribute('aria-expanded')).toBe('false');
+		expect(content.getAttribute('data-state')).toBe('closed');
+
+		disclosure.focus();
+		disclosure.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+		await flush();
+
+		expect(disclosure.getAttribute('aria-expanded')).toBe('true');
+		expect(content.getAttribute('data-state')).toBe('open');
+	});
+
 	it('navigates with Previous and Next respecting bounds and switches to Begin review on the final note', async () => {
 		seedReady(0);
 		await mountView();
