@@ -17,7 +17,9 @@ export function normalizeSourceNoteDirectory(directory: string): string {
 	}
 
 	const normalizedDirectory = normalizePath(trimmedDirectory);
-	return normalizedDirectory === '/' ? normalizedDirectory : normalizedDirectory.replace(/\/+$/, '');
+	return normalizedDirectory === '/'
+		? normalizedDirectory
+		: normalizedDirectory.replace(/\/+$/, '');
 }
 
 export function normalizeSourceNoteTag(tag: string): string {
@@ -55,7 +57,6 @@ export const FsrsConfigSchema = z.object({
 export const SourceNotePrimingConfigSchema = z.object({
 	difficulty_threshold: z
 		.number({ error: 'Enter a non-negative number.' })
-		.finite('Enter a non-negative number.')
 		.min(0, 'Enter a non-negative number.'),
 });
 
