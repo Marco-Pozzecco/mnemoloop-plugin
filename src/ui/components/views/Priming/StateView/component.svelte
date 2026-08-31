@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '@/ui/components';
+	import Button from '@/ui/components/elements/Button/component.svelte';
 	import type { PrimingState } from '@/ui/store/priming.store';
 
 	interface Props {
@@ -36,12 +36,8 @@
 			{`No active cards due now in ${state.selection.deckLabel} are above difficulty ${state.threshold.toFixed(1)}.`}
 		</p>
 		<div class="ml-priming__state-controls">
-			<Button variant="secondary" size="medium" onclick={onDashboard}>
-				Back to dashboard
-			</Button>
-			<Button variant="primary" size="medium" onclick={onBeginReview}>
-				Begin review
-			</Button>
+			<Button variant="secondary" size="medium" onclick={onDashboard}>Back to dashboard</Button>
+			<Button variant="primary" size="medium" onclick={onBeginReview}>Begin review</Button>
 		</div>
 	</div>
 {:else if state.status === 'unavailable'}
@@ -49,12 +45,8 @@
 		<h2 class="ml-priming__state-heading">Couldn’t prepare your note map</h2>
 		<p class="ml-priming__state-copy">Check your vault links and try again.</p>
 		<div class="ml-priming__state-controls">
-			<Button variant="secondary" size="medium" onclick={onBeginReview}>
-				Begin review
-			</Button>
-			<Button variant="primary" size="medium" onclick={onRetry}>
-				Try again
-			</Button>
+			<Button variant="secondary" size="medium" onclick={onBeginReview}>Begin review</Button>
+			<Button variant="primary" size="medium" onclick={onRetry}>Try again</Button>
 		</div>
 	</div>
 {/if}

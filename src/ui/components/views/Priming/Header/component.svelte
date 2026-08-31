@@ -11,7 +11,7 @@
 </script>
 
 <header class="ml-priming__header">
-	<Button type="button" class="ml-priming__exit" variant={'link'} onclick={onExit}>
+	<Button type="button" class="ml-priming__exit" variant="link" onclick={onExit}>
 		{#snippet icon()}
 			<Icon name="arrow-left" size={16} />
 		{/snippet}
