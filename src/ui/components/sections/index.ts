@@ -60,4 +60,6 @@ export { default as SettingsFlashcardConfig } from './Settings/FlashcardConfig/c
 export type { default as SettingsFlashcardConfigProps } from './Settings/FlashcardConfig/types';
 export { default as SettingsFsrsParams } from './Settings/FsrsParams/component.svelte';
 export type { default as SettingsFsrsParamsProps } from './Settings/FsrsParams/types';
+export { default as SettingsSourceNoteConfig } from './Settings/SourceNoteConfig/component.svelte';
+export type { default as SettingsSourceNoteConfigProps } from './Settings/SourceNoteConfig/types';
 export { default as ManageTable } from './Manage/Table';
