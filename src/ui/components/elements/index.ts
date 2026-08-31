@@ -4,6 +4,7 @@ export { default as Button } from './Button/component.svelte';
 export type { default as ButtonProps } from './Button/types';
 export { default as Card } from './Card/component.svelte';
 export type { default as CardProps } from './Card/types';
+export { default as Collapsible } from './Collapsible';
 export { default as ChartEmptyState } from './Chart/EmptyState/component.svelte';
 export type { default as ChartEmptyStateProps } from './Chart/EmptyState/types';
 export { default as ChartFlashcardsCumulative } from './Chart/Flashcards/Cumulative/component.svelte';
