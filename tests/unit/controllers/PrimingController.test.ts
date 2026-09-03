@@ -306,6 +306,111 @@ describe('PrimingController discovery helpers', () => {
 	});
 });
 
+describe('PrimingController availability', () => {
+	beforeEach(resetTestState);
+
+	it('returns false when difficult cards have no Markdown source target', async () => {
+		const plugin = createMockPlugin([]);
+		plugin.app.metadataCache = createMockMetadataCache(undefined, undefined, {
+			linkTargets: { 'notes/Alpha': 'notes/Alpha.pdf' },
+		});
+		const controller = new PrimingController(plugin.app);
+		wireIndexerResponse(() => [makeCard({ source: '[[notes/Alpha]]' })]);
+
+		await expect(
+			controller.hasEligiblePrimingNotes({ deckFilter: undefined, deckLabel: 'All decks' }, 7),
+		).resolves.toBe(false);
+	});
+
+	it('reports availability for named decks and All decks from resolved notes', async () => {
+		const { controller } = setupReadyController([{ path: 'notes/Alpha.md', content: '# Alpha' }]);
+		wireIndexerResponse(() => [
+			makeCard({ source: '[[notes/Alpha]]', decks: ['Eligible'] }),
+			makeCard({ source: '[[notes/Alpha]]', decks: ['Other'] }),
+		]);
+
+		await expect(
+			controller.hasEligiblePrimingNotes({ deckFilter: 'Eligible', deckLabel: 'Eligible' }, 7),
+		).resolves.toBe(true);
+		await expect(
+			controller.hasEligiblePrimingNotes({ deckFilter: undefined, deckLabel: 'All decks' }, 7),
+		).resolves.toBe(true);
+		await expect(
+			controller.hasEligiblePrimingNotes({ deckFilter: 'NoNotes', deckLabel: 'NoNotes' }, 7),
+		).resolves.toBe(false);
+	});
+
+	it('serializes concurrent selections so each result uses its own response', async () => {
+		const { controller } = setupReadyController([{ path: 'notes/Alpha.md', content: '# Alpha' }]);
+		const alpha = makeCard({ source: '[[notes/Alpha]]', decks: ['Eligible'] });
+		const unresolved = makeCard({ source: '[[notes/Missing]]', decks: ['NoNotes'] });
+		let requestCount = 0;
+		let releaseFirst!: () => void;
+		const firstResponse = new Promise<void>((resolve) => {
+			releaseFirst = resolve;
+		});
+		let firstRequestSeen!: () => void;
+		const firstRequestReady = new Promise<void>((resolve) => {
+			firstRequestSeen = resolve;
+		});
+
+		EventBus.instance.subscribe(FlashcardIndexQueryRequestEvent, (event) => {
+			requestCount += 1;
+			const response = new FlashcardIndexQueryResponseEvent(
+				[alpha, unresolved].filter(event.data.predicate),
+			);
+			if (requestCount === 1) {
+				firstRequestSeen();
+				return firstResponse
+					.then(() => EventBus.instance.publish(response))
+					.then(() => undefined);
+			}
+			return EventBus.instance.publish(response).then(() => undefined);
+		});
+
+		const eligible = controller.hasEligiblePrimingNotes(
+			{ deckFilter: 'Eligible', deckLabel: 'Eligible' },
+			7,
+		);
+		await firstRequestReady;
+
+		const noNotes = controller.hasEligiblePrimingNotes(
+			{ deckFilter: 'NoNotes', deckLabel: 'NoNotes' },
+			7,
+		);
+		await Promise.resolve();
+		expect(requestCount).toBe(1);
+
+		releaseFirst();
+		await expect(eligible).resolves.toBe(true);
+		await expect(noNotes).resolves.toBe(false);
+		expect(requestCount).toBe(2);
+	});
+	it('propagates availability failures and recovers for the next selection', async () => {
+		const { controller } = setupReadyController([{ path: 'notes/Alpha.md', content: '# Alpha' }]);
+		const card = makeCard({ source: '[[notes/Alpha]]', decks: ['Eligible'] });
+		const originalPublish = EventBus.instance.publish.bind(EventBus.instance);
+		const strictPublish = vi.spyOn(EventBus.instance, 'publishStrict');
+		strictPublish.mockRejectedValueOnce(new Error('index unavailable'));
+		strictPublish.mockImplementationOnce(async () => {
+			await originalPublish(new FlashcardIndexQueryResponseEvent([card]));
+			return 'response';
+		});
+
+		try {
+			await expect(
+				controller.hasEligiblePrimingNotes({ deckFilter: 'Eligible', deckLabel: 'Eligible' }, 7),
+			).rejects.toThrow('index unavailable');
+			await expect(
+				controller.hasEligiblePrimingNotes({ deckFilter: 'Eligible', deckLabel: 'Eligible' }, 7),
+			).resolves.toBe(true);
+		} finally {
+			strictPublish.mockRestore();
+		}
+	});
+
+});
+
 describe('PrimingController flow', () => {
 	beforeEach(resetTestState);
 

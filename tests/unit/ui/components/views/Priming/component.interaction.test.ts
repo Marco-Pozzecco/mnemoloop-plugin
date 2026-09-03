@@ -215,7 +215,7 @@ describe('Priming view interaction', () => {
 
 		expect(target.textContent).toContain('No difficult notes to prime');
 		expect(target.textContent).toContain(
-			'No active cards due now in Informatics are above difficulty 7.0.',
+			'No eligible Markdown source notes in Informatics are linked to active cards due now above difficulty 7.0.',
 		);
 
 		findButton('Back to dashboard')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -257,13 +257,12 @@ describe('Priming view interaction', () => {
 		expect(target.textContent).toContain('1 of 1 notes');
 	});
 
-	it('renders the ready reader with progress, outline, and one-decimal metrics', async () => {
+	it('renders the ready reader with progress, outline, and one-decimal note metrics', async () => {
 		seedReady(0);
 		await mountView();
 
 		expect(target.textContent).toContain('1 of 2 notes');
 		expect(target.querySelector('[aria-label="Backlink clusters"]')).not.toBeNull();
-		expect(target.textContent).toContain('avg. 7.9');
 		expect(target.textContent).toContain('5 inbound links');
 		expect(target.textContent).toContain('Average difficulty 8.2');
 		expect(target.textContent).toContain('Alpha');
