@@ -3,7 +3,7 @@
 	import type CardProps from './types';
 
 	const {
-		className,
+		class: className,
 		title,
 		clickable = false,
 		hasBorder = true,
