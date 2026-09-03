@@ -30,7 +30,7 @@
 <section class="ml-source-note-config-section">
 	<h3 class="ml-section-header">Source note configuration</h3>
 
-	<Card className="ml-settings-card">
+	<Card class="ml-settings-card">
 		<div class="ml-settings-group">
 			<Input
 				label="Source note directory"
@@ -56,7 +56,7 @@
 
 	<h3 class="ml-section-header">Study settings</h3>
 
-	<Card className="ml-settings-card">
+	<Card class="ml-settings-card">
 		<div class="ml-settings-group">
 			<Input
 				label="Difficulty threshold"

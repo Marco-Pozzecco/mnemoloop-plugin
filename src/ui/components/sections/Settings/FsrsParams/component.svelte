@@ -69,7 +69,7 @@
 <section class="ml-fsrs-params-section">
 	<h3 class="ml-section-header">FSRS Parameters</h3>
 
-	<Card className="ml-settings-card">
+	<Card class="ml-settings-card">
 		<div class="ml-settings-group">
 			<Slider
 				label="Retention rate"

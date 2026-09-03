@@ -22,7 +22,7 @@
 <section class="ml-flashcard-config-section">
 	<h3 class="ml-section-header">Flashcard configuration</h3>
 
-	<Card className="ml-settings-card">
+	<Card class="ml-settings-card">
 		<div class="ml-settings-group">
 			<Input
 				label="Flashcard directory"

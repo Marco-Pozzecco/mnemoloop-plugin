@@ -116,7 +116,7 @@
 </script>
 
 <div bind:this={containerRef} class="ml-review-container">
-	<Card className="ml-review-header">
+	<Card class="ml-review-header">
 		<ReviewHeader {...headerProps} />
 	</Card>
 

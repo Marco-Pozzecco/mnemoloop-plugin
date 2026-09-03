@@ -32,7 +32,7 @@
 <section class="ml-data-management-section">
 	<h3 class="ml-section-header">Data management</h3>
 
-	<Card className="ml-settings-card">
+	<Card class="ml-settings-card">
 		<div class="ml-field-group ml-settings-group">
 			<Toggle
 				label="Enable soft delete"
