@@ -26,7 +26,7 @@
 	<div class="ml-priming__state">
 		<h2 class="ml-priming__state-heading">No difficult notes to prime</h2>
 		<p class="ml-priming__state-copy">
-			{`No active cards due now in ${state.selection.deckLabel} are above difficulty ${state.threshold.toFixed(1)}.`}
+			{`No eligible Markdown source notes in ${state.selection.deckLabel} are linked to active cards due now above difficulty ${state.threshold.toFixed(1)}.`}
 		</p>
 		<div class="ml-priming__state-controls">
 			<Button variant="secondary" size="medium" onclick={onDashboard}>Back to dashboard</Button>

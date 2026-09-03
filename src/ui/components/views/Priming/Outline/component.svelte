@@ -64,9 +64,6 @@
 			<div class="ml-priming__cluster-disclosure-label">
 				<Icon name="chevron-down" size={16} />
 				Cluster {index + 1} of {primingState.clusters.length}
-				<span class="ml-priming__cluster-disclosure-metric">
-					avg. {cluster.averageDifficulty.toFixed(1)}
-				</span>
 			</div>
 			{#if cluster.title}
 				<span class="ml-priming__cluster-disclosure-title">{cluster.title}</span>
@@ -166,7 +163,6 @@
 				box-shadow: none;
 
 				@media (max-width: $tablet-breakpoint) {
-					flex-direction: column;
 					align-items: flex-start;
 				}
 
@@ -191,13 +187,6 @@
 				&-title {
 					color: $text-normal;
 					font-size: $font-sm;
-				}
-
-				&-metric {
-					position: absolute;
-					top: $spacing-xs;
-					right: $spacing-xs;
-					font-size: $font-xs;
 				}
 
 				&:hover:not(:disabled) {
