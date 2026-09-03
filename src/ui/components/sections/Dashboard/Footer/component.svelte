@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Icon } from '@/ui/components';
+	import { Button, Card, Icon } from '@/ui/components';
 	import type DashboardFooterProps from './types';
 	import { SvelteMap } from 'svelte/reactivity';
 
@@ -7,16 +7,20 @@
 		stats,
 		onStartReview,
 		onStartPriming,
-		isDisabled = false,
-		isPrimingDisabled = false,
+		reviewDueCount,
+		primingAvailability,
 		difficultyThreshold = 7,
 		isLoading = false,
 		selectedDeck = null,
 		className,
 	}: DashboardFooterProps = $props();
 
-	let hasDueCards = $derived(stats.flashcard.due_now > 0);
+	let hasDueCards = $derived(reviewDueCount > 0);
 	let hasNextReview = $derived(new Date(stats.flashcard.next_review) > new Date() && !hasDueCards);
+	let isReviewDisabled = $derived(reviewDueCount === 0 || isLoading);
+	let isPrimingDisabled = $derived(
+		primingAvailability === 'checking' || primingAvailability === 'empty',
+	);
 	let countdownDisplay = $state(formatCountdown(getSecondsUntilNextReview()));
 
 	$effect(() => {
@@ -59,8 +63,33 @@
 	}
 </script>
 
-	
-	<div class="ml-dashboard__footer-actions {className}">
+<Card class="ml-dashboard__study-actions">
+	<header class="ml-dashboard__study-actions__header">
+		<h2 id="ml-dashboard-study-actions-title">Study next</h2>
+		<span class="ml-dashboard__study-actions__deck">{selectedDeck?.name ?? 'All decks'}</span>
+	</header>
+	<div class="ml-dashboard__study-actions__controls">
+		<Button
+			variant="primary"
+			size="large"
+			class="ml-start-button"
+			disabled={isReviewDisabled}
+			onclick={onStartReview}
+		>
+			{#if isLoading}
+				<Icon name="loader-2" class="ml-spin" size={20} />
+				<span>Loading...</span>
+			{:else if reviewDueCount > 0}
+				<Icon name="play" size={20} />
+				<span>Review {reviewDueCount} due {reviewDueCount === 1 ? 'card' : 'cards'}</span>
+			{:else if hasNextReview}
+				<Icon name="clock" size={20} />
+				<span>Next review in {countdownDisplay}</span>
+			{:else}
+				<Icon name="check-circle" size={20} />
+				<span>All caught up!</span>
+			{/if}
+		</Button>
 		<Button
 			variant="secondary"
 			size="large"
@@ -68,79 +97,114 @@
 			disabled={isPrimingDisabled}
 			onclick={onStartPriming}
 		>
-		<span class="ml-prime-button__label">Prime difficult notes</span>
-		<span class="ml-prime-button__context">
-			{`${selectedDeck ? selectedDeck.name : 'All decks'} · difficulty > ${difficultyThreshold.toFixed(1)}`}
-		</span>
-	</Button>
-	<Button
-		variant="primary"
-		size="large"
-		class="ml-start-button"
-		disabled={isDisabled}
-		onclick={onStartReview}
-	>
-		{#if isLoading}
-			<Icon name="loader-2" class="ml-spin" size={20} />
-			<span>Loading...</span>
-		{:else if hasNextReview}
-			<Icon name="clock" size={20} />
-			<span>Next review in {countdownDisplay}</span>
-		{:else if selectedDeck}
-			<Icon name="play" size={20} />
-			<span>Review {selectedDeck.name} ({selectedDeck.dueNow} due now)</span>
-		{:else if hasDueCards}
-			<Icon name="play" size={20} />
-			<span>Start review session</span>
-		{:else}
-			<Icon name="check-circle" size={20} />
-			<span>All caught up!</span>
-		{/if}
-	</Button>
-</div>
+			<span class="ml-prime-button__label">Prime difficult notes</span>
+			<span class="ml-prime-button__support">
+				{primingAvailability === 'empty'
+					? 'No difficult notes due'
+					: `Difficulty > ${difficultyThreshold.toFixed(1)}`}
+			</span>
+		</Button>
+	</div>
+</Card>
 
 <style lang="scss">
 	@use 'tokens' as *;
 
-	.ml-dashboard__footer-actions {
-		margin-top: 8px;
+	:global .ml-card.ml-dashboard__study-actions {
 		display: flex;
-		justify-content: center;
+		flex-direction: column;
 		gap: $spacing-sm;
+		background-color: $background-primary;
+		border: 1px solid $background-modifier-border;
+		border-radius: $radius-xs;
 	}
 
-	:global(.ml-start-button) {
-		width: max-content;
-		max-width: 400px;
-		gap: $spacing-sm;
+	.ml-dashboard__study-actions__header {
+		display: flex;
+		flex-direction: column;
+		gap: $spacing-xxs;
 	}
-	:global(.ml-prime-button) {
-		width: max-content;
-		max-width: 400px;
-		align-items: center;
+
+	.ml-dashboard__study-actions__header h2 {
+		margin: 0;
+		font-size: $font-md;
+		font-weight: $font-semibold;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: $text-muted;
+	}
+
+	.ml-dashboard__study-actions__deck {
+		font-size: $font-sm;
+		font-weight: $font-normal;
+		color: $text-normal;
+	}
+
+	.ml-dashboard__study-actions__controls {
+		display: flex;
+		gap: $spacing-sm;
+		margin-top: $spacing-sm;
+	}
+
+	/* Override the shared Button variants for the Penpot 56px action geometry. */
+	:global(.ml-dashboard__study-actions .ml-button[data-button-root].ml-start-button) {
+		height: 56px;
+		min-height: 56px;
+		font-size: 14px;
+		font-weight: $font-semibold;
+		flex: 3 1 0;
+		gap: $spacing-sm;
+		//   background-color: $text-normal;
+		//   color: $background-primary;
+		//   border-color: transparent;
+		// white-space: normal;
+		//   padding: 0 $spacing-md;
+		//   border-radius: $radius-xs;
+	}
+
+	:global(.ml-dashboard__study-actions .ml-button[data-button-root].ml-prime-button) {
+		height: 56px;
+		min-height: 56px;
+		font-size: 14px;
+		font-weight: $font-semibold;
+		flex: 2 1 0;
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: center;
 		gap: 2px;
+		white-space: normal;
+		background-color: $background-primary;
+		border: 1px solid $background-modifier-border;
+
+		// color: $text-normal;
+		// padding: 0 $spacing-md;
+		// border-radius: $radius-xs;
+
+		&:hover:not(:disabled) {
+			background-color: $background-modifier-hover;
+		}
 	}
 
 	:global(.ml-prime-button__label) {
 		font-weight: $font-semibold;
 	}
 
-	:global(.ml-prime-button__context) {
-		font-size: $font-xs;
+	:global(.ml-prime-button__support) {
+		font-size: 12px;
+		font-weight: $font-normal;
 		color: $text-muted;
 	}
 
 	@media (max-width: 480px) {
-		.ml-dashboard__footer-actions {
+		.ml-dashboard__study-actions__controls {
 			flex-direction: column;
-			align-items: stretch;
-			width: 100%;
+			gap: $spacing-xs;
 		}
 
-		:global(.ml-prime-button),
-		:global(.ml-start-button) {
+		:global(.ml-dashboard__study-actions .ml-button[data-button-root].ml-start-button),
+		:global(.ml-dashboard__study-actions .ml-button[data-button-root].ml-prime-button) {
 			width: 100%;
-			max-width: none;
+			flex: none;
 		}
 	}
 

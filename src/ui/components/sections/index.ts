@@ -8,6 +8,7 @@ export { default as DashboardDeckTreeNode } from './Dashboard/DeckTreeNode/compo
 export type { default as DashboardDeckTreeNodeProps } from './Dashboard/DeckTreeNode/types';
 export { default as DashboardFooter } from './Dashboard/Footer/component.svelte';
 export type { default as DashboardFooterProps } from './Dashboard/Footer/types';
+export type { PrimingAvailability } from './Dashboard/Footer/types';
 export { default as DashboardHeader } from './Dashboard/Header/component.svelte';
 export type { default as DashboardHeaderProps } from './Dashboard/Header/types';
 export { default as DashboardProgress } from './Dashboard/Progress/component.svelte';

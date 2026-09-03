@@ -17,6 +17,8 @@
 	import { onMount } from 'svelte';
 	import { getAppContext } from '@/ui/context/AppContext';
 	import { PrimingController } from '@/ui/controllers/PrimingController';
+	import type { PrimingAvailability } from '@/ui/components/sections';
+	import type { PrimingSelection } from '@/ui/store/priming.store';
 	import { settingsStore } from '@/ui/store/settings.store';
 
 	// Store references for automatic subscription with $ prefix
@@ -27,27 +29,26 @@
 
 	const controller = $derived(new DashboardController());
 	const app = getAppContext().app;
+	const primingController = new PrimingController(app);
 
+	let primingAvailability = $state<PrimingAvailability>('checking');
 	// state - using $derived with $ prefix for automatic store subscription
 	let stats = $derived($statsStoreRef);
 	let deckTree = $derived($deckTreeRef);
 	let selectedDeck = $derived(deckTree.selectedDeck);
 	let isLoading = $derived($uiStoreRef.isLoading);
-	let isReviewDisabled = $derived(stats.flashcard.due_now === 0);
+	let reviewDueCount = $derived(selectedDeck?.dueNow ?? stats.flashcard.due_now);
 	let difficultyThreshold = $derived($settingsRef.source_note.priming.difficulty_threshold);
-	let isPrimingDisabled = $derived(
-		(selectedDeck ? selectedDeck.dueNow : stats.flashcard.due_now) === 0,
-	);
 
 	function onStartReview() {
 		controller.startReview(IndexKey.flashcard, selectedDeck?.fullPath);
 	}
 	function onStartPriming() {
-		const primingController = new PrimingController(app);
-		void primingController.start({
+		const selection: PrimingSelection = {
 			deckFilter: selectedDeck?.fullPath,
 			deckLabel: selectedDeck?.name ?? 'All decks',
-		});
+		};
+		void primingController.start(selection);
 	}
 
 	function onSelectDeck(fullPath: string | null) {
@@ -61,6 +62,32 @@
 	function onRefresh() {
 		void EventBus.instance.publish(new DashboardOpenEvent());
 	}
+
+	$effect(() => {
+		const selection: PrimingSelection = {
+			deckFilter: selectedDeck?.fullPath,
+			deckLabel: selectedDeck?.name ?? 'All decks',
+		};
+		const threshold = difficultyThreshold;
+		void deckTree.nodes;
+		let isCurrent = true;
+		primingAvailability = 'checking';
+
+		void primingController
+			.hasEligiblePrimingNotes(selection, threshold)
+			.then((hasEligibleNotes) => {
+				if (!isCurrent) return;
+				primingAvailability = hasEligibleNotes ? 'available' : 'empty';
+			})
+			.catch(() => {
+				if (!isCurrent) return;
+				primingAvailability = 'unavailable';
+			});
+
+		return () => {
+			isCurrent = false;
+		};
+	});
 
 	$effect(() => {
 		const interval = window.setInterval(() => {
@@ -95,8 +122,8 @@
 			{stats}
 			{onStartReview}
 			{onStartPriming}
-			isDisabled={isReviewDisabled}
-			isPrimingDisabled={isPrimingDisabled}
+			{reviewDueCount}
+			{primingAvailability}
 			difficultyThreshold={difficultyThreshold}
 			{isLoading}
 			{selectedDeck}
