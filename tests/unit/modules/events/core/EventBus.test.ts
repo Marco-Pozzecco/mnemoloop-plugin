@@ -125,6 +125,23 @@ describe('EventBus', () => {
 		});
 	});
 
+	describe('publishStrict', () => {
+		it('propagates handler failures to the publisher', async () => {
+			const bus = EventBus.instance;
+			bus.subscribe(TestEvent, async () => {
+				throw new Error('strict boom');
+			});
+
+			await expect(bus.publishStrict(new TestEvent({ value: 1 }))).rejects.toThrow('strict boom');
+		});
+
+		it('rejects when no handler can answer the request', async () => {
+			await expect(EventBus.instance.publishStrict(new OtherEvent({ value: 1 }))).rejects.toThrow(
+				'No handlers registered',
+			);
+		});
+	});
+
 	describe('subscribeOnce', () => {
 		it('should deliver event exactly once', async () => {
 			const bus = EventBus.instance;
