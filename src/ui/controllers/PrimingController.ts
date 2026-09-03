@@ -301,9 +301,30 @@ export function buildPrimingClusters(
 
 export class PrimingController {
 	private readonly app: App;
+	private availabilityQueue: Promise<void> = Promise.resolve();
 
 	constructor(app: App) {
 		this.app = app;
+	}
+
+	hasEligiblePrimingNotes(selection: PrimingSelection, threshold: number): Promise<boolean> {
+		const request = this.availabilityQueue.then(async () => {
+			const candidates = await this.queryCandidates(
+				selection,
+				threshold,
+				new Date(),
+				undefined,
+				true,
+			);
+			return discoverPrimingCandidates(candidates, this.app).length > 0;
+		});
+
+		this.availabilityQueue = request.then(
+			() => undefined,
+			() => undefined,
+		);
+
+		return request;
 	}
 
 	async start(selection: PrimingSelection): Promise<void> {
@@ -479,7 +500,8 @@ export class PrimingController {
 		selection: PrimingSelection,
 		threshold: number,
 		now: Date,
-		generation: number,
+		generation?: number,
+		strict = false,
 	): Promise<FlashcardMetadata[]> {
 		return new Promise((resolve, reject) => {
 			const unsubscribe = EventBus.instance.subscribe(
@@ -490,16 +512,17 @@ export class PrimingController {
 				},
 			);
 
-			void EventBus.instance
-				.publish(
-					new FlashcardIndexQueryRequestEvent({
-						predicate: (entity: FlashcardMetadata) =>
-							filterPrimingCandidates([entity], selection, threshold, now).length > 0,
-					}),
-				)
+			const queryRequest = new FlashcardIndexQueryRequestEvent({
+				predicate: (entity: FlashcardMetadata) =>
+					filterPrimingCandidates([entity], selection, threshold, now).length > 0,
+			});
+			const publish = strict
+				? EventBus.instance.publishStrict(queryRequest)
+				: EventBus.instance.publish(queryRequest);
+			void publish
 				.catch((error: Error) => {
 					unsubscribe();
-					if (generation !== globalGeneration) {
+					if (generation !== undefined && generation !== globalGeneration) {
 						reject(new PrimingRequestCancelledError());
 						return;
 					}
