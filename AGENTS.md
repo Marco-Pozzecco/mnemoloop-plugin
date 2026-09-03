@@ -194,7 +194,7 @@ Four-layer architecture decoupling event declaration, routing, and handling:
   - Route files use singular naming in `flashcard/` (e.g., `parser.ts`). Note: domains use plural (`parsers.ts`), but routes and handlers use singular (`parser.ts`) — this is an intentional naming distinction.
 
 - **core/** — Infrastructure:
-  - `EventBus` (singleton) — `publish()`, `subscribe()`, `subscribeOnce()`, `unsubscribe()`
+  - `EventBus` (singleton) — `publish()`, `publishStrict()`, `subscribe()`, `subscribeOnce()`, `unsubscribe()`. Use `publishStrict()` only for request paths that must propagate handler failures instead of waiting for a response.
   - `EventRegistry` — takes a bus, deps, and router; `initialize()` instantiates handlers and subscribes them to the bus
   - `EventRouter` — `route(eventClass, handlerClass)` and `combine(...routers)`. Exported from `core/EventRouter.ts` directly and accessible via `events/index.ts` re-export, but NOT from `core/index.ts`.
   - `core/index.ts` exports: `Event`, `EventRequest`, `EventResponse`, `EventDataOf`, `EventBus`, `EventHandler`, `EventRegistry`.

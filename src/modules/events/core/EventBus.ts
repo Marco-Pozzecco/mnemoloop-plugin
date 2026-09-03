@@ -52,6 +52,29 @@ export class EventBus implements IEventBus {
 		return event.id;
 	}
 
+	/**
+	 * Publish an event while propagating handler failures to the request owner.
+	 */
+	async publishStrict<TData>(event: IEvent<TData>): Promise<string> {
+		Logger.debug(`Event: ${event.type}`, event);
+		if (this._tap) {
+			try {
+				this._tap(event);
+			} catch (err) {
+				Logger.error('EventBus tap error', err);
+			}
+		}
+
+		const handlers = this._registry.get(event.type);
+		if (!handlers || handlers.size === 0) {
+			throw new Error(`No handlers registered for ${event.type}`);
+		}
+
+		await Promise.all(Array.from(handlers).map((handler) => handler(event)));
+		return event.id;
+	}
+
+
 	subscribe<TData>(
 		eventClass: EventClass<TData>,
 		handler: EventHandlerCallback<TData>,
