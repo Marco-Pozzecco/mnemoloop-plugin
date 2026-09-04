@@ -1,3 +1,25 @@
+## [1.10.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.9.0...1.10.0) (2026-09-04)
+
+### Features
+
+* **dashboard:** add study-next actions ([1251e4c](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/1251e4cf4ee4b0f3af97516da69afb7197aa496f))
+* **events:** add strict event publishing ([7a553d5](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/7a553d55d7a2936ac86af064673caa88377ea9a0))
+* **plugin:** add collapsible UI primitive ([65fc507](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/65fc507f6db16c4facddc6c08b01df326f1884fa))
+* **plugin:** add link button variant ([ec6cdc5](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/ec6cdc547ad2587c157a5a40253abec48ec67768))
+* **plugin:** add priming controller and store ([b1abfad](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/b1abfadd8a0d2c75a6d416d0d1ecdbca80ad36f6))
+* **plugin:** add priming threshold settings ([df9742b](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/df9742be20a6f7ce8eb2ce6559758c7c575e491d))
+* **plugin:** add priming view and dashboard integration ([36dfd67](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/36dfd67e36235f04d28fd72aad0b8a76b0416638))
+* **plugin:** refine priming navigation layout ([4761c07](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/4761c077960cf6645cd169bbb05d91e9bc5a360a))
+* **plugin:** refresh priming view layout ([012c9fb](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/012c9fb4bd0f5e8eab08c98d987c179697ba3bbf))
+* **plugin:** support hover previews for rendered links ([7c26c3a](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/7c26c3a9c519110954d5ac42071ec35765779d80))
+* **priming:** expose eligible note availability ([cfc373a](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/cfc373a695e5f1bd1a1165f69f5ee28f600a8dce))
+
+### Bug Fixes
+
+* lint errors ([73a40f9](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/73a40f9f230ddef6198fca4430fe34a5f391e304))
+* **plugin:** simplify source-note threshold validation ([e0490cf](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/e0490cf59ce9a6a1619e1ed9e4f21147d004711e))
+* **ui:** add standard class prop to Card primitive ([3493921](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/3493921490b9b22cf891d27da3a43ef5e60de8e0))
+
 ## [1.9.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.8.0...1.9.0) (2026-08-25)
 
 ### Features
