@@ -12,7 +12,6 @@
 		difficultyThreshold = 7,
 		isLoading = false,
 		selectedDeck = null,
-		className,
 	}: DashboardFooterProps = $props();
 
 	let hasDueCards = $derived(reviewDueCount > 0);
