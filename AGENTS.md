@@ -140,16 +140,19 @@ src/
 
 **Adapters** (`modules/adapters/`)
 
-- Persist data to JSON files in plugin directory
+- Persist data to plugin storage: `FlashcardAdapter` writes `flashcard-index.json`, `SettingsAdapter` and `StatisticsAdapter` share the plugin's `data.json`, `EventLogAdapter` keeps the event log
 - Extend `BaseAdapter<T>` and implement `IAdapter<T>`
 - Adapters are pure data stores — they do not emit events themselves; events are published externally via `EventBus` when changes occur
-- Adapters: `FlashcardAdapter` (→ flashcard-index.json), `SettingsAdapter`, `StatisticsAdapter`, `EventLogAdapter` (event logging)
+- `SettingsAdapter` and `StatisticsAdapter` share the `{ settings, statistics }` envelope (`JsonData` in `src/schemas/json-data.ts`): `loadData()` returns only the adapter's own key, and `saveData()` merges that key over the raw `data.json` payload read from `plugin.loadData()` so one save never drops the other key
+- `BaseAdapter.initialize()` sets the `initialized` getter in a `finally`, so initialization is considered finished even when the load failed. `null`/`undefined` from `loadData()` means "entry absent": the adapter starts from cloned defaults and persists them once. A failed load keeps cloned defaults in memory and performs no write during initialization. Partial recovery drops invalid array/record entries and persists the repair only when it re-validates.
+- Adapters: `FlashcardAdapter` (→ flashcard-index.json), `SettingsAdapter` + `StatisticsAdapter` (→ data.json), `EventLogAdapter` (event logging)
 
 **Indexers** (`modules/indexers/`)
 
 - Maintain in-memory caches of parsed flashcard metadata
 - Provide fast lookup without re-parsing files
 - Sync with adapters for persistence
+- `BaseIndexer` exposes an `initialized` getter, set at the end of `FlashcardIndexer.initialize()` and never reset
 
 **Parsers** (`modules/parsers/`)
 
@@ -201,6 +204,8 @@ Four-layer architecture decoupling event declaration, routing, and handling:
   - `Event<T>` / `EventRequest<T>` / `EventResponse<T>` — base classes; every event has `id`, `type`, `time`, `data`
 
 **Initialization flow in main.ts:** `loadAdapters()` pushes init events into `_initializationEvents[]` → `initializeEventRegistry()` creates `EventRegistry` with `IndexRouter`, calls `initialize()`, then publishes all pending init events via `EventBus.instance.publish()`.
+
+**Initialization gate:** Event handlers that write derived state must return early until the adapters and indexers they read report `initialized` (`FlashcardStatisticsComputeHandler` checks the statistics adapter and `FlashcardIndexer`). `FlashcardIndexInitEvent` is published last in `main.ts`, so its handler is the guaranteed post-initialization trigger for a statistics compute.
 
 **Commands** (`modules/commands/`)
 
