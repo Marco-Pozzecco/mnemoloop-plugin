@@ -2,6 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { Plugin } from 'obsidian';
 import { SettingsAdapter } from '@/modules/adapters/SettingsAdapter';
 import { DEFAULT_PLUGIN_SETTINGS, PluginSettingsSchema } from '@/schemas/settings';
+import { DEFAULT_STATISTICS } from '@/schemas/statistics';
 import { createMockPlugin } from '../../../helpers/mock-obsidian';
 
 describe('SettingsAdapter', () => {
@@ -24,7 +25,9 @@ describe('SettingsAdapter', () => {
 	describe('loadData', () => {
 		it('should delegate to plugin.loadData', async () => {
 			const p = plugin as Record<string, unknown>;
-			p.loadData = vi.fn().mockResolvedValue({ ...DEFAULT_PLUGIN_SETTINGS, debounce_timeout_ms: 1000 });
+			p.loadData = vi.fn().mockResolvedValue({
+				settings: { ...DEFAULT_PLUGIN_SETTINGS, debounce_timeout_ms: 1000 },
+			});
 
 			const data = await (adapter as unknown as Record<string, () => Promise<unknown>>).loadData();
 
@@ -34,20 +37,28 @@ describe('SettingsAdapter', () => {
 	});
 
 	describe('saveData', () => {
-		it('should delegate to plugin.saveData', async () => {
+		it('should merge settings into the envelope and keep statistics', async () => {
 			const p = plugin as Record<string, unknown>;
 			const testData = { ...DEFAULT_PLUGIN_SETTINGS, debounce_timeout_ms: 1000 };
+			p.loadData = vi.fn().mockResolvedValue({ statistics: DEFAULT_STATISTICS });
 
-			await (adapter as unknown as Record<string, (d: unknown) => Promise<void>>).saveData(testData);
+			await (adapter as unknown as Record<string, (d: unknown) => Promise<void>>).saveData(
+				testData,
+			);
 
-			expect(p.saveData).toHaveBeenCalledWith(testData);
+			expect(p.saveData).toHaveBeenCalledWith({
+				statistics: DEFAULT_STATISTICS,
+				settings: testData,
+			});
 		});
 	});
 
 	describe('integration with BaseAdapter', () => {
 		it('should initialize with loaded data from plugin', async () => {
 			const p = plugin as Record<string, unknown>;
-			p.loadData = vi.fn().mockResolvedValue({ ...DEFAULT_PLUGIN_SETTINGS, debounce_timeout_ms: 1000 });
+			p.loadData = vi.fn().mockResolvedValue({
+				settings: { ...DEFAULT_PLUGIN_SETTINGS, debounce_timeout_ms: 1000 },
+			});
 
 			await adapter.initialize();
 
@@ -56,13 +67,15 @@ describe('SettingsAdapter', () => {
 
 		it('should save data via plugin.saveData', async () => {
 			const p = plugin as Record<string, unknown>;
+			p.loadData = vi.fn().mockResolvedValue({ statistics: DEFAULT_STATISTICS });
 			adapter.set({ ...DEFAULT_PLUGIN_SETTINGS, debounce_timeout_ms: 1000 });
 
 			await adapter.save();
 
-			expect(p.saveData).toHaveBeenCalledWith(
-				expect.objectContaining({ debounce_timeout_ms: 1000 }),
-			);
+			expect(p.saveData).toHaveBeenCalledWith({
+				statistics: DEFAULT_STATISTICS,
+				settings: expect.objectContaining({ debounce_timeout_ms: 1000 }),
+			});
 		});
 	});
 
@@ -74,13 +87,15 @@ describe('SettingsAdapter', () => {
 		it('accepts and normalizes source-note settings', async () => {
 			const p = plugin as Record<string, unknown>;
 			p.loadData = vi.fn().mockResolvedValue({
-				...DEFAULT_PLUGIN_SETTINGS,
-				source_note: {
-					watch: {
-						directory: ' /notes ',
-						tags: [' #biology ', '#chemistry'],
+				settings: {
+					...DEFAULT_PLUGIN_SETTINGS,
+					source_note: {
+						watch: {
+							directory: ' /notes ',
+							tags: [' #biology ', '#chemistry'],
+						},
+						priming: DEFAULT_PLUGIN_SETTINGS.source_note.priming,
 					},
-					priming: DEFAULT_PLUGIN_SETTINGS.source_note.priming,
 				},
 			});
 
@@ -96,10 +111,12 @@ describe('SettingsAdapter', () => {
 		it('accepts explicit empty source-note criteria', async () => {
 			const p = plugin as Record<string, unknown>;
 			p.loadData = vi.fn().mockResolvedValue({
-				...DEFAULT_PLUGIN_SETTINGS,
-				source_note: {
-					watch: { directory: '', tags: [] },
-					priming: DEFAULT_PLUGIN_SETTINGS.source_note.priming,
+				settings: {
+					...DEFAULT_PLUGIN_SETTINGS,
+					source_note: {
+						watch: { directory: '', tags: [] },
+						priming: DEFAULT_PLUGIN_SETTINGS.source_note.priming,
+					},
 				},
 			});
 
@@ -112,11 +129,13 @@ describe('SettingsAdapter', () => {
 		it('recovers missing priming settings and persists the default threshold', async () => {
 			const p = plugin as Record<string, unknown>;
 			p.loadData = vi.fn().mockResolvedValue({
-				...DEFAULT_PLUGIN_SETTINGS,
-				source_note: {
-					watch: {
-						directory: '/notes',
-						tags: ['#biology'],
+				settings: {
+					...DEFAULT_PLUGIN_SETTINGS,
+					source_note: {
+						watch: {
+							directory: '/notes',
+							tags: ['#biology'],
+						},
 					},
 				},
 			});
@@ -125,24 +144,26 @@ describe('SettingsAdapter', () => {
 
 			expect(adapter.data.source_note.priming).toEqual({ difficulty_threshold: 7.0 });
 			expect(p.saveData).toHaveBeenCalledTimes(1);
-			expect(p.saveData).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(p.saveData).toHaveBeenCalledWith({
+				settings: expect.objectContaining({
 					source_note: expect.objectContaining({
 						watch: { directory: '/notes', tags: ['#biology'] },
 						priming: { difficulty_threshold: 7.0 },
 					}),
 				}),
-			);
+			});
 		});
 
 		it('recovers invalid source-note settings from defaults', async () => {
 			const p = plugin as Record<string, unknown>;
 			p.loadData = vi.fn().mockResolvedValue({
-				...DEFAULT_PLUGIN_SETTINGS,
-				source_note: {
-					watch: {
-						directory: 'notes',
-						tags: ['#biology'],
+				settings: {
+					...DEFAULT_PLUGIN_SETTINGS,
+					source_note: {
+						watch: {
+							directory: 'notes',
+							tags: ['#biology'],
+						},
 					},
 				},
 			});
@@ -165,22 +186,22 @@ describe('SettingsAdapter', () => {
 				debounce_timeout_ms: 1000,
 			};
 			delete legacySettings.source_note;
-			p.loadData = vi.fn().mockResolvedValue(legacySettings);
+			p.loadData = vi.fn().mockResolvedValue({ settings: legacySettings });
 
 			await adapter.initialize();
 
 			expect(adapter.data.debounce_timeout_ms).toBe(1000);
 			expect(adapter.data.source_note.watch).toEqual({ directory: '', tags: [] });
 			expect(p.saveData).toHaveBeenCalledTimes(1);
-			expect(p.saveData).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(p.saveData).toHaveBeenCalledWith({
+				settings: expect.objectContaining({
 					debounce_timeout_ms: 1000,
 					source_note: {
 						watch: { directory: '', tags: [] },
 						priming: { difficulty_threshold: 7.0 },
 					},
 				}),
-			);
+			});
 		});
 
 		it('rejects invalid source directories and tags', () => {

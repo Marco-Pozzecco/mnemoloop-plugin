@@ -1,6 +1,7 @@
 import { DEFAULT_PLUGIN_SETTINGS, PluginSettings, PluginSettingsSchema } from '@/schemas/settings';
 import { Plugin } from 'obsidian';
 import { BaseAdapter } from './BaseAdapter';
+import { JsonData } from '@/schemas/json-data';
 
 export class SettingsAdapter extends BaseAdapter<PluginSettings> {
 	constructor(private plugin: Plugin) {
@@ -8,10 +9,12 @@ export class SettingsAdapter extends BaseAdapter<PluginSettings> {
 	}
 
 	protected async loadData(): Promise<unknown> {
-		return await this.plugin.loadData();
+		const data = (await this.plugin.loadData()) as JsonData;
+		return data?.settings;
 	}
 
 	protected async saveData(data: PluginSettings): Promise<void> {
-		await this.plugin.saveData(data);
+		const current = ((await this.plugin.loadData()) ?? {}) as Partial<JsonData>;
+		await this.plugin.saveData({ ...current, settings: data });
 	}
 }
