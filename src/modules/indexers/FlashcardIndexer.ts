@@ -55,6 +55,8 @@ export class FlashcardIndexer extends BaseIndexer<
 		}
 
 		await this.save();
+
+		this._initialized = true;
 	};
 
 	save: () => Promise<void> = async () => {

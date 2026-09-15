@@ -16,6 +16,7 @@ export abstract class BaseIndexer<
 	protected _parser: IEntityParser<Entity, EntityYaml, EntityContent>;
 	protected _settings: IAdapter<PluginSettings>;
 	protected _adapter: IAdapter<Index>;
+	protected _initialized = false;
 
 	constructor(
 		parser: IEntityParser<Entity, EntityYaml, EntityContent>,
@@ -29,6 +30,10 @@ export abstract class BaseIndexer<
 
 	get index(): Record<string, EntityMetadata> {
 		return this._cache.dump();
+	}
+
+	get initialized(): boolean {
+		return this._initialized;
 	}
 
 	get size(): number {
