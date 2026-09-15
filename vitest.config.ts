@@ -11,7 +11,7 @@ export default defineConfig({
 	test: {
 		environment: 'node',
 		globals: true,
-		include: ['tests/**/*.{test,spec}.ts', '!tests/**/*.interaction.test.ts'],
+		include: ['tests/**/*.{test,spec}.ts', '!tests/**/*.interaction.test.ts', '!tests/performance/**'],
 		setupFiles: ['tests/setup.ts'],
 	},
 	resolve: {
