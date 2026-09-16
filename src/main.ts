@@ -28,6 +28,7 @@ import {
 	StatisticsAdapterInitEvent,
 } from './modules/events';
 import { FlashcardIndexer } from './modules/indexers/FlashcardIndexer';
+import { MIGRATIONS, Migrator, PluginDocumentStore } from './modules/migration';
 import { FlashcardBasicContentParser } from './modules/parsers/content/FlashcardBasicContentParser';
 import { FlashcardClozeContentParser } from './modules/parsers/content/FlashcardClozeContentParser';
 import { FlashcardQuizContentParser } from './modules/parsers/content/FlashcardQuizContentParser';
@@ -59,6 +60,8 @@ export default class MnemoloopPlugin extends Plugin {
 	private ribbonIcon?: HTMLElement;
 
 	async onload() {
+		await new Migrator(new PluginDocumentStore(this), MIGRATIONS).run();
+
 		this.initializeRibbonIcon();
 		this._eventLog = new EventLogAdapter(this);
 		void this._eventLog.initialize();
