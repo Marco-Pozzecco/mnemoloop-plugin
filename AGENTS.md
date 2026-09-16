@@ -59,11 +59,12 @@ src/
 ├── main.ts              # Plugin entry point (Obsidian Plugin class)
 ├── interfaces/           # TypeScript interfaces
 │   ├── parser/           # Parser interfaces (IEntityParser, IContentParser, IYamlParser, utils)
+│   ├── migration/        # Migration interfaces (IDocumentStore, IMigrationContext, IMigration)
 │   ├── IAdapter.ts       # Adapter interface
 │   ├── ICommand.ts       # Command interface
 │   ├── IEvent.ts         # Event interfaces
-│   └── …                 # IEventBus, IEventHandler, IEventRegistry, IEventRouter, IIndexer,
-│                         # IReviewEngine, IReviewItem, IReviewQueue, IWriter
+│   └── …                 # IEventBus, IEventHandler, IEventRegistry, IEventRouter,
+│                         # IIndexer, IReviewEngine, IReviewItem, IReviewQueue, IWriter
 ├── modules/             # Core business logic
 │   ├── adapters/        # Data persistence (FlashcardAdapter, SettingsAdapter, StatisticsAdapter, EventLogAdapter)
 │   ├── commands/        # Obsidian commands (palette/, editor-menu/, file-menu/)
@@ -73,6 +74,10 @@ src/
 │   │   ├── content/     # Per-card-type content parsers
 │   │   └── yaml/        # YAML frontmatter parsers (FlashcardYamlParser)
 │   ├── indexers/        # In-memory flashcard indexing/caching (FlashcardIndexer)
+│   ├── migration/       # Versioned data migrations: runner, document store, registry
+│   │   ├── _core/       # Core classes implementations
+│   │   ├── _utils/      # Migration utils
+│   │   └── migrations/  # Migration implementations, one file per version
 │   ├── events/          # Internal event system
 │   │   ├── core/        # EventBus, EventRegistry, EventRouter, Event, EventHandler
 │   │   ├── domains/     # Event type definitions organized by domain
@@ -146,6 +151,16 @@ src/
 - `SettingsAdapter` and `StatisticsAdapter` share the `{ settings, statistics }` envelope (`JsonData` in `src/schemas/json-data.ts`): `loadData()` returns only the adapter's own key, and `saveData()` merges that key over the raw `data.json` payload read from `plugin.loadData()` so one save never drops the other key
 - `BaseAdapter.initialize()` sets the `initialized` getter in a `finally`, so initialization is considered finished even when the load failed. `null`/`undefined` from `loadData()` means "entry absent": the adapter starts from cloned defaults and persists them once. A failed load keeps cloned defaults in memory and performs no write during initialization. Partial recovery drops invalid array/record entries and persists the repair only when it re-validates.
 - Adapters: `FlashcardAdapter` (→ flashcard-index.json), `SettingsAdapter` + `StatisticsAdapter` (→ data.json), `EventLogAdapter` (event logging)
+
+**Migrations** (`modules/migration/`)
+
+- `data.json` carries the single monotonic data `version`; `flashcard-index.json` and `event-log.json` are covered by that same version and have no version field of their own. `JsonDataSchema` declares `version: z.number().int().nonnegative()` and does not import a constant from `modules/migration`; `LATEST_DATA_VERSION` is derived from the catalog (`max(toVersion)`), never hand-maintained
+- `main.ts` constructs `Migrator` with `PluginDocumentStore` and `MIGRATIONS` and awaits `run()` as the first statement of `onload()`, before any adapter reads persisted data. `run()` never throws: any failure is logged and commits nothing, so the stored documents stay untouched and the next load retries
+- A missing or invalid `version` reads as `0`; `current >= LATEST_DATA_VERSION` performs no work and no writes
+- Migrations implement `IMigration` (`toVersion`, `description`, `apply(context)`) and only use the buffered `IMigrationContext`: `read` falls through to a cache, while `write`/`remove` are synchronous buffers. `Migrator` runs pending migrations in ascending order, stamps the version, then commits once; `MigrationContext.commit()` writes changed documents before removing superseded ones
+- `PluginDocumentStore` is the only Obsidian-bound piece (`data.json` through `plugin.loadData()`/`saveData()`, every other document through the vault adapter in the plugin directory). `Migrator`, `MigrationContext` and the migrations import no `obsidian` value
+- Adapters are unchanged: they keep owning validation/repair of their own key (`BaseAdapter.recoverPartialData`); migrations never duplicate it
+- Legacy-file disposal: delete only after a successful import, and only when the import actually happened. A migration never deletes an unparseable or already-superseded legacy file; it logs a warning instead. If the import succeeds but a later removal fails, the version is already stamped, so the orphaned file is left in place and not retried
 
 **Indexers** (`modules/indexers/`)
 
@@ -394,6 +409,15 @@ Additional documentation is maintained in the repository wiki (see OpenWiki sect
 5. Add to `AdapterMap` interface for type safety
 
 **Non-keyed adapters**: `EventLogAdapter` is instantiated directly in `main.ts` `onload()` — it does not use the `AdapterKey` enum. The keyed adapters are: `settings`, `statistics`, `flashcard` (in `AdapterKey` enum).
+
+### Adding a Data Migration
+
+1. Create `src/modules/migration/migrations/MyMigration.ts` implementing `IMigration`:
+   - `toVersion`: the next version (one more than the highest version in the catalog)
+   - `description`: a short summary used in logs
+   - `apply(context)`: read and validate through `context`, then buffer `context.write`/`context.remove`. Do not perform I/O directly and do not commit
+2. Append an instance to `MIGRATIONS` in `src/modules/migration/registry.ts`. That is the whole wiring: `LATEST_DATA_VERSION` follows automatically and `Migrator`, `MigrationContext` and `PluginDocumentStore` need no edits
+3. Add `tests/unit/modules/migrations/MyMigration.test.ts` and run `npm test -- --run tests/unit/modules/migrations`. The runner rejects a catalog with a duplicate or skipped version
 
 ### Adding a New Card Type
 
