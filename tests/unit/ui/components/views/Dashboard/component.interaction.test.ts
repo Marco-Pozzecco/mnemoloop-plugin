@@ -20,7 +20,11 @@ import { settingsStore } from '@/ui/store/settings.store';
 import { statsStore } from '@/ui/store/stats.store';
 import { uiStore } from '@/ui/store/ui.store';
 
-const DUE_NOW = '2026-08-29T10:00:00.000Z';
+const DAY_MS = 86_400_000;
+// Derived from the real clock: the review predicate compares `due` against `new Date()`,
+// so absolute literals silently rot once the test suite outlives them.
+const DUE_NOW = new Date(Date.now() - 60_000).toISOString();
+const DUE_LATER = new Date(Date.now() + 30 * DAY_MS).toISOString();
 
 async function flush(): Promise<void> {
 	await Promise.resolve();
@@ -47,7 +51,7 @@ function makeCards(): FlashcardMetadata[] {
 		}),
 		createFlashcardMetadata({
 			uuid: 'future',
-			due: '2026-09-15T10:00:00.000Z',
+			due: DUE_LATER,
 			difficulty: 8.0,
 			source: '[[notes/Alpha]]',
 			decks: ['Future'],
