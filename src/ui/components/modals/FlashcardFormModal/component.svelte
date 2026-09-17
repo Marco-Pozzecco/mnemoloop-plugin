@@ -6,7 +6,8 @@
 		FlashcardWriterUpdateRequestEvent,
 		FlashcardWriterUpdateResponseEvent,
 	} from '@/modules/events/domains/flashcard/writer';
-	import { CardType, Flashcard } from '@/schemas';
+	import { CardType } from '@/schemas';
+	import type { Flashcard } from '@/schemas';
 	import { Banner, FormField, Input, Tabs } from '@/ui/components/elements';
 	import { modalStore } from '@/ui/store/modal.store';
 	import { parseDeckList, formatDeckList } from '@/utils/deck-utils';

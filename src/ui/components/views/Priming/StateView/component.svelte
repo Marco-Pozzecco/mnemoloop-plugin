@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Button from '@/ui/components/elements/Button/component.svelte';
-	import Props from './types';
+	import type Props from './types';
 
 	let { state, onBeginReview, onRetry, onDashboard }: Props = $props();
 </script>
