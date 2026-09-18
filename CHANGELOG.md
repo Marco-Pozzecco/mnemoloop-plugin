@@ -1,3 +1,27 @@
+## [2.0.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.10.0...2.0.0) (2026-09-18)
+
+### ⚠ BREAKING CHANGES
+
+* **adapters:** statistics stored in statistics.json by earlier versions,
+and settings stored at the top level of data.json, are not migrated and are
+ignored after this change. Cross-device statistics merging is not part of
+this change and is documented as a known limitation.
+
+### Features
+
+* **adapters:** store statistics and settings in a shared data.json envelope ([227a814](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/227a814f02bbb3ec14c741162f2ab183b8437822))
+* **indexers:** expose initialization state on BaseIndexer ([25ec152](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/25ec15274cc6a1f62c82861f2ebd034b70b1b25c))
+* **migration:** add built-in v1/v2 migrations and catalog ([1a784ee](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/1a784eec088b2252f2a90d346a92e340a37f73b0))
+* **migration:** add migration contracts and document store interfaces ([2877dd5](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/2877dd5b2a06bf471a63b86d05893205edaffe17))
+* **migration:** add migration engine with buffered context and vault store ([f27858b](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/f27858bc4d3f51280a1a21da5a979654735532e7))
+* **migration:** run pending migrations on load and version data.json ([15a7a63](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/15a7a6316481a39586999052388a6fb633cbcd01))
+
+### Bug Fixes
+
+* **adapters:** make BaseAdapter initialization non-destructive ([ecf581c](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/ecf581c08e7761dc9a90d5306c3c63b1436a1aee))
+* **statistics:** gate compute on initialization and skip unchanged writes ([d3ccbae](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/d3ccbae3cd454eaaa7329c0a74f9f38ce01fc75a))
+* **ui:** use type-only imports for schema and props types ([34c250e](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/34c250e0c2fe6af95aa0458291727c233ff6edae))
+
 ## [1.10.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.9.0...1.10.0) (2026-09-04)
 
 ### Features
