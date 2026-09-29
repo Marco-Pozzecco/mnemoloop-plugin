@@ -75,6 +75,12 @@ describe('Occlusion form interaction', () => {
 		field.dispatchEvent(new Event('change', { bubbles: true }));
 	}
 
+	function paste(text: string): void {
+		const event = new Event('paste', { bubbles: true, cancelable: true });
+		Object.defineProperty(event, 'clipboardData', { value: { getData: () => text } });
+		surface().dispatchEvent(event);
+	}
+
 	function openPicker(): void {
 		const button = Array.from(target.querySelectorAll<HTMLButtonElement>('button')).find(
 			(element) => element.textContent?.trim() === 'Choose image',
@@ -95,6 +101,14 @@ describe('Occlusion form interaction', () => {
 		);
 		if (!item) throw new Error(`No picker item for ${path}`);
 		item.click();
+	}
+
+	function buttonByText(label: string): HTMLButtonElement {
+		const button = Array.from(target.querySelectorAll<HTMLButtonElement>('button')).find(
+			(element) => element.textContent?.trim() === label,
+		);
+		if (!button) throw new Error(`No button labelled ${label}`);
+		return button;
 	}
 
 	function surface(): HTMLElement {
@@ -286,15 +300,11 @@ describe('Occlusion form interaction', () => {
 		);
 	});
 
-	it('accepts a dropped image that already exists in the vault', async () => {
+	it('accepts a pasted wikilink that points at a vault image', async () => {
 		mountForm();
 		await tick();
 
-		const event = new Event('drop', { bubbles: true, cancelable: true });
-		Object.defineProperty(event, 'dataTransfer', {
-			value: { getData: () => '![[attachments/brain.png]]' },
-		});
-		surface().dispatchEvent(event);
+		paste('![[attachments/brain.png]]');
 		await tick();
 
 		expect(target.querySelector<HTMLImageElement>('.ml-occlusion-form__image')?.getAttribute('src')).toBe(
@@ -306,11 +316,7 @@ describe('Occlusion form interaction', () => {
 		mountForm();
 		await tick();
 
-		const event = new Event('paste', { bubbles: true, cancelable: true });
-		Object.defineProperty(event, 'clipboardData', {
-			value: { getData: () => 'attachments/lungs.png' },
-		});
-		surface().dispatchEvent(event);
+		paste('attachments/lungs.png');
 		await tick();
 
 		expect(target.querySelector<HTMLImageElement>('.ml-occlusion-form__image')?.getAttribute('src')).toBe(
@@ -318,15 +324,20 @@ describe('Occlusion form interaction', () => {
 		);
 	});
 
-	it('ignores a dropped reference that is not a vault file', async () => {
+	it('focuses the surface, so a paste reaches its handler', async () => {
 		mountForm();
 		await tick();
 
-		const event = new Event('drop', { bubbles: true, cancelable: true });
-		Object.defineProperty(event, 'dataTransfer', {
-			value: { getData: () => 'https://example.com/lungs.png' },
-		});
-		surface().dispatchEvent(event);
+		surface().focus();
+
+		expect(activeDocument.activeElement).toBe(surface());
+	});
+
+	it('ignores a pasted reference that is not a vault file', async () => {
+		mountForm();
+		await tick();
+
+		paste('https://example.com/lungs.png');
 		await tick();
 
 		expect(target.querySelector('.ml-occlusion-form__image')).toBeNull();
@@ -370,5 +381,37 @@ describe('Occlusion form interaction', () => {
 		expect(fieldByLabel('Hint 1').value).toBe('upper');
 		expect(fieldByLabel('Answer 2').value).toBe('Right lower lobe');
 		expect(api?.validate()).toBeNull();
+	});
+
+	it('offers the mask tools as soon as an image is chosen, without a drag', async () => {
+		mountForm();
+		await tick();
+
+		openPicker();
+		await tick();
+		chooseImage('attachments/lungs.png');
+		await tick();
+
+		expect(target.querySelector('.ml-occlusion-form__image')).not.toBeNull();
+
+		// Drawing works by dragging on the surface, but that gesture is not
+		// discoverable on its own — the tools have to be visible the moment the image
+		// is there, or the tab looks like it has nothing to offer.
+		const addMask = buttonByText('Add mask');
+		expect(addMask.disabled).toBe(false);
+
+		addMask.click();
+		await tick();
+
+		expect(maskElements()).toHaveLength(1);
+		expect(fieldByLabel('Answer 1')).not.toBeNull();
+		expect(api?.validate()).toBe('Mask 1 must have an answer.');
+
+		const rect = (api?.buildContent() as FlashcardOcclusionContent | undefined)?.masks[0].rect;
+		expect(rect?.[2]).toBeGreaterThan(0);
+		expect(rect?.[3]).toBeGreaterThan(0);
+		expect(rect?.[0]).toBeGreaterThanOrEqual(0);
+		expect((rect?.[0] ?? 0) + (rect?.[2] ?? 0)).toBeLessThanOrEqual(1);
+		expect((rect?.[1] ?? 0) + (rect?.[3] ?? 0)).toBeLessThanOrEqual(1);
 	});
 });

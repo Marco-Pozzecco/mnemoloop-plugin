@@ -17,6 +17,9 @@
 	/** A drawn rect smaller than this fraction of the image is ignored. */
 	const MIN_MASK_SIZE = 0.01;
 
+	/** Where "Add mask" puts the mask it creates: centred, a fifth of the image wide. */
+	const DEFAULT_MASK_RECT: NormalizedRect = [0.4, 0.4, 0.2, 0.2];
+
 	const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'avif']);
 
 	type DragState =
@@ -101,12 +104,11 @@
 		applyImage(wiki ? getLinkpath(wiki[1]) : text);
 	}
 
-	function handleDrop(event: DragEvent): void {
-		event.preventDefault();
-		if (disabled) return;
-		applyReferenceText(event.dataTransfer?.getData('text/plain') ?? '');
-	}
-
+	/**
+	 * Pasting a wikilink is the only way to name an image the picker's filter cannot
+	 * find. Dragging one in is not offered: Obsidian closes the modal on a backdrop
+	 * pointer-down, so the drag never reaches this surface.
+	 */
 	function handlePaste(event: ClipboardEvent): void {
 		if (disabled) return;
 		applyReferenceText(event.clipboardData?.getData('text/plain') ?? '');
@@ -174,6 +176,14 @@
 		masks = masks.filter((mask) => mask.id !== id);
 	}
 
+	/** Drawing works by dragging, which is not discoverable on its own. */
+	function addMask(): void {
+		masks = [
+			...masks,
+			{ id: `new-${nextMaskId++}`, rect: [...DEFAULT_MASK_RECT], answer: '', hint: '' },
+		];
+	}
+
 	function updateMask(id: string, changes: Partial<EditableOcclusionMask>): void {
 		masks = masks.map((mask) => (mask.id === id ? { ...mask, ...changes } : mask));
 	}
@@ -234,12 +244,17 @@
 	{/if}
 </FormField>
 
+<div class="ml-occlusion-form__tools">
+	<Button variant="secondary" size="small" {disabled} onclick={addMask}>Add mask</Button>
+	<span class="ml-occlusion-form__tools-hint">Drag on the image to draw a mask.</span>
+</div>
+
 <div
 	bind:this={surfaceRef}
 	class="ml-occlusion-form__surface"
 	class:ml-occlusion-form__surface--empty={!imageUrl}
-	ondragover={(event) => event.preventDefault()}
-	ondrop={handleDrop}
+	tabindex="0"
+	aria-label="Mask drawing surface"
 	onpaste={handlePaste}
 	onpointerdown={handlePointerDown}
 	onpointermove={handlePointerMove}
@@ -262,7 +277,7 @@
 		{/if}
 	{:else}
 		<p class="ml-occlusion-form__placeholder">
-			Choose an image, or drop or paste an image that already exists in the vault.
+			Choose an image from the vault, or paste a wikilink to one into this area.
 		</p>
 	{/if}
 </div>
@@ -347,10 +362,27 @@
 		margin: 0;
 	}
 
+	.ml-occlusion-form__tools {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: $spacing-sm;
+	}
+
+	.ml-occlusion-form__tools-hint {
+		color: $text-muted;
+		font-size: $font-sm;
+	}
+
 	.ml-occlusion-form__surface {
 		position: relative;
 		width: 100%;
 		touch-action: none;
+
+		&:focus-visible {
+			outline: 2px solid $interactive-accent;
+			outline-offset: 2px;
+		}
 
 		&--empty {
 			display: flex;
