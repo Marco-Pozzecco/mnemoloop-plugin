@@ -8,7 +8,6 @@ export { default as DashboardDeckTreeNode } from './Dashboard/DeckTreeNode/compo
 export type { default as DashboardDeckTreeNodeProps } from './Dashboard/DeckTreeNode/types';
 export { default as DashboardFooter } from './Dashboard/Footer/component.svelte';
 export type { default as DashboardFooterProps } from './Dashboard/Footer/types';
-export type { PrimingAvailability } from './Dashboard/Footer/types';
 export { default as DashboardHeader } from './Dashboard/Header/component.svelte';
 export type { default as DashboardHeaderProps } from './Dashboard/Header/types';
 export { default as DashboardProgress } from './Dashboard/Progress/component.svelte';
@@ -37,6 +36,7 @@ export { default as ReviewFlashcardContentBasic } from './Review/Flashcard/Conte
 export type { default as ReviewFlashcardContentBasicProps } from './Review/Flashcard/Content/Basic/types';
 export { default as ReviewFlashcardContentCloze } from './Review/Flashcard/Content/Cloze/component.svelte';
 export type { default as ReviewFlashcardContentClozeProps } from './Review/Flashcard/Content/Cloze/types';
+export { default as ReviewFlashcardContentOcclusion } from './Review/Flashcard/Content/Occlusion/component.svelte';
 export { default as ReviewFlashcardContentQuiz } from './Review/Flashcard/Content/Quiz/component.svelte';
 export type { default as ReviewFlashcardContentQuizProps } from './Review/Flashcard/Content/Quiz/types';
 export { default as ReviewFlashcardContentSequence } from './Review/Flashcard/Content/Sequence/component.svelte';

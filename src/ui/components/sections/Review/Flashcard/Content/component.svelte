@@ -2,6 +2,7 @@
 	import {
 		isFlashcardBase,
 		isFlashcardCloze,
+		isFlashcardOcclusion,
 		isFlashcardQuiz,
 		isFlashcardSequence,
 	} from '@/schemas';
@@ -11,6 +12,7 @@
 	import FlashcardBasicContent from './Basic/component.svelte';
 	import FlashcardQuizContent from './Quiz/component.svelte';
 	import FlashcardClozeContent from './Cloze/component.svelte';
+	import FlashcardOcclusionContent from './Occlusion/component.svelte';
 	import FlashcardSequenceContent from './Sequence/component.svelte';
 	import type FlashcardContentRouterProps from './types';
 
@@ -54,6 +56,15 @@
 				{sourcePath}
 				{isAnswerShowing}
 				{onShowAnswer}
+				{onAllRevealed}
+			/>
+		{:else if isFlashcardOcclusion(flashcard)}
+			<FlashcardOcclusionContent
+				content={flashcard.content}
+				{sourcePath}
+				{isAnswerShowing}
+				{onShowAnswer}
+				{onSetAnswerCorrectness}
 				{onAllRevealed}
 			/>
 		{/if}

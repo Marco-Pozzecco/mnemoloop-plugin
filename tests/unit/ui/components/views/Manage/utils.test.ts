@@ -7,9 +7,11 @@ import {
 	filterFlashcards,
 	paginate,
 } from '@/ui/components/views/Manage/utils';
+import { MANAGE_TYPE_OPTIONS } from '@/ui/components/sections/Manage/options';
 import {
 	createCloze,
 	createFlashcardMetadata,
+	createOcclusion,
 	createSequence,
 } from '../../../../../helpers/factories';
 
@@ -39,6 +41,19 @@ describe('Manage utils', () => {
 		it('filters by card type', () => {
 			const result = filterFlashcards(cards, { type: CardType.Basic, status: '', deck: '' });
 			expect(result.map((c) => c.uuid)).toEqual(['a', 'c']);
+		});
+
+		it('filters to occlusion cards when Occlusion is selected', () => {
+			const occlusionCards = [
+				createFlashcardMetadata({ uuid: 'occ', card_type: CardType.Occlusion }),
+				createFlashcardMetadata({ uuid: 'basic', card_type: CardType.Basic }),
+			];
+			const result = filterFlashcards(occlusionCards, {
+				type: CardType.Occlusion,
+				status: '',
+				deck: '',
+			});
+			expect(result.map((c) => c.uuid)).toEqual(['occ']);
 		});
 
 		it('filters by status', () => {
@@ -163,6 +178,47 @@ describe('Manage utils', () => {
 			expect(buildCardPreview(card)).toBe('The capital of [...] is [...]');
 		});
 
+		it('builds an Occlusion preview naming the image and the mask count', () => {
+			expect(buildCardPreview(createOcclusion() as unknown as Flashcard)).toBe(
+				'Occlusion: lungs.png (2 masks)',
+			);
+		});
+
+		it('builds a singular mask count for a one-mask Occlusion card', () => {
+			const card = createOcclusion();
+			const oneMask = {
+				...card,
+				content: { ...card.content, masks: [card.content.masks[0]] },
+			} as unknown as Flashcard;
+
+			expect(buildCardPreview(oneMask)).toBe('Occlusion: lungs.png (1 mask)');
+		});
+
+		it('truncates a long Occlusion preview to 60 characters', () => {
+			const card = createOcclusion({
+				content: {
+					meta_type: CardType.Occlusion,
+					image: `${'a'.repeat(70)}.png`,
+					masks: [{ id: 'm1', rect: [0, 0, 1, 1], answer: 'A', hint: null }],
+				},
+			}) as unknown as Flashcard;
+
+			const preview = buildCardPreview(card);
+
+			expect(preview.length).toBe(63);
+			expect(preview.endsWith('...')).toBe(true);
+		});
+
+		it('falls back to a placeholder for an unrecognized card type', () => {
+			const card = {
+				...createFlashcardMetadata(),
+				card_type: 'quantum' as CardType,
+				content: { meta_type: 'quantum' },
+			} as unknown as Flashcard;
+
+			expect(buildCardPreview(card)).toBe('Unknown card type');
+		});
+
 		it('truncates previews longer than 60 characters with an ellipsis', () => {
 			const card = {
 				...createFlashcardMetadata({ card_type: CardType.Basic }),
@@ -172,6 +228,15 @@ describe('Manage utils', () => {
 			expect(preview.length).toBe(63);
 			expect(preview.endsWith('...')).toBe(true);
 			expect(preview.slice(0, 60)).toBe('x'.repeat(60));
+		});
+	});
+
+	describe('MANAGE_TYPE_OPTIONS', () => {
+		it('offers Occlusion as a selectable type filter', () => {
+			expect(MANAGE_TYPE_OPTIONS).toContainEqual({
+				value: CardType.Occlusion,
+				label: 'Occlusion',
+			});
 		});
 	});
 });

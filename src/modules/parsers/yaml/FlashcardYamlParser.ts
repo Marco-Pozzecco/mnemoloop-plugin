@@ -1,5 +1,5 @@
 import { RecoverResult, RecoveryWarning } from '@/interfaces/parser/utils';
-import { DEFAULT_FLASHCARD_YAML, FlashcardYaml, FlashcardYamlSchema } from '@/schemas';
+import { DEFAULT_FLASHCARD_YAML, CardTypeSchema, FlashcardYaml, FlashcardYamlSchema } from '@/schemas';
 import { normalizePath, parseYaml, Plugin } from 'obsidian';
 import { v4 as uuid } from 'uuid';
 import { YamlParser } from '../_core/Yaml';
@@ -33,6 +33,7 @@ export class FlashcardYamlParser extends YamlParser<FlashcardYaml> {
 
 			// Apply field-level recovery — preserves valid fields, fixes broken ones
 			const { data, warnings } = this._recoverFlashcardYaml(raw);
+			if (data === null) return { success: false, data: null };
 			await this.write(filepath, data);
 			return { success: true, data, warnings };
 		} catch {
@@ -41,10 +42,18 @@ export class FlashcardYamlParser extends YamlParser<FlashcardYaml> {
 	};
 
 	private _recoverFlashcardYaml(raw: Record<string, unknown>): {
-		data: FlashcardYaml;
+		data: FlashcardYaml | null;
 		warnings: RecoveryWarning[];
 	} {
 		const warnings: RecoveryWarning[] = [];
+
+		// A card_type the running code does not recognize belongs to a version we
+		// do not understand (a newer release, or a downgrade). Repairing it would
+		// rewrite a valid card as a basic one, so report the failure and leave the
+		// file as it is. An absent card_type still defaults to basic.
+		if (raw.card_type !== undefined && !CardTypeSchema.safeParse(raw.card_type).success) {
+			return { data: null, warnings };
+		}
 
 		// clone input
 		const working: Record<string, unknown> = { ...raw };

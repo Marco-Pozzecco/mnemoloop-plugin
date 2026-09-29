@@ -159,6 +159,17 @@ const CLOZE_CARD = makeCard(CardType.Cloze, {
 	],
 });
 
+const OCCLUSION_CARD = makeCard(CardType.Occlusion, {
+	meta_type: CardType.Occlusion,
+	image: 'assets/lungs.png',
+	width: 800,
+	height: 600,
+	masks: [
+		{ id: 'm1', rect: [0.1, 0.1, 0.2, 0.2], answer: 'Left upper lobe', hint: null },
+		{ id: 'm2', rect: [0.5, 0.5, 0.2, 0.2], answer: 'Right lower lobe', hint: null },
+	],
+});
+
 async function settle(): Promise<void> {
 	await tick();
 	await tick();
@@ -339,5 +350,17 @@ describe('review flashcard renderer handoff', () => {
 		expect(target.querySelector('.ml-cloze-hint__disclosure')).toBeNull();
 		expect(onAllRevealed).toHaveBeenCalledTimes(1);
 		expect(onShowAnswer).toHaveBeenCalledTimes(1);
+	});
+
+	it('renders an Occlusion card through the targeting component', async () => {
+		mountCard(OCCLUSION_CARD);
+		await settle();
+
+		expect(target.querySelector('.ml-occlusion-content')).not.toBeNull();
+		expect(target.querySelector('.ml-occlusion-prompt__answer')?.textContent?.trim()).toBeTruthy();
+		expect(target.querySelectorAll('.ml-occlusion-mask')).toHaveLength(2);
+		expect(target.querySelector('.ml-occlusion-missing__reference')?.textContent).toContain(
+			'assets/lungs.png',
+		);
 	});
 });

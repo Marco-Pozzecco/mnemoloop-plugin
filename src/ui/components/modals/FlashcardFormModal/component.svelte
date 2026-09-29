@@ -34,6 +34,7 @@
 		{ value: CardType.Sequence, label: 'Sequence' },
 		{ value: CardType.Quiz, label: 'Quiz' },
 		{ value: CardType.Cloze, label: 'Cloze' },
+		{ value: CardType.Occlusion, label: 'Occlusion' },
 	];
 
 	// --- Form state ---
@@ -188,6 +189,13 @@
 			/>
 		{:else if selectedType === CardType.Cloze}
 			<FormContent.Cloze
+				{mode}
+				initialContent={card?.content}
+				onRegister={handleRegister}
+				disabled={isLoading}
+			/>
+		{:else if selectedType === CardType.Occlusion}
+			<FormContent.Occlusion
 				{mode}
 				initialContent={card?.content}
 				onRegister={handleRegister}

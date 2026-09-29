@@ -89,6 +89,18 @@ describe('FlashcardYamlSchema - card_type', () => {
 		expect(result.card_type).toEqual('sequence');
 	});
 
+	it('should accept card_type: occlusion', () => {
+		const result = FlashcardYamlSchema.parse({ ...baseYaml, card_type: 'occlusion' });
+		expect(result.card_type).toEqual('occlusion');
+	});
+
+	it('should accept every card type', () => {
+		for (const cardType of ['basic', 'sequence', 'quiz', 'cloze', 'occlusion']) {
+			const result = FlashcardYamlSchema.parse({ ...baseYaml, card_type: cardType });
+			expect(result.card_type).toEqual(cardType);
+		}
+	});
+
 	it('should reject invalid card_type values', () => {
 		expect(() => FlashcardYamlSchema.parse({ ...baseYaml, card_type: 'other' })).toThrow();
 	});

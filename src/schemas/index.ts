@@ -3,6 +3,7 @@ export * from './flashcard.base';
 export * from './flashcard.sequence';
 export * from './flashcard.quiz';
 export * from './flashcard.cloze';
+export * from './flashcard.occlusion';
 export * from './indexer';
 export * from './settings';
 export * from './srs';

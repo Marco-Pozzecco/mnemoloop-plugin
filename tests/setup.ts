@@ -175,6 +175,7 @@ vi.mock('obsidian', () => ({
 	// Utility functions
 	normalizePath: (path: string) => path,
 	parseYaml: vi.fn((_yaml: string) => ({})),
+	stringifyYaml: vi.fn((_obj: unknown) => ''),
 	getLinkpath: (linktext: string) => linktext.split('#')[0].split('|')[0],
 
 	// Component base class

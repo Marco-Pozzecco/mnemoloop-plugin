@@ -1,4 +1,12 @@
-import { FlashcardMetadata, FlashcardYaml, CardStatus, CardType, FlashcardClozeSchema, FlashcardSequenceSchema } from '@/schemas';
+import {
+	FlashcardMetadata,
+	FlashcardYaml,
+	CardStatus,
+	CardType,
+	FlashcardClozeSchema,
+	FlashcardOcclusionSchema,
+	FlashcardSequenceSchema,
+} from '@/schemas';
 import { DEFAULT_FSRS } from '@/utils/constants';
 import { vi } from 'vitest';
 
@@ -93,6 +101,33 @@ export function createCloze(overrides: Partial<FlashcardClozeSchema> = {}): Flas
 		},
 		...overrides,
 	} as FlashcardClozeSchema;
+}
+
+/**
+ * Create a valid Occlusion entity.
+ */
+export function createOcclusion(
+	overrides: Partial<FlashcardOcclusionSchema> = {},
+): FlashcardOcclusionSchema {
+	return {
+		...DEFAULT_FSRS,
+		uuid: '00000000-0000-0000-0000-000000000000',
+		source: null,
+		status: CardStatus.ACTIVE,
+		decks: [],
+		card_type: CardType.Occlusion,
+		content: {
+			meta_type: CardType.Occlusion,
+			image: 'lungs.png',
+			width: 1024,
+			height: 768,
+			masks: [
+				{ id: 'm1', rect: [0.1, 0.1, 0.2, 0.2], answer: 'Left upper lobe', hint: null },
+				{ id: 'm2', rect: [0.5, 0.5, 0.2, 0.2], answer: 'Right lower lobe', hint: 'lower' },
+			],
+		},
+		...overrides,
+	} as FlashcardOcclusionSchema;
 }
 
 /**

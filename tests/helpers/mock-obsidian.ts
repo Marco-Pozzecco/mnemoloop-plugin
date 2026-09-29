@@ -106,6 +106,13 @@ export function createMockVault(files: MockFile[] = []): any {
 			return new (TFile as any)(path, basename);
 		}),
 		getRoot: vi.fn<any, any>(),
+		getFiles: vi.fn<any, any>(() =>
+			Array.from(fileMap.keys()).map((path) => {
+				const basename = path.split('/').pop()?.replace('.md', '') || '';
+				return new (TFile as any)(path, basename);
+			}),
+		),
+		getResourcePath: vi.fn<any, any>((file: any) => `app://local/${file.path}`),
 		read: vi.fn<any, any>().mockImplementation(async (file: any) => {
 			const content = fileMap.get(file.path);
 			if (content === undefined) {
@@ -246,10 +253,16 @@ export function createMockMetadataCache(
 /**
  * Create a mock Plugin with app property containing vault, workspace, and metadataCache.
  */
-export function createMockPlugin(files: MockFile[] = []): any {
+export function createMockPlugin(
+	files: MockFile[] = [],
+	metadataOptions: {
+		resolvedLinks?: Record<string, Record<string, number>>;
+		linkTargets?: Record<string, string>;
+	} = {},
+): any {
 	const vault = createMockVault(files);
 	const workspace = createMockWorkspace();
-	const metadataCache = createMockMetadataCache();
+	const metadataCache = createMockMetadataCache(undefined, undefined, metadataOptions);
 
 	return {
 		app: {
