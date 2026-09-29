@@ -33,7 +33,7 @@ function createPublishSpy() {
 describe('FlashcardFormModal interaction', () => {
 	let target: HTMLDivElement;
 	let unmountModal: (() => Promise<void>) | undefined;
-	let controller: ModalController & { confirmAction?: () => Promise<void> };
+	let controller: ModalController & { confirmAction?: () => boolean };
 	let publish: ReturnType<typeof createPublishSpy>;
 
 	function openModal(data: { mode: 'create' | 'edit'; card?: Flashcard }): void {
@@ -57,7 +57,7 @@ describe('FlashcardFormModal interaction', () => {
 			store: modalStore,
 			onClose: vi.fn(),
 			close: vi.fn(),
-		} as unknown as ModalController & { confirmAction?: () => Promise<void> };
+		} as unknown as ModalController & { confirmAction?: () => boolean };
 		const instance = mount(FlashcardFormModalHarness, {
 			target,
 			props: { app: plugin.app as unknown as App, controller },
@@ -108,13 +108,14 @@ describe('FlashcardFormModal interaction', () => {
 		tabTrigger('Occlusion').click();
 		await tick();
 
-		await controller.confirmAction?.();
+		const started = controller.confirmAction?.();
 		await tick();
 
-		// The submit path reports the occlusion validation error on the modal store
-		// and stops before any writer request. Rendering that error in the Banner is
-		// owned by Modal.svelte and is not reactive today (see the change report).
+		// The submit path reports the occlusion validation error, reports that no
+		// submission started (so the controller keeps the modal open), and stops
+		// before any writer request.
 		expect(modalStore.state.error).toBe('An image is required.');
+		expect(started).toBe(false);
 		expect(
 			publish.mock.calls.filter((call) => call[0] instanceof FlashcardWriterCreateRequestEvent),
 		).toHaveLength(0);

@@ -13,7 +13,8 @@ export class ModalController implements IModalController {
 	private _store: ModalStore = modalStore;
 	private _modal: Modal;
 	private _cancel: () => void = () => {};
-	private _confirm: () => void = () => {};
+	// A confirm callback returns false to keep the modal open (an invalid form).
+	private _confirm: () => boolean | void = () => {};
 
 	constructor(modal: Modal) {
 		this._modal = modal;
@@ -23,7 +24,7 @@ export class ModalController implements IModalController {
 		this._cancel = callback;
 	}
 
-	set confirmAction(callback: () => void) {
+	set confirmAction(callback: () => boolean | void) {
 		this._confirm = callback;
 	}
 
@@ -38,7 +39,7 @@ export class ModalController implements IModalController {
 	}
 
 	onConfirm(): void {
-		this._confirm();
+		if (this._confirm() === false) return;
 		this.onClose();
 	}
 

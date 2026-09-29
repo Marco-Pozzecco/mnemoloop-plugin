@@ -4,7 +4,6 @@
 
 	let { controller }: ModalControlsProps = $props();
 	const { isLoading } = $derived(controller.state);
-
 	function handleConfirm() {
 		controller.onConfirm();
 	}

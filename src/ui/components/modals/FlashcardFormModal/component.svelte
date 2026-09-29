@@ -20,13 +20,15 @@
 	let { controller, error, isLoading }: FlashcardFormModalProps = $props();
 	const { app } = getAppContext();
 
-	// Derive modal data from the store
+	// Derive modal data from the store. `modalStore.state` is a plain field, so it
+	// never invalidates a rune; the writable the store manager wraps does.
+	const storeRef = modalStore.store;
 	let mode = $derived(
-		(modalStore.state.data as FlashcardFormModalData | undefined)?.mode ?? 'create',
+		(($storeRef.data as FlashcardFormModalData | undefined)?.mode ?? 'create') as 'create' | 'edit',
 	);
-	let card = $derived((modalStore.state.data as FlashcardFormModalData | undefined)?.card);
+	let card = $derived(($storeRef.data as FlashcardFormModalData | undefined)?.card);
 	let prefillSource = $derived(
-		(modalStore.state.data as FlashcardFormModalData | undefined)?.prefillSource,
+		($storeRef.data as FlashcardFormModalData | undefined)?.prefillSource,
 	);
 
 	const cardTypeOptions = [
@@ -76,13 +78,20 @@
 	}
 
 	// --- Submission ---
-	async function handleSubmit(): Promise<void> {
-		if (!contentApi) return;
+	/**
+	 * Returns false when no submission started, so the controller keeps the modal
+	 * open on the error instead of closing over it.
+	 */
+	function handleSubmit(): boolean {
+		if (!contentApi) {
+			controller.store.setError('The form is not ready. Close the modal and try again.');
+			return false;
+		}
 
 		const validationError = contentApi.validate();
 		if (validationError) {
 			controller.store.setError(validationError);
-			return;
+			return false;
 		}
 
 		controller.store.setError(null);
@@ -130,7 +139,10 @@
 		} catch (e) {
 			controller.store.setError(e instanceof Error ? e.message : 'An error occurred');
 			controller.store.setLoading(false);
+			return false;
 		}
+
+		return true;
 	}
 
 	// --- Wire controller actions ---

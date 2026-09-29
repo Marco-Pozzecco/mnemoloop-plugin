@@ -18,8 +18,10 @@
 	owner.load();
 	setAppContext({ app, component: owner });
 
-	const error = $derived(modalStore.state.error);
-	const isLoading = $derived(modalStore.state.isLoading);
+	const storeRef = modalStore.store;
+
+	const error = $derived($storeRef.error);
+	const isLoading = $derived($storeRef.isLoading);
 
 	onDestroy(() => {
 		owner.unload();
