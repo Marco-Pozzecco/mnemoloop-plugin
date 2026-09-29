@@ -1,9 +1,12 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest';
-import { parseYaml } from 'obsidian';
+import { parseYaml, stringifyYaml } from 'obsidian';
+import { dump, load } from 'js-yaml';
 import MnemoloopPlugin from '@/main';
 import { FlashcardOcclusionContentParser } from '@/modules/parsers/content/FlashcardOcclusionContentParser';
 import type { FlashcardParser } from '@/modules/parsers/entity/FlashcardParser';
-import { CardType, FlashcardYaml } from '@/schemas';
+import { FlashcardWriter } from '@/modules/writers/FlashcardWriter';
+import { DEFAULT_FLASHCARD_YAML, CardType, Flashcard, FlashcardYaml } from '@/schemas';
+import { buildOcclusionContent } from '@/ui/components/modals/FlashcardFormModal/Content/Occlusion/validation';
 import { PluginSettings } from '@/schemas/settings';
 import type { IAdapter } from '@/interfaces/IAdapter';
 import { AdapterKey, Adapters } from '@/types/adapters';
@@ -124,5 +127,50 @@ describe('Occlusion integration', () => {
 		expect(result.success).toBe(false);
 		expect(mockPlugin.app.fileManager.processFrontMatter).not.toHaveBeenCalled();
 		expect(mockPlugin.app.vault.fileMap.get(CARD_PATH)).toBe(original);
+	});
+
+	it('writes an occlusion card that parses back with the same masks', async () => {
+		// The create path runs through the real writer, the real YAML codec (js-yaml
+		// stands in for the Obsidian one) and the real parser stack, so a serializer
+		// that cannot be read back fails here.
+		vi.mocked(parseYaml).mockImplementation((yaml: string) => load(yaml) as Record<string, unknown>);
+		vi.mocked(stringifyYaml).mockImplementation((value: unknown) => dump(value));
+
+		parser = createRegisteredParser();
+		const writer = new FlashcardWriter(mockPlugin, parser);
+		const uuid = '33333333-3333-4333-8333-333333333333';
+		const path = `flashcards/${uuid}.md`;
+		const content = buildOcclusionContent('lungs.png', { width: 800, height: 600 }, [
+			{ id: 'new-0', rect: [0.1, 0.2, 0.3, 0.4], answer: ' Left upper lobe ', hint: ' apex ' },
+			{ id: 'new-1', rect: [0.5, 0.5, 0.2, 0.2], answer: 'Right lower lobe', hint: '' },
+		]);
+
+		await writer.create(path, {
+			...DEFAULT_FLASHCARD_YAML,
+			uuid,
+			source: null,
+			decks: [],
+			card_type: content.meta_type,
+			content,
+		} as Flashcard);
+
+		const written = mockPlugin.app.vault.fileMap.get(path);
+		expect(written).toBeDefined();
+
+		const reparsed = await parser.parseFile(path);
+		expect(reparsed.success).toBe(true);
+		if (reparsed.success) {
+			expect(reparsed.entity.card_type).toBe(CardType.Occlusion);
+			expect(reparsed.entity.content).toEqual({
+				meta_type: CardType.Occlusion,
+				image: 'lungs.png',
+				width: 800,
+				height: 600,
+				masks: [
+					{ id: 'm1', rect: [0.1, 0.2, 0.3, 0.4], answer: 'Left upper lobe', hint: 'apex' },
+					{ id: 'm2', rect: [0.5, 0.5, 0.2, 0.2], answer: 'Right lower lobe', hint: null },
+				],
+			});
+		}
 	});
 });
