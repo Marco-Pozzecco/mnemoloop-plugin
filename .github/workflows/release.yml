@@ -31,8 +31,14 @@ jobs:
       - name: Test
         run: yarn test --run
 
+      - name: Test UI interactions
+        run: yarn test:dom
+
       - name: Build plugin
         run: yarn build
+
+      - name: Build playground
+        run: yarn playground:build
 
       - name: Release
         env:
