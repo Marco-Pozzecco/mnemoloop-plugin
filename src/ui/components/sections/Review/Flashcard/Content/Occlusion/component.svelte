@@ -1,9 +1,10 @@
 <script lang="ts">
-	import type { FlashcardOcclusionContent, FlashcardOcclusionMask } from '@/schemas';
+	import { type FlashcardOcclusionContent, type FlashcardOcclusionMask } from '@/schemas';
 	import { getAppContext } from '@/ui/context/AppContext';
 	import type { FlashcardContentProps } from '../types';
 	import { fisherYatesShuffle } from '../utils';
 	import { hitTestMasks } from './utils';
+	import type { OcclusionMaskStatus } from './types';
 
 	/** Smallest comfortable touch target, in CSS pixels. */
 	const MIN_HIT_SIZE = 44;
@@ -19,13 +20,15 @@
 
 	const { app } = getAppContext();
 
-	let imageRef: HTMLDivElement;
+	let imageRef = $state<HTMLDivElement>();
 	let shuffledMasks = $state<FlashcardOcclusionMask[]>([]);
 	let promptIndex = $state(0);
 	let isComplete = $state(false);
 	let lastContentKey = $state('');
 	let revealedIds = $state<string[]>([]);
 	let missedIds = $state<string[]>([]);
+	let wrongIds = $state<string[]>([]);
+	let missFeedback = $state<{ selected: string; prompted: string } | null>(null);
 
 	const currentPrompt = $derived(shuffledMasks[promptIndex] ?? null);
 	const hasDimensions = $derived(!!content?.width && !!content?.height);
@@ -34,6 +37,21 @@
 	);
 	const imageUrl = $derived(imageFile ? app.vault.getResourcePath(imageFile) : null);
 	const outcomeCorrect = $derived(isComplete && missedIds.length === 0);
+	const foundCount = $derived(revealedIds.length);
+	/** One entry per prompt, in the order it was asked. */
+	const promptResults = $derived(
+		shuffledMasks.map((mask, index) => ({
+			mask,
+			status:
+				index < promptIndex || isComplete
+					? missedIds.includes(mask.id)
+						? ('missed' as const)
+						: ('correct' as const)
+					: index === promptIndex
+						? ('current' as const)
+						: ('pending' as const),
+		})),
+	);
 
 	$effect(() => {
 		const key = content ? JSON.stringify(content) : '';
@@ -42,6 +60,8 @@
 
 		revealedIds = [];
 		missedIds = [];
+		wrongIds = [];
+		missFeedback = null;
 		isComplete = false;
 		promptIndex = 0;
 		shuffledMasks = content ? fisherYatesShuffle(content.masks) : [];
@@ -50,6 +70,25 @@
 	$effect(() => {
 		onSetAnswerCorrectness?.(outcomeCorrect);
 	});
+
+	function maskStatus(id: string): OcclusionMaskStatus {
+		if (isComplete) return missedIds.includes(id) ? 'missed' : 'correct';
+		if (wrongIds.includes(id)) return 'wrong';
+		if (missedIds.includes(id)) return 'asked';
+		if (revealedIds.includes(id)) return 'correct';
+		return 'hidden';
+	}
+
+	function maskLabel(mask: FlashcardOcclusionMask, status: OcclusionMaskStatus): string {
+		return status === 'asked' ? `${mask.answer} · asked` : mask.answer;
+	}
+
+	/** An asked region is also a miss; keep both classes for styling and tests. */
+	function maskClass(status: OcclusionMaskStatus): string {
+		return status === 'asked'
+			? 'ml-occlusion-mask ml-occlusion-mask--asked ml-occlusion-mask--missed'
+			: `ml-occlusion-mask ml-occlusion-mask--${status}`;
+	}
 
 	function select(mask: FlashcardOcclusionMask | null): void {
 		if (!mask || isComplete || isAnswerShowing) return;
@@ -62,6 +101,10 @@
 			// Show the region the prompt was asking for as well.
 			revealedIds = [...revealedIds, prompted.id];
 			missedIds = [...missedIds, prompted.id];
+			wrongIds = [...wrongIds, mask.id];
+			missFeedback = { selected: mask.answer, prompted: prompted.answer };
+		} else {
+			missFeedback = null;
 		}
 
 		if (promptIndex + 1 >= shuffledMasks.length) {
@@ -74,6 +117,7 @@
 	/** The prompt loop ended on its own: reveal what is left and report the outcome. */
 	function complete(): void {
 		isComplete = true;
+		missFeedback = null;
 		revealedIds = shuffledMasks.map((mask) => mask.id);
 		onAllRevealed?.();
 		onShowAnswer?.();
@@ -124,65 +168,97 @@
 		const [x, y, width, height] = mask.rect;
 		return `left: ${x * 100}%; top: ${y * 100}%; width: ${width * 100}%; height: ${height * 100}%`;
 	}
+
 </script>
 
 {#if content}
 	<div class="ml-occlusion-content">
-		<div class="ml-occlusion-prompt" role="status" aria-live="polite">
-			{#if currentPrompt && !isComplete}
-				<span class="ml-occlusion-prompt__label">Click:</span>
-				<span class="ml-occlusion-prompt__answer">{currentPrompt.answer}</span>
-			{:else}
-				<span class="ml-occlusion-prompt__label">All regions revealed</span>
-			{/if}
-		</div>
-
-		<div
-			bind:this={imageRef}
-			class="ml-occlusion-image"
-			class:ml-occlusion-image--sized={hasDimensions}
-			style={hasDimensions ? `aspect-ratio: ${content.width} / ${content.height}` : ''}
-		>
-			{#if imageUrl}
-				<img class="ml-occlusion-image__img" src={imageUrl} alt={content.image} />
-			{:else}
-				<div class="ml-occlusion-missing" role="alert">
-					<p class="ml-occlusion-missing__title">Image not found</p>
-					<p class="ml-occlusion-missing__reference">{content.image}</p>
+		{#if !isComplete}
+			<div class="ml-occlusion-header">
+				<div class="ml-occlusion-header__main" role="status" aria-live="polite">
+					<div class="ml-occlusion-header__eyebrow">
+						Prompt <b>{promptIndex + 1}</b> of {shuffledMasks.length}
+					</div>
+					<div class="ml-occlusion-header__question">
+						Select the <b>{currentPrompt?.answer}</b>
+					</div>
 				</div>
-			{/if}
+				<div class="ml-occlusion-header__side">
+					<div class="ml-occlusion-segments" aria-hidden="true">
+						{#each promptResults as result (result.mask.id)}
+							<span class="ml-occlusion-segment ml-occlusion-segment--{result.status}"></span>
+						{/each}
+					</div>
+				</div>
+			</div>
+		{/if}
 
-			{#each content.masks as mask (mask.id)}
-				{@const isRevealed = revealedIds.includes(mask.id)}
-				<button
-					type="button"
-					class="ml-occlusion-mask"
-					class:ml-occlusion-mask--revealed={isRevealed}
-					class:ml-occlusion-mask--missed={missedIds.includes(mask.id)}
-					style={maskStyle(mask)}
-					aria-label={mask.answer}
-					aria-pressed={isRevealed}
-					disabled={isComplete}
-					onclick={(event) => handleRegionClick(event, mask)}
-					onkeydown={(event) => handleRegionKeyDown(event, mask)}
-				>
-					{#if isRevealed}
-						<span class="ml-occlusion-mask__answer">{mask.answer}</span>
-					{/if}
-				</button>
-			{/each}
+		<div class="ml-occlusion-stage">
+			<div
+				bind:this={imageRef}
+				class="ml-occlusion-stage__inner"
+				class:ml-occlusion-stage__inner--sized={hasDimensions}
+				style={hasDimensions ? `aspect-ratio: ${content.width} / ${content.height}` : ''}
+			>
+				{#if imageUrl}
+					<img class="ml-occlusion-stage__img" src={imageUrl} alt={content.image} />
+				{:else}
+					<div class="ml-occlusion-missing" role="alert">
+						<p class="ml-occlusion-missing__title">Image not found</p>
+						<p class="ml-occlusion-missing__reference">{content.image}</p>
+					</div>
+				{/if}
+
+				{#each content?.masks ?? [] as mask (mask.id)}
+					{@const status = maskStatus(mask.id)}
+					<button
+						type="button"
+						class={maskClass(status)}
+						style={maskStyle(mask)}
+						aria-label={mask.answer}
+						aria-pressed={status !== 'hidden'}
+						disabled={isComplete}
+						onclick={(event) => handleRegionClick(event, mask)}
+						onkeydown={(event) => handleRegionKeyDown(event, mask)}
+					>
+						{#if status !== 'hidden'}
+							<span class="ml-occlusion-mask__answer">{maskLabel(mask, status)}</span>
+						{/if}
+						{#if status === 'correct' && !isComplete}
+							<span class="ml-occlusion-mask__badge ml-occlusion-mask__badge--ok">✓</span>
+						{/if}
+						{#if status === 'wrong'}
+							<span class="ml-occlusion-mask__badge ml-occlusion-mask__badge--miss">✕</span>
+						{/if}
+					</button>
+				{/each}
+			</div>
 		</div>
+
+		{#if missFeedback && !isComplete}
+			<div class="ml-occlusion-feedback" role="status">
+				<b>Not quite.</b>
+				<span>
+					You selected {missFeedback.selected}. The <b>{missFeedback.prompted}</b> region is
+					highlighted.
+				</span>
+			</div>
+		{/if}
 
 		{#if !isComplete}
-			<button type="button" class="ml-occlusion-reveal-all" onclick={revealAll}>
-				Reveal all
-			</button>
+			<div class="ml-occlusion-actions">
+				<button type="button" class="ml-occlusion-reveal" onclick={revealAll}>
+					Reveal remaining regions
+				</button>
+				<span class="ml-occlusion-found">{foundCount} of {shuffledMasks.length} found</span>
+			</div>
 		{/if}
 	</div>
 {/if}
 
 <style lang="scss">
 	@use 'tokens' as *;
+	@use 'breakpoints' as *;
 
 	.ml-occlusion-content {
 		display: flex;
@@ -190,34 +266,102 @@
 		gap: $spacing-sm;
 	}
 
-	.ml-occlusion-prompt {
+	/* --- Prompt header --- */
+
+	.ml-occlusion-header {
 		display: flex;
-		gap: $spacing-xs;
-		align-items: baseline;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: $spacing-md;
+	}
 
-		&__label {
-			color: $text-muted;
-		}
+	.ml-occlusion-header__main {
+		min-width: 0;
+	}
 
-		&__answer {
-			font-weight: bold;
+	.ml-occlusion-header__eyebrow {
+		margin-bottom: 2px;
+		color: $text-muted;
+		font-size: $font-xs;
+
+		b {
+			color: $text-normal;
+			font-weight: $font-semibold;
 		}
 	}
 
-	.ml-occlusion-image {
+	.ml-occlusion-header__question {
+		color: $text-normal;
+		font-size: 1.15rem;
+		font-weight: $font-semibold;
+		line-height: 1.35;
+
+		b {
+			color: $text-accent;
+		}
+	}
+
+	.ml-occlusion-header__side {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: $spacing-xs;
+		flex: 0 0 auto;
+	}
+
+	.ml-occlusion-segments {
+		display: flex;
+		gap: 4px;
+		width: 11rem;
+		max-width: 100%;
+	}
+
+	.ml-occlusion-segment {
+		height: 6px;
+		flex: 1;
+		border-radius: 999px;
+		background: $background-modifier-border;
+	}
+
+	.ml-occlusion-segment--correct {
+		background: $status-success;
+	}
+
+	.ml-occlusion-segment--missed {
+		background: $text-error;
+	}
+
+	.ml-occlusion-segment--current {
+		background: $interactive-accent;
+		box-shadow: 0 0 0 3px color-mix(in srgb, $interactive-accent 20%, transparent);
+	}
+
+	/* --- Image stage --- */
+
+	.ml-occlusion-stage {
 		position: relative;
 		width: 100%;
-
-		&__img {
-			display: block;
-			width: 100%;
-		}
-
-		&--sized &__img {
-			height: 100%;
-			object-fit: fill;
-		}
+		border-radius: $radius-sm;
+		overflow: hidden;
+		background: $background-secondary;
 	}
+
+	.ml-occlusion-stage__inner {
+		position: relative;
+		width: 100%;
+	}
+
+	.ml-occlusion-stage__img {
+		display: block;
+		width: 100%;
+	}
+
+	.ml-occlusion-stage__inner--sized .ml-occlusion-stage__img {
+		height: 100%;
+		object-fit: fill;
+	}
+
+	/* --- Regions --- */
 
 	.ml-occlusion-mask {
 		position: absolute;
@@ -226,36 +370,101 @@
 		// An unrevealed region hides the image beneath it, so its answer cannot
 		// be read off the image. The theme background reads as a cut-out.
 		background: $background-primary;
-		border: 1px solid $background-modifier-border-hover;
+		border: $border-width solid $background-modifier-border-hover;
 		border-radius: $radius-sm;
 		cursor: pointer;
+		z-index: 1;
+		transition:
+			border-color $transition-fast,
+			background $transition-fast;
 
 		&:hover:not(:disabled),
 		&:focus-visible {
 			border-color: $interactive-accent;
+			z-index: 3;
 		}
 
-		&--revealed {
-			border-color: $interactive-accent;
-			background: rgba($interactive-accent, 0.2);
-		}
-
-		&--missed {
-			border-color: $text-error;
-			background: rgba($text-error, 0.2);
-		}
-
-		&__answer {
-			font-size: 0.7rem;
-			color: $text-normal;
+		// Hidden regions are marked as such rather than reading as blank boxes.
+		&--hidden::after {
+			content: '?';
 			position: absolute;
 			inset: 0;
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			text-align: center;
-			overflow: hidden;
+			color: $text-faint;
+			font-size: $font-xs;
+			font-weight: $font-bold;
+			opacity: 0.6;
+			pointer-events: none;
 		}
+
+		&--correct {
+			border: 2px solid $interactive-accent;
+			background: color-mix(in srgb, $interactive-accent 20%, transparent);
+			z-index: 2;
+		}
+
+		&--wrong {
+			border: 2px solid $text-error;
+			background: color-mix(in srgb, $text-error 20%, transparent);
+			z-index: 2;
+		}
+
+		&--missed {
+			border: 2px solid $text-error;
+			background: color-mix(in srgb, $text-error 20%, transparent);
+			z-index: 2;
+		}
+
+		&--asked {
+			border: 2px dashed $text-error;
+			background: color-mix(in srgb, $text-error 20%, transparent);
+			z-index: 2;
+		}
+	}
+
+	.ml-occlusion-mask__answer {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		max-width: none;
+		padding: 2px 6px;
+		border: $border-width solid $background-modifier-border-hover;
+		border-radius: $radius-sm;
+		background: color-mix(in srgb, $background-primary 88%, transparent);
+		color: $text-normal;
+		font-size: 0.7rem;
+		line-height: 1.2;
+		white-space: nowrap;
+		pointer-events: none;
+	}
+
+	.ml-occlusion-mask__badge {
+		position: absolute;
+		top: -8px;
+		right: -8px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		background: $background-primary;
+		border: 1.5px solid;
+		font-size: 11px;
+		font-weight: $font-bold;
+	}
+
+	.ml-occlusion-mask__badge--ok {
+		border-color: $status-success;
+		color: $status-success;
+	}
+
+	.ml-occlusion-mask__badge--miss {
+		border-color: $text-error;
+		color: $text-error;
 	}
 
 	.ml-occlusion-missing {
@@ -278,8 +487,67 @@
 		}
 	}
 
-	.ml-occlusion-reveal-all {
-		align-self: flex-start;
-		font-size: 0.8rem;
+	/* --- Actions --- */
+
+	.ml-occlusion-feedback {
+		display: flex;
+		gap: $spacing-xs;
+		align-items: baseline;
+		padding: $spacing-xs $spacing-sm;
+		border: $border-width solid color-mix(in srgb, $text-error 40%, transparent);
+		border-radius: $radius-sm;
+		background: color-mix(in srgb, $text-error 12%, transparent);
+		color: $text-error;
+		font-size: $font-xs;
+
+		b {
+			color: $text-error;
+			font-weight: $font-bold;
+		}
+	}
+
+	.ml-occlusion-actions {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: $spacing-sm;
+		color: $text-muted;
+		font-size: $font-xs;
+	}
+
+	.ml-occlusion-reveal {
+		padding: 0;
+		border: none;
+		background: none;
+		color: $text-muted;
+		font: inherit;
+		font-size: $font-xs;
+		text-decoration: underline dotted;
+		text-underline-offset: 3px;
+		cursor: pointer;
+
+		&:hover {
+			color: $text-accent;
+		}
+	}
+
+	@media (max-width: $mobile-breakpoint) {
+		.ml-occlusion-header {
+			flex-direction: column;
+			gap: $spacing-xs;
+		}
+
+		.ml-occlusion-header__question {
+			font-size: 1rem;
+		}
+
+		.ml-occlusion-header__side {
+			width: 100%;
+			align-items: stretch;
+		}
+
+		.ml-occlusion-segments {
+			width: 100%;
+		}
 	}
 </style>

@@ -67,8 +67,9 @@ describe('Flashcard interaction', () => {
 		await tick();
 		await tick();
 
-		expect(target.querySelector('.ml-occlusion-image')).not.toBeNull();
-		expect(target.querySelector('.ml-occlusion-mask--revealed')).toBeNull();
+		expect(target.querySelector('.ml-occlusion-stage__inner')).not.toBeNull();
+		expect(target.querySelector('.ml-occlusion-mask--correct')).toBeNull();
+		expect(target.querySelector('.ml-occlusion-mask--missed')).toBeNull();
 
 		const showAnswer = target.querySelector<HTMLButtonElement>('button[aria-label="Show answer"]');
 		expect(showAnswer).not.toBeNull();

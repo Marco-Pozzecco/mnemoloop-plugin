@@ -357,7 +357,9 @@ describe('review flashcard renderer handoff', () => {
 		await settle();
 
 		expect(target.querySelector('.ml-occlusion-content')).not.toBeNull();
-		expect(target.querySelector('.ml-occlusion-prompt__answer')?.textContent?.trim()).toBeTruthy();
+		expect(
+			target.querySelector('.ml-occlusion-header__question b')?.textContent?.trim(),
+		).toBeTruthy();
 		expect(target.querySelectorAll('.ml-occlusion-mask')).toHaveLength(2);
 		expect(target.querySelector('.ml-occlusion-missing__reference')?.textContent).toContain(
 			'assets/lungs.png',

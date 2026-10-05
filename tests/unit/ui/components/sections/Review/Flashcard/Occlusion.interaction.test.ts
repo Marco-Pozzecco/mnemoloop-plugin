@@ -94,7 +94,9 @@ describe('Occlusion review interaction', () => {
 	}
 
 	function promptAnswer(): string {
-		return target.querySelector('.ml-occlusion-prompt__answer')?.textContent?.trim() ?? '';
+		return (
+			target.querySelector('.ml-occlusion-header__question b')?.textContent?.trim() ?? ''
+		);
 	}
 
 	function otherAnswer(than: string): string {
@@ -107,7 +109,7 @@ describe('Occlusion review interaction', () => {
 	}
 
 	function stubImageRect(width: number, height: number): HTMLElement {
-		const image = target.querySelector<HTMLElement>('.ml-occlusion-image');
+		const image = target.querySelector<HTMLElement>('.ml-occlusion-stage__inner');
 		if (!image) throw new Error('Image container not found');
 		Object.defineProperty(image, 'getBoundingClientRect', {
 			configurable: true,
@@ -222,7 +224,7 @@ describe('Occlusion review interaction', () => {
 		expect(onSetAnswerCorrectness).toHaveBeenLastCalledWith(true);
 		expect(onAllRevealed).toHaveBeenCalledOnce();
 		expect(onShowAnswer).toHaveBeenCalledOnce();
-		expect(target.querySelector('.ml-occlusion-reveal-all')).toBeNull();
+		expect(target.querySelector('.ml-occlusion-reveal')).toBeNull();
 		expect(regions().every((region) => region.getAttribute('aria-pressed') === 'true')).toBe(true);
 	});
 
@@ -273,7 +275,7 @@ describe('Occlusion review interaction', () => {
 		await tick();
 		expect(onShowAnswer).not.toHaveBeenCalled();
 
-		const revealAllButton = target.querySelector<HTMLButtonElement>('.ml-occlusion-reveal-all');
+		const revealAllButton = target.querySelector<HTMLButtonElement>('.ml-occlusion-reveal');
 		if (!revealAllButton) throw new Error('Reveal all control not found');
 		revealAllButton.click();
 		await tick();
@@ -282,7 +284,7 @@ describe('Occlusion review interaction', () => {
 		expect(onSetAnswerCorrectness).toHaveBeenLastCalledWith(false);
 		expect(onAllRevealed).toHaveBeenCalledOnce();
 		expect(onShowAnswer).toHaveBeenCalledOnce();
-		expect(target.querySelector('.ml-occlusion-reveal-all')).toBeNull();
+		expect(target.querySelector('.ml-occlusion-reveal')).toBeNull();
 	});
 
 	it('reports an unresolved image by name and still scores the card', async () => {
@@ -333,7 +335,7 @@ describe('Occlusion review interaction', () => {
 
 		const answer = promptAnswer();
 		expect(answer).not.toBe('');
-		expect(target.querySelector('.ml-occlusion-prompt')?.textContent).toContain(answer);
+		expect(target.querySelector('.ml-occlusion-header')?.textContent).toContain(answer);
 		expect(
 			regions()
 				.map((region) => region.getAttribute('aria-label'))
