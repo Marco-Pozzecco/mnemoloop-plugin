@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { getLinkpath } from 'obsidian';
+	import { tick } from 'svelte';
 	import type { FlashcardOcclusionContent } from '@/schemas';
-	import { Button, FormField, Input, Textarea } from '@/ui/components/elements';
+	import { Button, FormField, Input } from '@/ui/components/elements';
 	import { getAppContext } from '@/ui/context/AppContext';
 	import type ContentTypeProps from '../types';
 	import type { BuildContentFn, ValidateFn } from '../types';
@@ -38,10 +39,13 @@
 	let masks = $state<EditableOcclusionMask[]>([]);
 	let draftRect = $state<NormalizedRect | null>(null);
 	let activeMaskId = $state<string | null>(null);
+	let highlightedMaskId = $state<string | null>(null);
+	let showValidation = $state(false);
 	let isPickerOpen = $state(false);
 	let query = $state('');
 	let nextMaskId = 0;
 	let dragState: DragState | null = null;
+	const rowRefs: Record<string, HTMLElement> = {};
 
 	const imageFiles = $derived(
 		app.vault.getFiles().filter((file) => IMAGE_EXTENSIONS.has(file.extension.toLowerCase())),
@@ -68,7 +72,11 @@
 
 	// --- Register validate + buildContent with parent ---
 	$effect(() => {
-		const validate: ValidateFn = () => validateOcclusion(image, masks);
+		const validate: ValidateFn = () => {
+			const message = validateOcclusion(image, masks);
+			showValidation = message !== null;
+			return message;
+		};
 		const buildContent: BuildContentFn = () => buildOcclusionContent(image, dimensions, masks);
 		onRegister({ validate, buildContent });
 	});
@@ -136,7 +144,7 @@
 		const existing = maskId ? masks.find((mask) => mask.id === maskId) : undefined;
 
 		if (existing && resizeHandle) {
-			activeMaskId = existing.id;
+			focusMask(existing.id);
 			dragState = {
 				kind: 'resize',
 				id: existing.id,
@@ -144,7 +152,7 @@
 				origin: existing.rect,
 			};
 		} else if (existing) {
-			activeMaskId = existing.id;
+			focusMask(existing.id);
 			dragState = { kind: 'move', id: existing.id, start: point, origin: existing.rect };
 		} else {
 			activeMaskId = null;
@@ -182,8 +190,11 @@
 			if (width >= MIN_MASK_SIZE && height >= MIN_MASK_SIZE) {
 				const id = `new-${nextMaskId++}`;
 				masks = [...masks, { id, rect: draftRect, answer: '', hint: '' }];
-				activeMaskId = id;
+				focusNewMask(id);
 			}
+		} else if (dragState && dragState.kind !== 'draw') {
+			// The gesture is over: reveal the row of the region that was worked on.
+			scrollRowIntoView(dragState.id);
 		}
 
 		draftRect = null;
@@ -193,6 +204,7 @@
 	function removeMask(id: string): void {
 		masks = masks.filter((mask) => mask.id !== id);
 		if (activeMaskId === id) activeMaskId = null;
+		if (highlightedMaskId === id) highlightedMaskId = null;
 	}
 
 	/** Drawing works by dragging, which is not discoverable on its own. */
@@ -205,6 +217,35 @@
 
 	function updateMask(id: string, changes: Partial<EditableOcclusionMask>): void {
 		masks = masks.map((mask) => (mask.id === id ? { ...mask, ...changes } : mask));
+	}
+
+	/** Track each region row so canvas selection can reveal its editor. */
+	function rowRef(id: string) {
+		return (node: HTMLElement) => {
+			rowRefs[id] = node;
+			return {
+				destroy() {
+					delete rowRefs[id];
+				},
+			};
+		};
+	}
+
+	function scrollRowIntoView(id: string): void {
+		const element = rowRefs[id];
+		if (!element || typeof element.scrollIntoView !== 'function') return;
+		element.scrollIntoView({ block: 'nearest' });
+	}
+
+	/** Selecting a region on the canvas focuses its row. */
+	function focusMask(id: string): void {
+		activeMaskId = id;
+	}
+
+	/** A region drawn just now: its row does not exist until the DOM updates. */
+	function focusNewMask(id: string): void {
+		activeMaskId = id;
+		void tick().then(() => scrollRowIntoView(id));
 	}
 
 	function rectStyle(rect: NormalizedRect): string {
@@ -288,13 +329,18 @@
 			draggable="false"
 			onload={handleImageLoad}
 		/>
-		{#each masks as mask (mask.id)}
+		{#each masks as mask, index (mask.id)}
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
 				class="ml-occlusion-form__mask"
 				class:ml-occlusion-form__mask--active={mask.id === activeMaskId}
+				class:ml-occlusion-form__mask--highlighted={mask.id === highlightedMaskId}
 				data-mask-id={mask.id}
 				style={rectStyle(mask.rect)}
+				onpointerenter={() => (highlightedMaskId = mask.id)}
+				onpointerleave={() => (highlightedMaskId = null)}
 			>
+				<span class="ml-occlusion-form__mask-num">{index + 1}</span>
 				{#each RESIZE_HANDLES as handle (handle)}
 					<span
 						class="ml-occlusion-form__handle ml-occlusion-form__handle--{handle}"
@@ -315,24 +361,40 @@
 </div>
 
 {#if masks.length > 0}
-	<FormField label="Masks">
+	<FormField label={`Masks (${masks.length})`}>
 		{#each masks as mask, index (mask.id)}
-			<div class="ml-occlusion-form__mask-editor">
-				<Textarea
-					label={`Answer ${index + 1}`}
-					value={mask.answer}
-					required
-					rows={2}
-					{disabled}
-					onchange={(value) => updateMask(mask.id, { answer: value })}
-				/>
-				<Textarea
-					label={`Hint ${index + 1}`}
-					value={mask.hint}
-					rows={1}
-					{disabled}
-					onchange={(value) => updateMask(mask.id, { hint: value })}
-				/>
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				class="ml-occlusion-form__region"
+				class:ml-occlusion-form__region--active={mask.id === activeMaskId}
+				class:ml-occlusion-form__region--highlighted={mask.id === highlightedMaskId}
+				class:ml-occlusion-form__region--invalid={showValidation && !mask.answer.trim()}
+				use:rowRef={mask.id}
+				onpointerenter={() => (highlightedMaskId = mask.id)}
+				onpointerleave={() => (highlightedMaskId = null)}
+			>
+				<span class="ml-occlusion-form__region-num">{index + 1}</span>
+				<div class="ml-occlusion-form__region-fields">
+					<Input
+						label={`Answer ${index + 1}`}
+						value={mask.answer}
+						placeholder="Answer"
+						required
+						hasError={showValidation && !mask.answer.trim()}
+						errorMessage="Answer required"
+						{disabled}
+						onchange={(value) => updateMask(mask.id, { answer: value })}
+						onfocus={() => (activeMaskId = mask.id)}
+					/>
+					<Input
+						label={`Hint ${index + 1}`}
+						value={mask.hint}
+						placeholder="Hint (optional)"
+						{disabled}
+						onchange={(value) => updateMask(mask.id, { hint: value })}
+						onfocus={() => (activeMaskId = mask.id)}
+					/>
+				</div>
 				<Button
 					variant="secondary"
 					size="small"
@@ -350,6 +412,7 @@
 
 <style lang="scss">
 	@use 'tokens' as *;
+	@use 'breakpoints' as *;
 
 	.ml-occlusion-form__image-header {
 		display: flex;
@@ -449,11 +512,36 @@
 
 	.ml-occlusion-form__mask {
 		cursor: move;
+		z-index: 1;
 
 		&--active {
 			border-color: $interactive-accent-hover;
 			box-shadow: $shadow-sm;
+			z-index: 3;
 		}
+
+		&--highlighted {
+			border-color: $interactive-accent-hover;
+			z-index: 2;
+		}
+	}
+
+	.ml-occlusion-form__mask-num {
+		position: absolute;
+		top: 2px;
+		left: 2px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 18px;
+		height: 18px;
+		border: 1px solid $interactive-accent;
+		border-radius: 50%;
+		background: color-mix(in srgb, $background-primary 90%, transparent);
+		color: $text-normal;
+		font-size: 10px;
+		font-weight: $font-bold;
+		pointer-events: none;
 	}
 
 	.ml-occlusion-form__handle {
@@ -537,15 +625,78 @@
 		pointer-events: none;
 	}
 
-	.ml-occlusion-form__mask-editor {
-		display: flex;
-		flex-direction: column;
-		gap: $spacing-xs;
-		padding-bottom: $spacing-sm;
-		border-bottom: 1px solid $background-modifier-border;
+	.ml-occlusion-form__region {
+		display: grid;
+		grid-template-columns: 24px minmax(0, 1fr) auto;
+		gap: $spacing-sm;
+		align-items: start;
+		padding: $spacing-xs;
+		border: $border-width solid $background-modifier-border;
+		border-radius: $radius-sm;
+		background: $background-primary;
+	}
 
-		&:last-child {
-			border-bottom: none;
+	.ml-occlusion-form__region--active {
+		border-color: $interactive-accent;
+		background: color-mix(in srgb, $interactive-accent 10%, transparent);
+	}
+
+	.ml-occlusion-form__region--highlighted {
+		border-color: color-mix(in srgb, $interactive-accent 55%, $background-modifier-border);
+	}
+
+	.ml-occlusion-form__region--invalid {
+		border-color: $text-error;
+	}
+
+	.ml-occlusion-form__region-num {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 24px;
+		height: 24px;
+		margin-top: 2px;
+		border: $border-width solid $background-modifier-border;
+		border-radius: 50%;
+		background: $background-secondary;
+		color: $text-muted;
+		font-size: $font-xs;
+		font-weight: $font-bold;
+	}
+
+	.ml-occlusion-form__region--active .ml-occlusion-form__region-num {
+		border-color: $interactive-accent;
+		background: $interactive-accent;
+		color: $text-accent-foreground;
+	}
+
+	.ml-occlusion-form__region-fields {
+		display: grid;
+		grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+		gap: $spacing-sm;
+		min-width: 0;
+	}
+
+	/* The number badge labels each row; keep the field names for assistive tech. */
+	.ml-occlusion-form__region-fields :global(.ml-input-label) {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	.ml-occlusion-form__region :global(.ml-occlusion-form__mask-delete) {
+		margin-top: 2px;
+	}
+
+	@media (max-width: $mobile-breakpoint) {
+		.ml-occlusion-form__region-fields {
+			grid-template-columns: minmax(0, 1fr);
 		}
 	}
 </style>

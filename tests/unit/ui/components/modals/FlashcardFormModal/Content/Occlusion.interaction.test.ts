@@ -458,4 +458,89 @@ describe('Occlusion form interaction', () => {
 		expect((rect?.[0] ?? 0) + (rect?.[2] ?? 0)).toBeLessThanOrEqual(1);
 		expect((rect?.[1] ?? 0) + (rect?.[3] ?? 0)).toBeLessThanOrEqual(1);
 	});
+
+	it('numbers regions on the canvas and in the editor list', async () => {
+		mountForm();
+		await tick();
+		await selectImage('attachments/lungs.png');
+
+		const drawingSurface = surface();
+		stubRect(drawingSurface, 100, 100);
+		pointer(drawingSurface, 'pointerdown', 10, 10);
+		pointer(drawingSurface, 'pointermove', 30, 30);
+		pointer(drawingSurface, 'pointerup', 30, 30);
+		pointer(drawingSurface, 'pointerdown', 60, 60);
+		pointer(drawingSurface, 'pointermove', 80, 80);
+		pointer(drawingSurface, 'pointerup', 80, 80);
+		await tick();
+
+		const canvasNumbers = Array.from(
+			target.querySelectorAll<HTMLElement>('.ml-occlusion-form__mask-num'),
+		).map((element) => element.textContent?.trim());
+		const rowNumbers = Array.from(
+			target.querySelectorAll<HTMLElement>('.ml-occlusion-form__region-num'),
+		).map((element) => element.textContent?.trim());
+
+		expect(canvasNumbers).toEqual(['1', '2']);
+		expect(rowNumbers).toEqual(['1', '2']);
+	});
+
+	it('links a selected canvas region to its row and a hovered row to its region', async () => {
+		mountForm();
+		await tick();
+		await selectImage('attachments/lungs.png');
+
+		const drawingSurface = surface();
+		stubRect(drawingSurface, 100, 100);
+		pointer(drawingSurface, 'pointerdown', 10, 10);
+		pointer(drawingSurface, 'pointermove', 30, 30);
+		pointer(drawingSurface, 'pointerup', 30, 30);
+		pointer(drawingSurface, 'pointerdown', 60, 60);
+		pointer(drawingSurface, 'pointermove', 80, 80);
+		pointer(drawingSurface, 'pointerup', 80, 80);
+		await tick();
+
+		const rows = () =>
+			Array.from(target.querySelectorAll<HTMLElement>('.ml-occlusion-form__region'));
+
+		pointer(maskElements()[0], 'pointerdown', 20, 20);
+		pointer(drawingSurface, 'pointerup', 20, 20);
+		await tick();
+
+		expect(rows()[0].classList.contains('ml-occlusion-form__region--active')).toBe(true);
+		expect(rows()[1].classList.contains('ml-occlusion-form__region--active')).toBe(false);
+
+		pointer(rows()[1], 'pointerenter', 0, 0);
+		await tick();
+
+		expect(
+			maskElements()[1].classList.contains('ml-occlusion-form__mask--highlighted'),
+		).toBe(true);
+	});
+
+	it('marks an empty answer inline once validation fails', async () => {
+		mountForm();
+		await tick();
+		await selectImage('attachments/lungs.png');
+
+		const drawingSurface = surface();
+		stubRect(drawingSurface, 100, 100);
+		pointer(drawingSurface, 'pointerdown', 10, 10);
+		pointer(drawingSurface, 'pointermove', 30, 30);
+		pointer(drawingSurface, 'pointerup', 30, 30);
+		await tick();
+
+		expect(api?.validate()).toBe('Mask 1 must have an answer.');
+		await tick();
+
+		const row = () => target.querySelector<HTMLElement>('.ml-occlusion-form__region');
+		expect(row()?.classList.contains('ml-occlusion-form__region--invalid')).toBe(true);
+		expect(row()?.querySelector('.ml-input-wrapper.has-error')).not.toBeNull();
+
+		setField('Answer 1', 'Left upper lobe');
+		await tick();
+
+		expect(row()?.classList.contains('ml-occlusion-form__region--invalid')).toBe(false);
+		expect(api?.validate()).toBeNull();
+	});
 });
