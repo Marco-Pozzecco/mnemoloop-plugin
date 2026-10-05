@@ -158,4 +158,21 @@ describe('Occlusion review affordances', () => {
 		).toEqual([`✕ ${prompted}`]);
 		expect(onShowAnswer).toHaveBeenCalledOnce();
 	});
+
+	it('opens the expanded viewer with the hidden regions intact and closes on Escape', async () => {
+		await mountOcclusion();
+
+		target.querySelector<HTMLButtonElement>('.ml-occlusion-expand')?.click();
+		await tick();
+
+		const dialog = target.querySelector('[role="dialog"]');
+		expect(dialog).not.toBeNull();
+		expect(dialog?.querySelectorAll('.ml-occlusion-mask--static')).toHaveLength(3);
+		expect(dialog?.querySelectorAll('.ml-occlusion-mask--hidden')).toHaveLength(3);
+
+		window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+		await tick();
+
+		expect(target.querySelector('[role="dialog"]')).toBeNull();
+	});
 });

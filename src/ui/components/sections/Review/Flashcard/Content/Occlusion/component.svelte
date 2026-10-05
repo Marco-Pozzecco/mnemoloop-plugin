@@ -6,11 +6,14 @@
 	import type { FlashcardContentProps } from '../types';
 	import { fisherYatesShuffle } from '../utils';
 	import Recap from './Recap.svelte';
+	import Viewer from './Viewer.svelte';
 	import { hitTestMasks } from './utils';
 	import type { OcclusionMaskStatus, OcclusionRecapItem } from './types';
 
 	/** Smallest comfortable touch target, in CSS pixels. */
 	const MIN_HIT_SIZE = 44;
+	/** Images taller than this ratio scroll inside a capped viewport. */
+	const TALL_IMAGE_RATIO = 1.5;
 
 	let {
 		content,
@@ -34,10 +37,16 @@
 	let missedIds = $state<string[]>([]);
 	let wrongIds = $state<string[]>([]);
 	let isHintShowing = $state(false);
+	let isViewerOpen = $state(false);
 	let missFeedback = $state<{ selected: string; prompted: string } | null>(null);
 
 	const currentPrompt = $derived(shuffledMasks[promptIndex] ?? null);
 	const hasDimensions = $derived(!!content?.width && !!content?.height);
+	const isTallImage = $derived(
+		content?.width && content?.height
+			? content.height / content.width > TALL_IMAGE_RATIO
+			: false,
+	);
 	const imageFile = $derived(
 		content ? app.metadataCache.getFirstLinkpathDest(content.image, sourcePath) : null,
 	);
@@ -82,6 +91,7 @@
 		missFeedback = null;
 		isComplete = false;
 		isHintShowing = false;
+		isViewerOpen = false;
 		promptIndex = 0;
 		shuffledMasks = content ? fisherYatesShuffle(content.masks) : [];
 	});
@@ -231,6 +241,40 @@
 
 <svelte:window onkeydown={handleWindowKeyDown} />
 
+{#snippet maskLayer(interactive: boolean)}
+	{#each content?.masks ?? [] as mask (mask.id)}
+		{@const status = maskStatus(mask.id)}
+		{#if interactive}
+			<button
+				type="button"
+				class={maskClass(status)}
+				style={maskStyle(mask)}
+				aria-label={mask.answer}
+				aria-pressed={status !== 'hidden'}
+				disabled={isComplete}
+				onclick={(event) => handleRegionClick(event, mask)}
+				onkeydown={(event) => handleRegionKeyDown(event, mask)}
+			>
+				{#if status !== 'hidden'}
+					<span class="ml-occlusion-mask__answer">{maskLabel(mask, status)}</span>
+				{/if}
+				{#if status === 'correct' && !isComplete}
+					<span class="ml-occlusion-mask__badge ml-occlusion-mask__badge--ok">✓</span>
+				{/if}
+				{#if status === 'wrong'}
+					<span class="ml-occlusion-mask__badge ml-occlusion-mask__badge--miss">✕</span>
+				{/if}
+			</button>
+		{:else}
+			<div class="{maskClass(status)} ml-occlusion-mask--static">
+				{#if status !== 'hidden'}
+					<span class="ml-occlusion-mask__answer">{maskLabel(mask, status)}</span>
+				{/if}
+			</div>
+		{/if}
+	{/each}
+{/snippet}
+
 {#if content}
 	<div bind:this={containerRef} class="ml-occlusion-content">
 		{#if !isComplete}
@@ -279,45 +323,36 @@
 			<Recap items={recapItems} />
 		{/if}
 
-		<div class="ml-occlusion-stage">
-			<div
-				bind:this={imageRef}
-				class="ml-occlusion-stage__inner"
-				class:ml-occlusion-stage__inner--sized={hasDimensions}
-				style={hasDimensions ? `aspect-ratio: ${content.width} / ${content.height}` : ''}
-			>
-				{#if imageUrl}
-					<img class="ml-occlusion-stage__img" src={imageUrl} alt={content.image} />
-				{:else}
-					<div class="ml-occlusion-missing" role="alert">
-						<p class="ml-occlusion-missing__title">Image not found</p>
-						<p class="ml-occlusion-missing__reference">{content.image}</p>
-					</div>
-				{/if}
+		<div class="ml-occlusion-stage-wrap">
+			{#if imageUrl}
+				<button
+					type="button"
+					class="ml-occlusion-expand"
+					aria-label="Expand image"
+					onclick={() => (isViewerOpen = true)}
+				>
+					<Icon name="expand" size={16} />
+				</button>
+			{/if}
 
-				{#each content?.masks ?? [] as mask (mask.id)}
-					{@const status = maskStatus(mask.id)}
-					<button
-						type="button"
-						class={maskClass(status)}
-						style={maskStyle(mask)}
-						aria-label={mask.answer}
-						aria-pressed={status !== 'hidden'}
-						disabled={isComplete}
-						onclick={(event) => handleRegionClick(event, mask)}
-						onkeydown={(event) => handleRegionKeyDown(event, mask)}
-					>
-						{#if status !== 'hidden'}
-							<span class="ml-occlusion-mask__answer">{maskLabel(mask, status)}</span>
-						{/if}
-						{#if status === 'correct' && !isComplete}
-							<span class="ml-occlusion-mask__badge ml-occlusion-mask__badge--ok">✓</span>
-						{/if}
-						{#if status === 'wrong'}
-							<span class="ml-occlusion-mask__badge ml-occlusion-mask__badge--miss">✕</span>
-						{/if}
-					</button>
-				{/each}
+			<div class="ml-occlusion-stage" class:ml-occlusion-stage--tall={isTallImage}>
+				<div
+					bind:this={imageRef}
+					class="ml-occlusion-stage__inner"
+					class:ml-occlusion-stage__inner--sized={hasDimensions}
+					style={hasDimensions ? `aspect-ratio: ${content.width} / ${content.height}` : ''}
+				>
+					{#if imageUrl}
+						<img class="ml-occlusion-stage__img" src={imageUrl} alt={content.image} />
+					{:else}
+						<div class="ml-occlusion-missing" role="alert">
+							<p class="ml-occlusion-missing__title">Image not found</p>
+							<p class="ml-occlusion-missing__reference">{content.image}</p>
+						</div>
+					{/if}
+
+					{@render maskLayer(true)}
+				</div>
 			</div>
 		</div>
 
@@ -340,6 +375,12 @@
 			</div>
 		{/if}
 	</div>
+{/if}
+
+{#if isViewerOpen && imageUrl && content}
+	<Viewer {imageUrl} alt={content.image} onclose={() => (isViewerOpen = false)}>
+		{@render maskLayer(false)}
+	</Viewer>
 {/if}
 
 <style lang="scss">
@@ -492,12 +533,43 @@
 
 	/* --- Image stage --- */
 
+	.ml-occlusion-stage-wrap {
+		position: relative;
+	}
+
+	.ml-occlusion-expand {
+		position: absolute;
+		top: $spacing-xs;
+		right: $spacing-xs;
+		z-index: 4;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		border: $border-width solid $background-modifier-border;
+		border-radius: $radius-sm;
+		background: color-mix(in srgb, $background-primary 82%, transparent);
+		color: $text-normal;
+		cursor: pointer;
+		backdrop-filter: blur(6px);
+
+		&:hover {
+			border-color: $background-modifier-border-hover;
+		}
+	}
+
 	.ml-occlusion-stage {
 		position: relative;
 		width: 100%;
 		border-radius: $radius-sm;
 		overflow: hidden;
 		background: $background-secondary;
+	}
+
+	.ml-occlusion-stage--tall {
+		max-height: 60vh;
+		overflow-y: auto;
 	}
 
 	.ml-occlusion-stage__inner {
@@ -575,6 +647,11 @@
 			border: 2px dashed $text-error;
 			background: color-mix(in srgb, $text-error 20%, transparent);
 			z-index: 2;
+		}
+
+		&--static {
+			cursor: default;
+			pointer-events: none;
 		}
 	}
 
