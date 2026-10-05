@@ -128,4 +128,34 @@ describe('Occlusion review affordances', () => {
 
 		expect(target.querySelector('.ml-occlusion-hint__button')).toBeNull();
 	});
+
+	it('recaps every prompt with its answer and marks the misses', async () => {
+		await mountOcclusion();
+
+		const prompted = promptAnswer();
+		const wrong = CONTENT.masks.find((mask) => mask.answer !== prompted)?.answer ?? '';
+		clickRegion(wrong);
+		await tick();
+
+		const feedback = target.querySelector('.ml-occlusion-feedback');
+		expect(feedback?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+			`Not quite. You selected ${wrong}. The ${prompted} region is highlighted.`,
+		);
+
+		for (let index = 1; index < CONTENT.masks.length; index += 1) {
+			clickRegion(promptAnswer());
+			await tick();
+		}
+
+		expect(
+			target.querySelector('.ml-occlusion-recap__score')?.textContent?.replace(/\s+/g, ' ').trim(),
+		).toBe('2 of 3 correct');
+		expect(target.querySelector('.ml-occlusion-recap__missing')?.textContent).toContain('1 missed');
+		expect(
+			Array.from(target.querySelectorAll('.ml-occlusion-recap__item--missed')).map((element) =>
+				element.textContent?.replace(/\s+/g, ' ').trim(),
+			),
+		).toEqual([`✕ ${prompted}`]);
+		expect(onShowAnswer).toHaveBeenCalledOnce();
+	});
 });

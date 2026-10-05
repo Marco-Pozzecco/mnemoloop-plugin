@@ -5,8 +5,9 @@
 	import { getAppContext } from '@/ui/context/AppContext';
 	import type { FlashcardContentProps } from '../types';
 	import { fisherYatesShuffle } from '../utils';
+	import Recap from './Recap.svelte';
 	import { hitTestMasks } from './utils';
-	import type { OcclusionMaskStatus } from './types';
+	import type { OcclusionMaskStatus, OcclusionRecapItem } from './types';
 
 	/** Smallest comfortable touch target, in CSS pixels. */
 	const MIN_HIT_SIZE = 44;
@@ -60,6 +61,13 @@
 					: index === promptIndex
 						? ('current' as const)
 						: ('pending' as const),
+		})),
+	);
+
+	const recapItems = $derived<OcclusionRecapItem[]>(
+		shuffledMasks.map((mask) => ({
+			answer: mask.answer,
+			status: missedIds.includes(mask.id) ? 'missed' : 'correct',
 		})),
 	);
 
@@ -267,6 +275,8 @@
 					<div class="ml-occlusion-hint__body" use:renderMarkdown={hintOptions}></div>
 				</div>
 			{/if}
+		{:else}
+			<Recap items={recapItems} />
 		{/if}
 
 		<div class="ml-occlusion-stage">
