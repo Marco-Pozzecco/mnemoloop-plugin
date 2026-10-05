@@ -3,6 +3,12 @@ import { CardType } from '@/schemas';
 
 export type NormalizedRect = [number, number, number, number];
 
+/** A mask side smaller than this fraction of the image is not allowed. */
+export const MIN_MASK_SIZE = 0.01;
+
+export const RESIZE_HANDLES = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'] as const;
+export type ResizeHandle = (typeof RESIZE_HANDLES)[number];
+
 export interface EditableOcclusionMask {
 	id: string;
 	rect: NormalizedRect;
@@ -86,4 +92,30 @@ export function translateRect(
 		width,
 		height,
 	];
+}
+
+/**
+ * Resize a rect by dragging one handle to a normalized point. Only the edges
+ * the handle belongs to move; the dragged edges stop at the image bounds or at
+ * `MIN_MASK_SIZE`, so a drag can never flip or invert the rect.
+ */
+export function resizeRect(
+	rect: NormalizedRect,
+	handle: ResizeHandle,
+	point: { x: number; y: number },
+): NormalizedRect {
+	const pointerX = clamp(point.x, 0, 1);
+	const pointerY = clamp(point.y, 0, 1);
+
+	let left = clamp(rect[0], 0, 1);
+	let top = clamp(rect[1], 0, 1);
+	let right = clamp(rect[0] + rect[2], 0, 1);
+	let bottom = clamp(rect[1] + rect[3], 0, 1);
+
+	if (handle.includes('w')) left = clamp(pointerX, 0, Math.max(0, right - MIN_MASK_SIZE));
+	if (handle.includes('e')) right = clamp(pointerX, Math.min(left + MIN_MASK_SIZE, 1), 1);
+	if (handle.includes('n')) top = clamp(pointerY, 0, Math.max(0, bottom - MIN_MASK_SIZE));
+	if (handle.includes('s')) bottom = clamp(pointerY, Math.min(top + MIN_MASK_SIZE, 1), 1);
+
+	return [round4(left), round4(top), round4(right - left), round4(bottom - top)];
 }

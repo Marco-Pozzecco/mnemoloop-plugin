@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { CardType } from '@/schemas';
 import {
 	buildOcclusionContent,
+	MIN_MASK_SIZE,
 	rectFromPoints,
+	resizeRect,
 	translateRect,
 	validateOcclusion,
 	type EditableOcclusionMask,
@@ -95,5 +97,48 @@ describe('translateRect', () => {
 	it('should keep a rect inside the image bounds', () => {
 		expect(translateRect([0.1, 0.1, 0.2, 0.2], -0.5, -0.5)).toEqual([0, 0, 0.2, 0.2]);
 		expect(translateRect([0.1, 0.1, 0.2, 0.2], 0.9, 0.9)).toEqual([0.8, 0.8, 0.2, 0.2]);
+	});
+});
+
+describe('resizeRect', () => {
+	it('should move both south and east edges from the se handle', () => {
+		expect(resizeRect([0.1, 0.1, 0.2, 0.2], 'se', { x: 0.5, y: 0.6 })).toEqual([
+			0.1, 0.1, 0.4, 0.5,
+		]);
+	});
+
+	it('should move both north and west edges from the nw handle', () => {
+		expect(resizeRect([0.2, 0.2, 0.3, 0.3], 'nw', { x: 0.1, y: 0.15 })).toEqual([
+			0.1, 0.15, 0.4, 0.35,
+		]);
+	});
+
+	it('should move a single edge from a side handle', () => {
+		expect(resizeRect([0.1, 0.1, 0.2, 0.2], 'n', { x: 0.8, y: 0.05 })).toEqual([
+			0.1, 0.05, 0.2, 0.25,
+		]);
+		expect(resizeRect([0.1, 0.1, 0.2, 0.2], 'e', { x: 0.6, y: 0.9 })).toEqual([0.1, 0.1, 0.5, 0.2]);
+	});
+
+	it('should clamp the dragged edge to the image bounds', () => {
+		expect(resizeRect([0.1, 0.1, 0.2, 0.2], 'se', { x: 1.4, y: 1.4 })).toEqual([
+			0.1, 0.1, 0.9, 0.9,
+		]);
+		expect(resizeRect([0.3, 0.3, 0.2, 0.2], 'nw', { x: -0.5, y: -0.5 })).toEqual([0, 0, 0.5, 0.5]);
+	});
+
+	it('should stop at the minimum mask size instead of flipping', () => {
+		expect(resizeRect([0.5, 0.5, 0.2, 0.2], 'e', { x: 0, y: 0.5 })).toEqual([
+			0.5, 0.5, MIN_MASK_SIZE, 0.2,
+		]);
+		expect(resizeRect([0.5, 0.5, 0.2, 0.2], 'n', { x: 0.5, y: 1 })).toEqual([
+			0.5, 0.69, 0.2, MIN_MASK_SIZE,
+		]);
+	});
+
+	it('should round the resized geometry to four decimals', () => {
+		expect(resizeRect([0.1, 0.1, 0.2, 0.2], 'se', { x: 0.123456, y: 0.654321 })).toEqual([
+			0.1, 0.1, 0.0235, 0.5543,
+		]);
 	});
 });

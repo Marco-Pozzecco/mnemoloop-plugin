@@ -253,6 +253,50 @@ describe('Occlusion form interaction', () => {
 		);
 	});
 
+	it('selects a drawn mask and offers its resize handles', async () => {
+		mountForm();
+		await tick();
+		await selectImage('attachments/lungs.png');
+
+		const drawingSurface = surface();
+		stubRect(drawingSurface, 100, 100);
+		pointer(drawingSurface, 'pointerdown', 20, 20);
+		pointer(drawingSurface, 'pointermove', 50, 60);
+		pointer(drawingSurface, 'pointerup', 50, 60);
+		await tick();
+
+		const mask = maskElements()[0];
+		expect(mask.classList.contains('ml-occlusion-form__mask--active')).toBe(true);
+		expect(mask.querySelectorAll('[data-resize-handle]')).toHaveLength(8);
+	});
+
+	it('resizes a mask from a corner handle and stores the new geometry', async () => {
+		mountForm();
+		await tick();
+		await selectImage('attachments/lungs.png');
+
+		const drawingSurface = surface();
+		stubRect(drawingSurface, 100, 100);
+		pointer(drawingSurface, 'pointerdown', 20, 20);
+		pointer(drawingSurface, 'pointermove', 50, 60);
+		pointer(drawingSurface, 'pointerup', 50, 60);
+		await tick();
+
+		const handle = maskElements()[0].querySelector<HTMLElement>('[data-resize-handle="se"]');
+		if (!handle) throw new Error('Resize handle not found');
+
+		pointer(handle, 'pointerdown', 50, 60);
+		pointer(drawingSurface, 'pointermove', 80, 90);
+		pointer(drawingSurface, 'pointerup', 80, 90);
+		await tick();
+
+		expect(api?.buildContent()).toEqual(
+			expect.objectContaining({
+				masks: [expect.objectContaining({ rect: [0.2, 0.2, 0.6, 0.7] })],
+			}),
+		);
+	});
+
 	it('deletes a mask', async () => {
 		mountForm();
 		await tick();

@@ -7,24 +7,25 @@
 	import type { BuildContentFn, ValidateFn } from '../types';
 	import {
 		buildOcclusionContent,
+		MIN_MASK_SIZE,
 		rectFromPoints,
+		RESIZE_HANDLES,
+		resizeRect,
 		translateRect,
 		validateOcclusion,
 		type EditableOcclusionMask,
 		type NormalizedRect,
+		type ResizeHandle,
 	} from './validation';
-
-	/** A drawn rect smaller than this fraction of the image is ignored. */
-	const MIN_MASK_SIZE = 0.01;
 
 	/** Where "Add mask" puts the mask it creates: centred, a fifth of the image wide. */
 	const DEFAULT_MASK_RECT: NormalizedRect = [0.4, 0.4, 0.2, 0.2];
-
 	const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'avif']);
 
 	type DragState =
 		| { kind: 'draw'; start: { x: number; y: number } }
-		| { kind: 'move'; id: string; start: { x: number; y: number }; origin: NormalizedRect };
+		| { kind: 'move'; id: string; start: { x: number; y: number }; origin: NormalizedRect }
+		| { kind: 'resize'; id: string; handle: ResizeHandle; origin: NormalizedRect };
 
 	let { mode, initialContent, onRegister, disabled = false }: ContentTypeProps = $props();
 
@@ -36,6 +37,7 @@
 	let dimensions = $state<{ width?: number; height?: number }>({});
 	let masks = $state<EditableOcclusionMask[]>([]);
 	let draftRect = $state<NormalizedRect | null>(null);
+	let activeMaskId = $state<string | null>(null);
 	let isPickerOpen = $state(false);
 	let query = $state('');
 	let nextMaskId = 0;
@@ -129,12 +131,23 @@
 		if (!point) return;
 
 		const target = event.target as HTMLElement | null;
+		const resizeHandle = target?.closest<HTMLElement>('[data-resize-handle]')?.dataset.resizeHandle;
 		const maskId = target?.closest<HTMLElement>('[data-mask-id]')?.dataset.maskId;
 		const existing = maskId ? masks.find((mask) => mask.id === maskId) : undefined;
 
-		if (existing) {
+		if (existing && resizeHandle) {
+			activeMaskId = existing.id;
+			dragState = {
+				kind: 'resize',
+				id: existing.id,
+				handle: resizeHandle as ResizeHandle,
+				origin: existing.rect,
+			};
+		} else if (existing) {
+			activeMaskId = existing.id;
 			dragState = { kind: 'move', id: existing.id, start: point, origin: existing.rect };
 		} else {
+			activeMaskId = null;
 			dragState = { kind: 'draw', start: point };
 			draftRect = rectFromPoints(point, point);
 		}
@@ -153,6 +166,12 @@
 		}
 
 		const id = dragState.id;
+		if (dragState.kind === 'resize') {
+			const resized = resizeRect(dragState.origin, dragState.handle, point);
+			masks = masks.map((mask) => (mask.id === id ? { ...mask, rect: resized } : mask));
+			return;
+		}
+
 		const moved = translateRect(dragState.origin, point.x - dragState.start.x, point.y - dragState.start.y);
 		masks = masks.map((mask) => (mask.id === id ? { ...mask, rect: moved } : mask));
 	}
@@ -161,10 +180,9 @@
 		if (dragState?.kind === 'draw' && draftRect) {
 			const [, , width, height] = draftRect;
 			if (width >= MIN_MASK_SIZE && height >= MIN_MASK_SIZE) {
-				masks = [
-					...masks,
-					{ id: `new-${nextMaskId++}`, rect: draftRect, answer: '', hint: '' },
-				];
+				const id = `new-${nextMaskId++}`;
+				masks = [...masks, { id, rect: draftRect, answer: '', hint: '' }];
+				activeMaskId = id;
 			}
 		}
 
@@ -174,6 +192,7 @@
 
 	function removeMask(id: string): void {
 		masks = masks.filter((mask) => mask.id !== id);
+		if (activeMaskId === id) activeMaskId = null;
 	}
 
 	/** Drawing works by dragging, which is not discoverable on its own. */
@@ -270,7 +289,20 @@
 			onload={handleImageLoad}
 		/>
 		{#each masks as mask (mask.id)}
-			<div class="ml-occlusion-form__mask" data-mask-id={mask.id} style={rectStyle(mask.rect)}></div>
+			<div
+				class="ml-occlusion-form__mask"
+				class:ml-occlusion-form__mask--active={mask.id === activeMaskId}
+				data-mask-id={mask.id}
+				style={rectStyle(mask.rect)}
+			>
+				{#each RESIZE_HANDLES as handle (handle)}
+					<span
+						class="ml-occlusion-form__handle ml-occlusion-form__handle--{handle}"
+						data-resize-handle={handle}
+						aria-hidden="true"
+					></span>
+				{/each}
+			</div>
 		{/each}
 		{#if draftRect}
 			<div class="ml-occlusion-form__draft" style={rectStyle(draftRect)}></div>
@@ -413,6 +445,91 @@
 		border: 2px solid $interactive-accent;
 		border-radius: $radius-sm;
 		background: rgba($interactive-accent, 0.2);
+	}
+
+	.ml-occlusion-form__mask {
+		cursor: move;
+
+		&--active {
+			border-color: $interactive-accent-hover;
+			box-shadow: $shadow-sm;
+		}
+	}
+
+	.ml-occlusion-form__handle {
+		position: absolute;
+		width: 10px;
+		height: 10px;
+		background: $background-primary;
+		border: 2px solid $interactive-accent;
+		border-radius: $radius-full;
+		opacity: 0;
+		pointer-events: none;
+
+		// A larger invisible target keeps the handle usable on touch.
+		&::after {
+			content: '';
+			position: absolute;
+			inset: -6px;
+		}
+
+		.ml-occlusion-form__mask:hover &,
+		.ml-occlusion-form__mask--active & {
+			opacity: 1;
+			pointer-events: auto;
+		}
+
+		&--nw {
+			top: -6px;
+			left: -6px;
+			cursor: nwse-resize;
+		}
+
+		&--n {
+			top: -6px;
+			left: 50%;
+			transform: translateX(-50%);
+			cursor: ns-resize;
+		}
+
+		&--ne {
+			top: -6px;
+			right: -6px;
+			cursor: nesw-resize;
+		}
+
+		&--e {
+			top: 50%;
+			right: -6px;
+			transform: translateY(-50%);
+			cursor: ew-resize;
+		}
+
+		&--se {
+			bottom: -6px;
+			right: -6px;
+			cursor: nwse-resize;
+		}
+
+		&--s {
+			bottom: -6px;
+			left: 50%;
+			transform: translateX(-50%);
+			cursor: ns-resize;
+		}
+
+		&--sw {
+			bottom: -6px;
+			left: -6px;
+			cursor: nesw-resize;
+		}
+
+		&--w {
+			top: 50%;
+			left: -6px;
+			transform: translateY(-50%);
+			cursor: ew-resize;
+		}
 	}
 
 	.ml-occlusion-form__draft {
