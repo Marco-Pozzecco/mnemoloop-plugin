@@ -19,6 +19,16 @@ const CONTENT: FlashcardOcclusionContent = {
 	],
 };
 
+const HINTED: FlashcardOcclusionContent = {
+	...CONTENT,
+	masks: [{ id: 'm1', rect: [0.1, 0.1, 0.2, 0.2], answer: 'Heart', hint: 'Between the lungs' }],
+};
+
+const UNHINTED: FlashcardOcclusionContent = {
+	...CONTENT,
+	masks: CONTENT.masks.map((mask) => ({ ...mask, hint: null })),
+};
+
 const LINK_TARGETS = { 'lungs.png': 'attachments/lungs.png' };
 
 describe('Occlusion review affordances', () => {
@@ -91,5 +101,31 @@ describe('Occlusion review affordances', () => {
 			'ml-occlusion-segment--current',
 			'ml-occlusion-segment--pending',
 		]);
+	});
+
+	it('shows the stored hint, hides it again, and drops it when the card completes', async () => {
+		await mountOcclusion(HINTED);
+
+		const hintButton = target.querySelector<HTMLButtonElement>('.ml-occlusion-hint__button');
+		if (!hintButton) throw new Error('Hint button not found');
+		expect(hintButton.getAttribute('aria-expanded')).toBe('false');
+
+		hintButton.click();
+		await tick();
+
+		expect(target.querySelector('[role="region"][aria-label="Hint"]')).not.toBeNull();
+		expect(hintButton.getAttribute('aria-expanded')).toBe('true');
+
+		clickRegion(promptAnswer());
+		await tick();
+
+		expect(target.querySelector('.ml-occlusion-hint__button')).toBeNull();
+		expect(target.querySelector('.ml-occlusion-hint')).toBeNull();
+	});
+
+	it('offers no hint control when the prompted mask has no hint', async () => {
+		await mountOcclusion(UNHINTED);
+
+		expect(target.querySelector('.ml-occlusion-hint__button')).toBeNull();
 	});
 });

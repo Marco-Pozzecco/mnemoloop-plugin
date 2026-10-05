@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { type FlashcardOcclusionContent, type FlashcardOcclusionMask } from '@/schemas';
+	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
+	import { Icon } from '@/ui/components';
 	import { getAppContext } from '@/ui/context/AppContext';
 	import type { FlashcardContentProps } from '../types';
 	import { fisherYatesShuffle } from '../utils';
@@ -20,14 +22,17 @@
 
 	const { app } = getAppContext();
 
+	let containerRef = $state<HTMLDivElement>();
 	let imageRef = $state<HTMLDivElement>();
 	let shuffledMasks = $state<FlashcardOcclusionMask[]>([]);
 	let promptIndex = $state(0);
 	let isComplete = $state(false);
 	let lastContentKey = $state('');
+	let lastHintKey = $state('');
 	let revealedIds = $state<string[]>([]);
 	let missedIds = $state<string[]>([]);
 	let wrongIds = $state<string[]>([]);
+	let isHintShowing = $state(false);
 	let missFeedback = $state<{ selected: string; prompted: string } | null>(null);
 
 	const currentPrompt = $derived(shuffledMasks[promptIndex] ?? null);
@@ -38,6 +43,11 @@
 	const imageUrl = $derived(imageFile ? app.vault.getResourcePath(imageFile) : null);
 	const outcomeCorrect = $derived(isComplete && missedIds.length === 0);
 	const foundCount = $derived(revealedIds.length);
+	const hintOptions: MarkdownOptions = $derived({
+		content: currentPrompt?.hint ?? '',
+		sourcePath,
+	});
+
 	/** One entry per prompt, in the order it was asked. */
 	const promptResults = $derived(
 		shuffledMasks.map((mask, index) => ({
@@ -63,12 +73,20 @@
 		wrongIds = [];
 		missFeedback = null;
 		isComplete = false;
+		isHintShowing = false;
 		promptIndex = 0;
 		shuffledMasks = content ? fisherYatesShuffle(content.masks) : [];
 	});
 
 	$effect(() => {
 		onSetAnswerCorrectness?.(outcomeCorrect);
+	});
+
+	$effect(() => {
+		const key = `${currentPrompt?.id ?? ''}:${isAnswerShowing ? 'answer' : 'question'}:${isComplete ? 'done' : 'live'}`;
+		if (key === lastHintKey) return;
+		lastHintKey = key;
+		isHintShowing = false;
 	});
 
 	function maskStatus(id: string): OcclusionMaskStatus {
@@ -117,6 +135,7 @@
 	/** The prompt loop ended on its own: reveal what is left and report the outcome. */
 	function complete(): void {
 		isComplete = true;
+		isHintShowing = false;
 		missFeedback = null;
 		revealedIds = shuffledMasks.map((mask) => mask.id);
 		onAllRevealed?.();
@@ -169,10 +188,43 @@
 		return `left: ${x * 100}%; top: ${y * 100}%; width: ${width * 100}%; height: ${height * 100}%`;
 	}
 
+	function toggleHint(): void {
+		if (isComplete || isAnswerShowing || !currentPrompt?.hint) return;
+		isHintShowing = !isHintShowing;
+	}
+
+	function keepHintButtonUnfocused(event: FocusEvent): void {
+		(event.currentTarget as HTMLButtonElement).blur();
+	}
+
+	function handleWindowKeyDown(event: KeyboardEvent): void {
+		if (!containerRef || containerRef.offsetParent === null) return;
+		if (
+			event.target instanceof Element &&
+			event.target.closest('button, a, input, textarea, select, [contenteditable="true"]')
+		) {
+			return;
+		}
+		if (
+			(event.key === 'h' || event.key === 'H') &&
+			!event.ctrlKey &&
+			!event.altKey &&
+			!event.metaKey &&
+			!event.isComposing &&
+			!isComplete &&
+			!isAnswerShowing &&
+			currentPrompt?.hint
+		) {
+			event.preventDefault();
+			toggleHint();
+		}
+	}
 </script>
 
+<svelte:window onkeydown={handleWindowKeyDown} />
+
 {#if content}
-	<div class="ml-occlusion-content">
+	<div bind:this={containerRef} class="ml-occlusion-content">
 		{#if !isComplete}
 			<div class="ml-occlusion-header">
 				<div class="ml-occlusion-header__main" role="status" aria-live="polite">
@@ -189,8 +241,32 @@
 							<span class="ml-occlusion-segment ml-occlusion-segment--{result.status}"></span>
 						{/each}
 					</div>
+					{#if currentPrompt?.hint}
+						<button
+							type="button"
+							class="ml-occlusion-hint__button"
+							tabindex="-1"
+							aria-expanded={isHintShowing}
+							aria-keyshortcuts="H"
+							onclick={toggleHint}
+							onfocus={keepHintButtonUnfocused}
+						>
+							<Icon name="lightbulb" size={16} />
+							<span class="ml-occlusion-hint__label">
+								{isHintShowing ? 'Hide hint' : 'Show hint'}
+							</span>
+							<kbd class="ml-occlusion-hint__key">H</kbd>
+						</button>
+					{/if}
 				</div>
 			</div>
+
+			{#if isHintShowing && currentPrompt?.hint}
+				<div class="ml-occlusion-hint" role="region" aria-label="Hint">
+					<div class="ml-occlusion-hint__header">Hint</div>
+					<div class="ml-occlusion-hint__body" use:renderMarkdown={hintOptions}></div>
+				</div>
+			{/if}
 		{/if}
 
 		<div class="ml-occlusion-stage">
@@ -334,6 +410,74 @@
 	.ml-occlusion-segment--current {
 		background: $interactive-accent;
 		box-shadow: 0 0 0 3px color-mix(in srgb, $interactive-accent 20%, transparent);
+	}
+
+	/* --- Hint disclosure --- */
+
+	.ml-occlusion-hint__button {
+		display: inline-flex;
+		align-items: center;
+		gap: $spacing-xs;
+		min-height: 2rem;
+		padding: 0 $spacing-sm;
+		border: $border-width solid $background-modifier-border;
+		border-radius: $radius-md;
+		background: $background-secondary;
+		color: $text-normal;
+		font: inherit;
+		font-size: $font-xs;
+		cursor: pointer;
+
+		&:hover {
+			border-color: $background-modifier-border-hover;
+		}
+
+		&:focus-visible {
+			outline: 2px solid $interactive-accent;
+			outline-offset: 2px;
+		}
+	}
+
+	.ml-occlusion-hint__label {
+		font-weight: $font-medium;
+	}
+
+	.ml-occlusion-hint__key {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 1.25rem;
+		height: 1.25rem;
+		padding: 0 $spacing-xxs;
+		border: $border-width solid $background-modifier-border;
+		border-radius: $radius-xs;
+		background: $background-primary-alt;
+		color: $text-muted;
+		font-family: $font-monospace;
+		font-size: $font-xs;
+		line-height: 1;
+	}
+
+	.ml-occlusion-hint {
+		width: 100%;
+		border: $border-width solid $background-modifier-border;
+		border-inline-start-color: $interactive-accent;
+		border-radius: $radius-md;
+		background: $background-secondary;
+		overflow: hidden;
+	}
+
+	.ml-occlusion-hint__header {
+		padding: $spacing-xs $spacing-md 0;
+		color: $text-muted;
+		font-size: $font-xs;
+		font-weight: $font-medium;
+	}
+
+	.ml-occlusion-hint__body {
+		padding: $spacing-xs $spacing-md $spacing-sm;
+		color: $text-normal;
+		line-height: $line-height-normal;
 	}
 
 	/* --- Image stage --- */
@@ -548,6 +692,15 @@
 
 		.ml-occlusion-segments {
 			width: 100%;
+		}
+
+		.ml-occlusion-hint__button {
+			width: 100%;
+			justify-content: center;
+		}
+
+		.ml-occlusion-hint__key {
+			display: none;
 		}
 	}
 </style>
