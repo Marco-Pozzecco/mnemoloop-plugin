@@ -63,7 +63,14 @@
 					<Select.Value {placeholder}>
 						{#snippet children({ selection })}
 							{@const selected = selection.type === 'single' ? selection.selected : undefined}
-							{displayAs && selected ? displayAs(selected.value) : (selected?.label ?? '')}
+							{@const selectedOption = options.find(
+								(option) => option.value === (selected?.value ?? value ?? ''),
+							)}
+							{#if displayAs && selected}
+								{displayAs(selected.value)}
+							{:else}
+								{selectedOption?.label ?? selected?.value ?? value ?? placeholder}
+							{/if}
 						{/snippet}
 					</Select.Value>
 					<Icon class="ml-select__icon" name="chevron-down" size={14} />
