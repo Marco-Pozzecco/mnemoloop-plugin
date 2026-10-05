@@ -223,8 +223,10 @@
 		position: absolute;
 		margin: 0;
 		padding: 0;
-		background: transparent;
-		border: 1px dashed $background-modifier-border;
+		// An unrevealed region hides the image beneath it, so its answer cannot
+		// be read off the image. The theme background reads as a cut-out.
+		background: $background-primary;
+		border: 1px solid $background-modifier-border-hover;
 		border-radius: $radius-sm;
 		cursor: pointer;
 
@@ -234,7 +236,7 @@
 		}
 
 		&--revealed {
-			border-style: solid;
+			border-color: $interactive-accent;
 			background: rgba($interactive-accent, 0.2);
 		}
 
