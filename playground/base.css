@@ -1,0 +1,249 @@
+/**
+ * Base styles approximating Obsidian's global stylesheet.
+ *
+ * The plugin's components are written against Obsidian's base: border-box
+ * sizing, themed form controls, and markdown typography. The playground must
+ * supply those, otherwise controls overflow their cards and card content
+ * renders with browser defaults. Loaded before `theme.css` and the plugin SCSS.
+ */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	font-family: var(--font-interface);
+	font-size: var(--font-ui-medium);
+	line-height: var(--line-height-normal);
+	color: var(--text-normal);
+	background-color: var(--background-primary);
+	-webkit-font-smoothing: antialiased;
+}
+
+p {
+	margin: 0 0 1em;
+}
+
+p:last-child {
+	margin-bottom: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	margin: 0 0 0.5em;
+	font-weight: var(--font-semibold);
+	line-height: 1.2;
+}
+
+h1:last-child,
+h2:last-child,
+h3:last-child,
+h4:last-child,
+h5:last-child,
+h6:last-child {
+	margin-bottom: 0;
+}
+
+ul,
+ol {
+	margin: 0 0 1em;
+	padding-inline-start: var(--indent);
+}
+
+ul:last-child,
+ol:last-child {
+	margin-bottom: 0;
+}
+
+li {
+	margin: 0.25em 0;
+}
+
+a {
+	color: var(--text-accent);
+	text-decoration: none;
+}
+
+a:hover {
+	color: var(--text-accent-hover);
+	text-decoration: underline;
+}
+
+hr {
+	margin: 1em 0;
+	border: none;
+	border-top: var(--border-width) solid var(--background-modifier-border);
+}
+
+strong {
+	font-weight: var(--font-semibold);
+}
+
+/* Markdown rendering, matching the classes the markdown action produces. */
+.markdown-rendered {
+	font-family: var(--font-text);
+	line-height: var(--line-height-normal);
+	overflow-wrap: anywhere;
+}
+
+.markdown-rendered h1 {
+	font-size: var(--h1-size);
+}
+.markdown-rendered h2 {
+	font-size: var(--h2-size);
+}
+.markdown-rendered h3 {
+	font-size: var(--h3-size);
+}
+.markdown-rendered h4 {
+	font-size: var(--h4-size);
+}
+.markdown-rendered h5 {
+	font-size: var(--h5-size);
+}
+.markdown-rendered h6 {
+	font-size: var(--h6-size);
+}
+
+.markdown-rendered code,
+code {
+	font-family: var(--font-monospace);
+	font-size: 0.9em;
+	padding: 0.1em 0.35em;
+	border-radius: 4px;
+	background-color: var(--background-secondary);
+}
+
+.markdown-rendered pre,
+pre {
+	margin: 0 0 1em;
+	padding: 12px;
+	overflow-x: auto;
+	border-radius: 8px;
+	background-color: var(--background-secondary);
+}
+
+pre code {
+	padding: 0;
+	background: none;
+	font-size: 0.85em;
+}
+
+.markdown-rendered blockquote,
+blockquote {
+	margin: 0 0 1em;
+	padding-inline-start: 12px;
+	border-inline-start: 3px solid var(--interactive-accent);
+	color: var(--text-muted);
+}
+
+.markdown-rendered table {
+	border-collapse: collapse;
+	margin: 0 0 1em;
+}
+
+.markdown-rendered th,
+.markdown-rendered td {
+	padding: 6px 10px;
+	border: var(--border-width) solid var(--background-modifier-border);
+	text-align: start;
+}
+
+.markdown-rendered th {
+	background-color: var(--background-secondary);
+	font-weight: var(--font-semibold);
+}
+
+kbd {
+	font-family: var(--font-monospace);
+	font-size: var(--font-ui-smaller);
+	padding: 2px 6px;
+	border: var(--border-width) solid var(--background-modifier-border);
+	border-bottom-width: 2px;
+	border-radius: 4px;
+	background-color: var(--background-secondary);
+	color: var(--text-muted);
+}
+
+img,
+video {
+	max-width: 100%;
+}
+
+svg {
+	display: block;
+}
+
+/* Form controls: low-specificity base so component classes can override. */
+button,
+input,
+select,
+textarea {
+	margin: 0;
+	font-family: inherit;
+	font-size: var(--font-ui-small);
+	line-height: inherit;
+}
+
+button {
+	cursor: pointer;
+}
+
+input,
+select,
+textarea {
+	padding: 5px 10px;
+	min-height: var(--input-height);
+	color: var(--text-normal);
+	background-color: var(--background-modifier-form-field);
+	border: var(--border-width) solid var(--background-modifier-border);
+	border-radius: var(--input-radius);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+	outline: none;
+	border-color: var(--interactive-accent);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--interactive-accent) 25%, transparent);
+}
+
+input::placeholder,
+textarea::placeholder {
+	color: var(--text-faint);
+}
+
+textarea {
+	resize: vertical;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+	accent-color: var(--interactive-accent);
+}
+
+input[type='checkbox'],
+input[type='radio'],
+input[type='range'] {
+	padding: 0;
+	min-height: 0;
+	background: none;
+	border: 0;
+	border-radius: 0;
+}
+
+input[type='range'] {
+	accent-color: var(--interactive-accent);
+}
