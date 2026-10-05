@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Button, Icon } from '@/ui/components';
+	import Button from '../Button/component.svelte';
+	import Icon from '../Icon/component.svelte';
 	import type { BannerConfig } from './types';
 
 	let { banner, onDismiss }: { banner: BannerConfig; onDismiss: () => void } = $props();
