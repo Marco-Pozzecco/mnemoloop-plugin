@@ -32,6 +32,15 @@ npm test -- --run
 # Run tests (watch mode)
 npm test
 
+# Run UI interaction tests (jsdom, client Svelte build)
+npm run test:dom
+
+# Run the browser playground (Vite dev server)
+npm run playground
+
+# Build the playground statically (playground-dist/)
+npm run playground:build
+
 # Lint code
 npm run lint
 
@@ -280,12 +289,27 @@ Four-layer architecture decoupling event declaration, routing, and handling:
 
 ## Testing
 
-- **Framework**: Vitest with Node environment
+- **Framework**: Vitest
 - **Setup**: `tests/setup.ts` mocks the `obsidian` module
 - **Location**: `tests/unit/`
 - **Pattern**: `*.test.ts` files (e.g., `moduleName.test.ts`)
-- **Helpers**: `tests/helpers/` — shared test utilities: `mock-obsidian.ts`, `factories.ts`, `date-fixtures.ts`, `reset-singletons.ts`
+- **Helpers**: `tests/helpers/` — shared test utilities: `mock-obsidian.ts`, `factories.ts`, `date-fixtures.ts`, `reset-singletons.ts`, `real-vault.ts` + `real-stack.ts` (browser-safe in-memory vault and the production adapter/parser/indexer/event wiring)
 - **Mock**: Obsidian API is mocked; tests run without Obsidian
+
+### UI interaction tests
+
+- Run with `npm run test:dom` (config `vitest.dom.config.ts`, jsdom environment, client Svelte build). They live next to the unit tests as `*.interaction.test.ts` and mount production Svelte components.
+- These files are excluded from `npm test`; CI runs both suites.
+- Mount a production component, dispatch real DOM events, and assert rendered output — no Obsidian process is involved.
+
+### Browser playground
+
+- Run `npm run playground` (dev server) or `npm run playground:build` (static output in `playground-dist/`). The production `vite.config.ts` build is untouched.
+- The playground mounts the real `App.svelte` shell (Dashboard, Review, Manage, Analytics, Priming), the real settings view, and the flashcard form modal against the in-memory host and fixture data. The boot `playground/boot.ts` mirrors `main.ts` initialization order and publishes `FlashcardAdapterInitEvent`, `SettingsAdapterInitEvent`, `StatisticsAdapterInitEvent`, then `FlashcardIndexInitEvent` last.
+- URL contract: `?view=dashboard|review|manage|analytics|priming|settings`, `?fixture=<name>`, `?theme=light|dark`, `?modal=flashcard-form`, `?platform=desktop|mobile`. Unknown values fall back to defaults with a console warning. View/fixture/modal changes reload the page; theme and platform apply in place.
+- Fixtures live in `playground/fixtures/`. A fixture is `{ files: Map<path, markdown>, settings?, statistics?, fileStats? }`; card markdown uses flat frontmatter with JSON scalars (see `playground/fixtures/cards.ts`). Adding a fixture means adding a builder in `playground/fixtures/index.ts`, registering it in `FIXTURES`, and setting `expectedCards`/`expectedActiveCards` so `tests/unit/playground/fixtures.test.ts` keeps covering it.
+- `playground/obsidian/index.ts` is the browser `obsidian` module mock Vite aliases in; `playground/obsidian/dom.ts` installs Obsidian's DOM and `Array` extensions. Icons come from `playground/obsidian/icons.ts` (vendored Lucide nodes; unknown names render nothing, as in Obsidian) and `addIcon` registrations are supported.
+- `playground/base.css` supplies the Obsidian base styles the components assume (border-box sizing, themed form controls, markdown typography). `playground/theme.css` defines the Obsidian CSS variables the styles consume; `tests/unit/playground/theme-variables.test.ts` fails when a referenced variable is neither in the base shim block nor given a fallback, so add new variables there.
 
 ---
 
@@ -375,7 +399,9 @@ Order of operations (runs on Node 22 with npm cache). Defined in `apps/plugin/.g
 
 1. `npm run lint`
 2. `npm test -- --run`
-3. `npm run build`
+3. `npm run test:dom`
+4. `npm run build`
+5. `npm run playground:build`
 
 ---
 
