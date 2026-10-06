@@ -91,16 +91,19 @@
 		color: $text-muted;
 		display: flex;
 		flex-direction: row;
+		align-items: center;
 		gap: $spacing-xs;
 
 		&-key {
 			font-weight: bold;
+			margin: 0;
 		}
 
 		&-value {
 			display: flex;
 			align-items: center;
 			flex: 1;
+			margin: 0;
 			font-style: italic;
 		}
 	}
