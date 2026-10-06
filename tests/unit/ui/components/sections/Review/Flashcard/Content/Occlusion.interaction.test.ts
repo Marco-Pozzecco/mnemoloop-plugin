@@ -222,8 +222,21 @@ describe('Occlusion review affordances', () => {
 
 		const dialog = target.querySelector('[role="dialog"]');
 		expect(dialog).not.toBeNull();
-		expect(dialog?.querySelectorAll('.ml-occlusion-mask--static')).toHaveLength(3);
 		expect(dialog?.querySelectorAll('.ml-occlusion-mask--hidden')).toHaveLength(3);
+
+		const staticMasks = Array.from(
+			dialog?.querySelectorAll<HTMLElement>('.ml-occlusion-mask--static') ?? [],
+		);
+		expect(staticMasks).toHaveLength(3);
+		for (const [index, mask] of CONTENT.masks.entries()) {
+			const staticMask = staticMasks[index];
+			expect(staticMask.dataset.maskId).toBe(mask.id);
+			const [x, y, width, height] = mask.rect;
+			expect(parseFloat(staticMask.style.left)).toBeCloseTo(x * 100);
+			expect(parseFloat(staticMask.style.top)).toBeCloseTo(y * 100);
+			expect(parseFloat(staticMask.style.width)).toBeCloseTo(width * 100);
+			expect(parseFloat(staticMask.style.height)).toBeCloseTo(height * 100);
+		}
 
 		window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
 		await tick();

@@ -279,7 +279,11 @@
 				{/if}
 			</button>
 		{:else}
-			<div class="{maskClass(status, mask.opaque)} ml-occlusion-mask--static">
+			<div
+				class="{maskClass(status, mask.opaque)} ml-occlusion-mask--static"
+				style={maskStyle(mask)}
+				data-mask-id={mask.id}
+			>
 				{#if shouldShowAnswerLabel(status, mask.opaque)}
 					<span class="ml-occlusion-mask__answer">{maskLabel(mask, status)}</span>
 				{/if}
