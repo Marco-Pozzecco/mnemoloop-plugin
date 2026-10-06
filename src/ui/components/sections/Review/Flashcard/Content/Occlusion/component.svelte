@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { type FlashcardOcclusionContent, type FlashcardOcclusionMask } from '@/schemas';
 	import { type MarkdownOptions, renderMarkdown } from '@/ui/actions/markdown';
-	import { Icon } from '@/ui/components';
+	import { Button, Icon } from '@/ui/components';
 	import { getAppContext } from '@/ui/context/AppContext';
 	import type { FlashcardContentProps } from '../types';
 	import { fisherYatesShuffle } from '../utils';
@@ -43,9 +43,7 @@
 	const currentPrompt = $derived(shuffledMasks[promptIndex] ?? null);
 	const hasDimensions = $derived(!!content?.width && !!content?.height);
 	const isTallImage = $derived(
-		content?.width && content?.height
-			? content.height / content.width > TALL_IMAGE_RATIO
-			: false,
+		content?.width && content?.height ? content.height / content.width > TALL_IMAGE_RATIO : false,
 	);
 	const imageFile = $derived(
 		content ? app.metadataCache.getFirstLinkpathDest(content.image, sourcePath) : null,
@@ -377,17 +375,16 @@
 			<div class="ml-occlusion-feedback" role="status">
 				<b>Not quite.</b>
 				<span>
-					You selected {missFeedback.selected}. The <b>{missFeedback.prompted}</b> region is
-					highlighted.
+					You selected {missFeedback.selected}. The <b>{missFeedback.prompted}</b> region is highlighted.
 				</span>
 			</div>
 		{/if}
 
 		{#if !isComplete}
 			<div class="ml-occlusion-actions">
-				<button type="button" class="ml-occlusion-reveal" onclick={revealAll}>
+				<Button variant="link" class="ml-occlusion-reveal" onclick={revealAll}>
 					Reveal remaining regions
-				</button>
+				</Button>
 				<span class="ml-occlusion-found">{foundCount} of {shuffledMasks.length} found</span>
 			</div>
 		{/if}
