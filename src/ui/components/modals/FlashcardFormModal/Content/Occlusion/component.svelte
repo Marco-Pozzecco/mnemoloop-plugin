@@ -183,7 +183,11 @@
 			return;
 		}
 
-		const moved = translateRect(dragState.origin, point.x - dragState.start.x, point.y - dragState.start.y);
+		const moved = translateRect(
+			dragState.origin,
+			point.x - dragState.start.x,
+			point.y - dragState.start.y,
+		);
 		masks = masks.map((mask) => (mask.id === id ? { ...mask, rect: moved } : mask));
 	}
 
@@ -347,6 +351,7 @@
 	class:ml-occlusion-form__surface--empty={!imageUrl}
 	tabindex="0"
 	aria-label="Mask drawing surface"
+	role="cell"
 	onpaste={handlePaste}
 	onpointerdown={handlePointerDown}
 	onpointermove={handlePointerMove}
@@ -583,10 +588,11 @@
 		}
 	}
 
+	/* The number sits outside the covered area, so it never conceals the content the mask hides. */
 	.ml-occlusion-form__mask-num {
 		position: absolute;
-		top: 2px;
-		left: 2px;
+		top: -10px;
+		left: -10px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -686,7 +692,7 @@
 		display: grid;
 		grid-template-columns: 24px minmax(0, 1fr) auto;
 		gap: $spacing-sm;
-		align-items: start;
+		align-items: center;
 		padding: $spacing-xs;
 		border: $border-width solid $background-modifier-border;
 		border-radius: $radius-sm;
