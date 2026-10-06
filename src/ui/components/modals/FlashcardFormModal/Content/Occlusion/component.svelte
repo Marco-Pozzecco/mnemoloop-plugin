@@ -261,7 +261,31 @@
 		const [x, y, width, height] = rect;
 		return `left: ${x * 100}%; top: ${y * 100}%; width: ${width * 100}%; height: ${height * 100}%`;
 	}
+
+	/**
+	 * Delete and Backspace remove the active mask, mirroring its row's trash button.
+	 * A keystroke inside a text field belongs to that field, so there it edits the
+	 * answer or hint instead.
+	 */
+	function handleWindowKeyDown(event: KeyboardEvent): void {
+		const id = activeMaskId;
+		if (disabled || !id) return;
+		if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+		if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
+		if (event.defaultPrevented) return;
+		if (
+			event.target instanceof Element &&
+			event.target.closest('input, textarea, select, [contenteditable="true"]')
+		) {
+			return;
+		}
+
+		event.preventDefault();
+		removeMask(id);
+	}
 </script>
+
+<svelte:window onkeydown={handleWindowKeyDown} />
 
 <FormField label="Image">
 	{#if imageUrl}

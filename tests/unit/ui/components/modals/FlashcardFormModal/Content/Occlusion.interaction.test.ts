@@ -164,6 +164,12 @@ describe('Occlusion form interaction', () => {
 		);
 	}
 
+	function pressKey(key: string, element: HTMLElement = surface()): KeyboardEvent {
+		const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+		element.dispatchEvent(event);
+		return event;
+	}
+
 	async function selectImage(path: string): Promise<void> {
 		openPicker();
 		await tick();
@@ -386,6 +392,93 @@ describe('Occlusion form interaction', () => {
 
 		expect(maskElements()).toHaveLength(0);
 		expect(api?.buildContent()).toEqual(expect.objectContaining({ masks: [] }));
+	});
+
+	it('deletes the active mask on Delete', async () => {
+		mountForm();
+		await tick();
+		await selectImage('attachments/lungs.png');
+
+		const drawingSurface = surface();
+		stubRect(drawingSurface, 100, 100);
+		pointer(drawingSurface, 'pointerdown', 20, 20);
+		pointer(drawingSurface, 'pointermove', 50, 60);
+		pointer(drawingSurface, 'pointerup', 50, 60);
+		await tick();
+
+		pressKey('Delete', drawingSurface);
+		await tick();
+
+		expect(maskElements()).toHaveLength(0);
+		expect(api?.buildContent()).toEqual(expect.objectContaining({ masks: [] }));
+	});
+
+	it('deletes the active mask on Backspace, the key labelled Delete on Mac keyboards', async () => {
+		mountForm();
+		await tick();
+		await selectImage('attachments/lungs.png');
+
+		const drawingSurface = surface();
+		stubRect(drawingSurface, 100, 100);
+		pointer(drawingSurface, 'pointerdown', 20, 20);
+		pointer(drawingSurface, 'pointermove', 50, 60);
+		pointer(drawingSurface, 'pointerup', 50, 60);
+		await tick();
+
+		pressKey('Backspace', drawingSurface);
+		await tick();
+
+		expect(maskElements()).toHaveLength(0);
+		expect(api?.buildContent()).toEqual(expect.objectContaining({ masks: [] }));
+	});
+
+	it('deletes only the mask that is active', async () => {
+		mountForm();
+		await tick();
+		await selectImage('attachments/lungs.png');
+
+		const drawingSurface = surface();
+		stubRect(drawingSurface, 100, 100);
+		pointer(drawingSurface, 'pointerdown', 10, 10);
+		pointer(drawingSurface, 'pointermove', 30, 30);
+		pointer(drawingSurface, 'pointerup', 30, 30);
+		pointer(drawingSurface, 'pointerdown', 60, 60);
+		pointer(drawingSurface, 'pointermove', 80, 80);
+		pointer(drawingSurface, 'pointerup', 80, 80);
+		await tick();
+
+		pointer(maskElements()[0], 'pointerdown', 20, 20);
+		pointer(drawingSurface, 'pointerup', 20, 20);
+		await tick();
+
+		pressKey('Delete', drawingSurface);
+		await tick();
+
+		expect(maskElements()).toHaveLength(1);
+		expect(maskElements()[0].getAttribute('style')).toContain('left: 60%');
+	});
+
+	it('leaves a deletion key to the answer field that has focus', async () => {
+		mountForm();
+		await tick();
+		await selectImage('attachments/lungs.png');
+
+		const drawingSurface = surface();
+		stubRect(drawingSurface, 100, 100);
+		pointer(drawingSurface, 'pointerdown', 20, 20);
+		pointer(drawingSurface, 'pointermove', 50, 60);
+		pointer(drawingSurface, 'pointerup', 50, 60);
+		await tick();
+
+		const answer = fieldByLabel('Answer 1');
+		answer.focus();
+		await tick();
+
+		const event = pressKey('Backspace', answer);
+		await tick();
+
+		expect(event.defaultPrevented).toBe(false);
+		expect(maskElements()).toHaveLength(1);
 	});
 
 	it('edits a mask answer and optional hint', async () => {
