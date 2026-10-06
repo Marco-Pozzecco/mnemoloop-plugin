@@ -144,7 +144,9 @@
 		const maskId = target?.closest<HTMLElement>('[data-mask-id]')?.dataset.maskId;
 		const existing = maskId ? masks.find((mask) => mask.id === maskId) : undefined;
 
-		if (existing && resizeHandle) {
+		// Ctrl-drag moves the mask wherever it starts, including on a handle, so
+		// a small mask whose handles blanket its body cannot be resized by accident.
+		if (existing && resizeHandle && !event.ctrlKey) {
 			focusMask(existing.id);
 			dragState = {
 				kind: 'resize',
@@ -313,12 +315,11 @@
 
 <div class="ml-occlusion-form__tools">
 	<Button variant="secondary" size="small" {disabled} onclick={addMask}>Add mask</Button>
-	<span class="ml-occlusion-form__tools-hint">Drag on the image to draw a mask.</span>
 </div>
 
 <div
 	bind:this={surfaceRef}
-	class="ml-occlusion-form__surface"
+	class="ml-occlusion-form__surface ml-no-select"
 	class:ml-occlusion-form__surface--empty={!imageUrl}
 	tabindex="0"
 	aria-label="Mask drawing surface"
@@ -336,12 +337,16 @@
 			draggable="false"
 			onload={handleImageLoad}
 		/>
+		<span class="ml-occlusion-form__tools-hint">
+			Drag on the image to draw a mask; Ctrl-drag a mask to move it without resizing.
+		</span>
 		{#each masks as mask, index (mask.id)}
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
 				class="ml-occlusion-form__mask"
 				class:ml-occlusion-form__mask--active={mask.id === activeMaskId}
 				class:ml-occlusion-form__mask--highlighted={mask.id === highlightedMaskId}
+				class:ml-occlusion-form__mask--transparent={!mask.opaque}
 				data-mask-id={mask.id}
 				style={rectStyle(mask.rect)}
 				onpointerenter={() => (highlightedMaskId = mask.id)}

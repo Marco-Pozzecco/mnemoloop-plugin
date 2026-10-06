@@ -158,6 +158,12 @@ describe('Occlusion form interaction', () => {
 		element.dispatchEvent(new MouseEvent(type, { bubbles: true, clientX: x, clientY: y }));
 	}
 
+	function ctrlPointer(element: HTMLElement, type: string, x: number, y: number): void {
+		element.dispatchEvent(
+			new MouseEvent(type, { bubbles: true, clientX: x, clientY: y, ctrlKey: true }),
+		);
+	}
+
 	async function selectImage(path: string): Promise<void> {
 		openPicker();
 		await tick();
@@ -305,6 +311,34 @@ describe('Occlusion form interaction', () => {
 		expect(api?.buildContent()).toEqual(
 			expect.objectContaining({
 				masks: [expect.objectContaining({ rect: [0.2, 0.2, 0.6, 0.7] })],
+			}),
+		);
+	});
+
+	it('moves a mask with Ctrl-drag even when the drag starts on a resize handle', async () => {
+		mountForm();
+		await tick();
+		await selectImage('attachments/lungs.png');
+
+		const drawingSurface = surface();
+		stubRect(drawingSurface, 100, 100);
+		pointer(drawingSurface, 'pointerdown', 20, 20);
+		pointer(drawingSurface, 'pointermove', 50, 60);
+		pointer(drawingSurface, 'pointerup', 50, 60);
+		await tick();
+
+		const handle = maskElements()[0].querySelector<HTMLElement>('[data-resize-handle="se"]');
+		if (!handle) throw new Error('Resize handle not found');
+
+		ctrlPointer(handle, 'pointerdown', 50, 60);
+		pointer(drawingSurface, 'pointermove', 60, 70);
+		pointer(drawingSurface, 'pointerup', 60, 70);
+		await tick();
+
+		// The rect translates by (+0.1, +0.1); a resize would have stretched it.
+		expect(api?.buildContent()).toEqual(
+			expect.objectContaining({
+				masks: [expect.objectContaining({ rect: [0.3, 0.3, 0.3, 0.4] })],
 			}),
 		);
 	});
