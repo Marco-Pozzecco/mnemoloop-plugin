@@ -16,6 +16,7 @@ function mask(overrides: Partial<EditableOcclusionMask> = {}): EditableOcclusion
 		rect: [0.1, 0.1, 0.2, 0.2],
 		answer: 'Left upper lobe',
 		hint: '',
+		opaque: true,
 		...overrides,
 	};
 }
@@ -51,7 +52,7 @@ describe('buildOcclusionContent', () => {
 			{ width: 1024, height: 768 },
 			[
 				mask({ id: 'stale-a', answer: '  Left upper lobe  ', hint: '  upper  ' }),
-				mask({ id: 'stale-b', answer: 'B', hint: '' }),
+				mask({ id: 'stale-b', answer: 'B', hint: '', opaque: false }),
 			],
 		);
 
@@ -61,8 +62,14 @@ describe('buildOcclusionContent', () => {
 			width: 1024,
 			height: 768,
 			masks: [
-				{ id: 'm1', rect: [0.1, 0.1, 0.2, 0.2], answer: 'Left upper lobe', hint: 'upper' },
-				{ id: 'm2', rect: [0.1, 0.1, 0.2, 0.2], answer: 'B', hint: null },
+				{
+					id: 'm1',
+					rect: [0.1, 0.1, 0.2, 0.2],
+					answer: 'Left upper lobe',
+					hint: 'upper',
+					opaque: true,
+				},
+				{ id: 'm2', rect: [0.1, 0.1, 0.2, 0.2], answer: 'B', hint: null, opaque: false },
 			],
 		});
 	});

@@ -3,7 +3,7 @@ import type { FlashcardOcclusionMask } from '@/schemas';
 import { hitTestMasks } from '@/ui/components/sections/Review/Flashcard/Content/Occlusion/utils';
 
 function mask(id: string, rect: [number, number, number, number]): FlashcardOcclusionMask {
-	return { id, rect, answer: id.toUpperCase(), hint: null };
+	return { id, rect, answer: id.toUpperCase(), hint: null, opaque: true };
 }
 
 // A 100x100 image with 44px minimum hit targets means 0.44 in normalized units.

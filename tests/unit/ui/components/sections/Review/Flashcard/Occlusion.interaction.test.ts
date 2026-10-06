@@ -13,40 +13,40 @@ const content: FlashcardOcclusionContent = {
 	width: 1000,
 	height: 800,
 	masks: [
-		{ id: 'm1', rect: [0.1, 0.1, 0.2, 0.2], answer: 'Left upper lobe', hint: null },
-		{ id: 'm2', rect: [0.5, 0.5, 0.2, 0.2], answer: 'Right lower lobe', hint: 'lower' },
+		{ id: 'm1', rect: [0.1, 0.1, 0.2, 0.2], answer: 'Left upper lobe', hint: null, opaque: true },
+		{ id: 'm2', rect: [0.5, 0.5, 0.2, 0.2], answer: 'Right lower lobe', hint: 'lower', opaque: true },
 	],
 };
 
 const threeMaskContent: FlashcardOcclusionContent = {
 	...content,
 	masks: [
-		{ id: 'm1', rect: [0.1, 0.1, 0.2, 0.2], answer: 'Alpha', hint: null },
-		{ id: 'm2', rect: [0.4, 0.4, 0.2, 0.2], answer: 'Beta', hint: null },
-		{ id: 'm3', rect: [0.7, 0.7, 0.2, 0.2], answer: 'Gamma', hint: null },
+		{ id: 'm1', rect: [0.1, 0.1, 0.2, 0.2], answer: 'Alpha', hint: null, opaque: true },
+		{ id: 'm2', rect: [0.4, 0.4, 0.2, 0.2], answer: 'Beta', hint: null, opaque: true },
+		{ id: 'm3', rect: [0.7, 0.7, 0.2, 0.2], answer: 'Gamma', hint: null, opaque: true },
 	],
 };
 
 const sharedAnswerContent: FlashcardOcclusionContent = {
 	...content,
 	masks: [
-		{ id: 'm1', rect: [0.1, 0.1, 0.2, 0.2], answer: 'Lobe', hint: null },
-		{ id: 'm2', rect: [0.5, 0.5, 0.2, 0.2], answer: 'Lobe', hint: null },
+		{ id: 'm1', rect: [0.1, 0.1, 0.2, 0.2], answer: 'Lobe', hint: null, opaque: true },
+		{ id: 'm2', rect: [0.5, 0.5, 0.2, 0.2], answer: 'Lobe', hint: null, opaque: true },
 	],
 };
 
 // 0.02 wide is 2px on a 100px-wide image, far below the 44px minimum hit area.
 const tinyMaskContent: FlashcardOcclusionContent = {
 	...content,
-	masks: [{ id: 'm1', rect: [0.5, 0.5, 0.02, 0.02], answer: 'Tiny', hint: null }],
+	masks: [{ id: 'm1', rect: [0.5, 0.5, 0.02, 0.02], answer: 'Tiny', hint: null, opaque: true }],
 };
 
 // Centres at 0.41 and 0.51; the midpoint between them is 0.46.
 const overlappingContent: FlashcardOcclusionContent = {
 	...content,
 	masks: [
-		{ id: 'left', rect: [0.4, 0.5, 0.02, 0.02], answer: 'Left', hint: null },
-		{ id: 'right', rect: [0.5, 0.5, 0.02, 0.02], answer: 'Right', hint: null },
+		{ id: 'left', rect: [0.4, 0.5, 0.02, 0.02], answer: 'Left', hint: null, opaque: true },
+		{ id: 'right', rect: [0.5, 0.5, 0.02, 0.02], answer: 'Right', hint: null, opaque: true },
 	],
 };
 
@@ -56,6 +56,7 @@ describe('Occlusion review interaction', () => {
 	let target: HTMLDivElement;
 	let app: ReturnType<typeof createMockPlugin>;
 	let unmountOcclusion: (() => Promise<void>) | undefined;
+	let mountedContent: FlashcardOcclusionContent = content;
 
 	function mountOcclusion(
 		props: {
@@ -63,6 +64,7 @@ describe('Occlusion review interaction', () => {
 			isAnswerShowing?: boolean;
 		} = {},
 	) {
+		mountedContent = props.content ?? content;
 		target = activeDocument.createElement('div');
 		activeDocument.body.appendChild(target);
 		const onShowAnswer = vi.fn();
@@ -87,9 +89,11 @@ describe('Occlusion review interaction', () => {
 		return Array.from(target.querySelectorAll<HTMLElement>('.ml-occlusion-mask'));
 	}
 
-	function regionByLabel(label: string): HTMLElement {
-		const region = regions().find((element) => element.getAttribute('aria-label') === label);
-		if (!region) throw new Error(`No region labelled ${label}`);
+	function regionByAnswer(answer: string): HTMLElement {
+		const mask = mountedContent.masks.find((candidate) => candidate.answer === answer);
+		if (!mask) throw new Error(`No mask with answer ${answer}`);
+		const region = regions().find((element) => element.getAttribute('data-mask-id') === mask.id);
+		if (!region) throw new Error(`No region for mask ${mask.id}`);
 		return region;
 	}
 
@@ -99,13 +103,19 @@ describe('Occlusion review interaction', () => {
 		);
 	}
 
-	function otherAnswer(than: string): string {
-		const labels = regions().map((region) => region.getAttribute('aria-label') ?? '');
-		return labels.find((label) => label !== than) ?? '';
+	function regionAnswers(): string[] {
+		return regions().map((region) => {
+			const id = region.getAttribute('data-mask-id');
+			return mountedContent.masks.find((mask) => mask.id === id)?.answer ?? '';
+		});
 	}
 
-	function clickRegion(label: string): void {
-		regionByLabel(label).click();
+	function otherAnswer(than: string): string {
+		return regionAnswers().find((answer) => answer !== than) ?? '';
+	}
+
+	function clickRegion(answer: string): void {
+		regionByAnswer(answer).click();
 	}
 
 	function stubImageRect(width: number, height: number): HTMLElement {
@@ -142,10 +152,8 @@ describe('Occlusion review interaction', () => {
 		await tick();
 
 		expect(target.querySelector('img')?.getAttribute('src')).toBe('app://local/attachments/lungs.png');
-		expect(regions().map((region) => region.getAttribute('aria-label')).sort()).toEqual([
-			'Left upper lobe',
-			'Right lower lobe',
-		]);
+		expect(regions()).toHaveLength(2);
+		expect(regionAnswers().sort()).toEqual(['Left upper lobe', 'Right lower lobe']);
 		expect(['Left upper lobe', 'Right lower lobe']).toContain(promptAnswer());
 	});
 
@@ -157,15 +165,14 @@ describe('Occlusion review interaction', () => {
 
 		const first = promptAnswer();
 		const second = otherAnswer(first);
-		const selected = regionByLabel(first);
+		const selected = regionByAnswer(first);
 
 		selected.click();
 		await tick();
 
 		expect(selected.getAttribute('aria-pressed')).toBe('true');
-		expect(selected.textContent).toContain(first);
 		expect(promptAnswer()).toBe(second);
-		expect(regionByLabel(first).getAttribute('aria-pressed')).toBe('true');
+		expect(regionByAnswer(first).getAttribute('aria-pressed')).toBe('true');
 	});
 
 	it('counts a selection with a different answer as incorrect and reveals both regions', async () => {
@@ -180,9 +187,9 @@ describe('Occlusion review interaction', () => {
 		clickRegion(other);
 		await tick();
 
-		expect(regionByLabel(prompted).getAttribute('aria-pressed')).toBe('true');
-		expect(regionByLabel(other).getAttribute('aria-pressed')).toBe('true');
-		expect(regionByLabel(prompted).classList.contains('ml-occlusion-mask--missed')).toBe(true);
+		expect(regionByAnswer(prompted).getAttribute('aria-pressed')).toBe('true');
+		expect(regionByAnswer(other).getAttribute('aria-pressed')).toBe('true');
+		expect(regionByAnswer(prompted).classList.contains('ml-occlusion-mask--missed')).toBe(true);
 	});
 
 	it('accepts either region when two masks share an answer', async () => {
@@ -310,7 +317,7 @@ describe('Occlusion review interaction', () => {
 		mountOcclusion({ content: threeMaskContent });
 		await tick();
 
-		const first = regionByLabel(promptAnswer());
+		const first = regionByAnswer(promptAnswer());
 		first.dispatchEvent(
 			new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
 		);
@@ -318,7 +325,7 @@ describe('Occlusion review interaction', () => {
 
 		expect(first.getAttribute('aria-pressed')).toBe('true');
 
-		const second = regionByLabel(promptAnswer());
+		const second = regionByAnswer(promptAnswer());
 		second.dispatchEvent(
 			new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true, cancelable: true }),
 		);
@@ -327,7 +334,7 @@ describe('Occlusion review interaction', () => {
 		expect(second.getAttribute('aria-pressed')).toBe('true');
 	});
 
-	it('exposes the prompt and every region answer as text', async () => {
+	it('exposes the prompt and a positional name for every region without the answer', async () => {
 		app = createMockPlugin([], { linkTargets: LINK_TARGETS });
 
 		mountOcclusion();
@@ -336,11 +343,14 @@ describe('Occlusion review interaction', () => {
 		const answer = promptAnswer();
 		expect(answer).not.toBe('');
 		expect(target.querySelector('.ml-occlusion-header')?.textContent).toContain(answer);
-		expect(
-			regions()
-				.map((region) => region.getAttribute('aria-label'))
-				.sort(),
-		).toEqual(['Left upper lobe', 'Right lower lobe']);
+
+		for (const [index, region] of regions().entries()) {
+			// An aria-label would become a hover tooltip in Obsidian.
+			expect(region.getAttribute('aria-label')).toBeNull();
+			expect(region.querySelector('.ml-occlusion-mask__name')?.textContent?.trim()).toBe(
+				`Region ${index + 1}`,
+			);
+		}
 	});
 
 	it('selects a region smaller than the minimum hit area from a near miss', async () => {
@@ -350,7 +360,7 @@ describe('Occlusion review interaction', () => {
 		await tick();
 
 		stubImageRect(100, 100);
-		const region = regionByLabel('Tiny');
+		const region = regionByAnswer('Tiny');
 		region.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: 60, clientY: 51 }));
 		await tick();
 
@@ -370,12 +380,12 @@ describe('Occlusion review interaction', () => {
 		// belongs to the region that was not prompted.
 		const clientX = other === 'Right' ? 47 : 45;
 
-		regionByLabel(prompted).dispatchEvent(
+		regionByAnswer(prompted).dispatchEvent(
 			new MouseEvent('click', { bubbles: true, clientX, clientY: 51 }),
 		);
 		await tick();
 
-		expect(regionByLabel(other).getAttribute('aria-pressed')).toBe('true');
-		expect(regionByLabel(prompted).classList.contains('ml-occlusion-mask--missed')).toBe(true);
+		expect(regionByAnswer(other).getAttribute('aria-pressed')).toBe('true');
+		expect(regionByAnswer(prompted).classList.contains('ml-occlusion-mask--missed')).toBe(true);
 	});
 });

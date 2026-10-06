@@ -199,7 +199,7 @@ describe('Manage utils', () => {
 				content: {
 					meta_type: CardType.Occlusion,
 					image: `${'a'.repeat(70)}.png`,
-					masks: [{ id: 'm1', rect: [0, 0, 1, 1], answer: 'A', hint: null }],
+					masks: [{ id: 'm1', rect: [0, 0, 1, 1], answer: 'A', hint: null, opaque: true }],
 				},
 			}) as unknown as Flashcard;
 

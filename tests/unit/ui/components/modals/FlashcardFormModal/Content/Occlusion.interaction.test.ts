@@ -20,8 +20,20 @@ const EXISTING_CARD: FlashcardOcclusionContent = {
 	width: 1024,
 	height: 768,
 	masks: [
-		{ id: 'm1', rect: [0.2, 0.3, 0.4, 0.2], answer: 'Left upper lobe', hint: 'upper' },
-		{ id: 'm2', rect: [0.5, 0.5, 0.1, 0.1], answer: 'Right lower lobe', hint: null },
+		{
+			id: 'm1',
+			rect: [0.2, 0.3, 0.4, 0.2],
+			answer: 'Left upper lobe',
+			hint: 'upper',
+			opaque: true,
+		},
+		{
+			id: 'm2',
+			rect: [0.5, 0.5, 0.1, 0.1],
+			answer: 'Right lower lobe',
+			hint: null,
+			opaque: false,
+		},
 	],
 };
 
@@ -297,6 +309,32 @@ describe('Occlusion form interaction', () => {
 		);
 	});
 
+	it('toggles a mask between opaque and transparent and submits the mode', async () => {
+		mountForm();
+		await tick();
+		await selectImage('attachments/lungs.png');
+
+		buttonByText('Add mask').click();
+		await tick();
+
+		const toggle = () => target.querySelector<HTMLButtonElement>('.ml-occlusion-form__mask-opacity');
+		if (!toggle()) throw new Error('Opacity toggle not found');
+
+		expect(toggle()?.classList.contains('ml-occlusion-form__mask-opacity--opaque')).toBe(true);
+		expect((api?.buildContent() as FlashcardOcclusionContent).masks[0].opaque).toBe(true);
+
+		toggle()?.click();
+		await tick();
+
+		expect(toggle()?.classList.contains('ml-occlusion-form__mask-opacity--opaque')).toBe(false);
+		expect((api?.buildContent() as FlashcardOcclusionContent).masks[0].opaque).toBe(false);
+
+		toggle()?.click();
+		await tick();
+
+		expect((api?.buildContent() as FlashcardOcclusionContent).masks[0].opaque).toBe(true);
+	});
+
 	it('deletes a mask', async () => {
 		mountForm();
 		await tick();
@@ -425,6 +463,9 @@ describe('Occlusion form interaction', () => {
 		expect(fieldByLabel('Hint 1').value).toBe('upper');
 		expect(fieldByLabel('Answer 2').value).toBe('Right lower lobe');
 		expect(api?.validate()).toBeNull();
+		expect(
+			(api?.buildContent() as FlashcardOcclusionContent).masks.map((mask) => mask.opaque),
+		).toEqual([true, false]);
 	});
 
 	it('offers the mask tools as soon as an image is chosen, without a drag', async () => {

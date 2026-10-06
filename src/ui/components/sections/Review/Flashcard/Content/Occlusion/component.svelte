@@ -120,10 +120,21 @@
 	}
 
 	/** An asked region is also a miss; keep both classes for styling and tests. */
-	function maskClass(status: OcclusionMaskStatus): string {
-		return status === 'asked'
-			? 'ml-occlusion-mask ml-occlusion-mask--asked ml-occlusion-mask--missed'
-			: `ml-occlusion-mask ml-occlusion-mask--${status}`;
+	function maskClass(status: OcclusionMaskStatus, opaque: boolean): string {
+		const base =
+			status === 'asked'
+				? 'ml-occlusion-mask ml-occlusion-mask--asked ml-occlusion-mask--missed'
+				: `ml-occlusion-mask ml-occlusion-mask--${status}`;
+		return opaque ? base : `${base} ml-occlusion-mask--transparent`;
+	}
+
+	/**
+	 * The answer is shown as a label only for a transparent mask. An opaque mask
+	 * covers text, so its reveal exposes the text itself and a label would just
+	 * sit on top of it.
+	 */
+	function shouldShowAnswerLabel(status: OcclusionMaskStatus, opaque: boolean): boolean {
+		return status !== 'hidden' && !opaque;
 	}
 
 	function select(mask: FlashcardOcclusionMask | null): void {
@@ -242,20 +253,22 @@
 <svelte:window onkeydown={handleWindowKeyDown} />
 
 {#snippet maskLayer(interactive: boolean)}
-	{#each content?.masks ?? [] as mask (mask.id)}
+	{#each content?.masks ?? [] as mask, index (mask.id)}
 		{@const status = maskStatus(mask.id)}
 		{#if interactive}
 			<button
 				type="button"
-				class={maskClass(status)}
+				class={maskClass(status, mask.opaque)}
 				style={maskStyle(mask)}
-				aria-label={mask.answer}
+				data-mask-id={mask.id}
 				aria-pressed={status !== 'hidden'}
 				disabled={isComplete}
 				onclick={(event) => handleRegionClick(event, mask)}
 				onkeydown={(event) => handleRegionKeyDown(event, mask)}
 			>
-				{#if status !== 'hidden'}
+				<!-- Positional only: the answer must not be announced or tooltipped before reveal. -->
+				<span class="ml-occlusion-mask__name">Region {index + 1}</span>
+				{#if shouldShowAnswerLabel(status, mask.opaque)}
 					<span class="ml-occlusion-mask__answer">{maskLabel(mask, status)}</span>
 				{/if}
 				{#if status === 'correct' && !isComplete}
@@ -266,8 +279,8 @@
 				{/if}
 			</button>
 		{:else}
-			<div class="{maskClass(status)} ml-occlusion-mask--static">
-				{#if status !== 'hidden'}
+			<div class="{maskClass(status, mask.opaque)} ml-occlusion-mask--static">
+				{#if shouldShowAnswerLabel(status, mask.opaque)}
 					<span class="ml-occlusion-mask__answer">{maskLabel(mask, status)}</span>
 				{/if}
 			</div>
@@ -625,6 +638,11 @@
 			pointer-events: none;
 		}
 
+		// A transparent mask marks an image region while its content stays visible.
+		&--transparent {
+			background: color-mix(in srgb, $background-primary 55%, transparent);
+		}
+
 		&--correct {
 			border: 2px solid $interactive-accent;
 			background: color-mix(in srgb, $interactive-accent 20%, transparent);
@@ -653,6 +671,19 @@
 			cursor: default;
 			pointer-events: none;
 		}
+	}
+
+	/* A positional accessible name; hidden from sight so it cannot suggest the answer. */
+	.ml-occlusion-mask__name {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+		border: 0;
 	}
 
 	.ml-occlusion-mask__answer {

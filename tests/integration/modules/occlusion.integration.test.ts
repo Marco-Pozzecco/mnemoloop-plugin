@@ -95,12 +95,14 @@ describe('Occlusion integration', () => {
 						rect: [0.12, 0.3, 0.2, 0.1],
 						answer: 'Left upper lobe',
 						hint: null,
+						opaque: true,
 					},
 					{
 						id: 'm2',
 						rect: [0.5, 0.5, 0.2, 0.2],
 						answer: 'Right lower lobe',
 						hint: 'lower',
+						opaque: true,
 					},
 				],
 			});
@@ -141,8 +143,20 @@ describe('Occlusion integration', () => {
 		const uuid = '33333333-3333-4333-8333-333333333333';
 		const path = `flashcards/${uuid}.md`;
 		const content = buildOcclusionContent('lungs.png', { width: 800, height: 600 }, [
-			{ id: 'new-0', rect: [0.1, 0.2, 0.3, 0.4], answer: ' Left upper lobe ', hint: ' apex ' },
-			{ id: 'new-1', rect: [0.5, 0.5, 0.2, 0.2], answer: 'Right lower lobe', hint: '' },
+			{
+				id: 'new-0',
+				rect: [0.1, 0.2, 0.3, 0.4],
+				answer: ' Left upper lobe ',
+				hint: ' apex ',
+				opaque: true,
+			},
+			{
+				id: 'new-1',
+				rect: [0.5, 0.5, 0.2, 0.2],
+				answer: 'Right lower lobe',
+				hint: '',
+				opaque: false,
+			},
 		]);
 
 		await writer.create(path, {
@@ -167,8 +181,20 @@ describe('Occlusion integration', () => {
 				width: 800,
 				height: 600,
 				masks: [
-					{ id: 'm1', rect: [0.1, 0.2, 0.3, 0.4], answer: 'Left upper lobe', hint: 'apex' },
-					{ id: 'm2', rect: [0.5, 0.5, 0.2, 0.2], answer: 'Right lower lobe', hint: null },
+					{
+						id: 'm1',
+						rect: [0.1, 0.2, 0.3, 0.4],
+						answer: 'Left upper lobe',
+						hint: 'apex',
+						opaque: true,
+					},
+					{
+						id: 'm2',
+						rect: [0.5, 0.5, 0.2, 0.2],
+						answer: 'Right lower lobe',
+						hint: null,
+						opaque: false,
+					},
 				],
 			});
 		}

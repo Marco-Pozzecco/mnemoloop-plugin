@@ -29,6 +29,7 @@ export interface FixtureOcclusionMask {
 	rect: [number, number, number, number];
 	answer: string;
 	hint?: string | null;
+	opaque?: boolean;
 }
 
 export function uuidFor(seed: number): string {

@@ -73,12 +73,14 @@ describe('OcclusionContentParser', () => {
 						rect: [0.12, 0.3, 0.2, 0.1],
 						answer: 'Left upper lobe',
 						hint: null,
+						opaque: true,
 					},
 					{
 						id: 'm2',
 						rect: [0.5, 0.5, 0.2, 0.2],
 						answer: 'Right lower lobe',
 						hint: 'lower division',
+						opaque: true,
 					},
 				],
 			});
@@ -99,10 +101,21 @@ describe('OcclusionContentParser', () => {
 				meta_type: 'occlusion',
 				image: 'lungs.png',
 				masks: [
-					{ id: 'm1', rect: [0, 0, 0.5, 0.5], answer: 'A', hint: null },
-					{ id: 'm2', rect: [0.5, 0.5, 0.5, 0.5], answer: 'B', hint: null },
+					{ id: 'm1', rect: [0, 0, 0.5, 0.5], answer: 'A', hint: null, opaque: true },
+					{ id: 'm2', rect: [0.5, 0.5, 0.5, 0.5], answer: 'B', hint: null, opaque: true },
 				],
 			});
+		});
+
+		it('should preserve an explicit transparent mode', () => {
+			vi.mocked(parseYaml).mockReturnValue({
+				masks: [{ rect: [0, 0, 1, 1], answer: 'A', opaque: false }],
+			});
+
+			const result = parser.parse(body('masks: []'));
+
+			expect(result.success).toBe(true);
+			expect(result.entity!.masks[0].opaque).toBe(false);
 		});
 
 		it('should ignore a wiki embed display size', () => {
@@ -212,12 +225,14 @@ describe('OcclusionContentParser', () => {
 					rect: [0.12, 0.3, 0.2, 0.1],
 					answer: 'Left upper lobe',
 					hint: null,
+					opaque: true,
 				},
 				{
 					id: 'm2',
 					rect: [0.5, 0.5, 0.2, 0.2],
 					answer: 'Right lower lobe',
 					hint: 'lower division',
+					opaque: false,
 				},
 			],
 		};
@@ -237,17 +252,37 @@ describe('OcclusionContentParser', () => {
 								rect: [0.12, 0.3, 0.2, 0.1],
 								answer: 'Left upper lobe',
 								hint: null,
+								opaque: true,
 							},
 							{
 								id: 'm2',
 								rect: [0.5, 0.5, 0.2, 0.2],
 								answer: 'Right lower lobe',
 								hint: 'lower division',
+								opaque: false,
 							},
 						],
 					}) +
 					'```',
 			);
+		});
+
+		it('should round-trip an explicit transparent mode', () => {
+			const result = parser.serialize(content);
+
+			expect(vi.mocked(stringifyYaml).mock.calls[0][0]).toEqual(
+				expect.objectContaining({
+					masks: [
+						expect.objectContaining({ id: 'm1', opaque: true }),
+						expect.objectContaining({ id: 'm2', opaque: false }),
+					],
+				}),
+			);
+
+			const reparsed = parser.parse(result.entity!);
+
+			expect(reparsed.success).toBe(true);
+			expect(reparsed.entity).toEqual(content);
 		});
 
 		it('should round rect values to four decimals', () => {
@@ -259,6 +294,7 @@ describe('OcclusionContentParser', () => {
 						rect: [0.123456, 0.3000004, 0.999999, 0.0000001],
 						answer: 'A',
 						hint: null,
+						opaque: true,
 					},
 				],
 			});
@@ -273,6 +309,7 @@ describe('OcclusionContentParser', () => {
 						rect: [0.1235, 0.3, 1, 0],
 						answer: 'A',
 						hint: null,
+						opaque: true,
 					},
 				],
 			});

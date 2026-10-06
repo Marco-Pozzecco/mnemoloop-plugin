@@ -2,7 +2,7 @@
 	import { getLinkpath } from 'obsidian';
 	import { tick } from 'svelte';
 	import type { FlashcardOcclusionContent } from '@/schemas';
-	import { Button, FormField, Input } from '@/ui/components/elements';
+	import { Button, FormField, Icon, Input } from '@/ui/components/elements';
 	import { getAppContext } from '@/ui/context/AppContext';
 	import type ContentTypeProps from '../types';
 	import type { BuildContentFn, ValidateFn } from '../types';
@@ -65,6 +65,7 @@
 				rect: mask.rect,
 				answer: mask.answer,
 				hint: mask.hint ?? '',
+				opaque: mask.opaque,
 			}));
 			imageUrl = resolveImageUrl(content.image);
 		}
@@ -189,7 +190,7 @@
 			const [, , width, height] = draftRect;
 			if (width >= MIN_MASK_SIZE && height >= MIN_MASK_SIZE) {
 				const id = `new-${nextMaskId++}`;
-				masks = [...masks, { id, rect: draftRect, answer: '', hint: '' }];
+				masks = [...masks, { id, rect: draftRect, answer: '', hint: '', opaque: true }];
 				focusNewMask(id);
 			}
 		} else if (dragState && dragState.kind !== 'draw') {
@@ -211,7 +212,13 @@
 	function addMask(): void {
 		masks = [
 			...masks,
-			{ id: `new-${nextMaskId++}`, rect: [...DEFAULT_MASK_RECT], answer: '', hint: '' },
+			{
+				id: `new-${nextMaskId++}`,
+				rect: [...DEFAULT_MASK_RECT],
+				answer: '',
+				hint: '',
+				opaque: true,
+			},
 		];
 	}
 
@@ -395,16 +402,30 @@
 						onfocus={() => (activeMaskId = mask.id)}
 					/>
 				</div>
-				<Button
-					variant="secondary"
-					size="small"
-					class="ml-occlusion-form__mask-delete"
-					{disabled}
-					onclick={() => removeMask(mask.id)}
-					ariaLabel={`Delete mask ${index + 1}`}
-				>
-					Delete
-				</Button>
+				<div class="ml-occlusion-form__region-actions">
+					<Button
+						variant="secondary"
+						size="small"
+						class={`ml-occlusion-form__mask-opacity${
+							mask.opaque ? ' ml-occlusion-form__mask-opacity--opaque' : ''
+						}`}
+						{disabled}
+						onclick={() => updateMask(mask.id, { opaque: !mask.opaque })}
+						ariaLabel={`Mask ${index + 1}: ${mask.opaque ? 'opaque' : 'transparent'}`}
+					>
+						<Icon name={mask.opaque ? 'square' : 'square-dashed'} size={14} />
+					</Button>
+					<Button
+						variant="secondary"
+						size="small"
+						class="ml-occlusion-form__mask-delete"
+						{disabled}
+						onclick={() => removeMask(mask.id)}
+						ariaLabel={`Delete mask ${index + 1}`}
+					>
+						<Icon name="trash-2" size={14} />
+					</Button>
+				</div>
 			</div>
 		{/each}
 	</FormField>
@@ -523,6 +544,13 @@
 		&--highlighted {
 			border-color: $interactive-accent-hover;
 			z-index: 2;
+		}
+
+		// A dashed border reads as "see-through", matching the square-dashed toggle
+		// and the dashed draft rectangle. The fill stays translucent so the author
+		// can position the mask over the content it will cover.
+		&--transparent {
+			border-style: dashed;
 		}
 	}
 
@@ -690,8 +718,18 @@
 		border: 0;
 	}
 
-	.ml-occlusion-form__region :global(.ml-occlusion-form__mask-delete) {
+	.ml-occlusion-form__region-actions {
+		display: flex;
+		align-items: center;
+		gap: $spacing-xxs;
 		margin-top: 2px;
+	}
+
+	/* Lucide's square is stroked; filling it marks an opaque mask at a glance.
+	   The flag lives on the Button component root, which carries no scope class,
+	   so the selector is global and namespaced by the ml- class alone. */
+	:global(.ml-occlusion-form__mask-opacity--opaque svg) {
+		fill: currentColor;
 	}
 
 	@media (max-width: $mobile-breakpoint) {

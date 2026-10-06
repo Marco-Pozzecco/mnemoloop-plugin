@@ -22,6 +22,7 @@ export class FlashcardOcclusionContentParser extends ContentParser<FlashcardOccl
 					rect: mask.rect,
 					answer: mask.answer,
 					hint: mask.hint ?? null,
+					opaque: mask.opaque ?? true,
 				}),
 			);
 
@@ -51,6 +52,7 @@ export class FlashcardOcclusionContentParser extends ContentParser<FlashcardOccl
 				rect: mask.rect.map((value) => Math.round(value * 10000) / 10000),
 				answer: mask.answer,
 				hint: mask.hint,
+				opaque: mask.opaque,
 			}));
 
 			const body = `![[${content.image}]]\n\n\`\`\`occlusion\n${stringifyYaml(block)}\`\`\``;

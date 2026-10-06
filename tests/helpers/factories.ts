@@ -122,8 +122,20 @@ export function createOcclusion(
 			width: 1024,
 			height: 768,
 			masks: [
-				{ id: 'm1', rect: [0.1, 0.1, 0.2, 0.2], answer: 'Left upper lobe', hint: null },
-				{ id: 'm2', rect: [0.5, 0.5, 0.2, 0.2], answer: 'Right lower lobe', hint: 'lower' },
+				{
+					id: 'm1',
+					rect: [0.1, 0.1, 0.2, 0.2],
+					answer: 'Left upper lobe',
+					hint: null,
+					opaque: true,
+				},
+				{
+					id: 'm2',
+					rect: [0.5, 0.5, 0.2, 0.2],
+					answer: 'Right lower lobe',
+					hint: 'lower',
+					opaque: false,
+				},
 			],
 		},
 		...overrides,

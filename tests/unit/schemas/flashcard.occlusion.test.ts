@@ -17,6 +17,7 @@ const validMask = {
 	rect: [0.12, 0.3, 0.2, 0.1],
 	answer: 'Left upper lobe',
 	hint: null,
+	opaque: true,
 };
 
 const validContent = {
@@ -56,6 +57,35 @@ describe('FlashcardOcclusionContentSchema', () => {
 		});
 
 		expect(result.masks[0].hint).toBe('upper division');
+	});
+
+	it('should default an omitted opacity mode to opaque', () => {
+		const { opaque: _opaque, ...maskWithoutMode } = validMask;
+
+		const result = FlashcardOcclusionContentSchema.parse({
+			...validContent,
+			masks: [maskWithoutMode],
+		});
+
+		expect(result.masks[0].opaque).toBe(true);
+	});
+
+	it('should accept a transparent mask', () => {
+		const result = FlashcardOcclusionContentSchema.parse({
+			...validContent,
+			masks: [{ ...validMask, opaque: false }],
+		});
+
+		expect(result.masks[0].opaque).toBe(false);
+	});
+
+	it('should reject a non-boolean opacity mode', () => {
+		expect(() =>
+			FlashcardOcclusionContentSchema.parse({
+				...validContent,
+				masks: [{ ...validMask, opaque: 'yes' }],
+			}),
+		).toThrow();
 	});
 
 	it('should reject an empty masks array', () => {

@@ -14,6 +14,7 @@ export interface EditableOcclusionMask {
 	rect: NormalizedRect;
 	answer: string;
 	hint: string;
+	opaque: boolean;
 }
 
 export interface ImageDimensions {
@@ -47,6 +48,7 @@ export function buildOcclusionContent(
 			rect: mask.rect,
 			answer: mask.answer.trim(),
 			hint: mask.hint.trim() || null,
+			opaque: mask.opaque,
 		})) satisfies FlashcardOcclusionMask[],
 	};
 

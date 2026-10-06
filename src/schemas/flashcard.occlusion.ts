@@ -14,6 +14,13 @@ export const FlashcardOcclusionMaskSchema = z.object({
 	]),
 	answer: z.string().min(1),
 	hint: z.string().nullable(),
+	/**
+	 * Opaque masks fully cover what they hide (text labels) and reveal no
+	 * label of their own; transparent masks tint image regions and label
+	 * themselves on reveal. Cards authored before the mode existed parse as
+	 * opaque.
+	 */
+	opaque: z.boolean().default(true),
 });
 
 export const FlashcardOcclusionContentSchema = z.object({

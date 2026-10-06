@@ -13,15 +13,29 @@ const CONTENT: FlashcardOcclusionContent = {
 	width: 1000,
 	height: 800,
 	masks: [
-		{ id: 'm1', rect: [0.1, 0.1, 0.2, 0.2], answer: 'Heart', hint: 'Between the lungs' },
-		{ id: 'm2', rect: [0.5, 0.5, 0.2, 0.2], answer: 'Left lung', hint: null },
-		{ id: 'm3', rect: [0.7, 0.7, 0.2, 0.2], answer: 'Trachea', hint: null },
+		{
+			id: 'm1',
+			rect: [0.1, 0.1, 0.2, 0.2],
+			answer: 'Heart',
+			hint: 'Between the lungs',
+			opaque: true,
+		},
+		{ id: 'm2', rect: [0.5, 0.5, 0.2, 0.2], answer: 'Left lung', hint: null, opaque: false },
+		{ id: 'm3', rect: [0.7, 0.7, 0.2, 0.2], answer: 'Trachea', hint: null, opaque: true },
 	],
 };
 
 const HINTED: FlashcardOcclusionContent = {
 	...CONTENT,
-	masks: [{ id: 'm1', rect: [0.1, 0.1, 0.2, 0.2], answer: 'Heart', hint: 'Between the lungs' }],
+	masks: [
+		{
+			id: 'm1',
+			rect: [0.1, 0.1, 0.2, 0.2],
+			answer: 'Heart',
+			hint: 'Between the lungs',
+			opaque: true,
+		},
+	],
 };
 
 const UNHINTED: FlashcardOcclusionContent = {
@@ -35,8 +49,10 @@ describe('Occlusion review affordances', () => {
 	let target: HTMLDivElement;
 	let unmountOcclusion: (() => Promise<void>) | undefined;
 	let onShowAnswer: ReturnType<typeof vi.fn>;
+	let mountedContent: FlashcardOcclusionContent = CONTENT;
 
 	async function mountOcclusion(content: FlashcardOcclusionContent = CONTENT) {
+		mountedContent = content;
 		const app = createMockPlugin([], { linkTargets: LINK_TARGETS });
 		target = activeDocument.createElement('div');
 		activeDocument.body.appendChild(target);
@@ -61,12 +77,18 @@ describe('Occlusion review affordances', () => {
 		);
 	}
 
-	function clickRegion(label: string): void {
-		const region = Array.from(target.querySelectorAll<HTMLElement>('.ml-occlusion-mask')).find(
-			(element) => element.getAttribute('aria-label') === label,
+	function regionFor(answer: string): HTMLElement {
+		const mask = mountedContent.masks.find((candidate) => candidate.answer === answer);
+		if (!mask) throw new Error(`No region with answer ${answer}`);
+		const region = target.querySelector<HTMLElement>(
+			`.ml-occlusion-mask[data-mask-id="${mask.id}"]`,
 		);
-		if (!region) throw new Error(`No region labelled ${label}`);
-		region.click();
+		if (!region) throw new Error(`No region for mask ${mask.id}`);
+		return region;
+	}
+
+	function clickRegion(answer: string): void {
+		regionFor(answer).click();
 	}
 
 	function segments(): string[] {
@@ -101,6 +123,39 @@ describe('Occlusion review affordances', () => {
 			'ml-occlusion-segment--current',
 			'ml-occlusion-segment--pending',
 		]);
+	});
+
+	it('does not expose the answer on a hidden region', async () => {
+		await mountOcclusion();
+
+		const regions = Array.from(target.querySelectorAll<HTMLButtonElement>('.ml-occlusion-mask'));
+		expect(regions).toHaveLength(3);
+
+		for (const [index, region] of regions.entries()) {
+			// An aria-label would surface as a hover tooltip in Obsidian.
+			expect(region.getAttribute('aria-label')).toBeNull();
+			expect(region.getAttribute('data-mask-id')).toBeTruthy();
+			expect(region.querySelector('.ml-occlusion-mask__name')?.textContent?.trim()).toBe(
+				`Region ${index + 1}`,
+			);
+			expect(region.querySelector('.ml-occlusion-mask__answer')).toBeNull();
+		}
+	});
+
+	it('labels transparent regions on reveal but not opaque ones', async () => {
+		await mountOcclusion();
+
+		target.querySelector<HTMLButtonElement>('.ml-occlusion-reveal')?.click();
+		await tick();
+
+		expect(regionFor('Left lung').querySelector('.ml-occlusion-mask__answer')?.textContent).toBe(
+			'Left lung',
+		);
+		expect(regionFor('Heart').querySelector('.ml-occlusion-mask__answer')).toBeNull();
+		expect(regionFor('Trachea').querySelector('.ml-occlusion-mask__answer')).toBeNull();
+
+		expect(regionFor('Left lung').classList.contains('ml-occlusion-mask--transparent')).toBe(true);
+		expect(regionFor('Heart').classList.contains('ml-occlusion-mask--transparent')).toBe(false);
 	});
 
 	it('shows the stored hint, hides it again, and drops it when the card completes', async () => {

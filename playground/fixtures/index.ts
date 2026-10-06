@@ -79,7 +79,7 @@ function mixedFixture(): PlaygroundFixture {
 			due: minutesFromNow(-10),
 			body: occlusionBody('assets/diagram.svg', [
 				{ id: 'm1', rect: [0.08, 0.12, 0.34, 0.6], answer: 'The purple circle', hint: 'Left shape' },
-				{ id: 'm2', rect: [0.55, 0.15, 0.3, 0.55], answer: 'The pink square' },
+				{ id: 'm2', rect: [0.55, 0.15, 0.3, 0.55], answer: 'The pink square', opaque: false },
 			]),
 		},
 	];
