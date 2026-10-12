@@ -59,3 +59,30 @@
 	-ms-user-select: none; /* Internet Explorer/Edge */
 	user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
 }
+
+/* Declarative settings tab controls rendered imperatively via `render`. */
+.setting-item.ml-settings-preview-row {
+	flex-wrap: wrap;
+}
+
+.ml-settings-preview-host {
+	flex: 1 1 100%;
+	width: 100%;
+	min-width: 0;
+}
+
+.ml-settings-control {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	width: 100%;
+}
+
+.ml-settings-control-input {
+	width: 100%;
+}
+
+.ml-settings-control-error {
+	color: var(--text-error);
+	font-size: var(--font-ui-smaller);
+}

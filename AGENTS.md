@@ -100,7 +100,7 @@ src/
 │   ├── components/      # Reusable Svelte components (elements/, views/, sections/, modals/)
 │   ├── views/           # Main view containers
 │   │   ├── App/         # App.svelte, AppView.ts, types.ts
-│   │   ├── Settings/    # Settings.svelte, SettingsView.ts, types.ts
+│   │   ├── Settings/    # SettingsView.ts, FsrsIntervalPreview.svelte, settings-controls.ts
 │   │   └── Modal/       # Modal.svelte, ModalView.ts, types.ts
 │   ├── store/           # Svelte stores
 │   │   ├── base.store.ts            # BaseStoreManager<T> class

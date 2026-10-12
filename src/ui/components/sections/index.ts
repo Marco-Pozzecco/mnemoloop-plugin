@@ -53,14 +53,4 @@ export { default as ReviewFlashcard } from './Review/Flashcard/component.svelte'
 export type { default as ReviewFlashcardProps } from './Review/Flashcard/types';
 export { default as ReviewHeader } from './Review/Header/component.svelte';
 export type { default as ReviewHeaderProps } from './Review/Header/types';
-export { default as SettingsDangerZone } from './Settings/DangerZone/component.svelte';
-export type { default as SettingsDangerZoneProps } from './Settings/DangerZone/types';
-export { default as SettingsDataManagement } from './Settings/DataManagement/component.svelte';
-export type { default as SettingsDataManagementProps } from './Settings/DataManagement/types';
-export { default as SettingsFlashcardConfig } from './Settings/FlashcardConfig/component.svelte';
-export type { default as SettingsFlashcardConfigProps } from './Settings/FlashcardConfig/types';
-export { default as SettingsFsrsParams } from './Settings/FsrsParams/component.svelte';
-export type { default as SettingsFsrsParamsProps } from './Settings/FsrsParams/types';
-export { default as SettingsSourceNoteConfig } from './Settings/SourceNoteConfig/component.svelte';
-export type { default as SettingsSourceNoteConfigProps } from './Settings/SourceNoteConfig/types';
 export { default as ManageTable } from './Manage/Table';

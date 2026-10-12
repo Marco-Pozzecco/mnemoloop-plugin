@@ -164,30 +164,4 @@
 			padding: $spacing-sm $spacing-md;
 		}
 	}
-
-	/*Global styles*/
-	:global(.ml-card.ml-settings-card) {
-		background-color: $background-modifier-settings;
-		border-radius: $radius-settings;
-		border: $border-width-settings solid $background-modifier-settings-border;
-	}
-
-	:global(.ml-card.has-border.ml-settings-card) {
-		border: $border-width-settings solid $background-modifier-settings-border;
-	}
-
-	:global(.ml-card.ml-card.padding-medium.ml-settings-card .ml-card-content) {
-		padding: $spacing-lg;
-	}
-
-	:global(.ml-card.ml-settings-card .ml-card-content) {
-		display: flex;
-		flex-direction: column;
-		gap: $spacing-md;
-	}
-
-	:global(.ml-card.ml-settings-card .ml-card-content .ml-settings-group:not(:last-child)) {
-		padding-bottom: $spacing-md;
-		border-bottom: $border-width-settings solid $background-modifier-border;
-	}
 </style>
