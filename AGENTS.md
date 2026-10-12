@@ -4,6 +4,7 @@
 
 - AGENT MUST follow the listed patterns
 - AGENT MUST update this file when patterns change
+- AGENT MUST read `DESIGN.md` for design guidance and update it when a design pattern changes
 - All development commands must be run from `apps/plugin/` directory
 
 ---
