@@ -1,11 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { get } from 'svelte/store';
-import { settingsStore } from '@/ui/store/settings.store';
+import { SETTINGS_COMMIT_TIMEOUT_MS, settingsStore } from '@/ui/store/settings.store';
 import {
 	EventBus,
+	FlashcardIndexInitEvent,
 	SettingsAdapterStateEvent,
+	SettingsAdapterUpdateRequestEvent,
 } from '@/modules/events';
-import { DEFAULT_PLUGIN_SETTINGS } from '@/schemas/settings';
+import { DEFAULT_PLUGIN_SETTINGS, type PluginSettings } from '@/schemas/settings';
 
 describe('SettingsStore', () => {
 	beforeEach(() => {
@@ -99,9 +101,7 @@ describe('SettingsStore', () => {
 
 		expect(updated).toBe(false);
 		expect(publish).not.toHaveBeenCalled();
-		expect(get(settingsStore.fieldErrors)['source_note.watch.tags']).toContain(
-			'Source note tags must start with',
-		);
+		expect(get(settingsStore.saveError)).toContain('Source note tags must start with');
 		expect(get(settingsStore.isLoading)).toBe(false);
 		publish.mockRestore();
 	});
@@ -116,10 +116,100 @@ describe('SettingsStore', () => {
 
 		expect(updated).toBe(false);
 		expect(publish).not.toHaveBeenCalled();
-		expect(get(settingsStore.fieldErrors)['source_note.priming.difficulty_threshold']).toBe(
-			'Enter a non-negative number.',
-		);
+		expect(get(settingsStore.saveError)).toBe('Enter a non-negative number.');
 		expect(get(settingsStore.isLoading)).toBe(false);
 		publish.mockRestore();
+	});
+
+	describe('commitPath', () => {
+		afterEach(() => {
+			vi.useRealTimers();
+			vi.restoreAllMocks();
+		});
+
+		/** Simulates the adapter pipeline: a state event follows the update request. */
+		function respondToUpdates(): void {
+			const bus = EventBus.instance;
+			const originalPublish = bus.publish.bind(bus);
+			vi.spyOn(bus, 'publish').mockImplementation(async (event) => {
+				if (event instanceof SettingsAdapterUpdateRequestEvent) {
+					await originalPublish(new SettingsAdapterStateEvent(event.data as PluginSettings));
+				}
+				return event.id;
+			});
+		}
+
+		it('persists a nested value and resolves once the state event arrives', async () => {
+			respondToUpdates();
+
+			await expect(
+				settingsStore.commitPath('flashcard.fsrs.request_retention', 0.95),
+			).resolves.toBeUndefined();
+
+			expect(settingsStore.currentSettings.flashcard.fsrs.request_retention).toBe(0.95);
+			expect(get(settingsStore.saveError)).toBeNull();
+			expect(get(settingsStore.isLoading)).toBe(false);
+		});
+
+		it('does not mutate the previously current settings object', async () => {
+			respondToUpdates();
+			const original = settingsStore.currentSettings;
+
+			await settingsStore.commitPath('flashcard.fsrs.request_retention', 0.95);
+
+			expect(original.flashcard.fsrs.request_retention).toBe(0.9);
+			expect(settingsStore.currentSettings).not.toBe(original);
+		});
+
+		it('publishes the full nested settings with the patched path', async () => {
+			const bus = EventBus.instance;
+			respondToUpdates();
+			const publish = vi.mocked(bus.publish);
+
+			await settingsStore.commitPath('source_note.priming.difficulty_threshold', 8.4);
+
+			expect(publish).toHaveBeenCalledWith(
+				expect.objectContaining({
+					data: expect.objectContaining({
+						source_note: expect.objectContaining({
+							priming: { difficulty_threshold: 8.4 },
+						}),
+					}),
+				}),
+			);
+		});
+
+		it('rejects invalid input, records the error, and does not publish', async () => {
+			const publish = vi.spyOn(EventBus.instance, 'publish').mockResolvedValue('request-id');
+
+			await expect(
+				settingsStore.commitPath('source_note.watch.tags', ['biology']),
+			).rejects.toThrow(/must start with/i);
+
+			expect(publish).not.toHaveBeenCalled();
+			expect(get(settingsStore.saveError)).toContain('must start with');
+			expect(get(settingsStore.isLoading)).toBe(false);
+		});
+
+		it('triggers a flashcard index re-initialize when the watch directory changes', async () => {
+			respondToUpdates();
+			const publish = vi.mocked(EventBus.instance.publish);
+
+			await settingsStore.commitPath('flashcard.watch.directory', '/other');
+
+			expect(publish).toHaveBeenCalledWith(expect.any(FlashcardIndexInitEvent));
+		});
+
+		it('rejects when no state event arrives before the timeout', async () => {
+			vi.useFakeTimers();
+			vi.spyOn(EventBus.instance, 'publish').mockResolvedValue('request-id');
+
+			const pending = settingsStore.commitPath('flashcard.marker', '!');
+			const assertion = expect(pending).rejects.toThrow(/timed out/i);
+			await vi.advanceTimersByTimeAsync(SETTINGS_COMMIT_TIMEOUT_MS + 10);
+
+			await assertion;
+			expect(get(settingsStore.saveError)).toMatch(/timed out/i);
+		});
 	});
 });
