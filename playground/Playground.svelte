@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Component } from 'obsidian';
 	import App from '@/ui/views/App/App.svelte';
-	import { SettingsView } from '@/ui/views/Settings/SettingsView';
 	import type { RealStack } from '../tests/helpers/real-stack';
 	import { FIXTURE_NAMES, type PlaygroundFixture } from './fixtures';
 	import {
@@ -21,16 +20,6 @@
 	const app = stack.plugin.app;
 	const component = new Component();
 	component.load();
-
-	let settingsHost: HTMLDivElement | undefined = $state();
-
-	$effect(() => {
-		if (params.view !== 'settings' || !settingsHost) return;
-		const view = new SettingsView(stack.plugin);
-		settingsHost.appendChild(view.containerEl);
-		view.display();
-		return () => view.destroy();
-	});
 
 	function selectValue(event: Event): string {
 		return (event.currentTarget as HTMLSelectElement).value;
@@ -88,13 +77,9 @@
 </header>
 
 <main class="ml-playground-stage">
-	{#if params.view === 'settings'}
-		<div class="ml-playground-settings-host" bind:this={settingsHost}></div>
-	{:else}
-		<div class="ml-playground-app-host">
-			<App {app} {component} />
-		</div>
-	{/if}
+	<div class="ml-playground-app-host">
+		<App {app} {component} />
+	</div>
 </main>
 
 <style lang="scss">
@@ -135,8 +120,7 @@
 		display: flex;
 	}
 
-	.ml-playground-app-host,
-	.ml-playground-settings-host {
+	.ml-playground-app-host {
 		flex: 1;
 		min-height: 0;
 		overflow-y: auto;

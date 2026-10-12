@@ -1,6 +1,6 @@
 /**
  * The playground URL contract:
- *   ?view=dashboard|review|manage|analytics|priming|settings
+ *   ?view=dashboard|review|manage|analytics|priming
  *   ?fixture=<name>            (see fixtures/index.ts)
  *   ?theme=light|dark
  *   ?modal=flashcard-form
@@ -17,7 +17,6 @@ export const PLAYGROUND_VIEWS = [
 	'manage',
 	'analytics',
 	'priming',
-	'settings',
 ] as const;
 export type PlaygroundView = (typeof PLAYGROUND_VIEWS)[number];
 

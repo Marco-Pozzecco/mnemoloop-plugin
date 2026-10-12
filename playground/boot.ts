@@ -60,7 +60,7 @@ function placeholderImage(path: string): string {
 /**
  * Puts the requested view in a state where the production component can render:
  * review needs a queue (started the same way the dashboard starts review) and
- * priming needs a discovery pass. Settings is mounted by the shell instead.
+ * priming needs a discovery pass.
  */
 export async function prepareView(stack: RealStack, params: PlaygroundParams): Promise<void> {
 	switch (params.view) {
@@ -72,10 +72,6 @@ export async function prepareView(stack: RealStack, params: PlaygroundParams): P
 		case 'priming': {
 			const controller = new PrimingController(stack.plugin.app);
 			await controller.start({ deckFilter: undefined, deckLabel: 'All decks' });
-			return;
-		}
-		case 'settings': {
-			uiStore.currentView = 'dashboard';
 			return;
 		}
 		default: {

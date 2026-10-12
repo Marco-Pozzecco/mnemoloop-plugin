@@ -195,23 +195,6 @@ export class ItemView extends Component {
 	}
 }
 
-export class PluginSettingTab extends Component {
-	app: unknown;
-	plugin: unknown;
-	containerEl: HTMLElement;
-
-	constructor(app: unknown, plugin: unknown) {
-		super();
-		this.app = app;
-		this.plugin = plugin;
-		this.containerEl = document.createElement('div');
-		this.containerEl.className = 'vertical-tab-content';
-	}
-
-	display(): void {}
-	hide(): void {}
-}
-
 export class Plugin extends Component {
 	app: unknown = {};
 	manifest: Record<string, unknown> = {};
