@@ -32,6 +32,12 @@ export interface RealStackOptions {
 	 * banner) subscribe at import time, before the stack is built.
 	 */
 	resetEventSingletons?: boolean;
+	/**
+	 * Pre-create the configured flashcard directory. Defaults to `true`, which
+	 * preserves the fixtures' assumption that the watched folder already exists.
+	 * Set to `false` to exercise the missing-directory path.
+	 */
+	preCreateWatchDir?: boolean;
 }
 
 export interface VaultStats {
@@ -168,8 +174,9 @@ export function createRealVault(
 		getFolder(parentPath).children.push(file);
 	}
 
-	const watchedFolder = getFolder(fixture.dirPath ?? '/flashcards');
-	void watchedFolder;
+	if (opts.preCreateWatchDir !== false) {
+		getFolder(fixture.dirPath ?? '/flashcards');
+	}
 	if (opts.seedIndex) contents.set(STACK_INDEX_PATH, fixture.indexJson ?? '');
 
 	const read = async (path: string): Promise<string> => {
@@ -226,6 +233,27 @@ export function createRealVault(
 		files.set(path, file);
 		getFolder(path.slice(0, path.lastIndexOf('/')) || '/').children.push(file);
 		return file;
+	};
+	// Mirrors Obsidian's one-level semantics: the parent must already exist and
+	// the path must be free, so callers cannot rely on implicit recursion.
+	vault.createFolder = async (path: string) => {
+		const key = toKey(path);
+		if (files.has(key)) {
+			throw new Error(`Unable to create folder: a file already exists at ${key}`);
+		}
+		if (folders.has(key)) {
+			throw new Error(`Folder already exists: ${key}`);
+		}
+		const parentPath = key.slice(0, key.lastIndexOf('/')) || '/';
+		const parent = folders.get(parentPath);
+		if (!parent) {
+			throw new Error(`Parent folder does not exist: ${parentPath}`);
+		}
+		const folder = new (TFolder as any)(key);
+		folder.children = [];
+		folders.set(key, folder);
+		parent.children.push(folder);
+		return folder;
 	};
 	vault.modify = async (input: any, data: string) => {
 		await write(resolvePath(input), data);

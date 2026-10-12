@@ -43,6 +43,8 @@ function encodeFrontmatter(data: Record<string, unknown>): string {
  */
 export function createMockVault(files: MockFile[] = []): any {
 	const fileMap = new Map<string, string>(files.map((f) => [f.path, f.content]));
+	// Folders explicitly created through `createFolder`, normalized like file keys.
+	const folderSet = new Set<string>();
 	// Real Obsidian stores vault-relative paths and normalizes lookups, so a
 	// leading slash is tolerated on either side. Mirror that here.
 	const normalizeLookup = (path: string): string => path.replace(/^\/+/, '').replace(/\/+$/, '');
@@ -84,6 +86,10 @@ export function createMockVault(files: MockFile[] = []): any {
 				}
 			}
 
+			if (folderSet.has(target)) {
+				return new (TFolder as any)(path, []);
+			}
+
 			const prefix = target === '' ? '' : target + '/';
 			const children: any[] = [];
 			const seen = new Set<string>();
@@ -112,6 +118,19 @@ export function createMockVault(files: MockFile[] = []): any {
 			fileMap.set(path, content);
 			const basename = path.split('/').pop()?.replace('.md', '') || '';
 			return new (TFile as any)(path, basename);
+		}),
+		createFolder: vi.fn<any, any>().mockImplementation(async (path: string) => {
+			const target = normalizeLookup(path);
+			for (const key of fileMap.keys()) {
+				if (normalizeLookup(key) === target) {
+					throw new Error(`Unable to create folder: a file already exists at ${path}`);
+				}
+			}
+			if (folderSet.has(target)) {
+				throw new Error(`Folder already exists: ${path}`);
+			}
+			folderSet.add(target);
+			return new (TFolder as any)(path, []);
 		}),
 		getRoot: vi.fn<any, any>(),
 		getFiles: vi.fn<any, any>(() =>

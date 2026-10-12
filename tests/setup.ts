@@ -40,6 +40,7 @@ vi.mock('obsidian', () => ({
 				getAbstractFileByPath: vi.fn<any, any>(),
 				delete: vi.fn<any, any>(),
 				create: vi.fn<any, any>(),
+				createFolder: vi.fn<any, any>(),
 				getRoot: vi.fn<any, any>(),
 				read: vi.fn<any, any>(),
 				write: vi.fn<any, any>(),
@@ -86,6 +87,7 @@ vi.mock('obsidian', () => ({
 		getAbstractFileByPath = vi.fn<any, any>();
 		delete = vi.fn<any, any>();
 		create = vi.fn<any, any>();
+		createFolder = vi.fn<any, any>();
 		getRoot = vi.fn<any, any>();
 		read = vi.fn<any, any>();
 		write = vi.fn<any, any>();

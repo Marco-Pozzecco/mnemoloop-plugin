@@ -28,10 +28,19 @@ import {
 	FlashcardWriterBodyResponseEvent,
 } from '@/modules/events/domains/flashcard/writer';
 import { CardType } from '@/schemas';
+import { TFile, TFolder } from 'obsidian';
 
 vi.mock('uuid', () => ({
 	v4: vi.fn(() => 'mocked-uuid'),
 }));
+
+/** A vault whose configured directory already exists, so the ensure step no-ops. */
+function createExistingFolderVault() {
+	return {
+		getAbstractFileByPath: vi.fn().mockReturnValue(new (TFolder as any)('/flashcards')),
+		createFolder: vi.fn().mockResolvedValue(undefined),
+	};
+}
 
 describe('FlashcardWriterCreateHandler', () => {
 	let mockDeps: IEventRegistryDependencies;
@@ -60,7 +69,9 @@ describe('FlashcardWriterCreateHandler', () => {
 		} as unknown as SettingsAdapter;
 
 		mockDeps = {
-			plugin: {} as unknown as IEventRegistryDependencies['plugin'],
+			plugin: {
+				app: { vault: createExistingFolderVault() },
+			} as unknown as IEventRegistryDependencies['plugin'],
 			adapters: new Map([[AdapterKey.settings, mockSettings]]),
 			indexes: new Map(),
 			parsers: new Map(),
@@ -122,6 +133,36 @@ describe('FlashcardWriterCreateHandler', () => {
 			'Failed to create flashcard',
 			expect.any(Error),
 		);
+		expect(Notice).toHaveBeenCalledWith('Failed to create flashcard');
+		expect(bus.publish).not.toHaveBeenCalled();
+	});
+
+	it('reports a failure when a file occupies the configured directory', async () => {
+		mockDeps = {
+			...mockDeps,
+			plugin: {
+				app: {
+					vault: {
+						getAbstractFileByPath: vi
+							.fn()
+							.mockReturnValue(new (TFile as any)('/flashcards')),
+						createFolder: vi.fn(),
+					},
+				},
+			} as unknown as IEventRegistryDependencies['plugin'],
+		};
+
+		const handler = new FlashcardWriterCreateHandler(mockDeps);
+		const event = new FlashcardWriterCreateRequestEvent({
+			content: { meta_type: CardType.Basic, front: 'Q', back: 'A' },
+			source: 'source.md',
+			decks: [],
+		});
+
+		await handler.handle(event);
+
+		expect(mockWriter.create).not.toHaveBeenCalled();
+		expect(Logger.error).toHaveBeenCalledWith('Failed to create flashcard', expect.any(Error));
 		expect(Notice).toHaveBeenCalledWith('Failed to create flashcard');
 		expect(bus.publish).not.toHaveBeenCalled();
 	});
