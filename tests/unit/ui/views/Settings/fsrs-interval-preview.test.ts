@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getIntervalPreview } from '@/ui/components/sections/Settings/FsrsParams/utils';
+import { getIntervalPreview } from '@/ui/views/Settings/FsrsIntervalPreview/utils';
 import { FSRS, generatorParameters, createEmptyCard, Rating } from 'ts-fsrs';
 import type { Card, Grade } from 'ts-fsrs';
 

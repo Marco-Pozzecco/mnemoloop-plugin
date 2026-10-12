@@ -1,11 +1,14 @@
 <script lang="ts">
-	import type { FsrsConfig } from '@/schemas/settings';
 	import type { FSRSParameters, Grade } from 'ts-fsrs';
 	import { createEmptyCard, FSRS, generatorParameters, Rating } from 'ts-fsrs';
+	import { settingsStore } from '@/ui/store/settings.store';
 	import { getIntervalPreview } from './utils';
 
-	let { config }: { config: FsrsConfig } = $props();
-	let nIntervals = $state(5);
+	// The component owns its subscription so a single mount stays live as FSRS
+	// parameters change; Obsidian does not re-run render callbacks on changes.
+	const settingsWritable = settingsStore.settings;
+	const config = $derived($settingsWritable.flashcard.fsrs);
+	const nIntervals = $state(5);
 
 	const preview = $derived(() => {
 		const fsrs = new FSRS(generatorParameters(config as Omit<FSRSParameters, 'w'>));
@@ -30,35 +33,46 @@
 	});
 </script>
 
-<div class="ml-fsrs-preview">
-	<h4 class="ml-fsrs-preview__title">Interval preview</h4>
-	<table class="ml-fsrs-preview__table">
-		<thead>
-			<tr>
-				<th>Rating</th>
-				{#each Array.from({ length: 5 }, (_, i) => i + 1) as i (i)}
-					<th>Review {i}</th>
-				{/each}
-			</tr>
-		</thead>
-		<tbody>
-			{#each preview() as row (row.key)}
+<div class="ml-fsrs-preview-wrapper">
+	<div class="ml-fsrs-preview">
+		<h4 class="ml-fsrs-preview__title">Interval preview</h4>
+		<table class="ml-fsrs-preview__table">
+			<thead>
 				<tr>
-					<td>{row.rating}</td>
-					{#each row.intervals as interval (interval.key)}
-						<td>{interval.interval}</td>
+					<th>Rating</th>
+					{#each Array.from({ length: 5 }, (_, i) => i + 1) as i (i)}
+						<th>Review {i}</th>
 					{/each}
 				</tr>
-			{/each}
-		</tbody>
-	</table>
+			</thead>
+			<tbody>
+				{#each preview() as row (row.key)}
+					<tr>
+						<td>{row.rating}</td>
+						{#each row.intervals as interval (interval.key)}
+							<td>{interval.interval}</td>
+						{/each}
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</div>
 </div>
 
 <style lang="scss">
 	@use 'tokens' as *;
 
+	.ml-fsrs-preview-wrapper {
+		margin-top: 0.5rem;
+		padding: $spacing-sm;
+		border: 1px solid $background-modifier-border;
+		border-radius: $radius-md;
+		background-color: $background-modifier-form-field;
+		width: 100%;
+	}
+
 	.ml-fsrs-preview {
-		margin-top: 1rem;
+		margin-top: 0;
 	}
 
 	.ml-fsrs-preview__title {
