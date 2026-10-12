@@ -128,7 +128,13 @@ vi.mock('obsidian', () => {
 	class MetadataCache {}
 
 	return {
-		normalizePath: (value: string) => value,
+		normalizePath: (value: string) => {
+			const collapsed = value
+				.replace(/([\\/])+/g, '/')
+				.replace(/(^\/+|\/+$)/g, '');
+			const normalized = collapsed === '' ? '/' : collapsed;
+			return normalized.replace(/[\u00A0\u202F]/g, ' ').normalize('NFC');
+		},
 		parseYaml: (value: string) => parseFlatYaml(value),
 		TFile,
 		TFolder,

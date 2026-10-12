@@ -196,10 +196,18 @@ export function createRealVault(
 
 	const resolvePath = (input: any): string => (typeof input === 'string' ? input : input.path);
 
+	// Real Obsidian stores vault-relative paths and normalizes lookups; the
+	// in-memory maps keep the authored (possibly leading-slash) keys.
+	const toKey = (path: string): string => {
+		const stripped = path.replace(/^\/+/, '').replace(/\/+$/, '');
+		return stripped === '' ? '/' : `/${stripped}`;
+	};
+
 	const vault: any = new (Vault as any)();
-	vault.getFileByPath = (path: string) => files.get(path) ?? null;
-	vault.getFolderByPath = (path: string) => folders.get(path) ?? null;
-	vault.getAbstractFileByPath = (path: string) => folders.get(path) ?? files.get(path) ?? null;
+	vault.getFileByPath = (path: string) => files.get(toKey(path)) ?? null;
+	vault.getFolderByPath = (path: string) => folders.get(toKey(path)) ?? null;
+	vault.getAbstractFileByPath = (path: string) =>
+		folders.get(toKey(path)) ?? files.get(toKey(path)) ?? null;
 	vault.getRoot = () => root;
 	vault.getFiles = () => [...files.values()];
 	vault.getMarkdownFiles = () =>

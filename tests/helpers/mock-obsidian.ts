@@ -43,6 +43,9 @@ function encodeFrontmatter(data: Record<string, unknown>): string {
  */
 export function createMockVault(files: MockFile[] = []): any {
 	const fileMap = new Map<string, string>(files.map((f) => [f.path, f.content]));
+	// Real Obsidian stores vault-relative paths and normalizes lookups, so a
+	// leading slash is tolerated on either side. Mirror that here.
+	const normalizeLookup = (path: string): string => path.replace(/^\/+/, '').replace(/\/+$/, '');
 
 	return {
 		adapter: {
@@ -63,32 +66,37 @@ export function createMockVault(files: MockFile[] = []): any {
 			}),
 		},
 		getFileByPath: vi.fn<any, any>().mockImplementation((path: string) => {
-			if (fileMap.has(path)) {
-				const basename = path.split('/').pop()?.replace('.md', '') || '';
-				return new (TFile as any)(path, basename);
+			const target = normalizeLookup(path);
+			for (const key of fileMap.keys()) {
+				if (normalizeLookup(key) === target) {
+					const basename = key.split('/').pop()?.replace('.md', '') || '';
+					return new (TFile as any)(key, basename);
+				}
 			}
 			return null;
 		}),
 		getAbstractFileByPath: vi.fn<any, any>().mockImplementation((path: string) => {
-			if (fileMap.has(path)) {
-				const basename = path.split('/').pop()?.replace('.md', '') || '';
-				return new (TFile as any)(path, basename);
+			const target = normalizeLookup(path);
+			for (const key of fileMap.keys()) {
+				if (normalizeLookup(key) === target) {
+					const basename = key.split('/').pop()?.replace('.md', '') || '';
+					return new (TFile as any)(key, basename);
+				}
 			}
 
-			const prefix = path.endsWith('/') ? path : path + '/';
+			const prefix = target === '' ? '' : target + '/';
 			const children: any[] = [];
 			const seen = new Set<string>();
-			for (const [filePath] of fileMap.entries()) {
-				if (filePath.startsWith(prefix)) {
-					const relative = filePath.slice(prefix.length);
-					const firstSegment = relative.split('/')[0];
-					if (firstSegment && !seen.has(firstSegment)) {
-						seen.add(firstSegment);
-						const childPath = prefix + firstSegment;
-						const childBasename = firstSegment.replace('.md', '') || '';
-						children.push(new (TFile as any)(childPath, childBasename));
-					}
-				}
+			for (const key of fileMap.keys()) {
+				const normalizedKey = normalizeLookup(key);
+				if (normalizedKey === target || !normalizedKey.startsWith(prefix)) continue;
+				const relative = normalizedKey.slice(prefix.length);
+				const firstSegment = relative.split('/')[0];
+				if (!firstSegment || seen.has(firstSegment)) continue;
+				seen.add(firstSegment);
+				const childPath = key.slice(0, key.length - relative.length) + firstSegment;
+				const childBasename = firstSegment.replace('.md', '') || '';
+				children.push(new (TFile as any)(childPath, childBasename));
 			}
 
 			if (children.length > 0) {
