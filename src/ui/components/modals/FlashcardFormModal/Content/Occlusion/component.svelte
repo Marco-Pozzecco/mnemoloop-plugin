@@ -366,9 +366,6 @@
 			draggable="false"
 			onload={handleImageLoad}
 		/>
-		<span class="ml-occlusion-form__tools-hint">
-			Drag on the image to draw a mask; Ctrl-drag a mask to move it without resizing.
-		</span>
 		{#each masks as mask, index (mask.id)}
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
@@ -400,6 +397,12 @@
 		</p>
 	{/if}
 </div>
+
+{#if imageUrl}
+	<span class="ml-occlusion-form__tools-hint">
+		Drag on the image to draw a mask; Ctrl-drag a mask to move it without resizing.
+	</span>
+{/if}
 
 {#if masks.length > 0}
 	<FormField label={`Masks (${masks.length})`}>
