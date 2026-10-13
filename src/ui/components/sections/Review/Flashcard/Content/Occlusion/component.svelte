@@ -35,10 +35,9 @@
 	let lastHintKey = $state('');
 	let revealedIds = $state<string[]>([]);
 	let missedIds = $state<string[]>([]);
-	let wrongIds = $state<string[]>([]);
+	let pickedIds = $state<string[]>([]);
 	let isHintShowing = $state(false);
 	let isViewerOpen = $state(false);
-	let missFeedback = $state<{ selected: string; prompted: string } | null>(null);
 
 	const currentPrompt = $derived(shuffledMasks[promptIndex] ?? null);
 	const hasDimensions = $derived(!!content?.width && !!content?.height);
@@ -85,8 +84,7 @@
 
 		revealedIds = [];
 		missedIds = [];
-		wrongIds = [];
-		missFeedback = null;
+		pickedIds = [];
 		isComplete = false;
 		isHintShowing = false;
 		isViewerOpen = false;
@@ -107,22 +105,15 @@
 
 	function maskStatus(id: string): OcclusionMaskStatus {
 		if (isComplete) return missedIds.includes(id) ? 'missed' : 'correct';
-		if (wrongIds.includes(id)) return 'wrong';
-		if (missedIds.includes(id)) return 'asked';
+		// A missed prompt is marked on the region that was asked for, not the one clicked.
+		if (missedIds.includes(id)) return 'wrong';
+		if (pickedIds.includes(id)) return 'selected';
 		if (revealedIds.includes(id)) return 'correct';
 		return 'hidden';
 	}
 
-	function maskLabel(mask: FlashcardOcclusionMask, status: OcclusionMaskStatus): string {
-		return status === 'asked' ? `${mask.answer} · asked` : mask.answer;
-	}
-
-	/** An asked region is also a miss; keep both classes for styling and tests. */
 	function maskClass(status: OcclusionMaskStatus, opaque: boolean): string {
-		const base =
-			status === 'asked'
-				? 'ml-occlusion-mask ml-occlusion-mask--asked ml-occlusion-mask--missed'
-				: `ml-occlusion-mask ml-occlusion-mask--${status}`;
+		const base = `ml-occlusion-mask ml-occlusion-mask--${status}`;
 		return opaque ? base : `${base} ml-occlusion-mask--transparent`;
 	}
 
@@ -142,14 +133,14 @@
 
 		const isCorrect = mask.answer === prompted.answer;
 		revealedIds = [...revealedIds, mask.id];
-		if (!isCorrect) {
+		if (isCorrect) {
+			// Answering a region an earlier wrong pick had revealed marks it correct.
+			pickedIds = pickedIds.filter((id) => id !== mask.id);
+		} else {
 			// Show the region the prompt was asking for as well.
 			revealedIds = [...revealedIds, prompted.id];
 			missedIds = [...missedIds, prompted.id];
-			wrongIds = [...wrongIds, mask.id];
-			missFeedback = { selected: mask.answer, prompted: prompted.answer };
-		} else {
-			missFeedback = null;
+			pickedIds = [...pickedIds, mask.id];
 		}
 
 		if (promptIndex + 1 >= shuffledMasks.length) {
@@ -163,7 +154,6 @@
 	function complete(): void {
 		isComplete = true;
 		isHintShowing = false;
-		missFeedback = null;
 		revealedIds = shuffledMasks.map((mask) => mask.id);
 		onAllRevealed?.();
 		onShowAnswer?.();
@@ -267,7 +257,7 @@
 				<!-- Positional only: the answer must not be announced or tooltipped before reveal. -->
 				<span class="ml-occlusion-mask__name">Region {index + 1}</span>
 				{#if shouldShowAnswerLabel(status, mask.opaque)}
-					<span class="ml-occlusion-mask__answer">{maskLabel(mask, status)}</span>
+					<span class="ml-occlusion-mask__answer">{mask.answer}</span>
 				{/if}
 				{#if status === 'correct' && !isComplete}
 					<span class="ml-occlusion-mask__badge ml-occlusion-mask__badge--ok">✓</span>
@@ -283,7 +273,7 @@
 				data-mask-id={mask.id}
 			>
 				{#if shouldShowAnswerLabel(status, mask.opaque)}
-					<span class="ml-occlusion-mask__answer">{maskLabel(mask, status)}</span>
+					<span class="ml-occlusion-mask__answer">{mask.answer}</span>
 				{/if}
 			</div>
 		{/if}
@@ -370,15 +360,6 @@
 				</div>
 			</div>
 		</div>
-
-		{#if missFeedback && !isComplete}
-			<div class="ml-occlusion-feedback" role="status">
-				<b>Not quite.</b>
-				<span>
-					You selected {missFeedback.selected}. The <b>{missFeedback.prompted}</b> region is highlighted.
-				</span>
-			</div>
-		{/if}
 
 		{#if !isComplete}
 			<div class="ml-occlusion-actions">
@@ -662,9 +643,9 @@
 			z-index: 2;
 		}
 
-		&--asked {
-			border: 2px dashed $text-error;
-			background: color-mix(in srgb, $text-error 20%, transparent);
+		&--selected {
+			border: 2px dashed $text-muted;
+			background: color-mix(in srgb, $background-primary 55%, transparent);
 			z-index: 2;
 		}
 
@@ -751,23 +732,6 @@
 	}
 
 	/* --- Actions --- */
-
-	.ml-occlusion-feedback {
-		display: flex;
-		gap: $spacing-xs;
-		align-items: baseline;
-		padding: $spacing-xs $spacing-sm;
-		border: $border-width solid color-mix(in srgb, $text-error 40%, transparent);
-		border-radius: $radius-sm;
-		background: color-mix(in srgb, $text-error 12%, transparent);
-		color: $text-error;
-		font-size: $font-xs;
-
-		b {
-			color: $text-error;
-			font-weight: $font-bold;
-		}
-	}
 
 	.ml-occlusion-actions {
 		display: flex;

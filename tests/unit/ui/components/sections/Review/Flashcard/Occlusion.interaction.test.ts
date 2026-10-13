@@ -141,6 +141,7 @@ describe('Occlusion review interaction', () => {
 	afterEach(async () => {
 		await unmountOcclusion?.();
 		unmountOcclusion = undefined;
+		vi.restoreAllMocks();
 		target?.remove();
 		activeDocument.body.innerHTML = '';
 	});
@@ -175,7 +176,7 @@ describe('Occlusion review interaction', () => {
 		expect(regionByAnswer(first).getAttribute('aria-pressed')).toBe('true');
 	});
 
-	it('counts a selection with a different answer as incorrect and reveals both regions', async () => {
+	it('marks the asked region as wrong and the selected region as revealed', async () => {
 		app = createMockPlugin([], { linkTargets: LINK_TARGETS });
 
 		mountOcclusion();
@@ -189,7 +190,39 @@ describe('Occlusion review interaction', () => {
 
 		expect(regionByAnswer(prompted).getAttribute('aria-pressed')).toBe('true');
 		expect(regionByAnswer(other).getAttribute('aria-pressed')).toBe('true');
-		expect(regionByAnswer(prompted).classList.contains('ml-occlusion-mask--missed')).toBe(true);
+
+		// The miss is attributed to the prompt that was failed, not the region clicked.
+		expect(regionByAnswer(prompted).classList.contains('ml-occlusion-mask--wrong')).toBe(true);
+		expect(regionByAnswer(prompted).querySelector('.ml-occlusion-mask__badge--miss')).not.toBeNull();
+		expect(regionByAnswer(other).classList.contains('ml-occlusion-mask--wrong')).toBe(false);
+		expect(regionByAnswer(other).classList.contains('ml-occlusion-mask--selected')).toBe(true);
+		expect(regionByAnswer(other).querySelector('.ml-occlusion-mask__badge--miss')).toBeNull();
+	});
+
+	it('marks a region revealed by an earlier wrong pick as correct once answered', async () => {
+		app = createMockPlugin([], { linkTargets: LINK_TARGETS });
+		// Pin the shuffle so the prompt order is Alpha, Beta, Gamma.
+		vi.spyOn(Math, 'random').mockReturnValue(0.9);
+
+		mountOcclusion({ content: threeMaskContent });
+		await tick();
+
+		expect(promptAnswer()).toBe('Alpha');
+
+		// Answer Alpha wrongly; Beta is revealed but only as "selected".
+		clickRegion('Beta');
+		await tick();
+		expect(regionByAnswer('Beta').classList.contains('ml-occlusion-mask--selected')).toBe(true);
+
+		// Beta is the next prompt; answering it correctly must mark it correct.
+		expect(promptAnswer()).toBe('Beta');
+		clickRegion('Beta');
+		await tick();
+
+		expect(regionByAnswer('Beta').classList.contains('ml-occlusion-mask--correct')).toBe(true);
+		expect(regionByAnswer('Beta').classList.contains('ml-occlusion-mask--selected')).toBe(false);
+		expect(regionByAnswer('Beta').querySelector('.ml-occlusion-mask__badge--ok')).not.toBeNull();
+		expect(promptAnswer()).toBe('Gamma');
 	});
 
 	it('accepts either region when two masks share an answer', async () => {
@@ -386,6 +419,6 @@ describe('Occlusion review interaction', () => {
 		await tick();
 
 		expect(regionByAnswer(other).getAttribute('aria-pressed')).toBe('true');
-		expect(regionByAnswer(prompted).classList.contains('ml-occlusion-mask--missed')).toBe(true);
+		expect(regionByAnswer(prompted).classList.contains('ml-occlusion-mask--wrong')).toBe(true);
 	});
 });

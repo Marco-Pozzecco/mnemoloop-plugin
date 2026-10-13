@@ -43,6 +43,11 @@ const UNHINTED: FlashcardOcclusionContent = {
 	masks: CONTENT.masks.map((mask) => ({ ...mask, hint: null })),
 };
 
+const ALL_TRANSPARENT: FlashcardOcclusionContent = {
+	...CONTENT,
+	masks: CONTENT.masks.map((mask) => ({ ...mask, opaque: false })),
+};
+
 const LINK_TARGETS = { 'lungs.png': 'attachments/lungs.png' };
 
 describe('Occlusion review affordances', () => {
@@ -184,6 +189,19 @@ describe('Occlusion review affordances', () => {
 		expect(target.querySelector('.ml-occlusion-hint__button')).toBeNull();
 	});
 
+	it('labels a missed asked region with its answer alone', async () => {
+		await mountOcclusion(ALL_TRANSPARENT);
+
+		const prompted = promptAnswer();
+		const wrong = ALL_TRANSPARENT.masks.find((mask) => mask.answer !== prompted)?.answer ?? '';
+		clickRegion(wrong);
+		await tick();
+
+		expect(regionFor(prompted).querySelector('.ml-occlusion-mask__answer')?.textContent).toBe(
+			prompted,
+		);
+	});
+
 	it('recaps every prompt with its answer and marks the misses', async () => {
 		await mountOcclusion();
 
@@ -192,10 +210,7 @@ describe('Occlusion review affordances', () => {
 		clickRegion(wrong);
 		await tick();
 
-		const feedback = target.querySelector('.ml-occlusion-feedback');
-		expect(feedback?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
-			`Not quite. You selected ${wrong}. The ${prompted} region is highlighted.`,
-		);
+		expect(target.querySelector('.ml-occlusion-feedback')).toBeNull();
 
 		for (let index = 1; index < CONTENT.masks.length; index += 1) {
 			clickRegion(promptAnswer());
