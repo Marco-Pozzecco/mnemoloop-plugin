@@ -27,6 +27,17 @@ const threeMaskContent: FlashcardOcclusionContent = {
 	],
 };
 
+const fiveMaskContent: FlashcardOcclusionContent = {
+	...content,
+	masks: [
+		{ id: 'm1', rect: [0.1, 0.1, 0.15, 0.15], answer: 'One', hint: null, opaque: true },
+		{ id: 'm2', rect: [0.3, 0.1, 0.15, 0.15], answer: 'Two', hint: null, opaque: true },
+		{ id: 'm3', rect: [0.5, 0.1, 0.15, 0.15], answer: 'Three', hint: null, opaque: true },
+		{ id: 'm4', rect: [0.7, 0.1, 0.15, 0.15], answer: 'Four', hint: null, opaque: true },
+		{ id: 'm5', rect: [0.1, 0.4, 0.15, 0.15], answer: 'Five', hint: null, opaque: true },
+	],
+};
+
 const sharedAnswerContent: FlashcardOcclusionContent = {
 	...content,
 	masks: [
@@ -118,6 +129,16 @@ describe('Occlusion review interaction', () => {
 		regionByAnswer(answer).click();
 	}
 
+	function counterText(): string {
+		return target.querySelector('.ml-occlusion-found')?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+	}
+
+	function counterCount(): [number, number] {
+		const match = counterText().match(/(\d+) of (\d+) revealed/);
+		if (!match) throw new Error(`Unexpected counter text: ${counterText()}`);
+		return [Number(match[1]), Number(match[2])];
+	}
+
 	function stubImageRect(width: number, height: number): HTMLElement {
 		const image = target.querySelector<HTMLElement>('.ml-occlusion-stage__inner');
 		if (!image) throw new Error('Image container not found');
@@ -174,6 +195,39 @@ describe('Occlusion review interaction', () => {
 		expect(selected.getAttribute('aria-pressed')).toBe('true');
 		expect(promptAnswer()).toBe(second);
 		expect(regionByAnswer(first).getAttribute('aria-pressed')).toBe('true');
+	});
+
+	it('counts revealed regions out of the total', async () => {
+		app = createMockPlugin([], { linkTargets: LINK_TARGETS });
+
+		mountOcclusion();
+		await tick();
+
+		expect(counterText()).toBe('0 of 2 revealed');
+
+		clickRegion(promptAnswer());
+		await tick();
+
+		expect(counterText()).toBe('1 of 2 revealed');
+	});
+
+	it('never reports more revealed regions than the card has', async () => {
+		app = createMockPlugin([], { linkTargets: LINK_TARGETS });
+
+		mountOcclusion({ content: fiveMaskContent });
+		await tick();
+
+		// Keep clicking one region: it is wrong for most prompts and is itself a
+		// prompt later, so a revealed list that accumulates duplicates would
+		// report more regions than exist.
+		const chosen = regionAnswers().find((answer) => answer !== promptAnswer()) ?? '';
+		for (let index = 0; index < 4; index += 1) {
+			clickRegion(chosen);
+			await tick();
+
+			const [count, total] = counterCount();
+			expect(count).toBeLessThanOrEqual(total);
+		}
 	});
 
 	it('marks the asked region as wrong and the selected region as revealed', async () => {

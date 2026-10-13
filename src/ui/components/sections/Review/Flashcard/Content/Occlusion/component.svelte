@@ -132,13 +132,13 @@
 		if (!prompted) return;
 
 		const isCorrect = mask.answer === prompted.answer;
-		revealedIds = [...revealedIds, mask.id];
+		revealedIds = [...new Set([...revealedIds, mask.id])];
 		if (isCorrect) {
 			// Answering a region an earlier wrong pick had revealed marks it correct.
 			pickedIds = pickedIds.filter((id) => id !== mask.id);
 		} else {
 			// Show the region the prompt was asking for as well.
-			revealedIds = [...revealedIds, prompted.id];
+			revealedIds = [...new Set([...revealedIds, prompted.id])];
 			missedIds = [...missedIds, prompted.id];
 			pickedIds = [...pickedIds, mask.id];
 		}
@@ -366,7 +366,7 @@
 				<Button variant="link" class="ml-occlusion-reveal" onclick={revealAll}>
 					Reveal remaining regions
 				</Button>
-				<span class="ml-occlusion-found">{foundCount} of {shuffledMasks.length} found</span>
+				<span class="ml-occlusion-found">{foundCount} of {shuffledMasks.length} revealed</span>
 			</div>
 		{/if}
 	</div>
