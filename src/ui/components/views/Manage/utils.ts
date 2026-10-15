@@ -54,5 +54,11 @@ export function buildCardPreview(card: Flashcard): string {
 			return truncate(card.content.question);
 		case CardType.Cloze:
 			return truncate(card.content.text.replace(FlashcardClozeRegex, '[...]'));
+		case CardType.Occlusion: {
+			const count = card.content.masks.length;
+			return truncate(`Occlusion: ${card.content.image} (${count} mask${count === 1 ? '' : 's'})`);
+		}
+		default:
+			return 'Unknown card type';
 	}
 }

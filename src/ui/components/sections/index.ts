@@ -8,7 +8,6 @@ export { default as DashboardDeckTreeNode } from './Dashboard/DeckTreeNode/compo
 export type { default as DashboardDeckTreeNodeProps } from './Dashboard/DeckTreeNode/types';
 export { default as DashboardFooter } from './Dashboard/Footer/component.svelte';
 export type { default as DashboardFooterProps } from './Dashboard/Footer/types';
-export type { PrimingAvailability } from './Dashboard/Footer/types';
 export { default as DashboardHeader } from './Dashboard/Header/component.svelte';
 export type { default as DashboardHeaderProps } from './Dashboard/Header/types';
 export { default as DashboardProgress } from './Dashboard/Progress/component.svelte';
@@ -37,6 +36,7 @@ export { default as ReviewFlashcardContentBasic } from './Review/Flashcard/Conte
 export type { default as ReviewFlashcardContentBasicProps } from './Review/Flashcard/Content/Basic/types';
 export { default as ReviewFlashcardContentCloze } from './Review/Flashcard/Content/Cloze/component.svelte';
 export type { default as ReviewFlashcardContentClozeProps } from './Review/Flashcard/Content/Cloze/types';
+export { default as ReviewFlashcardContentOcclusion } from './Review/Flashcard/Content/Occlusion/component.svelte';
 export { default as ReviewFlashcardContentQuiz } from './Review/Flashcard/Content/Quiz/component.svelte';
 export type { default as ReviewFlashcardContentQuizProps } from './Review/Flashcard/Content/Quiz/types';
 export { default as ReviewFlashcardContentSequence } from './Review/Flashcard/Content/Sequence/component.svelte';
@@ -53,14 +53,4 @@ export { default as ReviewFlashcard } from './Review/Flashcard/component.svelte'
 export type { default as ReviewFlashcardProps } from './Review/Flashcard/types';
 export { default as ReviewHeader } from './Review/Header/component.svelte';
 export type { default as ReviewHeaderProps } from './Review/Header/types';
-export { default as SettingsDangerZone } from './Settings/DangerZone/component.svelte';
-export type { default as SettingsDangerZoneProps } from './Settings/DangerZone/types';
-export { default as SettingsDataManagement } from './Settings/DataManagement/component.svelte';
-export type { default as SettingsDataManagementProps } from './Settings/DataManagement/types';
-export { default as SettingsFlashcardConfig } from './Settings/FlashcardConfig/component.svelte';
-export type { default as SettingsFlashcardConfigProps } from './Settings/FlashcardConfig/types';
-export { default as SettingsFsrsParams } from './Settings/FsrsParams/component.svelte';
-export type { default as SettingsFsrsParamsProps } from './Settings/FsrsParams/types';
-export { default as SettingsSourceNoteConfig } from './Settings/SourceNoteConfig/component.svelte';
-export type { default as SettingsSourceNoteConfigProps } from './Settings/SourceNoteConfig/types';
 export { default as ManageTable } from './Manage/Table';

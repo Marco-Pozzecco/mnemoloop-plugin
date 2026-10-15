@@ -5,6 +5,7 @@ export const MANAGE_TYPE_OPTIONS = [
 	{ value: CardType.Sequence, label: 'Sequence' },
 	{ value: CardType.Quiz, label: 'Quiz' },
 	{ value: CardType.Cloze, label: 'Cloze' },
+	{ value: CardType.Occlusion, label: 'Occlusion' },
 ];
 
 export const MANAGE_STATUS_OPTIONS = [

@@ -31,6 +31,7 @@ import { FlashcardIndexer } from './modules/indexers/FlashcardIndexer';
 import { MIGRATIONS, Migrator, PluginDocumentStore } from './modules/migration';
 import { FlashcardBasicContentParser } from './modules/parsers/content/FlashcardBasicContentParser';
 import { FlashcardClozeContentParser } from './modules/parsers/content/FlashcardClozeContentParser';
+import { FlashcardOcclusionContentParser } from './modules/parsers/content/FlashcardOcclusionContentParser';
 import { FlashcardQuizContentParser } from './modules/parsers/content/FlashcardQuizContentParser';
 import { FlashcardSequenceContentParser } from './modules/parsers/content/FlashcardSequenceContentParser';
 import { FlashcardParser } from './modules/parsers/entity/FlashcardParser';
@@ -121,6 +122,7 @@ export default class MnemoloopPlugin extends Plugin {
 			new FlashcardSequenceContentParser(settings) as IContentParser<FlashcardContent>,
 			new FlashcardQuizContentParser(settings) as IContentParser<FlashcardContent>,
 			new FlashcardClozeContentParser(settings) as IContentParser<FlashcardContent>,
+			new FlashcardOcclusionContentParser() as IContentParser<FlashcardContent>,
 		];
 		this._parsers.set(ParserKey.flashcard, new FlashcardParser(this, contentParsers));
 	}

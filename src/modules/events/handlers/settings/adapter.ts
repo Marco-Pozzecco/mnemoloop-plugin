@@ -69,8 +69,11 @@ export class SettingsAdapterSetHandler extends EventHandler<SettingsAdapterSetRe
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		const { field, value } = event.data;
 		adapter.setField(field, value);
-		void this._bus.publish(new SettingsAdapterSetResponseEvent(adapter.data));
-		void this._bus.publish(new SettingsAdapterStateEvent(adapter.data));
+		// Persist before publishing state so listeners observe a durable write.
+		await adapter.save();
+		const updated = adapter.data;
+		void this._bus.publish(new SettingsAdapterSetResponseEvent(updated));
+		void this._bus.publish(new SettingsAdapterStateEvent(updated));
 	}
 }
 
@@ -82,7 +85,10 @@ export class SettingsAdapterUpdateHandler extends EventHandler<SettingsAdapterUp
 	async handle(event: SettingsAdapterUpdateRequestEvent): Promise<void> {
 		const adapter = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
 		adapter.update(event.data);
-		void this._bus.publish(new SettingsAdapterUpdateResponseEvent(adapter.data));
-		void this._bus.publish(new SettingsAdapterStateEvent(adapter.data));
+		// Persist before publishing state so listeners observe a durable write.
+		await adapter.save();
+		const updated = adapter.data;
+		void this._bus.publish(new SettingsAdapterUpdateResponseEvent(updated));
+		void this._bus.publish(new SettingsAdapterStateEvent(updated));
 	}
 }

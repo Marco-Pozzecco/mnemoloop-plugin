@@ -39,10 +39,11 @@
 		};
 	});
 
-	// Reset allContentRevealed when flashcard changes (cloze cards start unrevealed)
+	// Reset allContentRevealed when flashcard changes (cloze and occlusion cards
+	// are worked through inside their own content component before the outcome)
 	$effect(() => {
 		flashcard; // track
-		if (flashcard?.card_type === CardType.Cloze) {
+		if (flashcard?.card_type === CardType.Cloze || flashcard?.card_type === CardType.Occlusion) {
 			allContentRevealed = false;
 		} else {
 			allContentRevealed = true;

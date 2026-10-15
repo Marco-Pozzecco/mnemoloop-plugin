@@ -2,6 +2,7 @@
 	import {
 		isFlashcardBase,
 		isFlashcardCloze,
+		isFlashcardOcclusion,
 		isFlashcardQuiz,
 		isFlashcardSequence,
 	} from '@/schemas';
@@ -11,6 +12,7 @@
 	import FlashcardBasicContent from './Basic/component.svelte';
 	import FlashcardQuizContent from './Quiz/component.svelte';
 	import FlashcardClozeContent from './Cloze/component.svelte';
+	import FlashcardOcclusionContent from './Occlusion/component.svelte';
 	import FlashcardSequenceContent from './Sequence/component.svelte';
 	import type FlashcardContentRouterProps from './types';
 
@@ -56,6 +58,15 @@
 				{onShowAnswer}
 				{onAllRevealed}
 			/>
+		{:else if isFlashcardOcclusion(flashcard)}
+			<FlashcardOcclusionContent
+				content={flashcard.content}
+				{sourcePath}
+				{isAnswerShowing}
+				{onShowAnswer}
+				{onSetAnswerCorrectness}
+				{onAllRevealed}
+			/>
 		{/if}
 		{#snippet footer()}
 			<div class="ml-flashcard-footer">
@@ -80,16 +91,19 @@
 		color: $text-muted;
 		display: flex;
 		flex-direction: row;
+		align-items: center;
 		gap: $spacing-xs;
 
 		&-key {
 			font-weight: bold;
+			margin: 0;
 		}
 
 		&-value {
 			display: flex;
 			align-items: center;
 			flex: 1;
+			margin: 0;
 			font-style: italic;
 		}
 	}

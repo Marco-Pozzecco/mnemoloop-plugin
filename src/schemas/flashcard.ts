@@ -24,6 +24,11 @@ import {
 	FlashcardClozeSchema,
 } from './flashcard.cloze';
 import {
+	FlashcardOcclusionContent,
+	FlashcardOcclusionContentSchema,
+	FlashcardOcclusionSchema,
+} from './flashcard.occlusion';
+import {
 	FlashcardBaseContent,
 	FlashcardBaseContentSchema,
 	FlashcardBaseSchema,
@@ -37,6 +42,7 @@ export const FlashcardContentSchema = z.union([
 	FlashcardSequenceContentSchema,
 	FlashcardQuizContentSchema,
 	FlashcardClozeContentSchema,
+	FlashcardOcclusionContentSchema,
 ]);
 
 export const FlashcardMetadataSchema = FlashcardYamlSchema.extend({
@@ -56,7 +62,8 @@ export type Flashcard =
 	| FlashcardBaseSchema
 	| FlashcardSequenceSchema
 	| FlashcardQuizSchema
-	| FlashcardClozeSchema;
+	| FlashcardClozeSchema
+	| FlashcardOcclusionSchema;
 
 export function isFlashcardBase(card: Flashcard): card is FlashcardBaseSchema {
 	return card.card_type === CardType.Basic;
@@ -73,11 +80,16 @@ export function isFlashcardQuiz(card: Flashcard): card is FlashcardQuizSchema {
 export function isFlashcardCloze(card: Flashcard): card is FlashcardClozeSchema {
 	return card.card_type === CardType.Cloze;
 }
+
+export function isFlashcardOcclusion(card: Flashcard): card is FlashcardOcclusionSchema {
+	return card.card_type === CardType.Occlusion;
+}
 export type FlashcardContent =
 	| FlashcardBaseContent
 	| FlashcardSequenceContent
 	| FlashcardQuizContent
-	| FlashcardClozeContent;
+	| FlashcardClozeContent
+	| FlashcardOcclusionContent;
 
 export const DEFAULT_FLASHCARD_METADATA: Omit<FlashcardMetadata, 'uuid' | 'file'> = {
 	created_at: new Date().toISOString(),
@@ -92,4 +104,8 @@ export const DEFAULT_FLASHCARD_INDEX: FlashcardIndex = {
 	updated_at: null,
 };
 
-export const AUTO_SCORED_TYPES = new Set<CardType>([CardType.Sequence, CardType.Quiz]);
+export const AUTO_SCORED_TYPES = new Set<CardType>([
+	CardType.Sequence,
+	CardType.Quiz,
+	CardType.Occlusion,
+]);

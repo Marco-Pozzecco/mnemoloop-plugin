@@ -43,6 +43,11 @@ function encodeFrontmatter(data: Record<string, unknown>): string {
  */
 export function createMockVault(files: MockFile[] = []): any {
 	const fileMap = new Map<string, string>(files.map((f) => [f.path, f.content]));
+	// Folders explicitly created through `createFolder`, normalized like file keys.
+	const folderSet = new Set<string>();
+	// Real Obsidian stores vault-relative paths and normalizes lookups, so a
+	// leading slash is tolerated on either side. Mirror that here.
+	const normalizeLookup = (path: string): string => path.replace(/^\/+/, '').replace(/\/+$/, '');
 
 	return {
 		adapter: {
@@ -63,32 +68,41 @@ export function createMockVault(files: MockFile[] = []): any {
 			}),
 		},
 		getFileByPath: vi.fn<any, any>().mockImplementation((path: string) => {
-			if (fileMap.has(path)) {
-				const basename = path.split('/').pop()?.replace('.md', '') || '';
-				return new (TFile as any)(path, basename);
+			const target = normalizeLookup(path);
+			for (const key of fileMap.keys()) {
+				if (normalizeLookup(key) === target) {
+					const basename = key.split('/').pop()?.replace('.md', '') || '';
+					return new (TFile as any)(key, basename);
+				}
 			}
 			return null;
 		}),
 		getAbstractFileByPath: vi.fn<any, any>().mockImplementation((path: string) => {
-			if (fileMap.has(path)) {
-				const basename = path.split('/').pop()?.replace('.md', '') || '';
-				return new (TFile as any)(path, basename);
+			const target = normalizeLookup(path);
+			for (const key of fileMap.keys()) {
+				if (normalizeLookup(key) === target) {
+					const basename = key.split('/').pop()?.replace('.md', '') || '';
+					return new (TFile as any)(key, basename);
+				}
 			}
 
-			const prefix = path.endsWith('/') ? path : path + '/';
+			if (folderSet.has(target)) {
+				return new (TFolder as any)(path, []);
+			}
+
+			const prefix = target === '' ? '' : target + '/';
 			const children: any[] = [];
 			const seen = new Set<string>();
-			for (const [filePath] of fileMap.entries()) {
-				if (filePath.startsWith(prefix)) {
-					const relative = filePath.slice(prefix.length);
-					const firstSegment = relative.split('/')[0];
-					if (firstSegment && !seen.has(firstSegment)) {
-						seen.add(firstSegment);
-						const childPath = prefix + firstSegment;
-						const childBasename = firstSegment.replace('.md', '') || '';
-						children.push(new (TFile as any)(childPath, childBasename));
-					}
-				}
+			for (const key of fileMap.keys()) {
+				const normalizedKey = normalizeLookup(key);
+				if (normalizedKey === target || !normalizedKey.startsWith(prefix)) continue;
+				const relative = normalizedKey.slice(prefix.length);
+				const firstSegment = relative.split('/')[0];
+				if (!firstSegment || seen.has(firstSegment)) continue;
+				seen.add(firstSegment);
+				const childPath = key.slice(0, key.length - relative.length) + firstSegment;
+				const childBasename = firstSegment.replace('.md', '') || '';
+				children.push(new (TFile as any)(childPath, childBasename));
 			}
 
 			if (children.length > 0) {
@@ -105,7 +119,27 @@ export function createMockVault(files: MockFile[] = []): any {
 			const basename = path.split('/').pop()?.replace('.md', '') || '';
 			return new (TFile as any)(path, basename);
 		}),
+		createFolder: vi.fn<any, any>().mockImplementation(async (path: string) => {
+			const target = normalizeLookup(path);
+			for (const key of fileMap.keys()) {
+				if (normalizeLookup(key) === target) {
+					throw new Error(`Unable to create folder: a file already exists at ${path}`);
+				}
+			}
+			if (folderSet.has(target)) {
+				throw new Error(`Folder already exists: ${path}`);
+			}
+			folderSet.add(target);
+			return new (TFolder as any)(path, []);
+		}),
 		getRoot: vi.fn<any, any>(),
+		getFiles: vi.fn<any, any>(() =>
+			Array.from(fileMap.keys()).map((path) => {
+				const basename = path.split('/').pop()?.replace('.md', '') || '';
+				return new (TFile as any)(path, basename);
+			}),
+		),
+		getResourcePath: vi.fn<any, any>((file: any) => `app://local/${file.path}`),
 		read: vi.fn<any, any>().mockImplementation(async (file: any) => {
 			const content = fileMap.get(file.path);
 			if (content === undefined) {
@@ -246,10 +280,16 @@ export function createMockMetadataCache(
 /**
  * Create a mock Plugin with app property containing vault, workspace, and metadataCache.
  */
-export function createMockPlugin(files: MockFile[] = []): any {
+export function createMockPlugin(
+	files: MockFile[] = [],
+	metadataOptions: {
+		resolvedLinks?: Record<string, Record<string, number>>;
+		linkTargets?: Record<string, string>;
+	} = {},
+): any {
 	const vault = createMockVault(files);
 	const workspace = createMockWorkspace();
-	const metadataCache = createMockMetadataCache();
+	const metadataCache = createMockMetadataCache(undefined, undefined, metadataOptions);
 
 	return {
 		app: {

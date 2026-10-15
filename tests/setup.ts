@@ -40,6 +40,7 @@ vi.mock('obsidian', () => ({
 				getAbstractFileByPath: vi.fn<any, any>(),
 				delete: vi.fn<any, any>(),
 				create: vi.fn<any, any>(),
+				createFolder: vi.fn<any, any>(),
 				getRoot: vi.fn<any, any>(),
 				read: vi.fn<any, any>(),
 				write: vi.fn<any, any>(),
@@ -86,6 +87,7 @@ vi.mock('obsidian', () => ({
 		getAbstractFileByPath = vi.fn<any, any>();
 		delete = vi.fn<any, any>();
 		create = vi.fn<any, any>();
+		createFolder = vi.fn<any, any>();
 		getRoot = vi.fn<any, any>();
 		read = vi.fn<any, any>();
 		write = vi.fn<any, any>();
@@ -173,8 +175,18 @@ vi.mock('obsidian', () => ({
 	},
 
 	// Utility functions
-	normalizePath: (path: string) => path,
+	// Mirrors Obsidian's normalizePath: collapse `\`/`/` runs, strip leading and
+	// trailing slashes, replace non-breaking spaces, NFC-normalize, and return
+	// `/` for an empty result.
+	normalizePath: (path: string) => {
+		const collapsed = path
+			.replace(/([\\/])+/g, '/')
+			.replace(/(^\/+|\/+$)/g, '');
+		const normalized = collapsed === '' ? '/' : collapsed;
+		return normalized.replace(/[\u00A0\u202F]/g, ' ').normalize('NFC');
+	},
 	parseYaml: vi.fn((_yaml: string) => ({})),
+	stringifyYaml: vi.fn((_obj: unknown) => ''),
 	getLinkpath: (linktext: string) => linktext.split('#')[0].split('|')[0],
 
 	// Component base class

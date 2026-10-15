@@ -10,12 +10,15 @@ import {
 import { DEFAULT_PLUGIN_SETTINGS, PluginSettings, PluginSettingsSchema } from '@/schemas/settings';
 import { writable, Writable } from 'svelte/store';
 import { simpleClone } from '@/utils/Clone';
+import { setPath } from '@/utils/dot-path';
 import { BaseStoreManager } from './base.store';
+
+/** How long `commitPath` waits for the pipeline's state event before rejecting. */
+export const SETTINGS_COMMIT_TIMEOUT_MS = 5000;
 
 const settingsWritable = writable(DEFAULT_PLUGIN_SETTINGS);
 const isLoadingStore = writable(false);
 const saveErrorStore = writable<string | null>(null);
-const fieldErrorsStore = writable<Record<string, string>>({});
 
 export class SettingsStore extends BaseStoreManager<PluginSettings> {
 	private _unsubscribe: () => void = () => {};
@@ -24,14 +27,12 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 	settings: Writable<PluginSettings>;
 	isLoading: Writable<boolean>;
 	saveError: Writable<string | null>;
-	fieldErrors: Writable<Record<string, string>>;
 
 	constructor() {
 		super(DEFAULT_PLUGIN_SETTINGS, settingsWritable);
 		this.settings = settingsWritable;
 		this.isLoading = isLoadingStore;
 		this.saveError = saveErrorStore;
-		this.fieldErrors = fieldErrorsStore;
 
 		const handler = async (event: SettingsAdapterStateEvent) => {
 			this.settings.update((state) => {
@@ -43,7 +44,6 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 				return updated;
 			});
 			this.saveError.update(() => null);
-			this.fieldErrors.update(() => ({}));
 			this.isLoading.update(() => false);
 		};
 		this._unsubscribe = EventBus.instance.subscribe(SettingsAdapterStateEvent, handler);
@@ -64,30 +64,84 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 		this.isLoading.update(() => true);
 		this.saveError.update(() => null);
 
-		const currentSettings = simpleClone(this.currentSettings);
-		this.setValueAtPath(currentSettings, path, value);
+		const currentSettings = simpleClone(this.currentSettings) as Record<string, unknown>;
+		setPath(currentSettings, path.join('.'), value);
 		const result = PluginSettingsSchema.safeParse(currentSettings);
 
 		if (!result.success) {
-			const fieldPath = path.join('.');
 			const issue =
 				result.error.issues.find((candidate) =>
 					path.every((segment, index) => candidate.path[index] === segment),
 				) ?? result.error.issues[0];
-			this.fieldErrors.update(() => ({ [fieldPath]: issue?.message ?? 'Invalid setting' }));
+			this.saveError.update(() => issue?.message ?? 'Invalid setting');
 			this.isLoading.update(() => false);
 			return false;
 		}
 
-		this.fieldErrors.update((errors) => {
-			const nextErrors = { ...errors };
-			delete nextErrors[path.join('.')];
-			return nextErrors;
-		});
-
 		const request = new SettingsAdapterUpdateRequestEvent(result.data);
 		void EventBus.instance.publish(request);
 		return true;
+	}
+
+	/**
+	 * Persist a single nested value and resolve only after the pipeline has
+	 * written it to disk. The state event is published only once the adapter
+	 * handler has awaited `adapter.save()`, so resolving on it guarantees a
+	 * durable write. Rejects on invalid input, a publish failure, or a timeout.
+	 */
+	async commitPath(dotPath: string, value: unknown): Promise<void> {
+		this.isLoading.update(() => true);
+		this.saveError.update(() => null);
+
+		const path = dotPath.split('.');
+		const currentSettings = simpleClone(this.currentSettings) as Record<string, unknown>;
+		setPath(currentSettings, dotPath, value);
+		const result = PluginSettingsSchema.safeParse(currentSettings);
+
+		if (!result.success) {
+			const issue =
+				result.error.issues.find((candidate) =>
+					path.every((segment, index) => candidate.path[index] === segment),
+				) ?? result.error.issues[0];
+			const message = issue?.message ?? 'Invalid setting';
+			this.failCommit(message);
+			throw new Error(message);
+		}
+
+		try {
+			await this.publishAndAwaitState(new SettingsAdapterUpdateRequestEvent(result.data));
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			this.failCommit(message);
+			throw error instanceof Error ? error : new Error(message);
+		}
+	}
+
+	private failCommit(message: string): void {
+		this.saveError.update(() => message);
+		this.isLoading.update(() => false);
+	}
+
+	private publishAndAwaitState(request: SettingsAdapterUpdateRequestEvent): Promise<void> {
+		return new Promise<void>((resolve, reject) => {
+			let unsubscribe: () => void = () => {};
+			const timeout = window.setTimeout(() => {
+				unsubscribe();
+				reject(new Error('Timed out waiting for settings to save'));
+			}, SETTINGS_COMMIT_TIMEOUT_MS);
+
+			unsubscribe = EventBus.instance.subscribe(SettingsAdapterStateEvent, async () => {
+				window.clearTimeout(timeout);
+				unsubscribe();
+				resolve();
+			});
+
+			void EventBus.instance.publish(request).catch((error: unknown) => {
+				window.clearTimeout(timeout);
+				unsubscribe();
+				reject(error instanceof Error ? error : new Error(String(error)));
+			});
+		});
 	}
 
 	async reset(): Promise<void> {
@@ -115,24 +169,6 @@ export class SettingsStore extends BaseStoreManager<PluginSettings> {
 	 */
 	get currentSettings(): PluginSettings {
 		return this.state;
-	}
-
-	/**
-	 * Sets a value at a nested path in an object
-	 */
-	private setValueAtPath(obj: Record<string, unknown>, path: string[], value: unknown): void {
-		let current: Record<string, unknown> = obj;
-		for (let i = 0; i < path.length - 1; i++) {
-			const key = path[i];
-			if (!key || !(key in current) || typeof current[key] !== 'object') {
-				current[key] = {};
-			}
-			current = current[key] as Record<string, unknown>;
-		}
-		const lastKey = path[path.length - 1];
-		if (lastKey) {
-			current[lastKey] = value;
-		}
 	}
 }
 

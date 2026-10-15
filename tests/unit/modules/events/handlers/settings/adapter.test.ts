@@ -67,6 +67,7 @@ describe('SettingsAdapterSetHandler', () => {
 
 		mockAdapter = {
 			setField: vi.fn(),
+			save: vi.fn().mockResolvedValue(undefined),
 			data: {
 				flashcard: {
 					marker: '?',
@@ -102,6 +103,7 @@ describe('SettingsAdapterSetHandler', () => {
 
 		expect(mockAdapter.setField).toHaveBeenCalledTimes(1);
 		expect(mockAdapter.setField).toHaveBeenCalledWith('debounce_timeout_ms', 1000);
+		expect(mockAdapter.save).toHaveBeenCalledTimes(1);
 		expect(bus.publish).toHaveBeenCalledTimes(2);
 		expect(bus.publish).toHaveBeenCalledWith(expect.any(SettingsAdapterSetResponseEvent));
 		expect(bus.publish).toHaveBeenCalledWith(expect.any(SettingsAdapterStateEvent));
@@ -110,6 +112,20 @@ describe('SettingsAdapterSetHandler', () => {
 		expect(publishedEvent.data).toEqual(mockAdapter.data);
 		const stateEvent = vi.mocked(bus.publish).mock.calls[1][0] as SettingsAdapterStateEvent;
 		expect(stateEvent.data).toEqual(mockAdapter.data);
+	});
+
+	it('should persist the change before publishing state', async () => {
+		const handler = new SettingsAdapterSetHandler(mockDeps);
+		const event = new SettingsAdapterSetRequestEvent({
+			field: 'debounce_timeout_ms',
+			value: 1000,
+		});
+
+		await handler.handle(event);
+
+		const saveOrder = vi.mocked(mockAdapter.save).mock.invocationCallOrder[0];
+		const publishOrder = vi.mocked(bus.publish).mock.invocationCallOrder[0];
+		expect(saveOrder).toBeLessThan(publishOrder);
 	});
 });
 describe('SettingsAdapterResetHandler', () => {
@@ -224,6 +240,7 @@ describe('SettingsAdapterUpdateHandler', () => {
 
 		mockAdapter = {
 			update: vi.fn(),
+			save: vi.fn().mockResolvedValue(undefined),
 			data: {
 				flashcard: {
 					marker: '?',
@@ -260,6 +277,7 @@ describe('SettingsAdapterUpdateHandler', () => {
 		expect(mockAdapter.update).toHaveBeenCalledWith({
 			debounce_timeout_ms: 1000,
 		});
+		expect(mockAdapter.save).toHaveBeenCalledTimes(1);
 		expect(bus.publish).toHaveBeenCalledTimes(2);
 		expect(bus.publish).toHaveBeenCalledWith(expect.any(SettingsAdapterUpdateResponseEvent));
 		expect(bus.publish).toHaveBeenCalledWith(expect.any(SettingsAdapterStateEvent));
@@ -268,5 +286,18 @@ describe('SettingsAdapterUpdateHandler', () => {
 		expect(responseEvent.data).toEqual(mockAdapter.data);
 		const stateEvent = vi.mocked(bus.publish).mock.calls[1][0] as SettingsAdapterStateEvent;
 		expect(stateEvent.data).toEqual(mockAdapter.data);
+	});
+
+	it('should persist the update before publishing state', async () => {
+		const handler = new SettingsAdapterUpdateHandler(mockDeps);
+		const event = new SettingsAdapterUpdateRequestEvent({
+			debounce_timeout_ms: 1000,
+		});
+
+		await handler.handle(event);
+
+		const saveOrder = vi.mocked(mockAdapter.save).mock.invocationCallOrder[0];
+		const publishOrder = vi.mocked(bus.publish).mock.invocationCallOrder[0];
+		expect(saveOrder).toBeLessThan(publishOrder);
 	});
 });

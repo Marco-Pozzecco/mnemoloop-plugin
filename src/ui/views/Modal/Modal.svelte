@@ -6,7 +6,10 @@
 
 	let { controller, app, component }: ModalProps = $props();
 
-	let { currentView, error, isLoading } = $derived(modalStore.state);
+	// `modalStore.state` is a plain field, so it never invalidates a rune. Subscribe
+	// to the writable the store manager wraps instead, as the other views do.
+	const storeRef = modalStore.store;
+	let { currentView, error, isLoading } = $derived($storeRef);
 
 	let cApp = $derived(app);
 	let cComponent = $derived(component);

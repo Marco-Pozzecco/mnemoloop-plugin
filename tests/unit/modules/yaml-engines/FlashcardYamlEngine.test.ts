@@ -10,6 +10,8 @@ describe('FlashcardYamlEngine', () => {
 	let engine: FlashcardYamlParser;
 
 	beforeEach(() => {
+		vi.mocked(parseYaml).mockReset();
+		vi.mocked(parseYaml).mockReturnValue({});
 		plugin = createMockPlugin([]);
 		engine = new FlashcardYamlParser(plugin as unknown as Plugin);
 	});
@@ -55,20 +57,39 @@ describe('FlashcardYamlEngine', () => {
 			}
 		});
 
-		it('should default only broken fields, preserve valid ones', async () => {
+		it('should not repair a present-but-unrecognized card_type', async () => {
 			const realUuid = '550e8400-e29b-41d4-a716-446655440000';
+			const original = `---\nuuid: ${realUuid}\nstatus: ACTIVE\ncard_type: quantum\n---\nbody`;
 			// Override parseYaml to return the raw frontmatter as if parsed from the file
 			vi.mocked(parseYaml).mockReturnValue({
 				uuid: realUuid,
 				status: 'ACTIVE',
-				card_type: 'bogus',
+				card_type: 'quantum',
+			});
+
+			plugin = createMockPlugin([{ path: 'test.md', content: original }]);
+			engine = new FlashcardYamlParser(plugin as unknown as Plugin);
+
+			const result = await engine.recover('test.md');
+
+			expect(result.success).toBe(false);
+			expect(plugin.app.fileManager.processFrontMatter).not.toHaveBeenCalled();
+			expect(plugin.app.vault.fileMap.get('test.md')).toBe(original);
+		});
+
+		it('should repair other invalid fields while preserving a recognized card_type', async () => {
+			// Override parseYaml to return the raw frontmatter as if parsed from the file
+			vi.mocked(parseYaml).mockReturnValue({
+				uuid: 'not-a-uuid',
+				status: 'ACTIVE',
+				card_type: 'occlusion',
 				stability: -5,
 			});
 
 			plugin = createMockPlugin([
 				{
 					path: 'test.md',
-					content: `---\nuuid: ${realUuid}\nstatus: ACTIVE\ncard_type: bogus\nstability: -5\n---\nbody`,
+					content: `---\nuuid: not-a-uuid\nstatus: ACTIVE\ncard_type: occlusion\nstability: -5\n---\nbody`,
 				},
 			]);
 			engine = new FlashcardYamlParser(plugin as unknown as Plugin);
@@ -77,12 +98,29 @@ describe('FlashcardYamlEngine', () => {
 
 			expect(result.success).toBe(true);
 			if (result.success) {
-				expect(result.data.uuid).toBe(realUuid); // preserved
-				expect(result.data.status).toBe(CardStatus.ACTIVE); // preserved
-				expect(result.data.card_type).toBe('basic'); // fixed
-				expect(result.data.stability).toBe(0); // fixed
+				expect(result.data.card_type).toBe('occlusion'); // preserved
+				expect(result.data.uuid).not.toBe('not-a-uuid'); // repaired
+				expect(result.data.stability).toBe(0); // repaired
 				expect(result.warnings).toBeDefined();
 				expect(result.warnings!.length).toBeGreaterThanOrEqual(2);
+			}
+		});
+
+		it('should default an absent card_type to basic', async () => {
+			const realUuid = '550e8400-e29b-41d4-a716-446655440000';
+			// Override parseYaml to return the raw frontmatter as if parsed from the file
+			vi.mocked(parseYaml).mockReturnValue({ uuid: realUuid, status: 'ACTIVE' });
+
+			plugin = createMockPlugin([
+				{ path: 'test.md', content: `---\nuuid: ${realUuid}\nstatus: ACTIVE\n---\nbody` },
+			]);
+			engine = new FlashcardYamlParser(plugin as unknown as Plugin);
+
+			const result = await engine.recover('test.md');
+
+			expect(result.success).toBe(true);
+			if (result.success) {
+				expect(result.data.card_type).toBe('basic');
 			}
 		});
 	});

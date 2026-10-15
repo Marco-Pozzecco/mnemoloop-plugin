@@ -16,10 +16,18 @@ export function normalizeSourceNoteDirectory(directory: string): string {
 		return '';
 	}
 
-	const normalizedDirectory = normalizePath(trimmedDirectory);
-	return normalizedDirectory === '/'
-		? normalizedDirectory
-		: normalizedDirectory.replace(/\/+$/, '');
+	// Obsidian's `normalizePath` strips leading slashes, but the schema (and the
+	// stored shape) requires a leading slash. Re-add it when the user supplied one.
+	const hadLeadingSlash = trimmedDirectory.startsWith('/');
+	const normalizedDirectory = normalizePath(trimmedDirectory).replace(/\/+$/, '');
+
+	if (normalizedDirectory === '' || normalizedDirectory === '/') {
+		return '/';
+	}
+
+	return hadLeadingSlash
+		? `/${normalizedDirectory.replace(/^\/+/, '')}`
+		: normalizedDirectory;
 }
 
 export function normalizeSourceNoteTag(tag: string): string {

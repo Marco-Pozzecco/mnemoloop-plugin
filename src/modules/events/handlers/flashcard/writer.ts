@@ -3,6 +3,7 @@ import { SettingsAdapter } from '@/modules/adapters/SettingsAdapter';
 import { DEFAULT_FLASHCARD_YAML, Flashcard } from '@/schemas';
 import { AdapterKey } from '@/types/adapters';
 import { WriterKey } from '@/types/writers';
+import { ensureVaultFolder } from '@/utils/ensureVaultFolder';
 import { Logger } from '@/utils/Logger';
 import { Notice } from 'obsidian';
 import { v4 as uuid } from 'uuid';
@@ -39,8 +40,8 @@ export class FlashcardWriterCreateHandler extends EventHandler<FlashcardWriterCr
 		} as Flashcard;
 		const flashcardPath = settings.data.flashcard.watch.directory + `/${flashcard.uuid}.md`;
 
-		await writer
-			.create(flashcardPath, flashcard)
+		await ensureVaultFolder(this._plugin.app.vault, settings.data.flashcard.watch.directory)
+			.then(() => writer.create(flashcardPath, flashcard))
 			.then(() => {
 				new Notice('Flashcard created successfully');
 				void this._bus.publish(new FlashcardWriterCreateResponseEvent({ filepath: flashcardPath }));
