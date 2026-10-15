@@ -1,3 +1,41 @@
+## [2.1.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/2.0.0...2.1.0) (2026-10-15)
+
+### Features
+
+* **flashcard:** create the configured flashcard directory before writing ([f3c457b](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/f3c457b0e9bfdddb011d210bc841ffa0ae1afda9))
+* **occlusion:** add image occlusion cards ([39e7424](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/39e74243a2d7843c6d298bbe0cb5b49e5e848ad4))
+* **occlusion:** add transparent mask mode ([aed3e92](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/aed3e927d4e6a0cbe86fb4f9efa64c92bd5f2c46))
+* **occlusion:** delete the active mask with Delete or Backspace ([aae6fc0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/aae6fc0d624145935efa55106b6df98ee5867e8b))
+* **occlusion:** disclose per-mask hints on request ([998f66c](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/998f66ca3680bb9964ef3ada25addda0f42c8db9))
+* **occlusion:** expand and zoom large review diagrams ([2e8c0cf](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/2e8c0cfcf04fb8a74d52017584e0331e2e545176))
+* **occlusion:** hide unrevealed review regions ([373b7ca](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/373b7ca21f08377aa8dd9418f3a15a90567ee492))
+* **occlusion:** link numbered authoring regions to their editors ([b6da349](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/b6da349d7e6990c316176fe6cd7eb6de5f0111c2))
+* **occlusion:** move a mask with Ctrl-drag from its handles ([1ce1509](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/1ce15094e60bd3da4016b6d3baaea5eb299c1c5e))
+* **occlusion:** recap card outcomes prompt by prompt ([6de2f3f](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/6de2f3f3e9a2f2aebf78053faeae79664645914a))
+* **occlusion:** resize masks in the authoring surface ([270ce99](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/270ce99a72135b868fef40c61e009ff8f95a1055))
+* **occlusion:** show review progress and answer feedback ([8965649](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/8965649d93d36a3c75494560b94891813016ce12))
+* **playground:** add markdown fixtures for every card type and view state ([e13b86d](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/e13b86d969da1107d605ecf9ac1c2f92319166f4))
+* **playground:** add the Obsidian theme shim and base styles ([c1725e8](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/c1725e8dfe99d5875ae10eaf288cda5f8ee8a27c))
+* **playground:** boot the real pipeline behind URL-driven views ([2f45695](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/2f45695804dc91d1ab0ee5f8484bbcb0f750b2e8))
+* **playground:** mock the Obsidian host in the browser ([16d1547](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/16d1547fecaeb4d25dae14c84cca3a53cb266317))
+* **settings:** add a race-safe commitPath to the settings store ([31264e3](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/31264e387e28fcf194c3bc07d4f98c774183f2de))
+* **settings:** add dot-path helpers for nested settings keys ([07a8626](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/07a86260524bf820ff9ef694a5c9cd9e6ac3ea4e))
+* **settings:** render the settings tab with the declarative Obsidian API ([48af23f](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/48af23fdc02080d95512cf4d54ec202dfaf8d1d7))
+
+### Bug Fixes
+
+* **occlusion:** add mask tools and drop the unreachable drag path ([19ccaa4](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/19ccaa4518c592b2e021da33defba652e310b524))
+* **occlusion:** count each revealed region once ([cd1ef83](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/cd1ef83922fdaa0b4b26af47674d41ccf5cce375))
+* **occlusion:** hide the drawing hint until an image is loaded ([8819a94](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/8819a9426bf91e9acbd0ba0a1c8469ca407316f9))
+* **occlusion:** mark the miss on the prompted region ([a6af7f5](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/a6af7f58cb8122bfc05bf0bac98761653c452a13))
+* **occlusion:** position the expanded viewer's static masks ([c615697](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/c6156972a54d4e61c9cef869777bcc3be6e8b570))
+* **settings:** persist settings before publishing state events ([8ee1ca7](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/8ee1ca78ccf8b056c425b57e51d6c2f5eb747de7))
+* **settings:** preserve a leading slash when normalizing the source-note directory ([3f1f9bc](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/3f1f9bcd1c554649081b3636855de8257aa1966d))
+* **ui:** align the flashcard footer's source row ([f33d5ce](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/f33d5ce8ff52f9a8b513765beb25955b0c535944))
+* **ui:** import Banner dependencies directly ([fd74ee5](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/fd74ee5956800a8b9af64f1758ccc4079896da53))
+* **ui:** keep the modal open and show validation errors ([d21ef69](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/d21ef69efe9b4e99c6497cfaf19a4415622742c3))
+* **ui:** show the matching option label in the Select trigger ([d29d55c](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/d29d55cfdc93b7cf81f638cf7173127aa98a64df))
+
 ## [2.0.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/1.10.0...2.0.0) (2026-09-18)
 
 ### ⚠ BREAKING CHANGES
