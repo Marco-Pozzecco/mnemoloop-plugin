@@ -4,7 +4,13 @@
  * FIRST in any DOM-based test file.
  */
 
+import { installObsidianDomExtensions } from '../../playground/obsidian/dom';
+
 const g = globalThis as unknown as Record<string, unknown>;
+
+// Obsidian installs its DOM (and Array) helpers on the platform prototypes; the
+// playground mock provides the same installers for jsdom.
+installObsidianDomExtensions();
 
 // Obsidian routes DOM work through this active-window-aware global.
 g.activeDocument = g.document;
