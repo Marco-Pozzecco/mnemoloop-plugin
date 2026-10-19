@@ -1,3 +1,9 @@
+## [2.1.1](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/2.1.0...2.1.1) (2026-10-19)
+
+### Bug Fixes
+
+* **playground:** move the boot error styles into theme.css ([8617c29](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/8617c29fb4cf11c57e399f586e717bf90004bf28))
+
 ## [2.1.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/2.0.0...2.1.0) (2026-10-15)
 
 ### Features
