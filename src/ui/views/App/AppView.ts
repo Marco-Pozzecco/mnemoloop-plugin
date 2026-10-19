@@ -57,7 +57,7 @@ export class AppView extends ItemView implements HoverParent {
 			});
 		} catch (error) {
 			Logger.error('Failed to open Home view:', error);
-			this.containerEl.createEl('div', { text: 'Failed to load mnemoloop' });
+			this.containerEl.createDiv({ text: 'Failed to load mnemoloop' });
 		}
 	}
 
