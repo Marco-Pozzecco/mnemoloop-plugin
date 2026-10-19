@@ -91,10 +91,10 @@ export default defineConfig(
 		},
 	},
 	{
-		// The playground is a development harness. It deliberately traffics in
-		// `any` to impersonate the Obsidian runtime, injects already-escaped
-		// markdown HTML, and mounts production views into its own DOM, so the
-		// runtime-code rules for the plugin do not apply.
+		// The playground is a development harness. It deliberately impersonates
+		// the Obsidian runtime, so a few runtime-code rules do not apply. The
+		// HTML-injection and static-style rules stay on: the community review
+		// runs them against every file in the repo and does not honour config.
 		files: ['playground/**'],
 		rules: {
 			'@typescript-eslint/no-unsafe-argument': 'off',
@@ -102,10 +102,6 @@ export default defineConfig(
 			'@typescript-eslint/no-unsafe-call': 'off',
 			'@typescript-eslint/no-unsafe-member-access': 'off',
 			'@typescript-eslint/no-unsafe-return': 'off',
-			'no-unsanitized/method': 'off',
-			'no-unsanitized/property': 'off',
-			'@microsoft/sdl/no-inner-html': 'off',
-			'obsidianmd/no-static-styles-assignment': 'off',
 			'obsidianmd/no-global-this': 'off',
 			'obsidianmd/prefer-active-doc': 'off',
 			'svelte/no-dom-manipulating': 'off',
