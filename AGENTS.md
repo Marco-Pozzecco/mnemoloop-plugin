@@ -310,6 +310,7 @@ Four-layer architecture decoupling event declaration, routing, and handling:
 - URL contract: `?view=dashboard|review|manage|analytics|priming`, `?fixture=<name>`, `?theme=light|dark`, `?modal=flashcard-form`, `?platform=desktop|mobile`. Unknown values fall back to defaults with a console warning. View/fixture/modal changes reload the page; theme and platform apply in place.
 - Fixtures live in `playground/fixtures/`. A fixture is `{ files: Map<path, markdown>, settings?, statistics?, fileStats? }`; card markdown uses flat frontmatter with JSON scalars (see `playground/fixtures/cards.ts`). Adding a fixture means adding a builder in `playground/fixtures/index.ts`, registering it in `FIXTURES`, and setting `expectedCards`/`expectedActiveCards` so `tests/unit/playground/fixtures.test.ts` keeps covering it.
 - `playground/obsidian/index.ts` is the browser `obsidian` module mock Vite aliases in; `playground/obsidian/dom.ts` installs Obsidian's DOM and `Array` extensions. Icons come from `playground/obsidian/icons.ts` (vendored Lucide nodes; unknown names render nothing, as in Obsidian) and `addIcon` registrations are supported.
+- The community review scans every TypeScript file in the repo and ignores `eslint.config.js` overrides, so `playground/` must itself comply with the review rules: no `any` (or `no-explicit-any` disables), no inline styles, and no `innerHTML` / `insertAdjacentHTML`. Build markdown and icon DOM with the detached helpers (`createEl`, `createDiv`, `createFragment`), `createTextNode` or `DOMParser` instead.
 - `playground/base.css` supplies the Obsidian base styles the components assume (border-box sizing, themed form controls, markdown typography). `playground/theme.css` defines the Obsidian CSS variables the styles consume; `tests/unit/playground/theme-variables.test.ts` fails when a referenced variable is neither in the base shim block nor given a fallback, so add new variables there.
 
 ---
@@ -410,6 +411,7 @@ Order of operations (runs on Node 22 with npm cache). Defined in `apps/plugin/.g
 
 - Uses **Yarn** (`yarn.lock` present at monorepo root)
 - Use `npm` commands in scripts but prefer `yarn` for manual installs
+- `resolutions.eslint` pins a single ESLint version: Yarn 1 cannot hoist `eslint-plugin-obsidianmd`'s `eslint >=…` range beside the pinned dev dependency. Keep it in sync with `devDependencies.eslint`
 - `package.json` type: `"module"` (ES modules)
 
 ---
