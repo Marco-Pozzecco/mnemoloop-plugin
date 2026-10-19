@@ -8,10 +8,13 @@
  * lists, emphasis and inline code, and no wiki-link resolution happens.
  */
 
-import { installObsidianDomExtensions } from './dom';
+import {
+	createDiv,
+	createEl,
+	createFragment,
+	installObsidianDomExtensions,
+} from './dom';
 import { LUCIDE_ICON_NODES } from './icons';
-
-/* eslint-disable @typescript-eslint/no-explicit-any -- the mock mirrors an untyped runtime API surface. */
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -112,20 +115,20 @@ export class Modal {
 
 	constructor(app: unknown) {
 		this.app = app;
-		this.containerEl = document.createElement('div');
+		this.containerEl = createDiv();
 		this.containerEl.className = 'modal-container';
-		this.bgEl = document.createElement('div');
+		this.bgEl = createDiv();
 		this.bgEl.className = 'modal-bg';
 		this.bgEl.addEventListener('click', () => this.close());
-		this.modalEl = document.createElement('div');
+		this.modalEl = createDiv();
 		this.modalEl.className = 'modal';
-		this.closeButtonEl = document.createElement('div');
+		this.closeButtonEl = createDiv();
 		this.closeButtonEl.className = 'modal-close-button';
 		this.closeButtonEl.textContent = '×';
 		this.closeButtonEl.addEventListener('click', () => this.close());
-		this.titleEl = document.createElement('div');
+		this.titleEl = createDiv();
 		this.titleEl.className = 'modal-title';
-		this.contentEl = document.createElement('div');
+		this.contentEl = createDiv();
 		this.contentEl.className = 'modal-content';
 		this.modalEl.append(this.closeButtonEl, this.titleEl, this.contentEl);
 		this.containerEl.append(this.bgEl, this.modalEl);
@@ -165,9 +168,9 @@ export class ItemView extends Component {
 	constructor(leaf?: unknown) {
 		super();
 		this.leaf = leaf;
-		this.containerEl = document.createElement('div');
+		this.containerEl = createDiv();
 		this.containerEl.className = 'view-content';
-		this.contentEl = document.createElement('div');
+		this.contentEl = createDiv();
 		this.contentEl.className = 'view-content-inner';
 		this.containerEl.appendChild(this.contentEl);
 	}
@@ -189,7 +192,7 @@ export class ItemView extends Component {
 	async onClose(): Promise<void> {}
 
 	addAction(): HTMLElement {
-		const element = document.createElement('div');
+		const element = createDiv();
 		this.containerEl.appendChild(element);
 		return element;
 	}
@@ -206,11 +209,11 @@ export class Plugin extends Component {
 	}
 
 	addRibbonIcon(): HTMLElement {
-		return document.createElement('div');
+		return createDiv();
 	}
 
 	addStatusBarItem(): HTMLElement {
-		return document.createElement('div');
+		return createDiv();
 	}
 
 	registerView(): void {}
@@ -243,13 +246,24 @@ export class MarkdownView {}
 
 export class MarkdownFileInfo {}
 
+/** The subset of Obsidian's `MenuItem` the plugin actually uses. */
+interface MenuItem {
+	title: string;
+	icon: string;
+	callback: () => void;
+	setTitle(title: string): MenuItem;
+	setIcon(icon: string): MenuItem;
+	onClick(callback: () => void): MenuItem;
+}
+
 export class Menu {
 	private _items: { title: string; callback: () => void }[] = [];
 
-	addItem(callback: (item: any) => void): this {
-		const item: any = {
+	addItem(callback: (item: MenuItem) => void): this {
+		const item: MenuItem = {
 			title: '',
 			icon: '',
+			callback: () => {},
 			setTitle: (title: string) => {
 				item.title = title;
 				return item;
@@ -258,13 +272,13 @@ export class Menu {
 				item.icon = icon;
 				return item;
 			},
-			onClick: (callback: () => void) => {
-				item.callback = callback;
+			onClick: (onClick: () => void) => {
+				item.callback = onClick;
 				return item;
 			},
 		};
 		callback(item);
-		if (item.title) this._items.push({ title: item.title, callback: item.callback ?? (() => {}) });
+		if (item.title) this._items.push({ title: item.title, callback: item.callback });
 		return this;
 	}
 
@@ -277,10 +291,10 @@ export class Menu {
 	}
 
 	show(): void {
-		const menuEl = document.createElement('div');
+		const menuEl = createDiv();
 		menuEl.className = 'menu ml-playground-menu';
 		for (const item of this._items) {
-			const button = document.createElement('button');
+			const button = createEl('button');
 			button.type = 'button';
 			button.textContent = item.title;
 			button.addEventListener('click', () => {
@@ -310,7 +324,7 @@ export const Platform = {
 function toastContainer(): HTMLElement {
 	let container = document.getElementById('mnemoloop-playground-toasts');
 	if (!container) {
-		container = document.createElement('div');
+		container = createDiv();
 		container.id = 'mnemoloop-playground-toasts';
 		container.className = 'ml-playground-toasts';
 		document.body.appendChild(container);
@@ -325,7 +339,7 @@ export class Notice {
 
 	constructor(message: string, timeout = 5000) {
 		this.message = message;
-		this.noticeEl = document.createElement('div');
+		this.noticeEl = createDiv();
 		this.noticeEl.className = 'ml-playground-toast';
 		this.noticeEl.textContent = message;
 		this.noticeEl.addEventListener('click', () => this.hide());
@@ -356,6 +370,29 @@ export function addIcon(iconId: string, svgContent: string): void {
 	customIcons.set(iconId, svgContent);
 }
 
+const iconNodes = new Map<string, Node[]>();
+
+/**
+ * Parses icon markup in an SVG context. `innerHTML` is not an option: it is
+ * banned by the community review even in development-only code.
+ */
+function parseIconNodes(markup: string): Node[] {
+	let nodes = iconNodes.get(markup);
+	if (!nodes) {
+		const parsed = new DOMParser().parseFromString(
+			`<svg xmlns="${SVG_NS}">${markup}</svg>`,
+			'image/svg+xml',
+		);
+		const root = parsed.documentElement;
+		nodes =
+			root.tagName.toLowerCase() === 'parsererror'
+				? []
+				: Array.from(root.childNodes);
+		iconNodes.set(markup, nodes);
+	}
+	return nodes.map((node) => document.importNode(node, true));
+}
+
 export function setIcon(element: HTMLElement, iconId: string): void {
 	element.textContent = '';
 	const inner = customIcons.get(iconId) ?? LUCIDE_ICON_NODES[iconId];
@@ -374,7 +411,7 @@ export function setIcon(element: HTMLElement, iconId: string): void {
 	svg.setAttribute('class', `svg-icon lucide lucide-${iconId}`);
 	svg.setAttribute('data-icon', iconId);
 	svg.setAttribute('aria-hidden', 'true');
-	svg.innerHTML = inner;
+	for (const node of parseIconNodes(inner)) svg.appendChild(node);
 	element.appendChild(svg);
 }
 
@@ -440,41 +477,60 @@ export function stringifyYaml(value: unknown): string {
 	return JSON.stringify(value);
 }
 
-function escapeHtml(text: string): string {
-	return text
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;');
-}
+const INLINE_TOKEN = /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/;
 
-function renderInline(text: string): string {
-	return escapeHtml(text)
-		.replace(/`([^`]+)`/g, '<code>$1</code>')
-		.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-		.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+function appendInline(parent: HTMLElement, text: string): void {
+	for (const part of text.split(INLINE_TOKEN)) {
+		if (!part) continue;
+		if (part.startsWith('`') && part.endsWith('`')) {
+			const code = createEl('code');
+			code.textContent = part.slice(1, -1);
+			parent.appendChild(code);
+		} else if (part.startsWith('**') && part.endsWith('**')) {
+			const strong = createEl('strong');
+			strong.textContent = part.slice(2, -2);
+			parent.appendChild(strong);
+		} else if (part.startsWith('*') && part.endsWith('*')) {
+			const em = createEl('em');
+			em.textContent = part.slice(1, -1);
+			parent.appendChild(em);
+		} else {
+			parent.appendChild(document.createTextNode(part));
+		}
+	}
 }
 
 function renderMarkdown(markdown: string, target: HTMLElement): void {
-	const blocks = markdown.split(/\n{2,}/);
-	const html = blocks
-		.map((block) => {
-			const lines = block.split('\n');
-			const heading = /^(#{1,6})\s+(.*)$/.exec(lines[0]);
-			if (heading) {
-				const level = heading[1].length;
-				return `<h${level}>${renderInline(heading[2])}</h${level}>`;
+	const fragment = createFragment();
+	for (const block of markdown.split(/\n{2,}/)) {
+		const lines = block.split('\n');
+		const heading = /^(#{1,6})\s+(.*)$/.exec(lines[0]);
+		if (heading) {
+			const element = createEl(
+				`h${heading[1].length}` as keyof HTMLElementTagNameMap,
+			);
+			appendInline(element, heading[2]);
+			fragment.appendChild(element);
+			continue;
+		}
+		if (lines.every((line) => /^\s*[-*+]\s+/.test(line))) {
+			const list = createEl('ul');
+			for (const line of lines) {
+				const item = createEl('li');
+				appendInline(item, line.replace(/^\s*[-*+]\s+/, ''));
+				list.appendChild(item);
 			}
-			if (lines.every((line) => /^\s*[-*+]\s+/.test(line))) {
-				const items = lines
-					.map((line) => `<li>${renderInline(line.replace(/^\s*[-*+]\s+/, ''))}</li>`)
-					.join('');
-				return `<ul>${items}</ul>`;
-			}
-			return `<p>${lines.map(renderInline).join('<br>')}</p>`;
-		})
-		.join('');
-	target.insertAdjacentHTML('beforeend', html);
+			fragment.appendChild(list);
+			continue;
+		}
+		const paragraph = createEl('p');
+		lines.forEach((line, index) => {
+			if (index > 0) paragraph.appendChild(createEl('br'));
+			appendInline(paragraph, line);
+		});
+		fragment.appendChild(paragraph);
+	}
+	target.appendChild(fragment);
 }
 
 export const MarkdownRenderer = {
@@ -493,5 +549,3 @@ export const MarkdownRenderer = {
 };
 
 export { installObsidianDomExtensions };
-
-/* eslint-enable @typescript-eslint/no-explicit-any */
