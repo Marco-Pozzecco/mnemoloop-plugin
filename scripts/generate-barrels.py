@@ -2,7 +2,8 @@
 Generate barrel exports (index.ts) for Svelte components.
 
 This script scans the ui/components directory and generates index.ts files
-following pattern convention:
+for the supported component categories (elements, compositions, modals,
+sections, views), following pattern convention:
 - Component folders: {Name}/{Name}.svelte
 - Optional types: {Name}/{Name}.types.ts
 
@@ -14,7 +15,7 @@ from pathlib import Path
 
 # Configuration
 COMPONENTS_DIR = Path(__file__).parent.parent / "src" / "ui" / "components"
-SUPPORTED_DIRECTORIES = ["elements", "modals", "sections", "views"]
+SUPPORTED_DIRECTORIES = ["elements", "compositions", "modals", "sections", "views"]
 
 
 def find_svelte_components(category_dir: Path) -> list[tuple[str, str, bool]]:
@@ -63,10 +64,10 @@ def find_svelte_components(category_dir: Path) -> list[tuple[str, str, bool]]:
 
         types_file = parent_dir / f"{component_name}.types.ts"
         types_file_fallback = parent_dir / "types.ts"
-        has_types = types_file.exists()
-
-        if not has_types:
-            has_types = types_file_fallback.exists()
+        resolved_types = types_file if types_file.exists() else types_file_fallback
+        # Only emit a props type when the file actually exports a default interface.
+        # Some component folders keep shared named types in `types.ts`.
+        has_types = resolved_types.exists() and "export default" in resolved_types.read_text()
 
         components.append((export_name, str(relative_path), has_types))
 
