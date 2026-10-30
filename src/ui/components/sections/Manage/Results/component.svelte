@@ -1,38 +1,23 @@
 <script lang="ts">
 	import { Button, Table } from '@/ui/components/elements';
+	import ManageCardList from '../CardList/component.svelte';
 	import ManageLoadingState from '../LoadingState/component.svelte';
 	import ManageTable from '../Table/component.svelte';
-	import ManageDeleteConfirmation from '../DeleteConfirmation/component.svelte';
-	import type { FlashcardMetadata } from '@/schemas';
 	import type ManageResultsProps from './types';
 
 	let {
+		cards,
+		previews,
+		hrefFor,
+		selectedUuid = null,
 		isLoading,
 		totalCount,
 		visibleCount,
-		cards,
-		previews,
-		deckOptions,
-		onAddDeck,
-		onRemoveDeck,
-		onStatusChange,
-		onEdit,
-		onDelete,
+		onOpen,
 		onAdd,
 		onReset,
 		className,
 	}: ManageResultsProps = $props();
-
-	let pendingDelete = $state<FlashcardMetadata | null>(null);
-
-	function requestDelete(card: FlashcardMetadata): void {
-		pendingDelete = card;
-	}
-
-	function confirmDelete(): void {
-		if (pendingDelete) onDelete(pendingDelete);
-		pendingDelete = null;
-	}
 </script>
 
 <div class="ml-manage-results {className ?? ''}">
@@ -57,23 +42,44 @@
 			{/snippet}
 		</Table.EmptyState>
 	{:else}
-		<ManageTable
-			{cards}
-			{previews}
-			{deckOptions}
-			{onAddDeck}
-			{onRemoveDeck}
-			{onStatusChange}
-			{onEdit}
-			onDelete={requestDelete}
-		/>
-	{/if}
-
-	{#if pendingDelete}
-		<ManageDeleteConfirmation
-			cardLabel={previews[pendingDelete.file] ?? 'this flashcard'}
-			onCancel={() => (pendingDelete = null)}
-			onConfirm={confirmDelete}
-		/>
+		<div class="ml-manage-results__table">
+			<ManageTable
+				{cards}
+				{previews}
+				{hrefFor}
+				{selectedUuid}
+				{onOpen}
+			/>
+		</div>
+		<div class="ml-manage-results__cards">
+			<ManageCardList {cards} {previews} {hrefFor} {onOpen} />
+		</div>
 	{/if}
 </div>
+
+<style lang="scss">
+	@use 'tokens' as *;
+	@use 'breakpoints' as *;
+
+	.ml-manage-results {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.ml-manage-results__cards {
+		display: none;
+	}
+
+	/* The table is the desktop and tablet presentation; cards take over on phones. */
+	@media (max-width: $mobile-breakpoint) {
+		.ml-manage-results__table {
+			display: none;
+		}
+
+		.ml-manage-results__cards {
+			display: flex;
+			flex-direction: column;
+		}
+	}
+</style>

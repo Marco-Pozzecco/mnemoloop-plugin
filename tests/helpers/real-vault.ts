@@ -211,6 +211,7 @@ export function createRealVault(
 	};
 
 	const vault: any = new (Vault as any)();
+	vault.getName = () => 'mnemoloop-playground';
 	vault.getFileByPath = (path: string) => files.get(toKey(path)) ?? null;
 	vault.getFolderByPath = (path: string) => folders.get(toKey(path)) ?? null;
 	vault.getAbstractFileByPath = (path: string) =>

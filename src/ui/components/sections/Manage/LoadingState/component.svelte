@@ -20,10 +20,10 @@
 		display: flex;
 		flex-direction: column;
 		gap: $spacing-xs;
-		padding: $spacing-sm 0;
+		padding: $spacing-xs 0;
 	}
 
 	.ml-manage-loading__row {
-		height: 32px;
+		height: $control-sm;
 	}
 </style>

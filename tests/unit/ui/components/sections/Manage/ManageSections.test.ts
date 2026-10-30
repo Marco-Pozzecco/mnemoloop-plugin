@@ -4,6 +4,7 @@ import ManageHeader from '@/ui/components/sections/Manage/Header/component.svelt
 import ManageFilterBar from '@/ui/components/sections/Manage/FilterBar/component.svelte';
 import ManagePagination from '@/ui/components/sections/Manage/Pagination/component.svelte';
 import ManageTable from '@/ui/components/sections/Manage/Table/component.svelte';
+import ManageCardList from '@/ui/components/sections/Manage/CardList/component.svelte';
 import { CardStatus, CardType } from '@/schemas';
 import type { FlashcardMetadata } from '@/schemas';
 
@@ -24,19 +25,22 @@ function buttonTagWithLabel(html: string, label: string): string {
 }
 
 function resetButtonTag(html: string): string {
-	return html.match(/<button[^>]*ml-manage__reset[^>]*>/)?.[0] ?? '';
+	const index = html.indexOf('Reset filters');
+	if (index === -1) return '';
+	const start = html.lastIndexOf('<button', index);
+	return html.slice(start, index);
+}
+
+function hrefFor(card: FlashcardMetadata): string {
+	return `obsidian://open?vault=v&file=${encodeURIComponent(card.file)}`;
 }
 
 function tableProps(overrides: Record<string, unknown> = {}) {
 	return {
 		cards: [makeCard('a')],
 		previews: { 'a.md': 'Front content' },
-		deckOptions: ['Math', 'Lang'],
-		onAddDeck: () => {},
-		onRemoveDeck: () => {},
-		onStatusChange: () => {},
-		onEdit: () => {},
-		onDelete: () => {},
+		hrefFor,
+		onOpen: () => {},
 		...overrides,
 	};
 }
@@ -68,7 +72,7 @@ describe('ManageHeader', () => {
 });
 
 describe('ManageFilterBar', () => {
-	it('renders Type and Status selects, a searchable deck combobox, and Reset', () => {
+	it('renders labelled Type and Status selects, a searchable deck combobox, and Reset', () => {
 		const { body } = render(ManageFilterBar, {
 			props: {
 				filters: { type: '', status: '', deck: '' },
@@ -84,7 +88,6 @@ describe('ManageFilterBar', () => {
 		expect(body).toContain('All decks');
 		expect(body).toContain('ml-combobox__trigger');
 		expect(body).toContain('Reset filters');
-		expect(body).toContain('ml-manage__filter-select');
 	});
 
 	it('disables Reset when no filters are active', () => {
@@ -164,21 +167,41 @@ describe('ManagePagination', () => {
 describe('ManageTable', () => {
 	it('renders the six column headers and an accessible table caption', () => {
 		const { body } = render(ManageTable, { props: tableProps() });
-		for (const header of ['Type', 'Content Preview', 'Decks', 'Status', 'Due Date', 'Actions']) {
+		for (const header of ['Type', 'Content preview', 'Decks', 'Status', 'Due date', 'Open']) {
 			expect(body).toContain(header);
 		}
 		expect(body).toContain('<caption');
 		expect(body).toContain('Manage flashcards');
 	});
 
-	it('renders a row per card with preview, deck chips, and card-specific labels', () => {
+	it('renders a read-only row: badge, preview link, deck chips, status, and due date', () => {
 		const { body } = render(ManageTable, { props: tableProps() });
-		expect(body).toContain('basic');
+		expect(body).toContain('Basic');
 		expect(body).toContain('Front content');
 		expect(body).toContain('Math');
-		expect(body).toContain('Edit Front content');
-		expect(body).toContain('Delete Front content');
-		expect(body).toContain('Status for Front content');
+		expect(body).toContain('ACTIVE');
+		expect(body).toContain('1970-01-01');
+		expect(body).toContain('obsidian://open?vault=v&amp;file=a.md');
+	});
+
+	it('draws status as a badge without the status dot', () => {
+		const { body } = render(ManageTable, { props: tableProps() });
+		expect(body).toContain('ml-badge--success');
+		expect(body).not.toContain('ml-badge__dot');
+	});
+
+	it('renders no inline editing controls', () => {
+		const { body } = render(ManageTable, { props: tableProps() });
+		expect(body).not.toContain('ml-select');
+		expect(body).not.toContain('ml-combobox');
+		expect(body).not.toContain('aria-label="Status for');
+	});
+
+	it('marks the selected row', () => {
+		const { body } = render(ManageTable, {
+			props: tableProps({ selectedUuid: 'uuid-a' }),
+		});
+		expect(body).toContain('ml-table__row--selected');
 	});
 
 	it('renders two rows when two cards are provided', () => {
@@ -193,3 +216,23 @@ describe('ManageTable', () => {
 	});
 });
 
+describe('ManageCardList', () => {
+	it('renders one anchor card per row with the scan metadata', () => {
+		const { body } = render(ManageCardList, {
+			props: {
+				cards: [makeCard('a')],
+				previews: { 'a.md': 'Front content' },
+				hrefFor,
+				onOpen: () => {},
+			},
+		});
+		expect(body).toContain('<a class="ml-manage-card');
+		expect(body).toContain('obsidian://open?vault=v&amp;file=a.md');
+		expect(body).toContain('Basic');
+		expect(body).toContain('ACTIVE');
+		expect(body).toContain('Front content');
+		expect(body).toContain('Math');
+		expect(body).not.toContain('ml-badge__dot');
+		expect(body).not.toContain('<button');
+	});
+});

@@ -130,6 +130,7 @@
 
 <style lang="scss">
 	@use 'tokens' as *;
+	@use 'breakpoints' as *;
 
 	.ml-manage__pagination {
 		display: flex;
@@ -161,14 +162,14 @@
 	.ml-manage__page-jump input {
 		box-sizing: border-box;
 		width: 4.5rem;
-		min-height: 32px;
+		min-height: $control-sm;
 		padding: $spacing-xs;
 		font-family: inherit;
 		font-size: $font-sm;
 		color: $text-normal;
 		background-color: $background-primary;
-		border: 1px solid $background-modifier-border;
-		border-radius: $radius-input;
+		border: 1px solid $line-subtle;
+		border-radius: $radius-md;
 	}
 
 	.ml-manage__page-jump input:focus {
@@ -179,11 +180,11 @@
 
 	@media (pointer: coarse) {
 		.ml-manage__page-jump input {
-			min-height: 44px;
+			min-height: $control-md;
 		}
 	}
 
-	@media (max-width: 480px) {
+	@media (max-width: $mobile-breakpoint) {
 		.ml-manage__pagination {
 			align-items: stretch;
 			flex-direction: column;

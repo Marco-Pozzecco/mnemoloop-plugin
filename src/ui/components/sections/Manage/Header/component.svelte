@@ -35,22 +35,26 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: $spacing-sm;
+		gap: $spacing-md;
 	}
 
 	.ml-manage__header-group {
+		display: flex;
+		flex-direction: column;
+		gap: $spacing-xxs * 0.5;
 		min-width: 0;
 	}
 
 	.ml-manage__title {
 		margin: 0;
-		font-size: $font-lg;
+		font-size: $heading-lg;
 		font-weight: $font-semibold;
+		line-height: 1.25;
 		color: $text-normal;
 	}
 
 	.ml-manage__subtitle {
-		margin: $spacing-xxs 0 0 0;
+		margin: 0;
 		font-size: $font-sm;
 		color: $text-muted;
 	}

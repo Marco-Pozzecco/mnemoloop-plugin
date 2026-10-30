@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { CardStatus } from '@/schemas';
-	import type { FlashcardMetadata } from '@/schemas';
+	import type { Flashcard, FlashcardMetadata } from '@/schemas';
+	import { FlashcardForm } from '@/ui/components/compositions';
+	import type { FlashcardFormSavePayload } from '@/ui/components/compositions/FlashcardForm/types';
 	import {
 		ManageFilterBar,
 		ManageHeader,
@@ -9,21 +10,32 @@
 	} from '@/ui/components/sections';
 	import { ManageController } from '@/ui/controllers/ManageController';
 	import { getAppContext } from '@/ui/context/AppContext';
-	import { modalStore, ModalViewEnum } from '@/ui/store/modal.store';
 	import { EMPTY_MANAGE_FILTERS, manageStore } from '@/ui/store/manage.store';
 	import type { ManageFilters } from '@/ui/store/manage.store';
-	import { SvelteModal } from '@/ui/views/Modal/ModalView';
-	import { ModalClassNames } from '@/ui/views/Modal/types';
+	import { Notice } from 'obsidian';
 	import { onDestroy, onMount } from 'svelte';
 	import type ManageProps from './types';
-	import { MANAGE_PAGE_SIZE, filterFlashcards, paginate } from './utils';
+	import { MANAGE_PAGE_SIZE, cardHref, filterFlashcards, paginate } from './utils';
 
 	let { className }: ManageProps = $props();
 	const { app } = getAppContext();
+	const vaultName = app.vault.getName();
 
 	const controller = new ManageController();
 	const storeRef = manageStore.store;
 	const storeState = $derived($storeRef);
+
+	// --- Sheet state ---
+	/** Which sheet is open: the editor for an existing row, or a new card. */
+	let sheetMode = $state<'create' | 'edit' | null>(null);
+	/** The row whose sheet is open or opening; drives the selected marker. */
+	let selectedUuid = $state<string | null>(null);
+	/** Metadata for the open row; the label and delete path need its file path. */
+	let selectedCard = $state<FlashcardMetadata | null>(null);
+	/** The loaded card, including content. The edit sheet renders only once this lands. */
+	let editingCard = $state<Flashcard | null>(null);
+	/** Guards against an older fetch landing after a newer row was clicked. */
+	let openRequest = 0;
 
 	// --- Derived table data ---
 	const filtered = $derived(filterFlashcards(storeState.flashcards, storeState.filters));
@@ -62,86 +74,135 @@
 		manageStore.setFilters({ ...storeState.filters, ...patch });
 	}
 
-	function handleStatusChange(card: FlashcardMetadata, value: string): void {
-		controller.updateStatus(card, value as CardStatus);
+	function handleResetFilters(): void {
+		manageStore.setFilters({ ...EMPTY_MANAGE_FILTERS });
 	}
 
-	// --- Inline deck editing: each picker selection commits immediately ---
-	function addDeckToCard(card: FlashcardMetadata, deck: string): void {
-		const normalized = deck.trim();
-		if (!normalized) return;
-		const current = storeState.flashcards.find((c) => c.uuid === card.uuid) ?? card;
-		if (current.decks.some((d) => d.toLowerCase() === normalized.toLowerCase())) return;
-		controller.updateDecks(current, [...current.decks, normalized]);
+	// --- Sheet handlers ---
+	async function handleOpen(card: FlashcardMetadata): Promise<void> {
+		const request = ++openRequest;
+		sheetMode = 'edit';
+		selectedUuid = card.uuid;
+		selectedCard = card;
+		const full = await controller.fetchCard(card.file);
+		if (request !== openRequest) return;
+
+		if (!full) {
+			selectedUuid = null;
+			selectedCard = null;
+			sheetMode = null;
+			new Notice('Couldn’t open that flashcard.');
+			return;
+		}
+		editingCard = full;
 	}
 
-	function removeDeckFromCard(card: FlashcardMetadata, deck: string): void {
-		const current = storeState.flashcards.find((c) => c.uuid === card.uuid) ?? card;
-		const next = current.decks.filter((d) => d.toLowerCase() !== deck.toLowerCase());
-		if (next.length === current.decks.length) return;
-		controller.updateDecks(current, next);
+	function handleCloseSheet(): void {
+		openRequest++;
+		editingCard = null;
+		selectedCard = null;
+		selectedUuid = null;
+		sheetMode = null;
 	}
 
-	// --- Row actions ---
-	async function handleEdit(card: FlashcardMetadata): Promise<void> {
-		const fullCard = await controller.fetchCard(card.file);
-		if (!fullCard) return;
-		modalStore.open(ModalViewEnum.flashcard, { mode: 'edit', card: fullCard });
-		new SvelteModal(app, ModalClassNames.flashcard).open();
+	async function handleSave(payload: FlashcardFormSavePayload): Promise<boolean> {
+		let saved = false;
+
+		if (sheetMode === 'create') {
+			saved = await controller.createCard({
+				content: payload.content,
+				decks: payload.decks,
+				source: payload.source,
+			});
+		} else if (editingCard) {
+			saved = await controller.updateCard(editingCard, {
+				content: payload.content,
+				decks: payload.decks,
+				source: payload.source,
+				status: payload.status ?? editingCard.status,
+			});
+		}
+
+		if (saved) handleCloseSheet();
+		return saved;
 	}
 
-	function handleDelete(card: FlashcardMetadata): void {
-		controller.deleteCard(card);
+	function handleDelete(): void {
+		if (selectedCard) controller.deleteCard(selectedCard);
+		handleCloseSheet();
+	}
+
+	function hrefFor(card: FlashcardMetadata): string {
+		return cardHref(vaultName, card.file);
 	}
 
 	function handleAdd(): void {
-		modalStore.open(ModalViewEnum.flashcard, { mode: 'create' });
-		new SvelteModal(app, ModalClassNames.flashcard).open();
+		openRequest++;
+		editingCard = null;
+		selectedCard = null;
+		selectedUuid = null;
+		sheetMode = 'create';
 	}
 </script>
 
 <div class="ml-manage {className ?? ''}">
-	<!-- Header: title + add -->
-	<ManageHeader
-		totalCount={storeState.flashcards.length}
-		visibleCount={filtered.length}
-		onAdd={handleAdd}
-	/>
-
-	<!-- Filter bar -->
-	<ManageFilterBar
-		filters={storeState.filters}
-		{deckOptions}
-		onChange={handleFilterChange}
-		onReset={() => manageStore.setFilters({ ...EMPTY_MANAGE_FILTERS })}
-	/>
-
-	<!-- Results -->
-	<ManageResults
-		isLoading={storeState.isLoading}
-		totalCount={storeState.flashcards.length}
-		visibleCount={filtered.length}
-		cards={visibleCards}
-		previews={storeState.previews}
-		{deckOptions}
-		onAddDeck={addDeckToCard}
-		onRemoveDeck={removeDeckFromCard}
-		onStatusChange={handleStatusChange}
-		onEdit={(card) => void handleEdit(card)}
-		onDelete={handleDelete}
-		onAdd={handleAdd}
-		onReset={() => manageStore.setFilters({ ...EMPTY_MANAGE_FILTERS })}
-	/>
-
-	{#if filtered.length > 0}
-		<!-- Pagination -->
-		<ManagePagination
-			currentPage={paged.safePage}
-			totalPages={paged.totalPages}
-			totalItems={filtered.length}
-			pageSize={MANAGE_PAGE_SIZE}
-			onPageChange={(page) => manageStore.setCurrentPage(page)}
+	<div class="ml-manage__scroll">
+		<!-- Header: title + add -->
+		<ManageHeader
+			totalCount={storeState.flashcards.length}
+			visibleCount={filtered.length}
+			onAdd={handleAdd}
 		/>
+
+		<!-- Filter bar -->
+		<ManageFilterBar
+			filters={storeState.filters}
+			{deckOptions}
+			onChange={handleFilterChange}
+			onReset={handleResetFilters}
+		/>
+
+		<!-- Results -->
+		<ManageResults
+			isLoading={storeState.isLoading}
+			totalCount={storeState.flashcards.length}
+			visibleCount={filtered.length}
+			cards={visibleCards}
+			previews={storeState.previews}
+			{hrefFor}
+			{selectedUuid}
+			onOpen={(card) => void handleOpen(card)}
+			onAdd={handleAdd}
+			onReset={handleResetFilters}
+		/>
+
+		{#if filtered.length > 0}
+			<!-- Pagination -->
+			<ManagePagination
+				currentPage={paged.safePage}
+				totalPages={paged.totalPages}
+				totalItems={filtered.length}
+				pageSize={MANAGE_PAGE_SIZE}
+				onPageChange={(page) => manageStore.setCurrentPage(page)}
+			/>
+		{/if}
+	</div>
+
+	{#if sheetMode === 'create'}
+		<FlashcardForm mode="create" {deckOptions} onClose={handleCloseSheet} onSave={handleSave} />
+	{:else if sheetMode === 'edit' && editingCard}
+		{#key editingCard.uuid}
+			<FlashcardForm
+				mode="edit"
+				card={editingCard}
+				label={(selectedCard ? storeState.previews[selectedCard.file] : undefined) ??
+					'this flashcard'}
+				{deckOptions}
+				onClose={handleCloseSheet}
+				onSave={handleSave}
+				onDelete={handleDelete}
+			/>
+		{/key}
 	{/if}
 </div>
 
@@ -149,11 +210,19 @@
 	@use 'tokens' as *;
 
 	.ml-manage {
+		position: relative;
+		display: flex;
+		min-height: 0;
+		height: 100%;
+	}
+
+	.ml-manage__scroll {
 		display: flex;
 		flex-direction: column;
-		gap: $spacing-md;
+		flex: 1;
+		min-width: 0;
+		gap: $spacing-sm;
 		padding: $spacing-lg;
-		height: 100%;
 		overflow-y: auto;
 	}
 </style>

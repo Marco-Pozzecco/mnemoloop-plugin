@@ -7,10 +7,12 @@ import {
 	FlashcardIndexStateEvent,
 	FlashcardParserParseMetadataResponseEvent,
 	FlashcardParserParseResponseEvent,
+	FlashcardWriterCreateRequestEvent,
+	FlashcardWriterCreateResponseEvent,
 	FlashcardWriterDeleteRequestEvent,
 	FlashcardWriterDeleteResponseEvent,
-	FlashcardWriterFmRequestEvent,
-	FlashcardWriterFmResponseEvent,
+	FlashcardWriterUpdateRequestEvent,
+	FlashcardWriterUpdateResponseEvent,
 } from '@/modules/events';
 import { CardStatus, CardType } from '@/schemas';
 import type { Flashcard } from '@/schemas';
@@ -74,39 +76,6 @@ describe('ManageController', () => {
 		controller.dispose();
 	});
 
-	it('publishes an Fm request with filepath when updating status', () => {
-		const card = createFlashcardMetadata({ uuid: 'uuid-1', file: 'cards/uuid-1.md' });
-		manageStore.setFlashcards([card]);
-		const controller = new ManageController();
-		const publishSpy = vi.spyOn(EventBus.instance, 'publish');
-
-		controller.updateStatus(card, CardStatus.PAUSED);
-
-		const fmEvent = publishSpy.mock.calls
-			.map(([event]) => event as FlashcardWriterFmRequestEvent)
-			.find((event) => event instanceof FlashcardWriterFmRequestEvent);
-		expect(fmEvent?.data.filepath).toBe('cards/uuid-1.md');
-		expect(fmEvent?.data.fm.status).toBe(CardStatus.PAUSED);
-		expect(manageStore.state.flashcards[0]?.status).toBe(CardStatus.PAUSED);
-		controller.dispose();
-	});
-
-	it('publishes an Fm request with the updated decks array', () => {
-		const card = createFlashcardMetadata({ uuid: 'uuid-1', file: 'a.md', decks: ['Maths'] });
-		manageStore.setFlashcards([card]);
-		const controller = new ManageController();
-		const publishSpy = vi.spyOn(EventBus.instance, 'publish');
-
-		controller.updateDecks(card, ['Maths', 'Science']);
-
-		const fmEvent = publishSpy.mock.calls
-			.map(([event]) => event as FlashcardWriterFmRequestEvent)
-			.find((event) => event instanceof FlashcardWriterFmRequestEvent);
-		expect(fmEvent?.data.fm.decks).toEqual(['Maths', 'Science']);
-		expect(manageStore.state.flashcards[0]?.decks).toEqual(['Maths', 'Science']);
-		controller.dispose();
-	});
-
 	it('publishes a delete request with the card uuid and removes it optimistically', () => {
 		const card = createFlashcardMetadata({ uuid: 'uuid-1', file: 'a.md' });
 		manageStore.setFlashcards([card, createFlashcardMetadata({ uuid: 'uuid-2', file: 'b.md' })]);
@@ -152,61 +121,191 @@ describe('ManageController', () => {
 		controller.dispose();
 	});
 
-	it('reconciles status from on-disk metadata after a successful Fm write', async () => {
-		const card = createFlashcardMetadata({
-			uuid: 'uuid-1',
-			file: 'a.md',
-			status: CardStatus.ACTIVE,
-		});
-		manageStore.setFlashcards([card]);
+	it('publishes one update request with content, decks, source, and status', async () => {
+		const card = makeBasicParseResult('a.md', 'Front').entity!;
+		manageStore.setFlashcards([createFlashcardMetadata({ uuid: card.uuid, file: 'a.md' })]);
 		const controller = new ManageController();
+		const publishSpy = vi.spyOn(EventBus.instance, 'publish');
 
-		controller.updateStatus(card, CardStatus.PAUSED);
-		expect(manageStore.state.flashcards[0]?.status).toBe(CardStatus.PAUSED);
+		const promise = controller.updateCard(card, {
+			content: { meta_type: CardType.Basic, front: 'Updated', back: 'Back' },
+			decks: ['Math'],
+			source: '[[notes]]',
+			status: CardStatus.PAUSED,
+		});
 
-		// Writer finishes: Fm response fires, controller re-parses on-disk metadata.
-		await EventBus.instance.publish(new FlashcardWriterFmResponseEvent({ filepath: 'a.md' }));
+		const request = publishSpy.mock.calls
+			.map(([event]) => event as FlashcardWriterUpdateRequestEvent)
+			.find((event) => event instanceof FlashcardWriterUpdateRequestEvent);
+		expect(request?.data).toMatchObject({
+			uuid: card.uuid,
+			decks: ['Math'],
+			source: '[[notes]]',
+			status: CardStatus.PAUSED,
+		});
 
 		await EventBus.instance.publish(
-			new FlashcardParserParseMetadataResponseEvent({
-				entity: createFlashcardYaml({ uuid: card.uuid, status: CardStatus.PAUSED }),
-				stats: { created_at: card.created_at, updated_at: card.updated_at },
+			new FlashcardWriterUpdateResponseEvent({
 				filepath: 'a.md',
+				requestId: request!.id,
 				success: true,
 			}),
 		);
 
-		expect(manageStore.state.flashcards[0]?.status).toBe(CardStatus.PAUSED);
-		expect(Notice).toHaveBeenCalledWith('Status saved.');
+		await expect(promise).resolves.toBe(true);
 		controller.dispose();
 	});
 
-	it('reverts an optimistic status edit when the Fm write failed', async () => {
-		const card = createFlashcardMetadata({
-			uuid: 'uuid-1',
-			file: 'a.md',
+	it('resolves false when the writer reports a failed update', async () => {
+		const card = makeBasicParseResult('a.md', 'Front').entity!;
+		const controller = new ManageController();
+		const publishSpy = vi.spyOn(EventBus.instance, 'publish');
+
+		const promise = controller.updateCard(card, {
+			content: { meta_type: CardType.Basic, front: 'Updated', back: 'Back' },
+			decks: [],
+			source: null,
 			status: CardStatus.ACTIVE,
 		});
-		manageStore.setFlashcards([card]);
+
+		const request = publishSpy.mock.calls
+			.map(([event]) => event as FlashcardWriterUpdateRequestEvent)
+			.find((event) => event instanceof FlashcardWriterUpdateRequestEvent);
+
+		await EventBus.instance.publish(
+			new FlashcardWriterUpdateResponseEvent({
+				filepath: 'a.md',
+				requestId: request!.id,
+				success: false,
+			}),
+		);
+
+		await expect(promise).resolves.toBe(false);
+		controller.dispose();
+	});
+
+	it('ignores an update response for a different request', async () => {
+		const card = makeBasicParseResult('a.md', 'Front').entity!;
 		const controller = new ManageController();
 
-		controller.updateStatus(card, CardStatus.PAUSED);
-		expect(manageStore.state.flashcards[0]?.status).toBe(CardStatus.PAUSED);
+		const promise = controller.updateCard(card, {
+			content: { meta_type: CardType.Basic, front: 'Updated', back: 'Back' },
+			decks: [],
+			source: null,
+			status: CardStatus.ACTIVE,
+		});
 
-		await EventBus.instance.publish(new FlashcardWriterFmResponseEvent({ filepath: 'a.md' }));
-
-		// On-disk truth: write failed, the file still has ACTIVE.
 		await EventBus.instance.publish(
-			new FlashcardParserParseMetadataResponseEvent({
-				entity: createFlashcardYaml({ uuid: card.uuid, status: CardStatus.ACTIVE }),
-				stats: { created_at: card.created_at, updated_at: card.updated_at },
+			new FlashcardWriterUpdateResponseEvent({
 				filepath: 'a.md',
+				requestId: 'other-request',
 				success: true,
 			}),
 		);
 
-		expect(manageStore.state.flashcards[0]?.status).toBe(CardStatus.ACTIVE);
-		expect(Notice).toHaveBeenCalledWith("Couldn't save status. Restored the last saved value.");
+		let settled = false;
+		void promise.then(() => (settled = true));
+		await Promise.resolve();
+		expect(settled).toBe(false);
+		controller.dispose();
+	});
+
+	it('creates a card and adds the written file to the store', async () => {
+		manageStore.reset();
+		const controller = new ManageController();
+		const publishSpy = vi.spyOn(EventBus.instance, 'publish');
+
+		const promise = controller.createCard({
+			content: { meta_type: CardType.Basic, front: 'Front', back: 'Back' },
+			decks: ['Math'],
+			source: null,
+		});
+
+		const request = publishSpy.mock.calls
+			.map(([event]) => event as FlashcardWriterCreateRequestEvent)
+			.find((event) => event instanceof FlashcardWriterCreateRequestEvent);
+		expect(request?.data).toMatchObject({ decks: ['Math'], source: null });
+
+		await EventBus.instance.publish(
+			new FlashcardWriterCreateResponseEvent({
+				filepath: '/flashcards/new.md',
+				requestId: request!.id,
+				success: true,
+			}),
+		);
+		await expect(promise).resolves.toBe(true);
+
+		// The controller reads the new file so the row appears without waiting for the index.
+		await EventBus.instance.publish(
+			new FlashcardParserParseMetadataResponseEvent({
+				entity: createFlashcardYaml({ uuid: 'uuid-new' }),
+				stats: {
+					created_at: '2026-01-01T00:00:00.000Z',
+					updated_at: '2026-01-01T00:00:00.000Z',
+				},
+				filepath: '/flashcards/new.md',
+				success: true,
+			}),
+		);
+
+		expect(manageStore.state.flashcards).toHaveLength(1);
+		expect(manageStore.state.flashcards[0]).toMatchObject({
+			uuid: 'uuid-new',
+			file: '/flashcards/new.md',
+		});
+		controller.dispose();
+	});
+
+	it('resolves false and adds nothing when the create write fails', async () => {
+		manageStore.reset();
+		const controller = new ManageController();
+		const publishSpy = vi.spyOn(EventBus.instance, 'publish');
+
+		const promise = controller.createCard({
+			content: { meta_type: CardType.Basic, front: 'Front', back: 'Back' },
+			decks: [],
+			source: null,
+		});
+
+		const request = publishSpy.mock.calls
+			.map(([event]) => event as FlashcardWriterCreateRequestEvent)
+			.find((event) => event instanceof FlashcardWriterCreateRequestEvent);
+
+		await EventBus.instance.publish(
+			new FlashcardWriterCreateResponseEvent({
+				filepath: '/flashcards/new.md',
+				requestId: request!.id,
+				success: false,
+			}),
+		);
+
+		await expect(promise).resolves.toBe(false);
+		expect(manageStore.state.flashcards).toEqual([]);
+		controller.dispose();
+	});
+
+	it('ignores a create response for a different request', async () => {
+		manageStore.reset();
+		const controller = new ManageController();
+
+		const promise = controller.createCard({
+			content: { meta_type: CardType.Basic, front: 'Front', back: 'Back' },
+			decks: [],
+			source: null,
+		});
+
+		await EventBus.instance.publish(
+			new FlashcardWriterCreateResponseEvent({
+				filepath: '/flashcards/other.md',
+				requestId: 'other-request',
+				success: true,
+			}),
+		);
+
+		let settled = false;
+		void promise.then(() => (settled = true));
+		await Promise.resolve();
+		expect(settled).toBe(false);
 		controller.dispose();
 	});
 

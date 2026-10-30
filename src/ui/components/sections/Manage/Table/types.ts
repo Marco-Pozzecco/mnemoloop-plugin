@@ -3,11 +3,9 @@ import type { FlashcardMetadata } from '@/schemas';
 export default interface ManageTableProps {
 	cards: FlashcardMetadata[];
 	previews: Record<string, string>;
-	deckOptions: string[];
-	onAddDeck: (card: FlashcardMetadata, deck: string) => void;
-	onRemoveDeck: (card: FlashcardMetadata, deck: string) => void;
-	onStatusChange: (card: FlashcardMetadata, value: string) => void;
-	onEdit: (card: FlashcardMetadata) => void;
-	onDelete: (card: FlashcardMetadata) => void;
-	className?: string;
+	/** Vault deep link for each card's note. */
+	hrefFor: (card: FlashcardMetadata) => string;
+	/** The card whose sheet is open, if any. */
+	selectedUuid?: string | null;
+	onOpen: (card: FlashcardMetadata) => void;
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CardStatus, CardType } from '@/schemas';
-	import { Button, Combobox, Icon, Select } from '@/ui/components/elements';
+	import { Button, Combobox, Input, Select } from '@/ui/components/elements';
 	import { filterOptions } from '@/ui/components/elements/Combobox/utils';
 	import { MANAGE_STATUS_OPTIONS, MANAGE_TYPE_OPTIONS } from '../options';
 	import type ManageFilterBarProps from './types';
@@ -45,43 +45,44 @@
 		if (!open) deckSearch = '';
 	}
 
-	function handleQueryInput(event: Event): void {
-		onChange({ query: (event.currentTarget as HTMLInputElement).value });
-	}
-
 	$effect(() => {
 		if (deckPickerOpen && deckInput) queueMicrotask(() => deckInput?.focus());
 	});
 </script>
 
 <div class="ml-manage__filters {className ?? ''}">
-	<div class="ml-manage__filter-search">
-		<label for="ml-manage-filter-query">Search filename or deck</label>
-		<input
+	<div class="ml-manage__field ml-manage__field--search">
+		<Input
 			id="ml-manage-filter-query"
 			type="search"
+			label="Search filename or deck"
 			placeholder="Search filename or deck"
 			value={filters.query ?? ''}
-			oninput={handleQueryInput}
+			oninput={(value) => onChange({ query: value })}
 		/>
 	</div>
-	<Select
-		id="ml-manage-filter-type"
-		label="Type"
-		className="ml-manage__filter-select"
-		options={withAllOption(MANAGE_TYPE_OPTIONS)}
-		value={filters.type}
-		onchange={(v) => onChange({ type: v as CardType })}
-	/>
-	<Select
-		id="ml-manage-filter-status"
-		label="Status"
-		className="ml-manage__filter-select"
-		options={withAllOption(MANAGE_STATUS_OPTIONS)}
-		value={filters.status}
-		onchange={(v) => onChange({ status: v as CardStatus })}
-	/>
-	<div class="ml-manage__deck-filter">
+
+	<div class="ml-manage__field ml-manage__field--select">
+		<Select
+			id="ml-manage-filter-type"
+			label="Type"
+			options={withAllOption(MANAGE_TYPE_OPTIONS)}
+			value={filters.type}
+			onchange={(v) => onChange({ type: v as CardType })}
+		/>
+	</div>
+
+	<div class="ml-manage__field ml-manage__field--select">
+		<Select
+			id="ml-manage-filter-status"
+			label="Status"
+			options={withAllOption(MANAGE_STATUS_OPTIONS)}
+			value={filters.status}
+			onchange={(v) => onChange({ status: v as CardStatus })}
+		/>
+	</div>
+
+	<div class="ml-manage__field ml-manage__field--deck">
 		<Combobox.Root
 			type="single"
 			items={deckItems}
@@ -90,19 +91,13 @@
 			onOpenChange={handleDeckOpenChange}
 			onValueChange={handleDeckChange}
 			inputValue={deckSearch}
-			class="ml-manage__deck-combobox"
 		>
 			<Combobox.Label for="ml-manage-filter-deck">Deck</Combobox.Label>
-			<Combobox.Trigger
-				id="ml-manage-filter-deck"
-				ariaLabel="Deck filter"
-				class="ml-manage__deck-trigger"
-			>
+			<Combobox.Trigger id="ml-manage-filter-deck" ariaLabel="Deck filter">
 				<span class="ml-manage__deck-label">{filters.deck || 'All decks'}</span>
-				<Icon name="chevron-down" size={14} />
 			</Combobox.Trigger>
 			<Combobox.Portal>
-				<Combobox.Content class="ml-manage__deck-content">
+				<Combobox.Content>
 					<Combobox.Input
 						bind:ref={deckInput}
 						placeholder="Search decks"
@@ -121,87 +116,43 @@
 			</Combobox.Portal>
 		</Combobox.Root>
 	</div>
-	<Button
-		type="button"
-		variant="ghost"
-		class="ml-manage__reset"
-		disabled={!hasActiveFilters}
-		onclick={onReset}
-	>
-		Reset filters
-	</Button>
+
+	<div class="ml-manage__reset">
+		<Button type="button" variant="plain" size="medium" disabled={!hasActiveFilters} onclick={onReset}>
+			Reset filters
+		</Button>
+	</div>
 </div>
 
 <style lang="scss">
 	@use 'tokens' as *;
+	@use 'breakpoints' as *;
 
 	.ml-manage__filters {
 		display: flex;
 		flex-wrap: wrap;
-		gap: $spacing-sm;
 		align-items: flex-end;
-	}
-
-	.ml-manage__filter-search,
-	.ml-manage__deck-filter {
-		display: flex;
-		flex: 1 1 220px;
-		flex-direction: column;
 		gap: $spacing-xs;
-		min-width: 180px;
-		max-width: 280px;
 	}
 
-	.ml-manage__filter-search label,
-	:global(.ml-manage__deck-filter .ml-combobox__label) {
-		font-size: $font-xs;
-		font-weight: $font-md;
-		color: $text-normal;
-	}
-
-	.ml-manage__filter-search input {
-		width: 100%;
-		min-height: 44px;
-		padding: $spacing-sm;
-		font-family: inherit;
-		font-size: $font-sm;
-		color: $text-normal;
-		background-color: $background-primary;
-		border: 1px solid $background-modifier-border;
-		border-radius: $radius-input;
-	}
-
-	.ml-manage__filter-search input:focus {
-		outline: none;
-		border-color: $interactive-accent;
-		box-shadow: 0 0 0 2px $background-modifier-border-focus;
-	}
-
-	:global(.ml-select-wrapper.ml-manage__filter-select) {
-		flex: 1 1 180px;
-		max-width: 220px;
-	}
-
-	:global(.ml-combobox.ml-manage__deck-combobox) {
-		width: 100%;
-	}
-
-	:global(.ml-combobox__trigger.ml-manage__deck-trigger) {
-		position: static;
-		transform: none;
+	.ml-manage__field {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		width: 100%;
-		min-height: 44px;
-		padding: $spacing-sm;
-		font-family: inherit;
-		font-size: $font-sm;
-		text-align: left;
-		color: $text-normal;
-		background-color: $background-primary;
-		border: 1px solid $background-modifier-border;
-		border-radius: $radius-input;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.ml-manage__field--search {
+		flex: 1 1 240px;
+		max-width: 300px;
+	}
+
+	.ml-manage__field--select {
+		flex: 0 1 204px;
+	}
+
+	.ml-manage__field--deck {
+		flex: 1 1 240px;
+		max-width: 272px;
 	}
 
 	.ml-manage__deck-label {
@@ -210,46 +161,26 @@
 		white-space: nowrap;
 	}
 
-	:global(.ml-combobox__trigger.ml-manage__deck-trigger:focus-visible),
-	:global(.ml-combobox__trigger.ml-manage__deck-trigger[data-state='open']) {
-		outline: none;
-		border-color: $interactive-accent;
-		box-shadow: 0 0 0 2px $background-modifier-border-focus;
+	.ml-manage__reset {
+		display: flex;
 	}
 
-	:global(.ml-combobox__content.ml-manage__deck-content) {
-		min-width: min(280px, calc(100vw - 32px));
-	}
+	@media (max-width: $mobile-breakpoint) {
+		.ml-manage__filters {
+			flex-direction: column;
+			align-items: stretch;
+		}
 
-	:global button.ml-manage__reset {
-		border: none;
-		color: $interactive-accent;
-		cursor: pointer;
-		font-size: $font-sm;
-		padding: $spacing-xs;
-	}
-
-	.ml-manage__reset:hover:not(:disabled) {
-		color: $text-accent-hover;
-	}
-
-	.ml-manage__reset:disabled {
-		color: $text-muted;
-		cursor: default;
-	}
-
-	/* Mobile adjustments */
-	@media (max-width: 480px) {
-		.ml-manage__filter-search,
-		.ml-manage__deck-filter,
-		:global(.ml-select-wrapper.ml-manage__filter-select) {
-			flex: 1 1 100%;
+		.ml-manage__field--search,
+		.ml-manage__field--select,
+		.ml-manage__field--deck {
+			flex: 1 1 auto;
 			max-width: none;
 		}
 
-		.ml-manage__filter-search input,
-		:global(.ml-combobox__input) {
-			font-size: 1rem; /* Prevent iOS zoom */
+		.ml-manage__reset > * {
+			flex: 1;
+			justify-content: flex-start;
 		}
 	}
 </style>
