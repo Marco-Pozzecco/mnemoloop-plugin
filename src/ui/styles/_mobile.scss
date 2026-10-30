@@ -49,7 +49,7 @@
 }
 
 /* ==================== Font Size Scaling ==================== */
-@media (max-width: 480px) {
+@media (max-width: $mobile-breakpoint) {
 	:root {
 		--font-ui-smaller: 12px;
 		--font-ui-small: 13px;
