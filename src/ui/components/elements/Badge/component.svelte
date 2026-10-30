@@ -21,11 +21,15 @@
 <style lang="scss">
 	@use 'tokens' as *;
 
+	// Component geometry: the badge capsule and its status dot.
+	$height: 22px;
+	$dot: 6px;
+
 	.ml-badge {
 		display: inline-flex;
 		align-items: center;
 		gap: $spacing-xxs;
-		height: $badge-height;
+		height: $height;
 		padding: 0 $spacing-xs;
 		font-family: inherit;
 		font-size: $font-xs;
@@ -75,8 +79,8 @@
 	}
 
 	.ml-badge__dot {
-		width: $dot-size;
-		height: $dot-size;
+		width: $dot;
+		height: $dot;
 		flex: 0 0 auto;
 		border-radius: $radius-full;
 		background-color: currentColor;

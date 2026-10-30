@@ -12,8 +12,11 @@
 <style lang="scss">
 	@use 'tokens' as *;
 
+	// Component geometry: the header row is shorter than a body row.
+	$head-height: 40px;
+
 	.ml-table__th {
-		height: $table-head-height;
+		height: $head-height;
 		padding: 0 $spacing-md;
 		text-align: left;
 		font-size: $font-xs;

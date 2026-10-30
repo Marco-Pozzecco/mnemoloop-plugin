@@ -68,6 +68,14 @@ $interactive-accent-hover: var(--interactive-accent-hover);
 $interactive-normal: var(--interactive-normal);
 $interactive-hover: var(--interactive-hover);
 
+// -- Surface and line roles --
+// Semantic aliases for the design roles. Each resolves to an Obsidian variable:
+// the plugin owns the role, the theme owns the colour.
+$surface-raised: var(--background-primary-alt); // table head, cards, sheet body
+$surface-muted: var(--background-modifier-hover); // badge and chip fills
+$line-subtle: var(--background-modifier-border); // dividers, control borders
+$line-strong: var(--background-modifier-border-hover); // container borders
+
 // -- Status Colors --
 $status-info: var(--color-blue);
 $status-success: var(--color-green);
@@ -100,6 +108,10 @@ $font-text: var(--font-text);
 // -- Line height --
 $line-height-normal: var(--line-height-normal);
 
+// -- Letter spacing --
+// Sizes and weights are Obsidian's; the caps tracking is the plugin's.
+$letter-spacing-caps: 0.08em; // uppercase column heads and meta labels
+
 // -- Heading size --
 $heading-xs: var(--h6-size);
 $heading-sm: var(--h5-size);
@@ -122,6 +134,15 @@ $navbar-height: var(--navbar-height);
 $navbar-bottom-offset: var(--navbar-bottom-offset);
 $dialog-width: var(--dialog-width);
 
+// -- Control sizes --
+// The shared control contract: one height for fields and buttons, and the touch
+// minimum the mobile styles enforce. A component's own geometry (row and card
+// heights, sheet width, badge and dot sizes) lives in that component's style
+// block, not here.
+$control-sm: 32px; // compact desktop control (table toolbar, dialog footer)
+$control-md: 44px; // primary control, and the touch minimum everywhere
+$control-lg: 52px; // large control
+
 // -- Border Radius --
 $radius-xs: 2px;
 $radius-sm: 4px;
@@ -129,6 +150,7 @@ $radius-md: 8px;
 $radius-lg: 12px;
 $radius-xl: 16px;
 $radius-full: 50%;
+$radius-pill: 999px;
 
 // -- Component specific radius --
 $radius-button: var(--button-radius);
@@ -171,5 +193,7 @@ $easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 // -- Z-Index --
 $z-base: 1;
 $z-dropdown: 100;
+$z-sheet: 500; // non-modal sidesheet; above bottom nav, below dialogs
 $z-modal: 1000;
+$z-popover: 1100; // Select/Combobox portals; must clear a dialog or sheet
 $z-toast: 2000;

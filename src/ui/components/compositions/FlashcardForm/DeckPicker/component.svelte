@@ -130,6 +130,10 @@
 	@use 'tokens' as *;
 	@use 'breakpoints' as *;
 
+	// Component geometry: the add control matches the chip it sits beside; on
+	// touch it grows to the shared control size.
+	$chip-height: 22px;
+
 	.ml-deck-picker__row {
 		display: flex;
 		flex-wrap: wrap;
@@ -142,8 +146,8 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: $badge-height;
-		height: $badge-height;
+		width: $chip-height;
+		height: $chip-height;
 		min-width: 0;
 		min-height: 0;
 		padding: 0;
