@@ -11,6 +11,8 @@ export default interface TextareaProps {
 	rows?: number;
 	maxLength?: number;
 	className?: string;
+	/** Fires on every keystroke. */
+	oninput?: (value: string) => void;
 	onchange?: (value: string) => void;
 	onfocus?: () => void;
 	onblur?: () => void;
