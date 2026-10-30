@@ -20,10 +20,16 @@ const FlashcardWriterCreateRequestEvent =
 	EventFactory.createRequest<FlashcardWriterCreateEventData>(t.create);
 type FlashcardWriterCreateRequestEvent = IEvent<FlashcardWriterCreateEventData>;
 
-const FlashcardWriterCreateResponseEvent = EventFactory.createResponse<{ filepath: string }>(
-	t.create,
-);
-type FlashcardWriterCreateResponseEvent = IEvent<{ filepath: string }>;
+const FlashcardWriterCreateResponseEvent = EventFactory.createResponse<{
+	filepath: string;
+	requestId: string;
+	success: boolean;
+}>(t.create);
+type FlashcardWriterCreateResponseEvent = IEvent<{
+	filepath: string;
+	requestId: string;
+	success: boolean;
+}>;
 
 type FlashcardWriterUpdateEventData = Partial<Flashcard>;
 

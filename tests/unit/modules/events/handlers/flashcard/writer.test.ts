@@ -107,6 +107,8 @@ describe('FlashcardWriterCreateHandler', () => {
 		const publishedEvent = vi.mocked(bus.publish).mock.calls[0][0] as FlashcardWriterCreateResponseEvent;
 		expect(publishedEvent.data).toEqual({
 			filepath: '/flashcards/mocked-uuid.md',
+			requestId: event.id,
+			success: true,
 		});
 		expect(Notice).toHaveBeenCalledWith('Flashcard created successfully');
 	});
@@ -134,7 +136,8 @@ describe('FlashcardWriterCreateHandler', () => {
 			expect.any(Error),
 		);
 		expect(Notice).toHaveBeenCalledWith('Failed to create flashcard');
-		expect(bus.publish).not.toHaveBeenCalled();
+		const publishedEvent = vi.mocked(bus.publish).mock.calls[0][0] as FlashcardWriterCreateResponseEvent;
+		expect(publishedEvent.data).toMatchObject({ success: false });
 	});
 
 	it('reports a failure when a file occupies the configured directory', async () => {
@@ -164,7 +167,8 @@ describe('FlashcardWriterCreateHandler', () => {
 		expect(mockWriter.create).not.toHaveBeenCalled();
 		expect(Logger.error).toHaveBeenCalledWith('Failed to create flashcard', expect.any(Error));
 		expect(Notice).toHaveBeenCalledWith('Failed to create flashcard');
-		expect(bus.publish).not.toHaveBeenCalled();
+		const publishedEvent = vi.mocked(bus.publish).mock.calls[0][0] as FlashcardWriterCreateResponseEvent;
+		expect(publishedEvent.data).toMatchObject({ success: false });
 	});
 });
 
