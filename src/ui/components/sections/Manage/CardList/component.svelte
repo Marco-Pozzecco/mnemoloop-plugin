@@ -41,6 +41,9 @@
 <style lang="scss">
 	@use 'tokens' as *;
 
+	// Component geometry: the mobile scan card, sized so four fit the first screen.
+	$card-height: 116px;
+
 	.ml-manage-cards {
 		display: flex;
 		flex-direction: column;
@@ -51,7 +54,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: $spacing-xxs;
-		min-height: $card-min-height;
+		min-height: $card-height;
 		padding: $spacing-sm;
 		text-decoration: none;
 		color: $text-normal;

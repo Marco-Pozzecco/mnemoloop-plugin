@@ -37,11 +37,15 @@
 	@use 'tokens' as *;
 	@use 'breakpoints' as *;
 
+	// Component geometry: the chip capsule; a removable chip grows to the touch
+	// target, which is the shared control size.
+	$height: 22px;
+
 	.ml-chip {
 		display: inline-flex;
 		align-items: center;
 		gap: $spacing-xxs;
-		height: $badge-height;
+		height: $height;
 		max-width: 100%;
 		padding: 0 $spacing-xs;
 		font-size: $font-xs;

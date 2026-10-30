@@ -79,6 +79,10 @@
 	@use 'tokens' as *;
 	@use 'breakpoints' as *;
 
+	// Component geometry: the desktop sidesheet width. At the tablet breakpoint
+	// and below the sheet covers the leaf instead.
+	$width: 440px;
+
 	.ml-sheet {
 		position: absolute;
 		inset-block: 0;
@@ -86,7 +90,7 @@
 		z-index: $z-sheet;
 		display: flex;
 		flex-direction: column;
-		width: $sheet-width;
+		width: $width;
 		max-width: 100%;
 		background-color: $background-primary;
 		border-inline-start: 1px solid $line-strong;

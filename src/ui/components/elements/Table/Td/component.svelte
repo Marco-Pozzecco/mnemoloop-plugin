@@ -12,6 +12,9 @@
 <style lang="scss">
 	@use 'tokens' as *;
 
+	// Component geometry: a body row's height is this table's own decision.
+	$row-height: 56px;
+
 	.ml-table__td {
 		height: $row-height;
 		padding: 0 $spacing-md;
