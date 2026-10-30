@@ -8,7 +8,7 @@ import {
 	translateRect,
 	validateOcclusion,
 	type EditableOcclusionMask,
-} from '@/ui/components/modals/FlashcardFormModal/Content/Occlusion/validation';
+} from '@/ui/components/compositions/FlashcardForm/Content/Occlusion/validation';
 
 function mask(overrides: Partial<EditableOcclusionMask> = {}): EditableOcclusionMask {
 	return {
