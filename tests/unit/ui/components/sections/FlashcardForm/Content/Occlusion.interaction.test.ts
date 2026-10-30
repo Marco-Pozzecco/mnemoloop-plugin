@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mount, tick, unmount } from 'svelte';
 import type { App } from 'obsidian';
 import { CardType, type FlashcardOcclusionContent } from '@/schemas';
-import type { BuildContentFn, ValidateFn } from '@/ui/components/modals/FlashcardFormModal/Content/types';
+import type { BuildContentFn, ValidateFn } from '@/ui/components/sections/FlashcardForm/Content/types';
 import FormOcclusionHarness from '../../../../../../helpers/FormOcclusionHarness.svelte';
 import { createMockPlugin } from '../../../../../../helpers/mock-obsidian';
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Component } from 'obsidian';
 	import App from '@/ui/views/App/App.svelte';
+	import SidebarPanel from '@/ui/views/Sidebar/component.svelte';
 	import type { RealStack } from '../tests/helpers/real-stack';
 	import { FIXTURE_NAMES, type PlaygroundFixture } from './fixtures';
 	import {
@@ -78,7 +79,11 @@
 
 <main class="ml-playground-stage">
 	<div class="ml-playground-app-host">
-		<App {app} {component} />
+		{#if params.view === 'sidebar'}
+			<SidebarPanel {app} />
+		{:else}
+			<App {app} {component} />
+		{/if}
 	</div>
 </main>
 

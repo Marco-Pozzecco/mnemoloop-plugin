@@ -350,10 +350,24 @@ export function createRealPlugin(vault: RealVault, _fixture: RealStackFixture): 
 		view: null,
 	};
 
+	// Settable active file plus a hand-dispatchable `active-leaf-change`, so the
+	// sidebar panel can be driven the way Obsidian drives it (it re-reads
+	// `getActiveFile()` on every leaf change rather than caching the file).
+	let activeFile: any = null;
+	const eventRefs: Array<{ event: string; callback: (...args: any[]) => void }> = [];
+
 	const workspace: any = {
 		getLeaf: () => openLeaf,
 		getRightLeaf: () => null,
-		getActiveFile: () => null,
+		getActiveFile: () => activeFile,
+		setActiveFile: (file: any) => {
+			activeFile = file;
+		},
+		emitActiveLeafChange: () => {
+			for (const ref of [...eventRefs]) {
+				if (ref.event === 'active-leaf-change') ref.callback();
+			}
+		},
 		getLeavesOfType: () => [],
 		getMostRecentLeaf: () => null,
 		iterateRootLeaves: () => undefined,
@@ -361,9 +375,19 @@ export function createRealPlugin(vault: RealVault, _fixture: RealStackFixture): 
 		revealLeaf: async () => undefined,
 		openLinkText: async () => undefined,
 		trigger: () => undefined,
-		on: () => ({}),
-		off: () => undefined,
-		offref: () => undefined,
+		on: (event: string, callback: (...args: any[]) => void) => {
+			const ref = { event, callback };
+			eventRefs.push(ref);
+			return ref;
+		},
+		off: (ref: { event: string; callback: (...args: any[]) => void }) => {
+			const index = eventRefs.indexOf(ref);
+			if (index >= 0) eventRefs.splice(index, 1);
+		},
+		offref: (ref: { event: string; callback: (...args: any[]) => void }) => {
+			const index = eventRefs.indexOf(ref);
+			if (index >= 0) eventRefs.splice(index, 1);
+		},
 		onLayoutReady: (callback: () => void) => callback(),
 	};
 

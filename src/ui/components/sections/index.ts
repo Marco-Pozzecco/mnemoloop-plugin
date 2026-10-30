@@ -14,6 +14,8 @@ export { default as DashboardProgress } from './Dashboard/Progress/component.sve
 export type { default as DashboardProgressProps } from './Dashboard/Progress/types';
 export { default as DashboardStatsGrid } from './Dashboard/StatsGrid/component.svelte';
 export type { default as DashboardStatsGridProps } from './Dashboard/StatsGrid/types';
+export { default as FlashcardForm } from './FlashcardForm/component.svelte';
+export type { default as FlashcardFormProps } from './FlashcardForm/types';
 export { default as ManageDeleteConfirmation } from './Manage/DeleteConfirmation/component.svelte';
 export type { default as ManageDeleteConfirmationProps } from './Manage/DeleteConfirmation/types';
 export { default as ManageFilterBar } from './Manage/FilterBar/component.svelte';
@@ -26,8 +28,6 @@ export { default as ManagePagination } from './Manage/Pagination/component.svelt
 export type { default as ManagePaginationProps } from './Manage/Pagination/types';
 export { default as ManageResults } from './Manage/Results/component.svelte';
 export type { default as ManageResultsProps } from './Manage/Results/types';
-export { default as ModalControls } from './Modal/Controls/component.svelte';
-export type { default as ModalControlsProps } from './Modal/Controls/types';
 export { default as Navbar } from './Navbar/component.svelte';
 export type { default as NavbarProps } from './Navbar/types';
 export { default as ReviewEmptyState } from './Review/EmptyState/component.svelte';
@@ -53,4 +53,5 @@ export { default as ReviewFlashcard } from './Review/Flashcard/component.svelte'
 export type { default as ReviewFlashcardProps } from './Review/Flashcard/types';
 export { default as ReviewHeader } from './Review/Header/component.svelte';
 export type { default as ReviewHeaderProps } from './Review/Header/types';
+export { default as FlashcardFormContent } from './FlashcardForm/Content';
 export { default as ManageTable } from './Manage/Table';

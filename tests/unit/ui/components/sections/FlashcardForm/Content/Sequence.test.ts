@@ -3,7 +3,7 @@ import { CardType } from '@/schemas';
 import {
 	buildSequenceContent,
 	validateSequence,
-} from '@/ui/components/modals/FlashcardFormModal/Content/Sequence/validation';
+} from '@/ui/components/sections/FlashcardForm/Content/Sequence/validation';
 
 describe('validateSequence', () => {
 	it('should return error when question is empty', () => {

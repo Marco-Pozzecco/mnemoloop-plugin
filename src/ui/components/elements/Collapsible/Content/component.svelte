@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Collapsible } from 'bits-ui';
+	import { onMount } from 'svelte';
 	import type CollapsibleContentProps from './types';
 
 	let {
@@ -10,6 +11,21 @@
 		children,
 		...rest
 	}: CollapsibleContentProps = $props();
+
+	let innerRef: HTMLDivElement;
+
+	// bits-ui measures the content when it opens. Content that grows afterwards
+	// (a sidebar group whose card previews arrive asynchronously) would be clipped
+	// by the stale height variable, so re-measure while the content is open.
+	onMount(() => {
+		if (typeof ResizeObserver === 'undefined' || !innerRef) return;
+		const observer = new ResizeObserver(() => {
+			if (!ref || ref.getAttribute('data-state') === 'closed') return;
+			ref.style.setProperty('--bits-collapsible-content-height', `${innerRef.offsetHeight}px`);
+		});
+		observer.observe(innerRef);
+		return () => observer.disconnect();
+	});
 </script>
 
 <Collapsible.Content
@@ -19,7 +35,7 @@
 	{...rest}
 	class="ml-collapsible__content {className}"
 >
-	<div class="ml-collapsible__content-inner">
+	<div class="ml-collapsible__content-inner" bind:this={innerRef}>
 		{@render children?.()}
 	</div>
 </Collapsible.Content>

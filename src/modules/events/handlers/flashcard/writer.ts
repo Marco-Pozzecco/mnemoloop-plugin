@@ -44,11 +44,24 @@ export class FlashcardWriterCreateHandler extends EventHandler<FlashcardWriterCr
 			.then(() => writer.create(flashcardPath, flashcard))
 			.then(() => {
 				new Notice('Flashcard created successfully');
-				void this._bus.publish(new FlashcardWriterCreateResponseEvent({ filepath: flashcardPath }));
+				void this._bus.publish(
+					new FlashcardWriterCreateResponseEvent({
+						filepath: flashcardPath,
+						success: true,
+						requestId: event.id,
+					}),
+				);
 			})
 			.catch((err) => {
 				Logger.error('Failed to create flashcard', err);
 				new Notice('Failed to create flashcard');
+				void this._bus.publish(
+					new FlashcardWriterCreateResponseEvent({
+						filepath: flashcardPath,
+						success: false,
+						requestId: event.id,
+					}),
+				);
 			});
 	}
 }

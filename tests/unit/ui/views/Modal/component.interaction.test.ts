@@ -3,6 +3,11 @@ import '../../../../helpers/dom-polyfills';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mount, tick, unmount } from 'svelte';
 import { Component, Modal, type App } from 'obsidian';
+import { EventBus } from '@/modules/events/core';
+import {
+	FlashcardWriterCreateRequestEvent,
+	FlashcardWriterCreateResponseEvent,
+} from '@/modules/events/domains/flashcard/writer';
 import { ModalController } from '@/ui/controllers/ModalController';
 import { ModalViewEnum, modalStore } from '@/ui/store/modal.store';
 import ModalView from '@/ui/views/Modal/Modal.svelte';
@@ -22,12 +27,17 @@ async function flush(): Promise<void> {
 	await tick();
 }
 
+function createPublishSpy() {
+	return vi.spyOn(EventBus.instance, 'publish');
+}
+
 describe('Modal view', () => {
 	let target: HTMLDivElement;
 	let instance: ReturnType<typeof mount> | undefined;
 	let owner: Component;
 	let modalDouble: Modal;
 	let controller: ModalController;
+	let publish: ReturnType<typeof createPublishSpy>;
 
 	function mountView(): void {
 		const plugin = createMockPlugin([]);
@@ -51,9 +61,18 @@ describe('Modal view', () => {
 		return button;
 	}
 
+	function fillBasicForm(front: string, back: string): void {
+		const areas = Array.from(target.querySelectorAll<HTMLTextAreaElement>('textarea'));
+		areas[0].value = front;
+		areas[0].dispatchEvent(new Event('change', { bubbles: true }));
+		areas[1].value = back;
+		areas[1].dispatchEvent(new Event('change', { bubbles: true }));
+	}
+
 	beforeEach(() => {
 		resetSingletons();
 		modalStore.close();
+		publish = createPublishSpy();
 	});
 
 	afterEach(async () => {
@@ -63,17 +82,6 @@ describe('Modal view', () => {
 		target?.remove();
 		activeDocument.body.innerHTML = '';
 		vi.restoreAllMocks();
-	});
-
-	it('shows an error raised on the store after the modal opened', async () => {
-		modalStore.open(ModalViewEnum.flashcard, { mode: 'create' });
-		mountView();
-		await flush();
-
-		modalStore.setError('An image is required.');
-		await flush();
-
-		expect(target.textContent).toContain('An image is required.');
 	});
 
 	it('keeps the modal open and shows the error when an incomplete occlusion card is submitted', async () => {
@@ -88,5 +96,43 @@ describe('Modal view', () => {
 
 		expect(target.textContent).toContain('An image is required.');
 		expect(modalDouble.close).not.toHaveBeenCalled();
+	});
+
+	it('renders the form’s own Cancel and Save row', async () => {
+		modalStore.open(ModalViewEnum.flashcard, { mode: 'create' });
+		mountView();
+		await flush();
+
+		expect(buttonByText('Cancel')).toBeDefined();
+		expect(buttonByText('Save')).toBeDefined();
+	});
+
+	it('closes the modal after a successful create', async () => {
+		modalStore.open(ModalViewEnum.flashcard, { mode: 'create' });
+		mountView();
+		await flush();
+
+		fillBasicForm('Front', 'Back');
+		await flush();
+		buttonByText('Save').click();
+		await flush();
+
+		const request = publish.mock.calls
+			.map(([event]) => event as unknown)
+			.find((event): event is FlashcardWriterCreateRequestEvent =>
+				event instanceof FlashcardWriterCreateRequestEvent,
+			);
+		expect(request).toBeDefined();
+
+		await EventBus.instance.publish(
+			new FlashcardWriterCreateResponseEvent({
+				filepath: 'flashcards/new.md',
+				success: true,
+				requestId: request!.id,
+			}),
+		);
+		await flush();
+
+		expect(modalDouble.close).toHaveBeenCalledTimes(1);
 	});
 });

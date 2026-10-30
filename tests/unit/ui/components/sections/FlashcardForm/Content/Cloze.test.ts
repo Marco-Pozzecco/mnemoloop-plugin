@@ -3,7 +3,7 @@ import { CardType } from '@/schemas';
 import {
 	buildClozeContent,
 	validateCloze,
-} from '@/ui/components/modals/FlashcardFormModal/Content/Cloze/validation';
+} from '@/ui/components/sections/FlashcardForm/Content/Cloze/validation';
 
 describe('validateCloze', () => {
 	it('should return error when no cloze marker is present', () => {

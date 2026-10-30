@@ -74,6 +74,18 @@ export async function prepareView(stack: RealStack, params: PlaygroundParams): P
 			await controller.start({ deckFilter: undefined, deckLabel: 'All decks' });
 			return;
 		}
+		case 'sidebar': {
+			// The panel binds to the active note, so give it the fixture's source
+			// note: the first markdown file outside the flashcard watch directory.
+			const watchDir = String(stack.settings.data.flashcard.watch.directory).replace(/^\/+/, '');
+			const note = [...stack.vault.files.values()].find(
+				(file) =>
+					file.extension === 'md' &&
+					!file.path.replace(/^\/+/, '').startsWith(`${watchDir}/`),
+			);
+			stack.plugin.app.workspace.setActiveFile(note ?? null);
+			return;
+		}
 		default: {
 			uiStore.currentView = params.view;
 		}

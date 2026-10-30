@@ -2,8 +2,8 @@
 	import { onDestroy } from 'svelte';
 	import { Component, type App } from 'obsidian';
 	import { setAppContext } from '@/ui/context/AppContext';
-	import OcclusionForm from '@/ui/components/modals/FlashcardFormModal/Content/Occlusion/component.svelte';
-	import type { BuildContentFn, ValidateFn } from '@/ui/components/modals/FlashcardFormModal/Content/types';
+	import OcclusionForm from '@/ui/components/sections/FlashcardForm/Content/Occlusion/component.svelte';
+	import type { BuildContentFn, ValidateFn } from '@/ui/components/sections/FlashcardForm/Content/types';
 
 	let {
 		app,

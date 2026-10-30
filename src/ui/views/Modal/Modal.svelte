@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FlashcardFormModal, ModalControls } from '@/ui/components/';
+	import { FlashcardFormModal } from '@/ui/components/';
 	import { modalStore, ModalViewEnum } from '@/ui/store/modal.store';
 	import { setAppContext } from '@/ui/context/AppContext';
 	import { type ModalProps } from './types';
@@ -9,7 +9,7 @@
 	// `modalStore.state` is a plain field, so it never invalidates a rune. Subscribe
 	// to the writable the store manager wraps instead, as the other views do.
 	const storeRef = modalStore.store;
-	let { currentView, error, isLoading } = $derived($storeRef);
+	let { currentView } = $derived($storeRef);
 
 	let cApp = $derived(app);
 	let cComponent = $derived(component);
@@ -19,9 +19,8 @@
 
 <div class="ml-modal-container">
 	{#if currentView === ModalViewEnum.flashcard}
-		<FlashcardFormModal {controller} {isLoading} {error} />
+		<FlashcardFormModal {controller} />
 	{/if}
-	<ModalControls {controller} />
 </div>
 
 <style lang="scss">
