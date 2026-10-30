@@ -9,7 +9,7 @@
 <Table.Root caption="Manage flashcards" className="ml-manage-table">
 	<colgroup>
 		<col class="ml-manage-table__col-type" />
-		<col />
+		<col class="ml-manage-table__col-preview" />
 		<col class="ml-manage-table__col-decks" />
 		<col class="ml-manage-table__col-status" />
 		<col class="ml-manage-table__col-due" />
@@ -41,27 +41,42 @@
 <style lang="scss">
 	@use 'tokens' as *;
 
+	// Component geometry: the fixed columns keep their width, the preview takes
+	// what is left, and decks is a share of the row rather than a fixed width — so
+	// a narrow pane hands space back to the preview instead of starving it. The
+	// table layout resolves a plain percentage on a `<col>` but ignores a
+	// functional one, where `clamp()`/`min()` fall back to auto.
+	$col-type: 96px;
+	$col-decks: 20%;
+	$col-status: 132px;
+	$col-due: 104px;
+	$col-open: $control-md;
+
 	.ml-manage-table__col-type {
-		width: 96px;
+		width: $col-type;
+	}
+
+	.ml-manage-table__col-preview {
+		width: auto;
 	}
 
 	.ml-manage-table__col-decks {
-		width: 232px;
+		width: $col-decks;
 	}
 
 	.ml-manage-table__col-status {
-		width: 132px;
+		width: $col-status;
 	}
 
 	.ml-manage-table__col-due {
-		width: 104px;
+		width: $col-due;
 	}
 
 	.ml-manage-table__col-open {
-		width: $control-md;
+		width: $col-open;
 	}
 
-	/* Fixed layout keeps the scan row on one line; the preview truncates. */
+	/* Fixed layout keeps the scan row on one line; both content columns truncate. */
 	:global(.ml-manage-table) {
 		table-layout: fixed;
 	}
