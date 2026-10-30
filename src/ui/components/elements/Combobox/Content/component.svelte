@@ -48,7 +48,7 @@
 	@use 'tokens' as *;
 
 	:global(.ml-combobox__content) {
-		z-index: $z-dropdown;
+		z-index: $z-popover;
 		background-color: $background-primary;
 		border: 1px solid $background-modifier-border;
 		border-radius: $radius-input;
