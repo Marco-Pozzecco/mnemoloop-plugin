@@ -43,13 +43,7 @@
 		</Table.EmptyState>
 	{:else}
 		<div class="ml-manage-results__table">
-			<ManageTable
-				{cards}
-				{previews}
-				{hrefFor}
-				{selectedUuid}
-				{onOpen}
-			/>
+			<ManageTable {cards} {previews} {hrefFor} {selectedUuid} {onOpen} />
 		</div>
 		<div class="ml-manage-results__cards">
 			<ManageCardList {cards} {previews} {hrefFor} {onOpen} />
@@ -71,8 +65,8 @@
 		display: none;
 	}
 
-	/* The table is the desktop and tablet presentation; cards take over on phones. */
-	@media (max-width: $mobile-breakpoint) {
+	/* The table is the desktop presentation; cards take over at the tablet breakpoint. */
+	@media (max-width: $tablet-breakpoint) {
 		.ml-manage-results__table {
 			display: none;
 		}
