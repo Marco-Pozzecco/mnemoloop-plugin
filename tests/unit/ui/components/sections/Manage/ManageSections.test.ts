@@ -184,6 +184,29 @@ describe('ManageTable', () => {
 		expect(body).toContain('obsidian://open?vault=v&amp;file=a.md');
 	});
 
+	it('titles the deck chips with the full deck list and folds the rest into +N', () => {
+		const { body } = render(ManageTable, {
+			props: tableProps({
+				cards: [makeCard('a', { decks: ['Math', 'Lang', 'Biology'] })],
+			}),
+		});
+		expect(body).toContain('title="Math, Lang, Biology"');
+		expect(body).toContain('+1');
+	});
+
+	it('carries the folded deck names to assistive tech and adds no fold chrome when nothing folds', () => {
+		const folded = render(ManageTable, {
+			props: tableProps({
+				cards: [makeCard('a', { decks: ['Math', 'Lang', 'Biology'] })],
+			}),
+		});
+		expect(folded.body).toContain('ml-visually-hidden">, also in Biology');
+
+		const fits = render(ManageTable, { props: tableProps() });
+		expect(fits.body).not.toContain(', also in');
+		expect(fits.body).not.toContain('title="Math, Lang"');
+	});
+
 	it('draws status as a badge without the status dot', () => {
 		const { body } = render(ManageTable, { props: tableProps() });
 		expect(body).toContain('ml-badge--success');

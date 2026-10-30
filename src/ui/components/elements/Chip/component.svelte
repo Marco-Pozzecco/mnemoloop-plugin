@@ -46,6 +46,7 @@
 		align-items: center;
 		gap: $spacing-xxs;
 		height: $height;
+		min-width: 0;
 		max-width: 100%;
 		padding: 0 $spacing-xs;
 		font-size: $font-xs;
