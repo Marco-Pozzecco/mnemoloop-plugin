@@ -51,8 +51,8 @@
 		z-index: $z-popover;
 		background-color: $background-primary;
 		border: 1px solid $background-modifier-border;
-		border-radius: $radius-input;
-		box-shadow: 0 4px 12px color-mix(in srgb, $text-normal 15%, transparent);
+		border-radius: $radius-md;
+		box-shadow: $shadow-md;
 		width: var(--bits-floating-anchor-width);
 		overflow: hidden;
 	}
