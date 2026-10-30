@@ -14,6 +14,10 @@ export { default as DashboardProgress } from './Dashboard/Progress/component.sve
 export type { default as DashboardProgressProps } from './Dashboard/Progress/types';
 export { default as DashboardStatsGrid } from './Dashboard/StatsGrid/component.svelte';
 export type { default as DashboardStatsGridProps } from './Dashboard/StatsGrid/types';
+export { default as ManageCardList } from './Manage/CardList/component.svelte';
+export type { default as ManageCardListProps } from './Manage/CardList/types';
+export { default as ManageDeckChips } from './Manage/DeckChips/component.svelte';
+export type { default as ManageDeckChipsProps } from './Manage/DeckChips/types';
 export { default as ManageDeleteConfirmation } from './Manage/DeleteConfirmation/component.svelte';
 export type { default as ManageDeleteConfirmationProps } from './Manage/DeleteConfirmation/types';
 export { default as ManageFilterBar } from './Manage/FilterBar/component.svelte';

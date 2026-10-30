@@ -12,10 +12,11 @@ import {
 	FlashcardParserParseResponseEvent,
 } from '@/modules/events/domains/flashcard/parsers';
 import {
+	FlashcardWriterCreateRequestEvent,
+	FlashcardWriterCreateResponseEvent,
 	FlashcardWriterDeleteRequestEvent,
 	FlashcardWriterDeleteResponseEvent,
-	FlashcardWriterFmRequestEvent,
-	FlashcardWriterFmResponseEvent,
+	FlashcardWriterUpdateRequestEvent,
 	FlashcardWriterUpdateResponseEvent,
 } from '@/modules/events/domains/flashcard/writer';
 import { CardStatus } from '@/schemas';
@@ -23,12 +24,6 @@ import type { Flashcard, FlashcardMetadata, FlashcardYaml } from '@/schemas';
 import { buildCardPreview } from '@/ui/components/views/Manage/utils';
 import { Notice } from 'obsidian';
 import { manageStore } from '../store/manage.store';
-
-type MetadataMutation = {
-	before: Pick<FlashcardMetadata, 'status' | 'decks'>;
-	expected: Partial<Pick<FlashcardMetadata, 'status' | 'decks'>>;
-	label: 'Status' | 'Decks' | 'Card details';
-};
 
 export class ManageController {
 	private _unsubscribers: Array<() => void> = [];
@@ -38,8 +33,6 @@ export class ManageController {
 	private _originals = new Map<string, FlashcardMetadata>();
 	/** Pending on-disk metadata reconcilers keyed by filepath. */
 	private _pendingReconcile = new Map<string, (result: ParseResult<FlashcardYaml>) => void>();
-	/** Optimistic metadata writes, retained until the on-disk state confirms or rejects them. */
-	private _pendingMetadataMutations = new Map<string, MetadataMutation>();
 
 	constructor() {
 		this._unsubscribers.push(
@@ -71,12 +64,6 @@ export class ManageController {
 				if (!reconcile) return;
 				this._pendingReconcile.delete(event.data.filepath);
 				reconcile(event.data);
-			}),
-		);
-
-		this._unsubscribers.push(
-			EventBus.instance.subscribe(FlashcardWriterFmResponseEvent, async (event) => {
-				this._reconcileMetadata(event.data.filepath);
 			}),
 		);
 
@@ -134,22 +121,70 @@ export class ManageController {
 		});
 	}
 
-	/** Optimistically update status and persist via frontmatter write. */
-	updateStatus(card: FlashcardMetadata, status: CardStatus): void {
-		this._rememberMetadataMutation(card, { status }, 'Status');
-		this._patchLocally(card.file, { status });
-		void EventBus.instance.publish(
-			new FlashcardWriterFmRequestEvent({ filepath: card.file, fm: { status } }),
-		);
+	/**
+	 * Persist a sheet edit as one write: content, decks, source, and status.
+	 * Resolves true when the writer confirms the update.
+	 */
+	async updateCard(
+		card: Flashcard,
+		payload: {
+			content: Flashcard['content'];
+			decks: string[];
+			source: string | null;
+			status: CardStatus;
+		},
+	): Promise<boolean> {
+		return new Promise((resolve) => {
+			const request = new FlashcardWriterUpdateRequestEvent({
+				uuid: card.uuid,
+				content: payload.content,
+				decks: payload.decks,
+				source: payload.source,
+				status: payload.status,
+			} as Partial<Flashcard>);
+
+			const unsub = EventBus.instance.subscribe(
+				FlashcardWriterUpdateResponseEvent,
+				async (event) => {
+					if (event.data.requestId !== request.id) return;
+					unsub();
+					this._unsubscribers = this._unsubscribers.filter((fn) => fn !== unsub);
+					if (event.data.success) {
+						// Show the saved values immediately; the index event confirms them later.
+						this._applySavedMetadata(card.uuid, payload);
+					}
+					resolve(event.data.success);
+				},
+			);
+
+			this._unsubscribers.push(unsub);
+			void EventBus.instance.publish(request);
+		});
 	}
 
-	/** Optimistically update decks and persist via frontmatter write. */
-	updateDecks(card: FlashcardMetadata, decks: string[]): void {
-		this._rememberMetadataMutation(card, { decks }, 'Decks');
-		this._patchLocally(card.file, { decks });
-		void EventBus.instance.publish(
-			new FlashcardWriterFmRequestEvent({ filepath: card.file, fm: { decks } }),
-		);
+	/** Create a card from the sheet; resolves true when the writer confirms the write. */
+	async createCard(payload: {
+		content: Flashcard['content'];
+		decks: string[];
+		source: string | null;
+	}): Promise<boolean> {
+		return new Promise((resolve) => {
+			const request = new FlashcardWriterCreateRequestEvent(payload);
+
+			const unsub = EventBus.instance.subscribe(
+				FlashcardWriterCreateResponseEvent,
+				async (event) => {
+					if (event.data.requestId !== request.id) return;
+					unsub();
+					this._unsubscribers = this._unsubscribers.filter((fn) => fn !== unsub);
+					if (event.data.success) this._addCreatedCard(event.data.filepath);
+					resolve(event.data.success);
+				},
+			);
+
+			this._unsubscribers.push(unsub);
+			void EventBus.instance.publish(request);
+		});
 	}
 
 	/** Optimistically remove the card and hard-delete its file. */
@@ -161,89 +196,52 @@ export class ManageController {
 		void EventBus.instance.publish(new FlashcardWriterDeleteRequestEvent({ uuid: card.uuid }));
 	}
 
+	/**
+	 * Add the freshly written card to the store so the row appears immediately.
+	 * The index watcher still owns the canonical order and metadata.
+	 */
+	private _addCreatedCard(filepath: string): void {
+		const unsub = EventBus.instance.subscribe(
+			FlashcardParserParseMetadataResponseEvent,
+			async (event) => {
+				if (event.data.filepath !== filepath || !event.data.success || !event.data.entity) return;
+				unsub();
+				this._unsubscribers = this._unsubscribers.filter((fn) => fn !== unsub);
+
+				const metadata: FlashcardMetadata = {
+					...event.data.entity,
+					file: filepath,
+					created_at: event.data.stats?.created_at ?? new Date().toISOString(),
+					updated_at: event.data.stats?.updated_at ?? new Date().toISOString(),
+				};
+				if (manageStore.state.flashcards.some((card) => card.uuid === metadata.uuid)) return;
+				manageStore.setFlashcards([...manageStore.state.flashcards, metadata]);
+			},
+		);
+
+		this._unsubscribers.push(unsub);
+		void EventBus.instance.publish(new FlashcardParserParseMetadataRequestEvent({ filepath }));
+	}
+
+	/** Show saved metadata immediately; the debounced index event confirms it later. */
+	private _applySavedMetadata(
+		uuid: string,
+		payload: { decks: string[]; source: string | null; status: CardStatus },
+	): void {
+		manageStore.setFlashcards(
+			manageStore.state.flashcards.map((card) =>
+				card.uuid === uuid
+					? { ...card, decks: payload.decks, source: payload.source, status: payload.status }
+					: card,
+			),
+		);
+	}
+
 	dispose(): void {
 		for (const unsub of this._unsubscribers) {
 			unsub();
 		}
 		this._unsubscribers = [];
-	}
-
-	private _patchLocally(filepath: string, patch: Partial<FlashcardMetadata>): void {
-		manageStore.setFlashcards(
-			manageStore.state.flashcards.map((card) =>
-				card.file === filepath ? { ...card, ...patch } : card,
-			),
-		);
-	}
-
-	private _rememberMetadataMutation(
-		card: FlashcardMetadata,
-		expected: MetadataMutation['expected'],
-		label: Exclude<MetadataMutation['label'], 'Card details'>,
-	): void {
-		const pending = this._pendingMetadataMutations.get(card.file);
-		this._pendingMetadataMutations.set(card.file, {
-			before: pending?.before ?? { status: card.status, decks: card.decks },
-			expected: { ...pending?.expected, ...expected },
-			label: pending && pending.label !== label ? 'Card details' : label,
-		});
-	}
-
-	private _matchesExpectedMetadata(
-		yaml: FlashcardYaml,
-		expected: MetadataMutation['expected'],
-	): boolean {
-		if (expected.status !== undefined && yaml.status !== expected.status) return false;
-		if (
-			expected.decks !== undefined &&
-			(expected.decks.length !== yaml.decks.length ||
-				expected.decks.some((deck, index) => deck !== yaml.decks[index]))
-		) {
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Reconcile a file's frontmatter against the on-disk state after an inline
-	 * Fm write completes. If the write failed, the parse returns the old values
-	 * and the optimistic patch is reverted; if it succeeded, the new values are
-	 * confirmed without waiting for the debounced index state event.
-	 */
-	private _reconcileMetadata(filepath: string): void {
-		this._pendingReconcile.set(filepath, (result) => {
-			const mutation = this._pendingMetadataMutations.get(filepath);
-			this._pendingMetadataMutations.delete(filepath);
-
-			if (!result.success || !result.entity) {
-				if (mutation) {
-					this._patchLocally(filepath, mutation.before);
-					new Notice(
-						`Couldn't save ${mutation.label.toLowerCase()}. Restored the last saved value.`,
-					);
-				}
-				return;
-			}
-
-			this._applyMetadata(filepath, result.entity);
-			if (!mutation) return;
-
-			if (this._matchesExpectedMetadata(result.entity, mutation.expected)) {
-				new Notice(`${mutation.label} saved.`);
-				return;
-			}
-
-			new Notice(`Couldn't save ${mutation.label.toLowerCase()}. Restored the last saved value.`);
-		});
-		void EventBus.instance.publish(new FlashcardParserParseMetadataRequestEvent({ filepath }));
-	}
-
-	private _applyMetadata(filepath: string, yaml: FlashcardYaml): void {
-		manageStore.setFlashcards(
-			manageStore.state.flashcards.map((card) =>
-				card.file === filepath ? { ...card, status: yaml.status, decks: yaml.decks } : card,
-			),
-		);
 	}
 
 	/** After a delete write completes, restore the card if the file still exists. */
