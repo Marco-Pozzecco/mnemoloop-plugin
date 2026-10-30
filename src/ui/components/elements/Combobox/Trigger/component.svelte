@@ -2,10 +2,12 @@
 	import { Combobox } from 'bits-ui';
 	import { getComboboxContext } from '../context';
 	import Icon from '../../Icon/component.svelte';
+	import { cn } from '@/ui/components/utils';
 	import type ComboboxTriggerProps from './types';
 
 	let {
 		ref = $bindable(null),
+		variant = 'field',
 		ariaLabel,
 		'aria-label': htmlAriaLabel,
 		class: className = '',
@@ -27,12 +29,13 @@
 	bind:ref
 	{...rest}
 	aria-label={ariaLabel ?? htmlAriaLabel ?? 'Open combobox'}
-	class="ml-combobox__trigger {className}"
+	class={cn('ml-combobox__trigger', `ml-combobox__trigger--${variant}`, className)}
 >
 	{#if children}
 		{@render children()}
-	{:else}
-		<Icon name="chevron-down" size={14} />
+	{/if}
+	{#if variant === 'field' || !children}
+		<Icon class="ml-combobox__chevron" name="chevron-down" size={14} />
 	{/if}
 </Combobox.Trigger>
 
@@ -40,42 +43,72 @@
 	@use 'tokens' as *;
 
 	:global(.ml-combobox__trigger) {
-		position: absolute;
-		right: 4px;
-		top: 50%;
-		transform: translateY(-50%);
 		display: inline-flex;
 		align-items: center;
-		justify-content: center;
-		padding: $spacing-xxs;
-		min-width: 32px;
-		min-height: 32px;
-		color: $text-muted;
+		justify-content: space-between;
+		gap: $spacing-xs;
+		font-family: inherit;
+		font-size: $font-sm;
+		text-align: left;
+		color: $text-normal;
+		cursor: pointer;
+		transition:
+			color $transition-fast,
+			border-color $transition-fast,
+			box-shadow $transition-fast;
+	}
+
+	:global(.ml-combobox__trigger--field) {
+		width: 100%;
+		min-height: $control-md;
+		padding: $spacing-xs $spacing-sm;
+		background-color: $background-primary;
+		border: 1px solid $line-subtle;
+		border-radius: $radius-md;
+	}
+
+	:global(.ml-combobox__trigger--field:hover) {
+		border-color: $background-modifier-border-hover;
+	}
+
+	:global(.ml-combobox__trigger--field:focus-visible),
+	:global(.ml-combobox__trigger--field[data-state='open']) {
+		outline: none;
+		border-color: $interactive-accent;
+		box-shadow: 0 0 0 2px $background-modifier-border-focus;
+	}
+
+	:global(.ml-combobox__trigger--bare) {
+		padding: 0;
+		min-width: 0;
+		min-height: 0;
 		background: none;
 		border: none;
 		border-radius: $radius-sm;
-		cursor: pointer;
-		transition: color $transition-fast;
 	}
 
-	:global(.ml-combobox__trigger:hover) {
+	:global(.ml-combobox__trigger--bare:hover) {
 		color: $text-normal;
 	}
 
-	:global(.ml-combobox__trigger:focus-visible) {
-		color: $interactive-accent;
+	:global(.ml-combobox__trigger--bare:focus-visible) {
 		outline: 2px solid $interactive-accent;
 		outline-offset: 2px;
 	}
 
-	@media (pointer: coarse) {
-		:global(.ml-combobox__trigger) {
-			min-width: 44px;
-			min-height: 44px;
-		}
+	:global(.ml-combobox__chevron) {
+		flex: 0 0 auto;
+		color: $text-muted;
 	}
 
 	:global(.ml-combobox__trigger[data-state='open'] .ml-icon svg) {
 		transform: rotate(180deg);
+	}
+
+	@media (pointer: coarse) {
+		:global(.ml-combobox__trigger--bare) {
+			min-width: $control-md;
+			min-height: $control-md;
+		}
 	}
 </style>

@@ -13,13 +13,15 @@
 	@use 'tokens' as *;
 
 	.ml-table__th {
-		padding: $spacing-sm;
+		height: $table-head-height;
+		padding: 0 $spacing-md;
 		text-align: left;
 		font-size: $font-xs;
 		font-weight: $font-semibold;
+		letter-spacing: $letter-spacing-caps;
 		text-transform: uppercase;
 		color: $text-muted;
-		border-bottom: 1px solid $background-modifier-border;
+		border-bottom: 1px solid $line-subtle;
 		vertical-align: middle;
 		white-space: nowrap;
 	}

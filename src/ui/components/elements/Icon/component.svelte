@@ -42,7 +42,7 @@
 	);
 </script>
 
-<span style="--icon-size: {size}px; --icon-color: {color}; --icon-transform: {transformStyle}">
+<span aria-hidden="true" style="--icon-size: {size}px; --icon-color: {color}; --icon-transform: {transformStyle}">
 	<span use:iconAction={name} class="ml-icon {className}"></span>
 </span>
 

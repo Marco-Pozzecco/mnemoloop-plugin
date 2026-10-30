@@ -82,4 +82,11 @@
 			transform: translateX(100%);
 		}
 	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.ml-skeleton__block::after {
+			animation: none;
+			opacity: 0;
+		}
+	}
 </style>

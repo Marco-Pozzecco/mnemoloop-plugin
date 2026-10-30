@@ -13,7 +13,7 @@
 
 	.ml-combobox__label {
 		font-size: $font-xs;
-		font-weight: $font-md;
+		font-weight: $font-medium;
 		color: $text-normal;
 		margin-bottom: 0;
 	}
