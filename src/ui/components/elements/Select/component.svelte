@@ -253,12 +253,12 @@
 	@media (max-width: 480px) {
 		.ml-select {
 			padding: $spacing-xs $spacing-sm;
-			font-size: 1rem; /* Prevent iOS zoom */
+			font-size: $font-sm;
 		}
 
 		:global(.ml-select-item) {
 			padding: $spacing-sm $spacing-sm;
-			font-size: 1rem;
+			font-size: $font-sm;
 		}
 	}
 </style>
