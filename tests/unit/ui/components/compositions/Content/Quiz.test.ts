@@ -4,7 +4,7 @@ import {
 	buildQuizContent,
 	remapCorrectIndexAfterRemove,
 	validateQuiz,
-} from '@/ui/components/modals/FlashcardFormModal/Content/Quiz/validation';
+} from '@/ui/components/compositions/FlashcardForm/Content/Quiz/validation';
 
 describe('validateQuiz', () => {
 	it('should return error when question is empty', () => {

@@ -11,8 +11,11 @@
 	import { Banner, FormField, Input, Tabs } from '@/ui/components/elements';
 	import { modalStore } from '@/ui/store/modal.store';
 	import { parseDeckList, formatDeckList } from '@/utils/deck-utils';
-	import FormContent from './Content';
-	import type { BuildContentFn, ValidateFn } from './Content/types';
+	import ContentRouter from '@/ui/components/compositions/FlashcardForm/ContentRouter/component.svelte';
+	import type {
+		BuildContentFn,
+		ValidateFn,
+	} from '@/ui/components/compositions/FlashcardForm/Content/types';
 	import type { FlashcardFormModalData } from './types';
 	import type FlashcardFormModalProps from './types';
 	import { getAppContext } from '@/ui/context/AppContext';
@@ -114,6 +117,13 @@
 					FlashcardWriterCreateResponseEvent,
 					async (response) => {
 						unsub();
+						if (!response.data.success) {
+							controller.store.setError(
+								'Couldn’t create the flashcard. The vault rejected the write.',
+							);
+							controller.store.setLoading(false);
+							return;
+						}
 						app.workspace.openLinkText(response.data.filepath, '', false);
 						controller.onClose();
 					},
@@ -131,6 +141,13 @@
 					FlashcardWriterUpdateResponseEvent,
 					async (response) => {
 						unsub();
+						if (!response.data.success) {
+							controller.store.setError(
+								'Couldn’t save the flashcard. The vault rejected the write.',
+							);
+							controller.store.setLoading(false);
+							return;
+						}
 						app.workspace.openLinkText(response.data.filepath, '', false);
 						controller.onClose();
 					},
@@ -177,44 +194,7 @@
 		</Tabs.Root>
 	</FormField>
 
-	{#key selectedType}
-		{#if selectedType === CardType.Basic}
-			<FormContent.Basic
-				{mode}
-				initialContent={card?.content}
-				onRegister={handleRegister}
-				disabled={isLoading}
-			/>
-		{:else if selectedType === CardType.Sequence}
-			<FormContent.Sequence
-				{mode}
-				initialContent={card?.content}
-				onRegister={handleRegister}
-				disabled={isLoading}
-			/>
-		{:else if selectedType === CardType.Quiz}
-			<FormContent.Quiz
-				{mode}
-				initialContent={card?.content}
-				onRegister={handleRegister}
-				disabled={isLoading}
-			/>
-		{:else if selectedType === CardType.Cloze}
-			<FormContent.Cloze
-				{mode}
-				initialContent={card?.content}
-				onRegister={handleRegister}
-				disabled={isLoading}
-			/>
-		{:else if selectedType === CardType.Occlusion}
-			<FormContent.Occlusion
-				{mode}
-				initialContent={card?.content}
-				onRegister={handleRegister}
-				disabled={isLoading}
-			/>
-		{/if}
-	{/key}
+	<ContentRouter {selectedType} {mode} {card} disabled={isLoading} onRegister={handleRegister} />
 
 	<!-- Shared metadata -->
 	<Input

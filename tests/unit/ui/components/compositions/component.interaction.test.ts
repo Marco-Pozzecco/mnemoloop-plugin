@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import '../../../../../helpers/dom-polyfills';
+import '../../../../helpers/dom-polyfills';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mount, tick, unmount } from 'svelte';
 import type { App } from 'obsidian';
@@ -8,8 +8,8 @@ import { FlashcardWriterCreateRequestEvent } from '@/modules/events/domains/flas
 import { CardStatus, CardType, type Flashcard } from '@/schemas';
 import type { ModalController } from '@/ui/controllers/ModalController';
 import { ModalViewEnum, modalStore } from '@/ui/store/modal.store';
-import FlashcardFormModalHarness from '../../../../../helpers/FlashcardFormModalHarness.svelte';
-import { createMockPlugin } from '../../../../../helpers/mock-obsidian';
+import FlashcardFormModalHarness from '../../../../helpers/FlashcardFormModalHarness.svelte';
+import { createMockPlugin } from '../../../../helpers/mock-obsidian';
 
 const OCCLUSION_CARD = {
 	uuid: '00000000-0000-4000-8000-0000000000bb',
