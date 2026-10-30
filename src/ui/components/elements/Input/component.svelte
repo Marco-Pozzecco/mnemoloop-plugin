@@ -6,7 +6,7 @@
 		type = 'text',
 		label,
 		placeholder = '',
-		value = '',
+		value = $bindable(''),
 		disabled = false,
 		required = false,
 		hasError = false,
@@ -17,6 +17,7 @@
 		max,
 		step,
 		class: className = '',
+		oninput,
 		onchange,
 		onfocus,
 		onblur,
@@ -24,6 +25,12 @@
 	}: InputProps = $props();
 
 	let inputElement: HTMLInputElement;
+
+	function handleInput(event: Event) {
+		const target = event.target as HTMLInputElement;
+		value = target.value;
+		oninput?.(value);
+	}
 
 	function handleChange(event: Event) {
 		const target = event.target as HTMLInputElement;
@@ -75,6 +82,7 @@
 		aria-invalid={hasError}
 		aria-describedby={hasError ? `${id}-error` : helperText ? `${id}-helper` : undefined}
 		class="ml-input"
+		oninput={handleInput}
 		onchange={handleChange}
 		onfocus={handleFocus}
 		{onblur}
@@ -94,12 +102,12 @@
 	.ml-input-wrapper {
 		display: flex;
 		flex-direction: column;
-		gap: $spacing-xs;
+		gap: $spacing-xxs;
 	}
 
 	.ml-input-label {
 		font-size: $font-xs;
-		font-weight: $font-md;
+		font-weight: $font-medium;
 		color: $text-normal;
 		margin-bottom: 0;
 		display: flex;
@@ -114,21 +122,21 @@
 
 	.ml-input {
 		width: 100%;
-		padding: $spacing-sm $spacing-sm;
+		padding: $spacing-xs $spacing-sm;
 		font-family: inherit;
 		font-size: $font-sm;
 		color: $text-normal;
 		background-color: $background-primary;
-		border: 1px solid $background-modifier-border;
-		border-radius: $radius-input;
+		border: 1px solid $line-subtle;
+		border-radius: $radius-md;
 		transition:
-			border-color 0.15s ease,
-			box-shadow 0.15s ease;
-		min-height: 44px;
+			border-color $transition-fast,
+			box-shadow $transition-fast;
+		min-height: $control-md;
 	}
 
 	.ml-input::placeholder {
-		color: $text-muted;
+		color: $text-faint;
 	}
 
 	.ml-input:hover:not(:disabled):not(:focus) {
