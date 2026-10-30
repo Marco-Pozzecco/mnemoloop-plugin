@@ -98,7 +98,7 @@ src/
 │   ├── review-items/    # Individual review item logic + ReviewItemFactory.ts
 │   └── writers/         # File write operations (FlashcardWriter)
 ├── ui/                  # Svelte 5 components
-│   ├── components/      # Reusable Svelte components (elements/, views/, sections/, modals/)
+│   ├── components/      # Reusable Svelte components (elements/, compositions/, sections/, modals/, views/)
 │   ├── views/           # Main view containers
 │   │   ├── App/         # App.svelte, AppView.ts, types.ts
 │   │   ├── Settings/    # SettingsView.ts, FsrsIntervalPreview.svelte, settings-controls.ts
@@ -246,7 +246,13 @@ Four-layer architecture decoupling event declaration, routing, and handling:
 
 - Use Svelte 5 runes syntax (`$props()`, `$state()`)
 - Pattern: `ComponentName/component.svelte` with optional `types.ts`
-- Organized by: `elements/`, `views/`, `sections/`, `modals/`
+- Organized by: `elements/`, `compositions/`, `sections/`, `modals/`, `views/`
+- **Compositions** (`compositions/`) — compositions are reusable compositions of primitives. A composition assembles elements (and other compositions) into a task-level unit such as `FlashcardForm`, exposes its data and callbacks through props, and is not tied to a single view. Sections and views consume compositions instead of rebuilding the same arrangement. Compositions may keep private subcomponents in nested folders (e.g. `FlashcardForm/DeckPicker/`).
+- Element APIs carry design intent as props (`Button variant`, `Badge variant`, `Chip appearance`, `Table.Row selected`). Sections must not restyle elements through `:global` class overrides; if two screens need the same change, add a variant.
+- A component owns its own geometry. Heights, widths and sizes only one component uses — table row 56px, header row 40px, badge 22px, its dot 6px, sheet 440px, mobile card 116px — are local `$var`s in that component's style block. `_tokens.scss` keeps only what components share: the control sizes (`$control-sm/md/lg`), the scales, and the theme roles.
+- `Badge` has exactly one semantic prop: `variant` (`neutral | accent | success | warning | error | ghost`), plus geometry (`radius`, `dot`). The tone maps to Obsidian ink + tint; never pass a raw colour. Card status is read from the tone alone — do not pass `dot` for it.
+- `Textarea` grows with its content through `ui/actions/autosize.ts`; `rows` is only the floor for a short field, and the field has no resize handle. The surrounding scroll container (usually the sheet body) does the scrolling.
+- `Sheet` is the non-modal, non-trapping side panel: 440px, no scrim, Escape closes, focus returns to the opener. At 768px and below it covers the leaf. `FlashcardForm` composes it for both editing an existing card and creating one; create mode adds a card-type field, hides status/delete, and drops the header meta row.
 
 **Stores** (`ui/store/`)
 
@@ -352,7 +358,7 @@ ComponentName/
 **Barrel Exports** (`npm run generate-barrels`)
 
 - Python script: `scripts/generate-barrels.py`
-- Auto-generates `index.ts` files in component directories
+- Auto-generates `index.ts` files for `elements/`, `compositions/`, `modals/`, `sections/`, and `views/`
 - Exports components and their types for clean imports
 
 **Manifest Version Sync** (`npm run build` calls this automatically)
@@ -424,10 +430,11 @@ Additional documentation is maintained in the repository wiki (see OpenWiki sect
 
 ### Adding a New Component
 
-1. Create folder: `src/ui/components/elements/MyComponent/`
-2. Add `component.svelte` and optional `types.ts`
-3. Run `npm run generate-barrels` to update exports
-4. Import from barrel: `import { MyComponent } from '@/ui/components/elements';`
+1. Choose the category: `elements/` for a primitive, `compositions/` for a reusable composition of primitives, `sections/<View>/` for view-specific presentation, or `modals/` for a modal surface
+2. Create folder: `src/ui/components/<category>/MyComponent/`
+3. Add `component.svelte` and optional `types.ts`
+4. Run `npm run generate-barrels` to update exports
+5. Import from barrel: `import { MyComponent } from '@/ui/components/elements';`
 
 ### Adding a New Adapter
 
