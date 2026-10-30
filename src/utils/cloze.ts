@@ -47,3 +47,31 @@ export function parseClozeContent(body: string): FlashcardClozeContent {
 		})),
 	};
 }
+
+/**
+ * Plain-text rendering of a cloze card, e.g. for a card preview.
+ *
+ * `text` is stored with the answers cut out, so each recorded position gets a
+ * placeholder back. Positions are walked in order and clamped to the text, so a
+ * deletion repeated at several positions adds one placeholder each and a
+ * deletion at the very end of the text still renders.
+ */
+export function renderClozeText(
+	content: Pick<FlashcardClozeContent, 'text' | 'deletions'>,
+	placeholder = '[...]',
+): string {
+	const positions = content.deletions
+		.flatMap((deletion) => deletion.positions)
+		.sort((a, b) => a - b);
+
+	let cursor = 0;
+	let result = '';
+
+	for (const raw of positions) {
+		const position = Math.max(cursor, Math.min(raw, content.text.length));
+		result += content.text.slice(cursor, position) + placeholder;
+		cursor = position;
+	}
+
+	return result + content.text.slice(cursor);
+}
