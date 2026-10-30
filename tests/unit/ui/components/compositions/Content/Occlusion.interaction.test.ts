@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
-import '../../../../../../helpers/dom-polyfills';
+import '../../../../../helpers/dom-polyfills';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mount, tick, unmount } from 'svelte';
 import type { App } from 'obsidian';
 import { CardType, type FlashcardOcclusionContent } from '@/schemas';
-import type { BuildContentFn, ValidateFn } from '@/ui/components/sections/FlashcardForm/Content/types';
-import FormOcclusionHarness from '../../../../../../helpers/FormOcclusionHarness.svelte';
-import { createMockPlugin } from '../../../../../../helpers/mock-obsidian';
+import type { BuildContentFn, ValidateFn } from '@/ui/components/compositions/FlashcardForm/Content/types';
+import FormOcclusionHarness from '../../../../../helpers/FormOcclusionHarness.svelte';
+import { createMockPlugin } from '../../../../../helpers/mock-obsidian';
 
 const VAULT_FILES = [
 	{ path: 'attachments/lungs.png', content: '' },

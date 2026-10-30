@@ -2,7 +2,7 @@
 	import { CardStatus } from '@/schemas';
 	import type { Flashcard, FlashcardMetadata } from '@/schemas';
 	import { Button, Collapsible, Icon, Skeleton } from '@/ui/components/elements';
-	import { FlashcardForm } from '@/ui/components/sections';
+	import { FlashcardFormInline } from '@/ui/components/compositions';
 	import { SidebarController } from '@/ui/controllers/SidebarController';
 	import { sidebarStore } from '@/ui/store/sidebar.store';
 	import { onDestroy, onMount } from 'svelte';
@@ -123,14 +123,14 @@
 
 	<div class="ml-sidebar__body">
 		{#if form && form.kind === 'create'}
-			<FlashcardForm
+			<FlashcardFormInline
 				mode="create"
 				prefillSource={form.source}
 				onSaved={closeForm}
 				onCancel={closeForm}
 			/>
 		{:else if form && form.kind === 'edit'}
-			<FlashcardForm mode="edit" card={form.card} onSaved={closeForm} onCancel={closeForm} />
+			<FlashcardFormInline mode="edit" card={form.card} onSaved={closeForm} onCancel={closeForm} />
 		{:else if state.activeNote === null}
 			<!-- No active note: the head states it, and there is nothing to list. -->
 		{:else if state.isLoading}

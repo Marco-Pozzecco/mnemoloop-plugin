@@ -22,13 +22,13 @@ type FlashcardWriterCreateRequestEvent = IEvent<FlashcardWriterCreateEventData>;
 
 const FlashcardWriterCreateResponseEvent = EventFactory.createResponse<{
 	filepath: string;
-	success: boolean;
 	requestId: string;
+	success: boolean;
 }>(t.create);
 type FlashcardWriterCreateResponseEvent = IEvent<{
 	filepath: string;
-	success: boolean;
 	requestId: string;
+	success: boolean;
 }>;
 
 type FlashcardWriterUpdateEventData = Partial<Flashcard>;

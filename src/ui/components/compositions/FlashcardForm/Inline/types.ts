@@ -7,7 +7,7 @@ export type FlashcardFormMode = 'create' | 'edit';
  * sidebar panel. The form owns its own saving and error state; the caller only
  * decides what happens after a save (`onSaved`) or a cancel (`onCancel`).
  */
-export default interface FlashcardFormProps {
+export default interface FlashcardFormInlineProps {
 	mode: FlashcardFormMode;
 	/** The full card to edit. Required in edit mode. */
 	card?: Flashcard;

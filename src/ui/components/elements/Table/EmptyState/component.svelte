@@ -25,17 +25,17 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: $spacing-xs;
-		padding: $spacing-xl $spacing-md;
+		gap: $spacing-xxs;
+		padding: $spacing-xl $spacing-sm;
 		text-align: center;
-		border: 1px dashed $background-modifier-border;
+		border: 1px solid $line-strong;
 		border-radius: $radius-md;
 	}
 
 	.ml-table-empty__title {
 		margin: 0;
 		font-size: $font-md;
-		font-weight: $font-semibold;
+		font-weight: $font-normal;
 		color: $text-normal;
 	}
 
@@ -46,6 +46,6 @@
 	}
 
 	.ml-table-empty__action {
-		margin-top: $spacing-sm;
+		margin-top: $spacing-xs;
 	}
 </style>

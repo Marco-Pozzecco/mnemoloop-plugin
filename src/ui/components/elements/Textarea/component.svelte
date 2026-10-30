@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { autosize, resizeTextarea } from '@/ui/actions/autosize';
 	import type TextareaProps from './types';
 
 	let {
 		id = `ml-textarea-${Math.random().toString(36).substring(2, 9)}`,
 		label,
 		placeholder = '',
-		value = '',
+		value = $bindable(''),
 		disabled = false,
 		required = false,
 		hasError = false,
@@ -14,10 +15,19 @@
 		rows = 5,
 		maxLength,
 		className = '',
+		oninput,
 		onchange,
 		onfocus,
 		onblur,
 	}: TextareaProps = $props();
+
+	function handleInput(event: Event) {
+		const target = event.target as HTMLTextAreaElement;
+		value = target.value;
+		// The DOM already holds the typed text; resize before the prop round-trip.
+		resizeTextarea(target);
+		oninput?.(value);
+	}
 
 	function handleChange(event: Event) {
 		const target = event.target as HTMLTextAreaElement;
@@ -56,6 +66,8 @@
 		aria-invalid={hasError}
 		aria-describedby={hasError ? `${id}-error` : helperText ? `${id}-helper` : undefined}
 		class="ml-textarea"
+		use:autosize={value}
+		oninput={handleInput}
 		onchange={handleChange}
 		onfocus={handleFocus}
 		{onblur}
@@ -79,7 +91,7 @@
 
 	.ml-textarea-label {
 		font-size: $font-xs;
-		font-weight: $font-md;
+		font-weight: $font-medium;
 		color: $text-normal;
 		margin-bottom: 0;
 		display: flex;
@@ -95,21 +107,24 @@
 	.ml-textarea {
 		width: 100%;
 		min-height: 100px;
-		padding: $spacing-sm $spacing-sm;
+		padding: $spacing-xs $spacing-sm;
 		font-family: inherit;
 		font-size: $font-sm;
 		color: $text-normal;
 		background-color: $background-primary;
-		border: 1px solid $background-modifier-border;
-		border-radius: $radius-input;
-		resize: vertical;
+		border: 1px solid $line-subtle;
+		border-radius: $radius-md;
+		/* The field follows its content (actions/autosize.ts); `auto` is the
+		   fallback that scrolls instead of clipping if a remeasure is missed. */
+		resize: none;
+		overflow-y: auto;
 		transition:
-			border-color 0.15s ease,
-			box-shadow 0.15s ease;
+			border-color $transition-fast,
+			box-shadow $transition-fast;
 	}
 
 	.ml-textarea::placeholder {
-		color: $text-muted;
+		color: $text-faint;
 	}
 
 	.ml-textarea:hover:not(:disabled):not(:focus) {

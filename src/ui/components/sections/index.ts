@@ -14,8 +14,10 @@ export { default as DashboardProgress } from './Dashboard/Progress/component.sve
 export type { default as DashboardProgressProps } from './Dashboard/Progress/types';
 export { default as DashboardStatsGrid } from './Dashboard/StatsGrid/component.svelte';
 export type { default as DashboardStatsGridProps } from './Dashboard/StatsGrid/types';
-export { default as FlashcardForm } from './FlashcardForm/component.svelte';
-export type { default as FlashcardFormProps } from './FlashcardForm/types';
+export { default as ManageCardList } from './Manage/CardList/component.svelte';
+export type { default as ManageCardListProps } from './Manage/CardList/types';
+export { default as ManageDeckChips } from './Manage/DeckChips/component.svelte';
+export type { default as ManageDeckChipsProps } from './Manage/DeckChips/types';
 export { default as ManageDeleteConfirmation } from './Manage/DeleteConfirmation/component.svelte';
 export type { default as ManageDeleteConfirmationProps } from './Manage/DeleteConfirmation/types';
 export { default as ManageFilterBar } from './Manage/FilterBar/component.svelte';
@@ -53,5 +55,4 @@ export { default as ReviewFlashcard } from './Review/Flashcard/component.svelte'
 export type { default as ReviewFlashcardProps } from './Review/Flashcard/types';
 export { default as ReviewHeader } from './Review/Header/component.svelte';
 export type { default as ReviewHeaderProps } from './Review/Header/types';
-export { default as FlashcardFormContent } from './FlashcardForm/Content';
 export { default as ManageTable } from './Manage/Table';

@@ -32,7 +32,7 @@
 		color: $text-normal;
 		background-color: $background-primary;
 		border: 1px solid $background-modifier-border;
-		border-radius: $radius-input;
+		border-radius: $radius-md;
 		min-height: 32px;
 		transition:
 			border-color $transition-fast,

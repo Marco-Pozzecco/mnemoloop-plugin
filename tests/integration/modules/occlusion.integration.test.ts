@@ -6,7 +6,7 @@ import { FlashcardOcclusionContentParser } from '@/modules/parsers/content/Flash
 import type { FlashcardParser } from '@/modules/parsers/entity/FlashcardParser';
 import { FlashcardWriter } from '@/modules/writers/FlashcardWriter';
 import { DEFAULT_FLASHCARD_YAML, CardType, Flashcard, FlashcardYaml } from '@/schemas';
-import { buildOcclusionContent } from '@/ui/components/sections/FlashcardForm/Content/Occlusion/validation';
+import { buildOcclusionContent } from '@/ui/components/compositions/FlashcardForm/Content/Occlusion/validation';
 import { PluginSettings } from '@/schemas/settings';
 import type { IAdapter } from '@/interfaces/IAdapter';
 import { AdapterKey, Adapters } from '@/types/adapters';

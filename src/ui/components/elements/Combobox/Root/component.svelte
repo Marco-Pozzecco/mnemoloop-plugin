@@ -58,6 +58,10 @@
 
 	.ml-combobox {
 		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: $spacing-xxs;
+		width: 100%;
 		min-width: 0;
 	}
 </style>

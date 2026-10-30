@@ -14,6 +14,8 @@ export default interface InputProps {
 	max?: number;
 	step?: number;
 	class?: string;
+	/** Fires on every keystroke, for live filtering. */
+	oninput?: (value: string) => void;
 	onchange?: (value: string) => void;
 	onfocus?: () => void;
 	onblur?: () => void;

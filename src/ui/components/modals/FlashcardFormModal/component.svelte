@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FlashcardForm } from '@/ui/components/sections';
+	import { FlashcardFormInline } from '@/ui/components/compositions';
 	import { getAppContext } from '@/ui/context/AppContext';
 	import { modalStore } from '@/ui/store/modal.store';
 	import type { FlashcardFormModalData } from './types';
@@ -31,7 +31,7 @@
 	{mode === 'edit' ? 'Edit flashcard' : 'Create flashcard'}
 </h2>
 
-<FlashcardForm
+<FlashcardFormInline
 	{mode}
 	card={data?.card}
 	prefillSource={data?.prefillSource}

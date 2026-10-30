@@ -11,11 +11,11 @@
 	import type { Flashcard } from '@/schemas';
 	import { Banner, Button, FormField, Input, Tabs } from '@/ui/components/elements';
 	import { parseDeckList, formatDeckList } from '@/utils/deck-utils';
-	import FormContent from './Content';
-	import type { BuildContentFn, ValidateFn } from './Content/types';
-	import type FlashcardFormProps from './types';
+	import FormContent from '../Content';
+	import type { BuildContentFn, ValidateFn } from '../Content/types';
+	import type FlashcardFormInlineProps from './types';
 
-	let { mode, card, prefillSource, onSaved, onCancel }: FlashcardFormProps = $props();
+	let { mode, card, prefillSource, onSaved, onCancel }: FlashcardFormInlineProps = $props();
 
 	const cardTypeOptions = [
 		{ value: CardType.Basic, label: 'Basic' },

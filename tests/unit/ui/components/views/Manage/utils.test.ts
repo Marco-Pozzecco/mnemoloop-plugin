@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { CardStatus, CardType } from '@/schemas';
 import type { Flashcard } from '@/schemas';
+import { parseClozeContent } from '@/utils/cloze';
 import {
 	MANAGE_PAGE_SIZE,
 	buildCardPreview,
+	cardHref,
 	filterFlashcards,
 	paginate,
 } from '@/ui/components/views/Manage/utils';
@@ -163,19 +165,34 @@ describe('Manage utils', () => {
 			expect(buildCardPreview(card)).toBe('Pick one');
 		});
 
-		it('builds a Cloze preview with {{...}} patterns replaced by [...]', () => {
+		it('builds a Cloze preview with the answers cut out as [...]', () => {
 			const card = {
 				...createCloze(),
-				content: {
-					meta_type: CardType.Cloze,
-					text: 'The capital of {{c1::France}} is {{c2::Paris}}',
-					deletions: [
-						{ id: 'c1', answer: 'France', hint: null, positions: [0] },
-						{ id: 'c2', answer: 'Paris', hint: null, positions: [0] },
-					],
-				},
+				content: parseClozeContent(
+					'Analytics cloze 1: {{c1::retention}} drives the forecast.',
+				),
 			} as unknown as Flashcard;
-			expect(buildCardPreview(card)).toBe('The capital of [...] is [...]');
+			expect(buildCardPreview(card)).toBe('Analytics cloze 1: [...] drives the forecast.');
+		});
+
+		it('builds a Cloze preview with one placeholder per deletion', () => {
+			const card = {
+				...createCloze(),
+				content: parseClozeContent('The capital of {{c1::France}} is {{c2::Paris}}.'),
+			} as unknown as Flashcard;
+			expect(buildCardPreview(card)).toBe('The capital of [...] is [...].');
+		});
+
+		it('never splits a cloze placeholder when truncating', () => {
+			const card = {
+				...createCloze(),
+				content: parseClozeContent(`${'a'.repeat(58)}{{c1::answer}} tail`),
+			} as unknown as Flashcard;
+
+			const preview = buildCardPreview(card);
+
+			expect(preview).toBe(`${'a'.repeat(58)}...`);
+			expect(preview.length).toBe(61);
 		});
 
 		it('builds an Occlusion preview naming the image and the mask count', () => {
@@ -237,6 +254,14 @@ describe('Manage utils', () => {
 				value: CardType.Occlusion,
 				label: 'Occlusion',
 			});
+		});
+	});
+
+	describe('cardHref', () => {
+		it('builds an Obsidian deep link with an encoded vault and path', () => {
+			expect(cardHref('My Vault', 'Cards/What is spaced repetition?.md')).toBe(
+				'obsidian://open?vault=My%20Vault&file=Cards%2FWhat%20is%20spaced%20repetition%3F.md',
+			);
 		});
 	});
 });

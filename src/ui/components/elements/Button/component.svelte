@@ -54,8 +54,8 @@
 		white-space: nowrap;
 
 		/* Ensure minimum touch target size for accessibility */
-		min-height: 44px;
-		padding: 0 16px;
+		min-height: $control-md;
+		padding: 0 $spacing-md;
 
 		&.ml-button--primary {
 			background-color: $interactive-accent;
@@ -96,6 +96,20 @@
 			}
 		}
 
+		&.ml-button--plain {
+			background-color: transparent;
+			color: $text-muted;
+			border: none;
+			box-shadow: none;
+			font-weight: $font-normal;
+			padding: 0 $spacing-xs;
+
+			&:hover:not(:disabled) {
+				color: $text-normal;
+				background-color: transparent;
+			}
+		}
+
 		&.ml-button--link {
 			background-color: transparent;
 			color: $text-normal;
@@ -125,24 +139,33 @@
 		}
 
 		&.ml-button__icon-only {
-			padding: 0 $spacing-sm;
+			padding: 0;
+			width: $control-md;
+		}
+
+		&.ml-button__icon-only.ml-button--small {
+			width: $control-sm;
+		}
+
+		&.ml-button__icon-only.ml-button--large {
+			width: $control-lg;
 		}
 
 		/* Sizes */
 		&.ml-button--small {
-			min-height: 32px;
+			min-height: $control-sm;
 			padding: 0 $spacing-sm;
-			font-size: $font-xs;
+			font-size: $font-sm;
 		}
 
 		&.ml-button--medium {
-			min-height: 44px;
+			min-height: $control-md;
 			padding: 0 $spacing-md;
 			font-size: $font-sm;
 		}
 
 		&.ml-button--large {
-			min-height: 52px;
+			min-height: $control-lg;
 			padding: 0 $spacing-lg;
 			font-size: $font-md;
 		}
@@ -158,13 +181,19 @@
 			outline-offset: 2px;
 		}
 
-		/* Mobile-first responsive adjustments */
-		@media (max-width: 480px) {
+		/* Touch: the compact size grows to a full target. */
+		@media (hover: none) and (pointer: coarse) {
 			&.ml-button--small {
-				min-height: 40px;
-				padding: 0 14px;
+				min-height: $control-md;
 			}
 
+			&.ml-button__icon-only.ml-button--small {
+				width: $control-md;
+			}
+		}
+
+		/* Mobile-first responsive adjustments */
+		@media (max-width: 480px) {
 			&.ml-button--large {
 				width: 100%;
 			}

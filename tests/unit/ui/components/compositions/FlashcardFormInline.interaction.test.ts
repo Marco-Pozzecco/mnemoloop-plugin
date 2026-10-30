@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import '../../../../../helpers/dom-polyfills';
+import '../../../../helpers/dom-polyfills';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mount, tick, unmount } from 'svelte';
 import type { App } from 'obsidian';
@@ -11,9 +11,9 @@ import {
 	FlashcardWriterUpdateResponseEvent,
 } from '@/modules/events/domains/flashcard/writer';
 import { CardStatus, CardType, type Flashcard } from '@/schemas';
-import FlashcardFormHarness from '../../../../../helpers/FlashcardFormHarness.svelte';
-import { createMockPlugin } from '../../../../../helpers/mock-obsidian';
-import { resetSingletons } from '../../../../../helpers/reset-singletons';
+import FlashcardFormHarness from '../../../../helpers/FlashcardFormHarness.svelte';
+import { createMockPlugin } from '../../../../helpers/mock-obsidian';
+import { resetSingletons } from '../../../../helpers/reset-singletons';
 
 const BASIC_CARD = {
 	uuid: '00000000-0000-4000-8000-0000000000aa',

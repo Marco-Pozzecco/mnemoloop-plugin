@@ -1,5 +1,5 @@
 import type { ModalController } from '@/ui/controllers/ModalController';
-import type { FlashcardFormMode } from '@/ui/components/sections/FlashcardForm/types';
+import type { FlashcardFormMode } from '@/ui/components/compositions/FlashcardForm/Inline/types';
 import type { Flashcard } from '@/schemas';
 
 export default interface FlashcardFormModalProps {

@@ -76,7 +76,7 @@ export function renderMarkdown(node: HTMLElement, options: MarkdownOptions): Mar
 
 		removeCurrentChild();
 
-		const target = activeDocument.createElement('div');
+		const target = createDiv();
 		target.classList.add('ml-markdown-rendered', 'markdown-rendered');
 		node.replaceChildren(target);
 

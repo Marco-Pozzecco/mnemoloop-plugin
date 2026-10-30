@@ -108,13 +108,13 @@
 	.ml-select-wrapper {
 		display: flex;
 		flex-direction: column;
-		gap: $spacing-xs;
+		gap: $spacing-xxs;
 		width: 100%;
 	}
 
 	.ml-select-label {
 		font-size: $font-xs;
-		font-weight: $font-md;
+		font-weight: $font-medium;
 		color: $text-normal;
 		margin-bottom: 0;
 		display: flex;
@@ -129,17 +129,17 @@
 
 	.ml-select {
 		width: 100%;
-		padding: $spacing-sm $spacing-sm;
+		padding: $spacing-xs $spacing-sm;
 		font-family: inherit;
 		font-size: $font-sm;
 		color: $text-normal;
 		background-color: $background-primary;
-		border: 1px solid $background-modifier-border;
-		border-radius: $radius-input;
+		border: 1px solid $line-subtle;
+		border-radius: $radius-md;
 		transition:
-			border-color 0.15s ease,
-			box-shadow 0.15s ease;
-		min-height: 44px;
+			border-color $transition-fast,
+			box-shadow $transition-fast;
+		min-height: $control-md;
 		cursor: pointer;
 		text-align: left;
 		display: flex;
@@ -187,9 +187,9 @@
 	:global(.ml-select-content) {
 		background-color: $background-primary;
 		border: 1px solid $background-modifier-border;
-		border-radius: $radius-input;
-		box-shadow: 0 4px 12px color-mix(in srgb, $text-normal 15%, transparent);
-		z-index: 50;
+		border-radius: $radius-md;
+		box-shadow: $shadow-md;
+		z-index: $z-popover;
 		min-width: var(--bits-floating-anchor-width);
 	}
 
@@ -253,12 +253,12 @@
 	@media (max-width: 480px) {
 		.ml-select {
 			padding: $spacing-xs $spacing-sm;
-			font-size: 1rem; /* Prevent iOS zoom */
+			font-size: $font-sm;
 		}
 
 		:global(.ml-select-item) {
 			padding: $spacing-sm $spacing-sm;
-			font-size: 1rem;
+			font-size: $font-sm;
 		}
 	}
 </style>

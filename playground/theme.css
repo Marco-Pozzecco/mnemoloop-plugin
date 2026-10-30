@@ -273,3 +273,15 @@ body {
 	background: var(--background-secondary);
 	border: 1px solid var(--background-modifier-border);
 }
+
+.ml-playground-boot-error {
+	margin: 24px;
+	padding: 16px;
+	border: 1px solid var(--background-modifier-error);
+	border-radius: 8px;
+	font-family: var(--font-interface);
+}
+
+.ml-playground-boot-error-detail {
+	white-space: pre-wrap;
+}

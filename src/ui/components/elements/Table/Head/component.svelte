@@ -13,6 +13,6 @@
 	@use 'tokens' as *;
 
 	.ml-table__head {
-		background-color: $background-modifier-hover;
+		background-color: $surface-raised;
 	}
 </style>
