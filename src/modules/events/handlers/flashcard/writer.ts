@@ -2,6 +2,7 @@ import { IEventRegistryDependencies } from '@/interfaces/IEventRegistry';
 import { SettingsAdapter } from '@/modules/adapters/SettingsAdapter';
 import { DEFAULT_FLASHCARD_YAML, Flashcard } from '@/schemas';
 import { AdapterKey } from '@/types/adapters';
+import { IndexKey } from '@/types/indexes';
 import { WriterKey } from '@/types/writers';
 import { ensureVaultFolder } from '@/utils/ensureVaultFolder';
 import { Logger } from '@/utils/Logger';
@@ -44,11 +45,24 @@ export class FlashcardWriterCreateHandler extends EventHandler<FlashcardWriterCr
 			.then(() => writer.create(flashcardPath, flashcard))
 			.then(() => {
 				new Notice('Flashcard created successfully');
-				void this._bus.publish(new FlashcardWriterCreateResponseEvent({ filepath: flashcardPath }));
+				void this._bus.publish(
+					new FlashcardWriterCreateResponseEvent({
+						filepath: flashcardPath,
+						requestId: event.id,
+						success: true,
+					}),
+				);
 			})
 			.catch((err) => {
 				Logger.error('Failed to create flashcard', err);
 				new Notice('Failed to create flashcard');
+				void this._bus.publish(
+					new FlashcardWriterCreateResponseEvent({
+						filepath: flashcardPath,
+						requestId: event.id,
+						success: false,
+					}),
+				);
 			});
 	}
 }
@@ -61,7 +75,25 @@ export class FlashcardWriterUpdateHandler extends EventHandler<FlashcardWriterUp
 	async handle(event: FlashcardWriterUpdateRequestEvent): Promise<void> {
 		const writer = this._writers.get(WriterKey.flashcard)!;
 		const settings = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
-		const filepath = settings.data.flashcard.watch.directory + `/${event.data.uuid}.md`;
+		const indexer = this._indexers.get(IndexKey.flashcard);
+		const uuid = event.data.uuid;
+
+		if (!uuid) {
+			void this._bus.publish(
+				new FlashcardWriterUpdateResponseEvent({
+					filepath: '',
+					requestId: event.id,
+					success: false,
+				}),
+			);
+			return;
+		}
+
+		// Prefer the indexed path: a card file may have been renamed away from
+		// the `<uuid>.md` convention. Fall back to the convention when the index
+		// has not seen the card yet.
+		const filepath =
+			indexer?.get(uuid)?.file ?? settings.data.flashcard.watch.directory + `/${uuid}.md`;
 		let success = false;
 
 		try {
@@ -89,8 +121,11 @@ export class FlashcardWriterDeleteHandler extends EventHandler<FlashcardWriterDe
 	async handle(event: FlashcardWriterDeleteRequestEvent): Promise<void> {
 		const writer = this._writers.get(WriterKey.flashcard)!;
 		const settings = this._adapters.get(AdapterKey.settings)! as SettingsAdapter;
+		const indexer = this._indexers.get(IndexKey.flashcard);
 		const { uuid } = event.data;
-		const filepath = settings.data.flashcard.watch.directory + `/${uuid}.md`;
+		// Prefer the indexed path so a renamed card is deleted at its real location.
+		const filepath =
+			indexer?.get(uuid)?.file ?? settings.data.flashcard.watch.directory + `/${uuid}.md`;
 		await writer.delete(filepath).catch((err) => {
 			Logger.error('WriterUpdateEventError:', err);
 		});
