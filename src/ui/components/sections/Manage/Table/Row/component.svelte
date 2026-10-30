@@ -24,7 +24,12 @@
 		<Badge variant="neutral">{cardTypeLabel(card.card_type)}</Badge>
 	</Table.Td>
 	<Table.Td>
-		<a class="ml-table__row-link ml-manage-row__preview" {href} title={preview} onclick={handleClick}>
+		<a
+			class="ml-table__row-link ml-manage-row__preview"
+			{href}
+			title={preview}
+			onclick={handleClick}
+		>
 			{preview ?? 'Loading…'}
 		</a>
 	</Table.Td>
