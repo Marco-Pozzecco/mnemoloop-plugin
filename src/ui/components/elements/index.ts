@@ -1,3 +1,5 @@
+export { default as Badge } from './Badge/component.svelte';
+export type { default as BadgeProps } from './Badge/types';
 export { default as Banner } from './Banner/component.svelte';
 export type { default as BannerProps } from './Banner/types';
 export { default as Button } from './Button/component.svelte';
@@ -30,6 +32,8 @@ export { default as ProgressBar } from './ProgressBar/component.svelte';
 export type { default as ProgressBarProps } from './ProgressBar/types';
 export { default as Select } from './Select/component.svelte';
 export type { default as SelectProps } from './Select/types';
+export { default as Sheet } from './Sheet/component.svelte';
+export type { default as SheetProps } from './Sheet/types';
 export { default as Skeleton } from './Skeleton/component.svelte';
 export type { default as SkeletonProps } from './Skeleton/types';
 export { default as Slider } from './Slider/component.svelte';
