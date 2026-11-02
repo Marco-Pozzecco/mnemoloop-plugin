@@ -2,7 +2,7 @@
 import '../../helpers/dom-polyfills';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mount, tick, unmount } from 'svelte';
-import { Platform, parseYaml } from 'obsidian';
+import { Component, Platform, parseYaml } from 'obsidian';
 import {
 	FlashcardAdapterInitEvent,
 	FlashcardIndexInitEvent,
@@ -47,14 +47,17 @@ async function mountFixture(): Promise<{
 
 	const target = document.createElement('div');
 	document.body.appendChild(target);
-	const instance = mount(SidebarPanel, { target, props: { app: stack.plugin.app } });
+	const instance = mount(SidebarPanel, {
+		target,
+		props: { app: stack.plugin.app, component: new Component() },
+	});
 	await flush();
 	return { stack, target, instance };
 }
 
 function newCardButton(target: HTMLElement): HTMLButtonElement {
-	const button = Array.from(target.querySelectorAll<HTMLButtonElement>('button')).find(
-		(element) => element.textContent?.includes('New card'),
+	const button = Array.from(target.querySelectorAll<HTMLButtonElement>('button')).find((element) =>
+		element.textContent?.includes('New card'),
 	);
 	if (!button) throw new Error('No New card button');
 	return button;
@@ -101,9 +104,9 @@ describe('flashcard sidebar playground path', () => {
 			await flush();
 
 			expect(target.querySelector('.ml-flashcard-form')).not.toBeNull();
-			expect(target.querySelector('.ml-sidebar-row')).toBeNull();
-			const source = Array.from(target.querySelectorAll<HTMLInputElement>('input')).find(
-				(input) => input.value.startsWith('[['),
+			expect(target.querySelector('.ml-sidabar-flashcard')).toBeNull();
+			const source = Array.from(target.querySelectorAll<HTMLInputElement>('input')).find((input) =>
+				input.value.startsWith('[['),
 			);
 			expect(source?.value).toBe(`[[${SIDEBAR_NOTE}]]`);
 		});

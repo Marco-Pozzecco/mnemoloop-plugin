@@ -18,6 +18,8 @@
 		params,
 	}: { stack: RealStack; fixture: PlaygroundFixture; params: PlaygroundParams } = $props();
 
+	// The playground boots once per page load; the stack is stable.
+	// svelte-ignore state_referenced_locally
 	const app = stack.plugin.app;
 	const component = new Component();
 	component.load();
@@ -26,7 +28,7 @@
 		return (event.currentTarget as HTMLSelectElement).value;
 	}
 
-	function navigate(key: 'view' | 'fixture' | 'modal', value: string): void {
+	function navigate(key: 'view' | 'fixture', value: string): void {
 		updateParams({ [key]: value || null }, { reload: true });
 	}
 
@@ -64,23 +66,13 @@
 			<option value="dark">dark</option>
 		</select>
 	</label>
-	<label class="ml-playground-toolbar__field">
-		Modal
-		<select
-			value={params.modal ?? ''}
-			onchange={(event) => navigate('modal', selectValue(event))}
-		>
-			<option value="">none</option>
-			<option value="flashcard-form">flashcard form</option>
-		</select>
-	</label>
 	<span class="ml-playground-toolbar__meta">{fixture.description}</span>
 </header>
 
 <main class="ml-playground-stage">
 	<div class="ml-playground-app-host">
 		{#if params.view === 'sidebar'}
-			<SidebarPanel {app} />
+			<SidebarPanel {app} {component} />
 		{:else}
 			<App {app} {component} />
 		{/if}

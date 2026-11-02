@@ -11,7 +11,6 @@ describe('sidebar playground path', () => {
 			view: 'sidebar',
 			fixture: 'sidebar',
 			theme: 'light',
-			modal: null,
 			platform: 'desktop',
 		});
 
