@@ -21,7 +21,7 @@
 
 	onMount(() => {
 		previouslyFocused =
-			document.activeElement instanceof HTMLElement ? document.activeElement : null;
+			activeDocument.activeElement instanceof HTMLElement ? activeDocument.activeElement : null;
 		void tick().then(() => panel?.focus());
 	});
 

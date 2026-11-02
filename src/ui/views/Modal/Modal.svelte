@@ -14,6 +14,8 @@
 	let cApp = $derived(app);
 	let cComponent = $derived(component);
 
+	// The modal mounts once; the props do not change for its lifetime.
+	// svelte-ignore state_referenced_locally
 	setAppContext({ app: cApp, component: cComponent });
 </script>
 
