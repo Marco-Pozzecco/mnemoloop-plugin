@@ -75,13 +75,13 @@ Dual-source truth: a fast JSON index for queries, plus human-readable YAML front
 
 ### Create Your First Flashcard
 
-Creating a card is modal-driven:
+Creating a card happens in the flashcard sidebar:
 
-- Open the **Command Palette** (`Ctrl/Cmd + P`) and run **Create flashcard** to open the flashcard form;
-- Right-click a note in the **File Explorer** and select **Create flashcard from file** to open the form with the source pre-filled with a link to that note;
-- Pick a **Basic**, **Sequence**, **Quiz**, or **Cloze** tab, enter your content, optionally assign one or more decks, and confirm.
+- Open the **Command Palette** (`Ctrl/Cmd + P`) and run **Open flashcard sidebar**, then click **New card** on the note you are reading;
+- Or right-click a note in the **File Explorer** and select **Create flashcard from file**: the sidebar opens with the source pre-filled with a link to that note;
+- Pick a **Basic**, **Sequence**, **Quiz**, or **Cloze** type, enter your content, optionally assign one or more decks, and confirm.
 
-The card is saved as its own Markdown file in your flashcards directory and opened in the editor.
+The card is saved as its own Markdown file in your flashcards directory.
 
 ### Review
 
@@ -212,11 +212,11 @@ The powerhouse of the cell is the {{c1::mitochondrion}}.
 
 ## Available Commands
 
-| Context   | Command                    | Description                                                      |
-| --------- | -------------------------- | ---------------------------------------------------------------- |
-| Palette   | Open dashboard             | Open the learning dashboard                                      |
-| Palette   | Create flashcard           | Open the flashcard form to create a new card                     |
-| File menu | Create flashcard from file | Open the flashcard form pre-linked to the selected Markdown file |
+| Context   | Command                    | Description                                                                       |
+| --------- | -------------------------- | --------------------------------------------------------------------------------- |
+| Palette   | Open dashboard             | Open the learning dashboard                                                       |
+| Palette   | Open flashcard sidebar     | Reveal the flashcard panel bound to the active note                               |
+| File menu | Create flashcard from file | Open the flashcard sidebar's create form pre-linked to the selected markdown file |
 
 ---
 

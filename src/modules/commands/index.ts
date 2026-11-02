@@ -6,7 +6,6 @@ export { OpenDashboardCommand } from './palette/OpenDashboardCommand';
 export { OpenFlashcardSidebarCommand } from './palette/OpenFlashcardSidebarCommand';
 export { SetAllFlashcardsDueNowCommand } from './palette/SetAllFlashcardsDueNowCommand';
 export { DebugAddTestFlashcardCommand } from './palette/DebugAddTestFlashcardsCommand';
-export { CreateFlashcardModalCommand } from './palette/CreateFlashcardModalCommand';
 
 // File menu commands
-export { CreateFlashcardFromFileModalCommand } from './file-menu/CreateFlashcardFromFileModalCommand';
+export { CreateFlashcardFromFileCommand } from './file-menu/CreateFlashcardFromFileCommand';

@@ -12,8 +12,7 @@ import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
 import { StatisticsAdapter } from './modules/adapters/StatisticsAdapter';
 import {
 	CommandRegistry,
-	CreateFlashcardFromFileModalCommand,
-	CreateFlashcardModalCommand,
+	CreateFlashcardFromFileCommand,
 	DebugAddTestFlashcardCommand,
 	OpenDashboardCommand,
 	OpenFlashcardSidebarCommand,
@@ -196,12 +195,8 @@ export default class MnemoloopPlugin extends Plugin {
 			new DebugAddTestFlashcardCommand(),
 		);
 		this._commandRegistry.register(
-			CommandKey.createFlashcardModal,
-			new CreateFlashcardModalCommand(),
-		);
-		this._commandRegistry.register(
-			CommandKey.createFlashcardFromFileModal,
-			new CreateFlashcardFromFileModalCommand(),
+			CommandKey.createFlashcardFromFile,
+			new CreateFlashcardFromFileCommand(),
 		);
 
 		this._commandRegistry.initialize({
