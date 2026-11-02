@@ -8,6 +8,8 @@
 		forceMount = false,
 		hiddenUntilFound = false,
 		class: className = '',
+		padding = 'default',
+		divided = true,
 		children,
 		...rest
 	}: CollapsibleContentProps = $props();
@@ -35,7 +37,12 @@
 	{...rest}
 	class="ml-collapsible__content {className}"
 >
-	<div class="ml-collapsible__content-inner" bind:this={innerRef}>
+	<div
+		class="ml-collapsible__content-inner"
+		class:ml-collapsible__content-inner--flush={padding === 'none'}
+		class:ml-collapsible__content-inner--undivided={!divided}
+		bind:this={innerRef}
+	>
 		{@render children?.()}
 	</div>
 </Collapsible.Content>
@@ -68,6 +75,14 @@
 	:global(.ml-collapsible__content-inner) {
 		padding: $spacing-sm 0;
 		border-top: 1px solid $background-modifier-border;
+	}
+
+	:global(.ml-collapsible__content-inner--flush) {
+		padding: 0;
+	}
+
+	:global(.ml-collapsible__content-inner--undivided) {
+		border-top: none;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

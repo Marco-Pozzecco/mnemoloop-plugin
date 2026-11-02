@@ -60,6 +60,23 @@ describe('Collapsible primitive interaction', () => {
 		expect(trigger?.getAttribute('aria-expanded')).toBe('false');
 	});
 
+	it('exposes flush, undivided content and a button trigger', async () => {
+		target = activeDocument.createElement('div');
+		activeDocument.body.appendChild(target);
+		instance = mount(CollapsibleHarness, {
+			target,
+			props: { initialOpen: true, padding: 'none', divided: false },
+		});
+		await tick();
+
+		const trigger = target.querySelector<HTMLButtonElement>('.ml-collapsible__trigger');
+		const inner = target.querySelector<HTMLElement>('.ml-collapsible__content-inner');
+
+		expect(trigger?.type).toBe('button');
+		expect(inner?.classList.contains('ml-collapsible__content-inner--flush')).toBe(true);
+		expect(inner?.classList.contains('ml-collapsible__content-inner--undivided')).toBe(true);
+	});
+
 	it('uses hidden until found while closed and reveals content when opened', async () => {
 		target = activeDocument.createElement('div');
 		activeDocument.body.appendChild(target);
