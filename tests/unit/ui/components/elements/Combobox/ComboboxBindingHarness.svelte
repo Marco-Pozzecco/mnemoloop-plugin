@@ -2,6 +2,8 @@
 	import { Combobox } from '@/ui/components/elements';
 
 	let { initialValue = [] }: { initialValue?: string[] } = $props();
+	// The harness seeds local state once from its initial props.
+	// svelte-ignore state_referenced_locally
 	let selected = $state(initialValue);
 	const options = [
 		{ value: 'math', label: 'Math' },

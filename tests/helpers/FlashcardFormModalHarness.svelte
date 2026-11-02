@@ -10,6 +10,8 @@
 
 	const owner = new Component();
 	owner.load();
+	// The harness mounts once with fixed props.
+	// svelte-ignore state_referenced_locally
 	setAppContext({ app, component: owner });
 
 	onDestroy(() => {

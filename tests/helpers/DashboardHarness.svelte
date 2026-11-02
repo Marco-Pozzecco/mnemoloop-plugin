@@ -10,6 +10,8 @@
 
 	let { app, component }: Props = $props();
 
+	// The harness mounts once with fixed props.
+	// svelte-ignore state_referenced_locally
 	setAppContext({ app, component });
 </script>
 

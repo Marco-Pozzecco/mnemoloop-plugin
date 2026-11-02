@@ -2,7 +2,7 @@
 import '../../../../../../helpers/dom-polyfills';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mount, tick, unmount } from 'svelte';
-import { CardType } from '@/schemas';
+import { CardType, type FlashcardClozeContent } from '@/schemas';
 import Cloze from '@/ui/components/sections/Review/Flashcard/Content/Cloze/component.svelte';
 vi.mock('@/ui/actions/markdown', () => ({
 	renderMarkdown(node: HTMLElement, options: { content: string }) {
@@ -32,7 +32,7 @@ vi.mock('@/ui/actions/markdown', () => ({
 	},
 }));
 
-const content = {
+const content: FlashcardClozeContent = {
 	meta_type: CardType.Cloze,
 	text: 'The capital of  is France',
 	deletions: [{ id: 'c1', answer: 'Paris', hint: 'City of Light', positions: [15] }],
@@ -49,7 +49,13 @@ describe('Cloze interaction', () => {
 		const onShowAnswer = vi.fn();
 	const instance = mount(Cloze, {
 		target,
-		props: { content, isAnswerShowing: false, onAllRevealed, onShowAnswer },
+		props: {
+			content,
+			sourcePath: 'notes/biology.md',
+			isAnswerShowing: false,
+			onAllRevealed,
+			onShowAnswer,
+		},
 	});
 	unmountCloze = () => unmount(instance);
 		return { onAllRevealed, onShowAnswer };
