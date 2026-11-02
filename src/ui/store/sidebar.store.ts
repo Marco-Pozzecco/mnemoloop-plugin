@@ -9,6 +9,16 @@ export interface SidebarActiveNote {
 	name: string;
 }
 
+/**
+ * A create form requested by another surface, such as the file-menu command.
+ * `id` makes each request distinct, so the panel consumes one without
+ * swallowing a later request for the same source.
+ */
+export interface SidebarCreateRequest {
+	id: number;
+	source: string;
+}
+
 export interface SidebarState {
 	activeNote: SidebarActiveNote | null;
 	/** The active note's linked cards, already filtered from the index. */
@@ -16,6 +26,8 @@ export interface SidebarState {
 	/** Content previews keyed by filepath. */
 	previews: Record<string, string>;
 	isLoading: boolean;
+	/** A one-shot request to open the panel's create form. */
+	pendingCreate: SidebarCreateRequest | null;
 }
 
 const initialState: SidebarState = {
@@ -23,11 +35,14 @@ const initialState: SidebarState = {
 	cards: [],
 	previews: {},
 	isLoading: true,
+	pendingCreate: null,
 };
 
 const store = writable<SidebarState>(initialState);
 
 export class SidebarStore extends BaseStoreManager<SidebarState> {
+	private _createRequestId = 0;
+
 	constructor() {
 		super(initialState, store);
 	}
@@ -64,7 +79,24 @@ export class SidebarStore extends BaseStoreManager<SidebarState> {
 		this.store.update((state) => ({ ...state, isLoading }));
 	}
 
+	/** Ask the panel to open its create form with the given source link. */
+	requestCreate(source: string): void {
+		this._createRequestId += 1;
+		this.store.update((state) => ({
+			...state,
+			pendingCreate: { id: this._createRequestId, source },
+		}));
+	}
+
+	/** Clear the request the panel just opened, leaving later requests intact. */
+	consumeCreateRequest(id: number): void {
+		this.store.update((state) =>
+			state.pendingCreate?.id === id ? { ...state, pendingCreate: null } : state,
+		);
+	}
+
 	reset(): void {
+		this._createRequestId = 0;
 		this.store.set({ ...initialState });
 	}
 }

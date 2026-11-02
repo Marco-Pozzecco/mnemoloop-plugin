@@ -8,6 +8,12 @@ import { resetSingletons } from '../../../../helpers/reset-singletons';
 
 function createApp(): App {
 	return {
+		vault: {
+			getName: () => 'test-vault',
+			getFiles: () => [],
+			getFileByPath: () => null,
+			getResourcePath: () => '',
+		},
 		workspace: {
 			getActiveFile: () => null,
 			on: () => ({}),

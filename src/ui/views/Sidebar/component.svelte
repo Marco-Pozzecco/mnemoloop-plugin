@@ -1,37 +1,53 @@
 <script lang="ts">
-	import { CardStatus } from '@/schemas';
 	import type { Flashcard, FlashcardMetadata } from '@/schemas';
+	import { CardStatus } from '@/schemas';
 	import { Button, Collapsible, Icon, Skeleton } from '@/ui/components/elements';
-	import { FlashcardFormInline } from '@/ui/components/compositions';
+	import { SidebarFlashcardForm, SidebarFlashcardList } from '@/ui/components/views';
+	import { setAppContext } from '@/ui/context/AppContext';
 	import { SidebarController } from '@/ui/controllers/SidebarController';
 	import { sidebarStore } from '@/ui/store/sidebar.store';
+	import { groupAriaLabel, groupCardsByStatus, noteFolder } from '@/ui/views/Sidebar/utils';
+	import { Notice } from 'obsidian';
 	import { onDestroy, onMount } from 'svelte';
 	import type SidebarProps from './types';
-	import { groupAriaLabel, groupCardsByStatus, noteFolder } from './utils';
 
-	let {
-		app,
-		collapsedGroups = [],
-		onCollapsedGroupsChange,
-	}: SidebarProps = $props();
+	let { app, component, collapsedGroups = [], onCollapsedGroupsChange }: SidebarProps = $props();
 
+	// The props are stable for the life of a mounted view; the context and the
+	// controller are created once, and restored collapse state seeds the panel.
+	// svelte-ignore state_referenced_locally
+	setAppContext({ app, component });
+
+	// svelte-ignore state_referenced_locally
 	const controller = new SidebarController(app);
 	const storeRef = sidebarStore.store;
-	const state = $derived($storeRef);
+	const sidebarState = $derived($storeRef);
 
+	// svelte-ignore state_referenced_locally
 	let collapsed = $state<string[]>([...collapsedGroups]);
-	const groups = $derived(groupCardsByStatus(state.cards));
-	const folder = $derived(state.activeNote ? noteFolder(state.activeNote.path) : '');
+	const groups = $derived(groupCardsByStatus(sidebarState.cards));
+	const folder = $derived(sidebarState.activeNote ? noteFolder(sidebarState.activeNote.path) : '');
+	const contextLabel = $derived(
+		sidebarState.activeNote ? `${sidebarState.activeNote.name}${folder ? ` · ${folder}` : ''}` : '',
+	);
+
+	// svelte-ignore state_referenced_locally
+	const vaultName = app.vault.getName();
+	function hrefFor(card: FlashcardMetadata): string {
+		return `obsidian://open?vault=${encodeURIComponent(vaultName)}&file=${encodeURIComponent(card.file)}`;
+	}
 
 	/**
 	 * The form open in the panel, bound to the note it was opened for. The panel
 	 * shows one surface at a time: the list, or this form in the list's place.
 	 */
 	type PanelForm =
-		| { kind: 'create'; notePath: string; source: string }
+		| { kind: 'create'; notePath: string | null; source: string }
 		| { kind: 'edit'; notePath: string; card: Flashcard };
 
 	let form = $state<PanelForm | null>(null);
+	/** Guards against an older card fetch landing after a newer one. */
+	let openRequest = 0;
 
 	onMount(() => {
 		void controller.init();
@@ -45,8 +61,11 @@
 	// is open, discard the unsaved input and show the new note's list.
 	$effect(() => {
 		if (!form) return;
-		const activePath = state.activeNote?.path ?? null;
-		if (activePath !== form.notePath) form = null;
+		const activePath = sidebarState.activeNote?.path ?? null;
+		if (activePath !== form.notePath) {
+			openRequest++;
+			form = null;
+		}
 	});
 
 	function setGroupOpen(status: CardStatus, open: boolean): void {
@@ -56,101 +75,127 @@
 		onCollapsedGroupsChange?.([...next]);
 	}
 
-	function handleAdd(): void {
-		if (!state.activeNote) return;
+	function openCreateForm(source: string): void {
+		openRequest++;
 		form = {
 			kind: 'create',
-			notePath: state.activeNote.path,
-			source: `[[${state.activeNote.path}]]`,
+			notePath: sidebarState.activeNote?.path ?? null,
+			source,
 		};
 	}
 
+	function handleAdd(): void {
+		if (!sidebarState.activeNote) return;
+		openCreateForm(`[[${sidebarState.activeNote.path}]]`);
+	}
+
+	// Another surface (the file-menu command) can ask the panel for its create
+	// form. The request is one-shot: consume it before opening, so a remount
+	// never reopens the form.
+	$effect(() => {
+		const request = sidebarState.pendingCreate;
+		if (!request) return;
+		sidebarStore.consumeCreateRequest(request.id);
+		openCreateForm(request.source);
+	});
+
 	async function handleEdit(card: FlashcardMetadata): Promise<void> {
-		const notePath = state.activeNote?.path;
+		const notePath = sidebarState.activeNote?.path;
 		if (!notePath) return;
 
+		const request = ++openRequest;
 		const fullCard = await controller.fetchCard(card.file);
-		if (!fullCard) return;
-		// The note may have changed while the card was being fetched; opening the
-		// form then would bind it to a note the card is no longer listed under.
-		if (state.activeNote?.path !== notePath) return;
+
+		// A newer row was clicked, the user backed out, or the note changed while
+		// the card was being fetched.
+		if (request !== openRequest) return;
+		if (sidebarState.activeNote?.path !== notePath) return;
+		if (!fullCard) {
+			new Notice('Couldn’t open that flashcard.');
+			return;
+		}
 
 		form = { kind: 'edit', notePath, card: fullCard };
 	}
 
 	function closeForm(): void {
+		openRequest++;
 		form = null;
 	}
 </script>
 
 <div class="ml-flashcard-sidebar">
-	<!-- Head: which note, and the one action. Pinned, so the action never scrolls away. -->
-	<div class="ml-sidebar__head">
-		{#if state.activeNote}
-			<div class="ml-sidebar__source">
-				<Icon name="file-text" size={16} />
-				<div class="ml-sidebar__source-text">
-					<h2 class="ml-sidebar__source-name">{state.activeNote.name}</h2>
-					{#if folder}
-						<p class="ml-sidebar__source-path">{folder}</p>
-					{/if}
+	<!-- Head: which note, and the one action. Pinned, so the action never scrolls away.
+	     While the form is open the form's own header replaces this one. -->
+	{#if !form}
+		<div class="ml-sidebar__head">
+			{#if sidebarState.activeNote}
+				<div class="ml-sidebar__source">
+					<Icon name="file-text" size={16} />
+					<div class="ml-sidebar__source-text">
+						<h2 class="ml-sidebar__source-name">{sidebarState.activeNote.name}</h2>
+						{#if folder}
+							<p class="ml-sidebar__source-path">{folder}</p>
+						{/if}
+					</div>
 				</div>
-			</div>
-		{:else}
-			<div class="ml-sidebar__source ml-sidebar__source--none">
-				<div class="ml-sidebar__source-text">
-					<h2 class="ml-sidebar__source-name">No note open</h2>
-					<p class="ml-sidebar__source-path">
-						Open a markdown note to see and add its flashcards.
-					</p>
+			{:else}
+				<div class="ml-sidebar__source ml-sidebar__source--none">
+					<div class="ml-sidebar__source-text">
+						<h2 class="ml-sidebar__source-name">No note open</h2>
+						<p class="ml-sidebar__source-path">
+							Open a markdown note to see and add its flashcards.
+						</p>
+					</div>
 				</div>
-			</div>
-		{/if}
+			{/if}
 
-		<Button
-			variant="primary"
-			size="small"
-			class="ml-sidebar__new"
-			disabled={!state.activeNote || form !== null}
-			onclick={handleAdd}
-		>
-			{#snippet icon()}
-				<Icon name="plus" size={14} />
-			{/snippet}
-			New card
-		</Button>
-	</div>
+			<Button
+				variant="primary"
+				size="small"
+				class="ml-sidebar__new"
+				disabled={!sidebarState.activeNote}
+				onclick={handleAdd}
+			>
+				{#snippet icon()}
+					<Icon name="plus" size={14} />
+				{/snippet}
+				New card
+			</Button>
+		</div>
+	{/if}
 
-	<div class="ml-sidebar__body">
-		{#if form && form.kind === 'create'}
-			<FlashcardFormInline
-				mode="create"
-				prefillSource={form.source}
+	<div class="ml-sidebar__body" class:ml-sidebar__body--form={form !== null}>
+		{#if form}
+			<SidebarFlashcardForm
+				mode={form.kind}
+				card={form.kind === 'edit' ? form.card : undefined}
+				prefillSource={form.kind === 'create' ? form.source : undefined}
+				{contextLabel}
 				onSaved={closeForm}
 				onCancel={closeForm}
 			/>
-		{:else if form && form.kind === 'edit'}
-			<FlashcardFormInline mode="edit" card={form.card} onSaved={closeForm} onCancel={closeForm} />
-		{:else if state.activeNote === null}
+		{:else if sidebarState.activeNote === null}
 			<!-- No active note: the head states it, and there is nothing to list. -->
-		{:else if state.isLoading}
+		{:else if sidebarState.isLoading}
 			<div class="ml-sidebar__loading" role="status" aria-label="Loading flashcards">
-				<div class="ml-sidebar-group ml-sidebar-group--skeleton" aria-hidden="true">
-					<div class="ml-sidebar-group__trigger">
-						<Skeleton width="14px" height="14px" />
-						<Skeleton shape="text" width="64px" height="12px" />
-						<Skeleton width="22px" height="16px" />
-					</div>
-					<ul class="ml-sidebar__rows">
-						{#each [0, 1, 2] as index (index)}
-							<li class="ml-sidebar__row-item">
-								<div class="ml-sidebar-row ml-sidebar-row--skeleton">
-									<Skeleton shape="text" width="80%" height="12px" />
-									<Skeleton shape="text" width="40%" height="10px" />
-								</div>
-							</li>
-						{/each}
-					</ul>
+				<div class="ml-sidebar__skeleton-header" aria-hidden="true">
+					<Skeleton shape="text" width="64px" height="12px" />
+					<Skeleton shape="text" width="18px" height="12px" />
+				</div>
+				<div class="ml-sidebar__skeleton-cards" aria-hidden="true">
+					{#each [0, 1, 2] as index (index)}
+						<div class="ml-sidebar__skeleton-card">
+							<div class="ml-sidebar__skeleton-meta">
+								<Skeleton width="42px" height="18px" />
+								<Skeleton width="56px" height="18px" />
+								<Skeleton shape="text" width="72px" height="10px" />
+							</div>
+							<Skeleton shape="text" width="88%" height="12px" />
+							<Skeleton shape="text" width="62%" height="12px" />
+							<Skeleton width="54px" height="16px" />
+						</div>
+					{/each}
 				</div>
 			</div>
 		{:else if groups.length === 0}
@@ -173,30 +218,19 @@
 							class="ml-sidebar-group__trigger"
 							aria-label={groupAriaLabel(group.label, group.cards.length)}
 						>
-							<Icon name="chevron-right" size={14} class="ml-sidebar-group__chevron" />
 							<span class="ml-sidebar-group__label">{group.label}</span>
 							<span class="ml-sidebar-group__count">{group.cards.length}</span>
+							<Icon name="chevron-right" size={14} class="ml-sidebar-group__chevron" />
 						</Collapsible.Trigger>
-						<Collapsible.Content class="ml-sidebar-group__content">
-							<ul class="ml-sidebar__rows">
-								{#each group.cards as card (card.uuid)}
-									<li class="ml-sidebar__row-item">
-										<button
-											type="button"
-											class="ml-sidebar-row"
-											aria-label="Edit {card.card_type} card: {state.previews[card.file] ?? ''}"
-											onclick={() => void handleEdit(card)}
-										>
-											{#if state.previews[card.file] !== undefined}
-												<span class="ml-sidebar-row__preview">{state.previews[card.file]}</span>
-											{:else}
-												<Skeleton shape="text" width="80%" height="12px" />
-											{/if}
-											<span class="ml-sidebar-row__type">{card.card_type}</span>
-										</button>
-									</li>
-								{/each}
-							</ul>
+						<Collapsible.Content padding="none" divided={false} class="ml-sidebar-group__content">
+							<div class="ml-sidebar-group__cards">
+								<SidebarFlashcardList
+									cards={group.cards}
+									previews={sidebarState.previews}
+									{hrefFor}
+									onOpen={(card) => void handleEdit(card)}
+								/>
+							</div>
 						</Collapsible.Content>
 					</Collapsible.Root>
 				{/each}
@@ -227,6 +261,7 @@
 	.ml-sidebar__head {
 		display: flex;
 		flex-direction: column;
+		gap: $spacing-sm;
 		flex: none;
 		padding: $spacing-sm;
 		border-bottom: 1px solid $background-modifier-border;
@@ -287,71 +322,71 @@
 		padding: $spacing-sm;
 	}
 
-	/* The panel is narrower than the modal, so the form's type tabs sit two per
-	   row here instead of five across. */
-	.ml-sidebar__body :global(.ml-card-type-tabs-list .ml-tabs__trigger) {
-		flex-basis: calc(50% - #{$spacing-sm});
-	}
-
-	/* --- Status groups (accordion) -------------------------------------- */
-
-	/* The groups stack and scroll as one column. `flex: none` keeps the column
-	   taller than the body (which scrolls) instead of letting it shrink and
-	   overlap the next group. */
-	.ml-sidebar__groups {
-		display: flex;
-		flex-direction: column;
-		flex: none;
-		gap: $spacing-sm;
-	}
-
-	/* One group is one bordered surface. Rows inside it are flat and separated
-	   by a hairline, so the panel reads as a few surfaces, not a dozen cards. */
-	:global .ml-sidebar-group {
-		border: $border-width solid $background-modifier-border;
-		border-radius: $radius-md;
-		background-color: $background-primary;
+	.ml-sidebar__body--form {
+		padding: 0;
 		overflow: hidden;
 	}
 
-	/* The header is the whole control: it names the status and carries the count. */
-	:global .ml-sidebar-group__trigger {
+	/* --- Status groups (quiet sticky sections) -------------------------- */
+
+	.ml-sidebar__groups {
+		display: flex;
+		flex-direction: column;
+		gap: $spacing-md;
+		flex: none;
+	}
+
+	:global .ml-sidebar-group {
+		border: none;
+		border-radius: 0;
+		background: none;
+		overflow: visible;
+	}
+
+	/* The header is the whole control: a quiet section label, the count, and the
+	   chevron. It sticks to the top while its cards scroll under it. The
+	   element+class selector matches Obsidian's button rule specificity so the
+	   header keeps its own chrome, not the form-button chrome. */
+	:global(button.ml-sidebar-group__trigger.ml-collapsible__trigger) {
+		position: sticky;
+		top: 0;
+		z-index: 1;
 		display: flex;
 		align-items: center;
+		justify-content: flex-start;
 		gap: $spacing-xs;
 		width: 100%;
+		height: auto;
+		min-height: 28px;
 		margin: 0;
-		padding: $spacing-sm;
+		padding: $spacing-xs 0;
+		appearance: none;
+		border-radius: 0;
 		font-family: inherit;
-		font-size: $font-sm;
+		font-size: $font-xs;
 		font-weight: $font-medium;
+		letter-spacing: $letter-spacing-caps;
 		line-height: 1.4;
-		color: $text-normal;
+		text-transform: uppercase;
+		color: $text-muted;
 		text-align: start;
-		background: none;
+		background-color: $background-secondary;
 		border: none;
+		border-bottom: 1px solid $background-modifier-border;
 		box-shadow: none;
 		cursor: pointer;
-		transition: background-color $transition-fast;
+		transition:
+			color $transition-fast,
+			background-color $transition-fast;
 	}
 
-	:global .ml-sidebar-group__trigger:hover {
-		background-color: $background-modifier-hover;
+	:global(button.ml-sidebar-group__trigger.ml-collapsible__trigger:hover) {
+		color: $text-normal;
 	}
 
-	:global .ml-sidebar-group__trigger:focus-visible {
+	:global(button.ml-sidebar-group__trigger.ml-collapsible__trigger:focus-visible) {
 		outline: 2px solid $interactive-accent;
 		outline-offset: -2px;
-	}
-
-	:global .ml-sidebar-group__chevron {
-		flex: none;
-		color: $text-muted;
-		transition: transform $transition-fast;
-	}
-
-	:global .ml-sidebar-group[data-state='open'] .ml-sidebar-group__chevron {
-		transform: rotate(90deg);
 	}
 
 	:global .ml-sidebar-group__label {
@@ -361,112 +396,40 @@
 		white-space: nowrap;
 	}
 
-	/* The count badge — the one badge in the panel, and the only place the number
-	   of cards is stated. It is neutral metadata, so it stays muted. */
 	:global .ml-sidebar-group__count {
 		flex: none;
-		margin-inline-start: auto;
-		padding: 1px $spacing-xs;
-		border-radius: $radius-sm;
-		font-size: $font-xs;
 		font-variant-numeric: tabular-nums;
-		line-height: 1.4;
-		color: $text-muted;
-		background-color: $background-modifier-hover;
+		color: $text-faint;
 	}
 
-	/* Stale is the one group that asks for attention, and the count badge's warm
-	   fill carries the warning on its own. */
-	:global .ml-sidebar-group--stale .ml-sidebar-group__count {
-		color: $text-normal;
-		background-color: $status-warning-background;
+	:global .ml-sidebar-group__chevron {
+		flex: none;
+		margin-inline-start: auto;
+		color: $text-faint;
+		transition: transform $transition-fast;
 	}
 
-	/* Rows sit flush inside the group surface; the Collapsible's own inner
-	   padding is dropped so the group reads edge to edge. */
-	:global .ml-sidebar-group__content .ml-collapsible__content-inner {
-		padding: 0;
+	:global .ml-sidebar-group[data-state='open'] .ml-sidebar-group__chevron {
+		transform: rotate(90deg);
 	}
 
-	/* --- Rows ----------------------------------------------------------- */
-
-	.ml-sidebar__rows {
-		display: flex;
-		flex-direction: column;
-		margin: 0;
-		padding: 0;
-		list-style: none;
+	/* Stale is the one group that asks for attention. The cards carry the badge;
+	   the header carries the warning ink. */
+	:global .ml-sidebar-group--stale .ml-sidebar-group__label,
+	:global .ml-sidebar-group--stale .ml-sidebar-group__count,
+	:global .ml-sidebar-group--stale .ml-sidebar-group__chevron {
+		color: $text-warning;
 	}
 
-	.ml-sidebar__row-item {
-		margin: 0;
-		min-width: 0;
-	}
-
-	.ml-sidebar__row-item + .ml-sidebar__row-item {
-		border-top: 1px solid $background-modifier-border;
-	}
-
-	/* The whole row is the control: clicking a card opens it for editing. */
-	.ml-sidebar-row {
-		display: flex;
-		flex-direction: column;
-		gap: $spacing-xxs;
-		width: 100%;
-		min-width: 0;
-		margin: 0;
-		padding: $spacing-sm;
-		font-family: inherit;
-		font-size: $font-sm;
-		color: $text-normal;
-		text-align: start;
-		background: none;
-		border: none;
-		box-shadow: none;
-		cursor: pointer;
-		transition: background-color $transition-fast;
-	}
-
-	.ml-sidebar-row:hover {
-		background-color: $background-modifier-hover;
-	}
-
-	.ml-sidebar-row:focus-visible {
-		outline: 2px solid $interactive-accent;
-		outline-offset: -2px;
-	}
-
-	/* The preview is the card's content — the thing being scanned — so it leads
-	   the row and carries the strongest ink. */
-	.ml-sidebar-row__preview {
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 2;
-		line-clamp: 2;
-		overflow: hidden;
-		line-height: 1.45;
-		color: $text-normal;
-		overflow-wrap: anywhere;
-	}
-
-	/* The type is metadata, so it is a quiet label under the content — never a
-	   chip. Capitalised to match the vocabulary Manage already uses. */
-	.ml-sidebar-row__type {
-		font-size: $font-xs;
-		line-height: 1.4;
-		color: $text-muted;
-		text-transform: capitalize;
+	/* Padding, not margin: the group content is height-clipped for the
+	   disclosure animation and measures its inner box. A collapsed margin
+	   escapes that box, so the last card's border would be cut off. */
+	.ml-sidebar-group__cards {
+		padding-top: $spacing-xs;
 	}
 
 	/* --- States --------------------------------------------------------- */
 
-	.ml-sidebar__empty,
-	.ml-sidebar__loading {
-		margin: 0;
-	}
-
-	/* Empty is quiet: no border, no card, no repeated action — the head already
-	   carries the one action. It only explains the binding. */
 	.ml-sidebar__empty {
 		display: flex;
 		flex-direction: column;
@@ -492,63 +455,67 @@
 		overflow-wrap: anywhere;
 	}
 
-	/* The skeleton mirrors the real composition — one group surface, one header,
-	   flat rows — so nothing shifts when the list arrives. */
-	:global .ml-sidebar-group--skeleton,
-	:global .ml-sidebar-group--skeleton .ml-sidebar-group__trigger {
-		cursor: default;
+	/* The skeleton mirrors the real composition: a quiet section header and the
+	   Manage card shape, so nothing shifts when the list arrives. */
+	.ml-sidebar__loading {
+		display: flex;
+		flex-direction: column;
+		gap: $spacing-md;
 	}
 
-	:global .ml-sidebar-group--skeleton .ml-sidebar-group__trigger:hover {
-		background-color: transparent;
+	.ml-sidebar__skeleton-header {
+		display: flex;
+		align-items: center;
+		gap: $spacing-xs;
+		padding: $spacing-xs 0;
+		border-bottom: 1px solid $background-modifier-border;
 	}
 
-	.ml-sidebar-row--skeleton {
-		cursor: default;
+	.ml-sidebar__skeleton-cards {
+		display: flex;
+		flex-direction: column;
+		gap: $spacing-xs;
 	}
 
-	.ml-sidebar-row--skeleton:hover {
-		background-color: transparent;
+	.ml-sidebar__skeleton-card {
+		display: flex;
+		flex-direction: column;
+		gap: $spacing-xs;
+		min-height: 116px;
+		padding: $spacing-sm;
+		background-color: $surface-raised;
+		border: 1px solid $line-subtle;
+		border-radius: $radius-md;
+	}
+
+	.ml-sidebar__skeleton-meta {
+		display: flex;
+		align-items: center;
+		gap: $spacing-xxs;
 	}
 
 	/* ====================================================================
 	   Coarse pointer — the only query the panel needs.
-	   Hover does not exist on touch, so hover becomes press, and both the
-	   header and the row keep a target well above 44px.
+	   Hover does not exist on touch, so the sticky header grows to a target.
 	   ==================================================================== */
 
 	@media (hover: none) and (pointer: coarse) {
-		:global .ml-sidebar-group__trigger {
+		:global(button.ml-sidebar-group__trigger.ml-collapsible__trigger) {
 			min-height: 44px;
 		}
 
-		.ml-sidebar-row {
-			min-height: 44px;
-			user-select: none;
-			-webkit-user-select: none;
-		}
-
-		:global .ml-sidebar-group__trigger:hover {
+		:global(button.ml-sidebar-group__trigger.ml-collapsible__trigger:hover) {
 			background-color: transparent;
 		}
 
-		.ml-sidebar-row:hover {
-			background-color: transparent;
-		}
-
-		:global .ml-sidebar-group__trigger:active {
-			background-color: $background-modifier-active;
-		}
-
-		.ml-sidebar-row:active {
+		:global(button.ml-sidebar-group__trigger.ml-collapsible__trigger:active) {
 			background-color: $background-modifier-active;
 		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
 		:global .ml-sidebar-group__chevron,
-		:global .ml-sidebar-group__trigger,
-		.ml-sidebar-row {
+		:global(button.ml-sidebar-group__trigger.ml-collapsible__trigger) {
 			transition: none;
 		}
 	}

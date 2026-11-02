@@ -3,8 +3,8 @@ import { ItemView } from 'obsidian';
 import type { App, WorkspaceLeaf } from 'obsidian';
 import { mount, unmount } from 'svelte';
 import { default as SidebarPanel } from './component.svelte';
+import type SidebarProps from '@/ui/views/Sidebar/types';
 import { SIDEBAR_VIEW } from './constants';
-import type { SidebarProps } from './types';
 
 export { SIDEBAR_VIEW } from './constants';
 
@@ -53,6 +53,7 @@ export class FlashcardSidebarView extends ItemView {
 				target: this.contentEl,
 				props: {
 					app: this._app,
+					component: this,
 					collapsedGroups: [...this._collapsedGroups],
 					onCollapsedGroupsChange: (groups: string[]) => {
 						this._collapsedGroups = [...groups];

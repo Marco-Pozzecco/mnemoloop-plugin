@@ -67,9 +67,11 @@
 		border-color: $line-strong;
 	}
 
+	/* Inset so the ring survives in clipped containers, such as the sidebar's
+	   collapsible group content. */
 	.ml-manage-card:focus-visible {
 		outline: 2px solid $interactive-accent;
-		outline-offset: 2px;
+		outline-offset: -2px;
 	}
 
 	.ml-manage-card__meta {

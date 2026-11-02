@@ -28,6 +28,9 @@ export class SidebarController {
 	private _activeNote: SidebarActiveNote | null = null;
 	private _pendingPreviews = new Set<string>();
 	private _failedPreviews = new Set<string>();
+	/** One parse attempt per filepath, shared by every click on that card. */
+	private _pendingCardFetches = new Map<string, Promise<Flashcard | null>>();
+	private _pendingCardUnsubs = new Set<() => void>();
 
 	constructor(private _app: App) {
 		this._unsubscribers.push(
@@ -98,18 +101,37 @@ export class SidebarController {
 
 	/** Fetch the full card (including content) for a filepath. */
 	async fetchCard(filepath: string): Promise<Flashcard | null> {
-		return new Promise((resolve) => {
+		const existing = this._pendingCardFetches.get(filepath);
+		if (existing) return existing;
+
+		const promise = new Promise<Flashcard | null>((resolve) => {
+			let settled = false;
+			const finish = (card: Flashcard | null): void => {
+				if (settled) return;
+				settled = true;
+				this._pendingCardUnsubs.delete(unsub);
+				unsub();
+				resolve(card);
+			};
+
 			const unsub = EventBus.instance.subscribe(
 				FlashcardParserParseResponseEvent,
 				async (event) => {
 					if (event.data.filepath !== filepath) return;
-					unsub();
-					resolve(event.data.success ? event.data.entity : null);
+					finish(event.data.success ? event.data.entity : null);
 				},
 			);
-			this._unsubscribers.push(unsub);
-			void EventBus.instance.publish(new FlashcardParserParseRequestEvent({ filepath }));
+			this._pendingCardUnsubs.add(unsub);
+
+			void EventBus.instance
+				.publish(new FlashcardParserParseRequestEvent({ filepath }))
+				.catch(() => finish(null));
+		}).finally(() => {
+			this._pendingCardFetches.delete(filepath);
 		});
+
+		this._pendingCardFetches.set(filepath, promise);
+		return promise;
 	}
 
 	dispose(): void {
@@ -117,6 +139,11 @@ export class SidebarController {
 			unsub();
 		}
 		this._unsubscribers = [];
+		for (const unsub of this._pendingCardUnsubs) {
+			unsub();
+		}
+		this._pendingCardUnsubs.clear();
+		this._pendingCardFetches.clear();
 		if (this._activeLeafRef) {
 			this._app.workspace.offref(this._activeLeafRef);
 			this._activeLeafRef = null;

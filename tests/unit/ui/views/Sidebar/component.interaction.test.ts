@@ -2,6 +2,7 @@
 import '../../../../helpers/dom-polyfills';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mount, tick, unmount } from 'svelte';
+import { Component, Notice } from 'obsidian';
 import type { App } from 'obsidian';
 import {
 	EventBus,
@@ -16,11 +17,10 @@ import {
 } from '@/modules/events';
 import { CardStatus, CardType } from '@/schemas';
 import type { Flashcard } from '@/schemas';
-import { modalStore } from '@/ui/store/modal.store';
 import { sidebarStore } from '@/ui/store/sidebar.store';
 import SidebarPanel from '@/ui/views/Sidebar/component.svelte';
 import { createFlashcardMetadata } from '../../../../helpers/factories';
-import { createMockMetadataCache } from '../../../../helpers/mock-obsidian';
+import { createMockMetadataCache, createMockVault } from '../../../../helpers/mock-obsidian';
 import { resetSingletons } from '../../../../helpers/reset-singletons';
 
 const NOTE_PATH = 'notes/biology.md';
@@ -39,8 +39,11 @@ function activeNote(path = NOTE_PATH) {
 function createApp(note: unknown): TestApp {
 	let activeFile = note;
 	const listeners: Array<() => void> = [];
+	const vault = createMockVault([]);
+	vault.getName = () => 'test-vault';
 
 	return {
+		vault,
 		workspace: {
 			getActiveFile: () => activeFile,
 			on: (event: string, callback: () => void) => {
@@ -104,6 +107,28 @@ function parseResult(
 	});
 }
 
+function occlusionResult(
+	filepath: string,
+	uuid = '00000000-0000-0000-0000-000000000000',
+): FlashcardParserParseResponseEvent {
+	const metadata = createFlashcardMetadata({ file: filepath, uuid, card_type: CardType.Occlusion });
+	return new FlashcardParserParseResponseEvent({
+		entity: {
+			...metadata,
+			content: {
+				meta_type: CardType.Occlusion,
+				image: 'attachments/membrane.png',
+				width: 320,
+				height: 180,
+				masks: [],
+			},
+		} as unknown as Flashcard,
+		stats: { created_at: metadata.created_at, updated_at: metadata.updated_at },
+		filepath,
+		success: true,
+	});
+}
+
 async function flush(): Promise<void> {
 	await Promise.resolve();
 	await tick();
@@ -135,7 +160,10 @@ describe('flashcard sidebar panel', () => {
 	): Promise<void> {
 		target = activeDocument.createElement('div');
 		activeDocument.body.appendChild(target);
-		instance = mount(SidebarPanel, { target, props: { app, ...props } });
+		instance = mount(SidebarPanel, {
+			target,
+			props: { app, component: new Component(), ...props },
+		});
 		await flush();
 		// The real index answers the panel's GetAll request; settle it so the panel
 		// leaves its loading state.
@@ -166,6 +194,12 @@ describe('flashcard sidebar panel', () => {
 		)?.value;
 	}
 
+	function sourceInput(): HTMLInputElement | undefined {
+		return Array.from(target.querySelectorAll<HTMLInputElement>('input')).find(
+			(input) => input.placeholder === '[[path/to/file]]',
+		);
+	}
+
 	function textareas(): HTMLTextAreaElement[] {
 		return Array.from(target.querySelectorAll<HTMLTextAreaElement>('textarea'));
 	}
@@ -185,10 +219,19 @@ describe('flashcard sidebar panel', () => {
 			.find((event): event is T => event instanceof eventClass);
 	}
 
+	function latestParseRequest(): FlashcardParserParseRequestEvent | undefined {
+		return publish.mock.calls
+			.map(([event]) => event)
+			.filter(
+				(event): event is FlashcardParserParseRequestEvent =>
+					event instanceof FlashcardParserParseRequestEvent,
+			)
+			.at(-1);
+	}
+
 	beforeEach(() => {
 		resetSingletons();
 		sidebarStore.reset();
-		modalStore.close();
 		app = createApp(activeNote());
 		publish = createPublishSpy();
 	});
@@ -229,8 +272,9 @@ describe('flashcard sidebar panel', () => {
 
 		const requests = publish.mock.calls
 			.map(([event]) => event)
-			.filter((event): event is FlashcardParserParseRequestEvent =>
-				event instanceof FlashcardParserParseRequestEvent,
+			.filter(
+				(event): event is FlashcardParserParseRequestEvent =>
+					event instanceof FlashcardParserParseRequestEvent,
 			);
 		for (const request of requests) {
 			await EventBus.instance.publish(
@@ -239,12 +283,13 @@ describe('flashcard sidebar panel', () => {
 		}
 		await flush();
 
-		const rows = Array.from(target.querySelectorAll<HTMLElement>('.ml-sidebar-row'));
-		expect(rows.map((row) => row.querySelector('.ml-sidebar-row__type')?.textContent)).toEqual([
-			'cloze',
-			'basic',
-		]);
-		expect(rows[0].querySelector('.ml-sidebar-row__preview')?.textContent).toContain(
+		const rows = Array.from(target.querySelectorAll<HTMLElement>('.ml-sidabar-flashcard'));
+		expect(
+			rows.map((row) =>
+				row.querySelector('.ml-sidabar-flashcard__meta .ml-badge')?.textContent?.trim(),
+			),
+		).toEqual(['Cloze', 'Basic']);
+		expect(rows[0].querySelector('.ml-sidabar-flashcard__preview')?.textContent).toContain(
 			'cards/new.md',
 		);
 	});
@@ -294,9 +339,7 @@ describe('flashcard sidebar panel', () => {
 
 		expect(groupTrigger('Active')?.getAttribute('aria-expanded')).toBe('false');
 		expect(
-			groupHeader('Active')
-				?.querySelector('.ml-collapsible__content')
-				?.getAttribute('data-state'),
+			groupHeader('Active')?.querySelector('.ml-collapsible__content')?.getAttribute('data-state'),
 		).toBe('closed');
 	});
 
@@ -310,9 +353,32 @@ describe('flashcard sidebar panel', () => {
 		await flush();
 
 		expect(target.querySelector('.ml-flashcard-form')).not.toBeNull();
-		expect(target.querySelector('.ml-sidebar-row')).toBeNull();
+		expect(target.querySelector('.ml-sidabar-flashcard')).toBeNull();
 		expect(sourceFieldValue()).toBe(`[[${NOTE_PATH}]]`);
-		expect(modalStore.state.currentView).toBeNull();
+	});
+
+	it('opens the create form when another surface requests it', async () => {
+		await mountPanel();
+		await publishCards([]);
+
+		sidebarStore.requestCreate(`[[${NOTE_PATH}]]`);
+		await flush();
+
+		expect(target.querySelector('.ml-flashcard-form')).not.toBeNull();
+		expect(sourceFieldValue()).toBe(`[[${NOTE_PATH}]]`);
+		expect(sidebarStore.state.pendingCreate).toBeNull();
+	});
+
+	it('opens a requested create form when there is no active note', async () => {
+		app = createApp(null);
+		await mountPanel();
+		await publishCards([]);
+
+		sidebarStore.requestCreate(`[[${NOTE_PATH}]]`);
+		await flush();
+
+		expect(target.querySelector('.ml-flashcard-form')).not.toBeNull();
+		expect(sourceFieldValue()).toBe(`[[${NOTE_PATH}]]`);
 	});
 
 	it('returns to the list after a successful create without changing the active note', async () => {
@@ -324,7 +390,7 @@ describe('flashcard sidebar panel', () => {
 		await flush();
 		fillBasicForm('New question', 'New answer');
 		await flush();
-		buttonByText('Save').click();
+		buttonByText('Create').click();
 		await flush();
 
 		const request = published(FlashcardWriterCreateRequestEvent);
@@ -348,7 +414,9 @@ describe('flashcard sidebar panel', () => {
 		await publishCards([card('new', CardStatus.ACTIVE, '2026-01-05T00:00:00.000Z')]);
 		await flush();
 
-		expect(target.querySelector('.ml-sidebar-row__type')?.textContent).toBe('basic');
+		expect(target.querySelector('.ml-sidabar-flashcard__meta .ml-badge')?.textContent?.trim()).toBe(
+			'Basic',
+		);
 	});
 
 	it('closes the create form on cancel without writing', async () => {
@@ -363,7 +431,7 @@ describe('flashcard sidebar panel', () => {
 		await flush();
 
 		expect(target.querySelector('.ml-flashcard-form')).toBeNull();
-		expect(target.querySelector('.ml-sidebar-row')).not.toBeNull();
+		expect(target.querySelector('.ml-sidabar-flashcard')).not.toBeNull();
 		expect(published(FlashcardWriterCreateRequestEvent)).toBeUndefined();
 
 		// Reopening shows a fresh, empty form.
@@ -382,7 +450,7 @@ describe('flashcard sidebar panel', () => {
 		areas[1].value = 'Kept answer';
 		areas[1].dispatchEvent(new Event('change', { bubbles: true }));
 
-		buttonByText('Save').click();
+		buttonByText('Create').click();
 		await flush();
 
 		expect(target.textContent).toContain('Front is required.');
@@ -398,16 +466,15 @@ describe('flashcard sidebar panel', () => {
 		await flush();
 
 		const filepath = 'cards/a1.md';
-		target.querySelector<HTMLButtonElement>('.ml-sidebar-row')?.click();
+		target.querySelector<HTMLAnchorElement>('.ml-sidabar-flashcard__wrapper')?.click();
 		await flush();
 
 		await EventBus.instance.publish(parseResult(filepath, 'Full card front', 'a1'));
 		await flush();
 
 		expect(target.querySelector('.ml-flashcard-form')).not.toBeNull();
-		expect(target.querySelector('.ml-sidebar-row')).toBeNull();
+		expect(target.querySelector('.ml-sidabar-flashcard')).toBeNull();
 		expect(textareas().map((area) => area.value)).toEqual(['Full card front', 'back']);
-		expect(modalStore.state.currentView).toBeNull();
 
 		fillBasicForm('Updated front', 'Updated back');
 		await flush();
@@ -428,14 +495,15 @@ describe('flashcard sidebar panel', () => {
 		await flush();
 
 		expect(target.querySelector('.ml-flashcard-form')).toBeNull();
-		expect(target.querySelector('.ml-sidebar-row')).not.toBeNull();
+		expect(target.querySelector('.ml-sidabar-flashcard')).not.toBeNull();
 		expect(app.workspace.openLinkText).not.toHaveBeenCalled();
 
 		// The update invalidated the cached preview and requested a fresh parse.
 		const freshRequest = publish.mock.calls
 			.map(([event]) => event)
-			.filter((event): event is FlashcardParserParseRequestEvent =>
-				event instanceof FlashcardParserParseRequestEvent,
+			.filter(
+				(event): event is FlashcardParserParseRequestEvent =>
+					event instanceof FlashcardParserParseRequestEvent,
 			)
 			.at(-1);
 		expect(freshRequest?.data.filepath).toBe(filepath);
@@ -449,7 +517,9 @@ describe('flashcard sidebar panel', () => {
 		);
 		await flush();
 
-		expect(target.querySelector('.ml-sidebar-row__preview')?.textContent).toBe('Updated front');
+		expect(target.querySelector('.ml-sidabar-flashcard__preview')?.textContent).toBe(
+			'Updated front',
+		);
 	});
 
 	it('closes the edit form on cancel without writing', async () => {
@@ -458,7 +528,7 @@ describe('flashcard sidebar panel', () => {
 		await publishCards([card('a1', CardStatus.ACTIVE, '2026-01-01T00:00:00.000Z')]);
 		await flush();
 
-		target.querySelector<HTMLButtonElement>('.ml-sidebar-row')?.click();
+		target.querySelector<HTMLAnchorElement>('.ml-sidabar-flashcard__wrapper')?.click();
 		await flush();
 		await EventBus.instance.publish(parseResult('cards/a1.md', 'Full card front', 'a1'));
 		await flush();
@@ -468,7 +538,7 @@ describe('flashcard sidebar panel', () => {
 		await flush();
 
 		expect(target.querySelector('.ml-flashcard-form')).toBeNull();
-		expect(target.querySelector('.ml-sidebar-row')).not.toBeNull();
+		expect(target.querySelector('.ml-sidabar-flashcard')).not.toBeNull();
 		expect(published(FlashcardWriterUpdateRequestEvent)).toBeUndefined();
 	});
 
@@ -498,7 +568,7 @@ describe('flashcard sidebar panel', () => {
 
 		expect(target.querySelector('.ml-flashcard-form')).toBeNull();
 		expect(target.querySelector('.ml-sidebar__source-name')?.textContent).toBe('chemistry');
-		const rows = Array.from(target.querySelectorAll<HTMLElement>('.ml-sidebar-row'));
+		const rows = Array.from(target.querySelectorAll<HTMLElement>('.ml-sidabar-flashcard'));
 		expect(rows).toHaveLength(1);
 
 		// The discarded form does not come back; a new one binds to the new note.
@@ -506,5 +576,74 @@ describe('flashcard sidebar panel', () => {
 		await flush();
 		expect(sourceFieldValue()).toBe(`[[${OTHER_NOTE_PATH}]]`);
 		expect(textareas().map((area) => area.value)).toEqual(['', '']);
+	});
+
+	it('renders the Occlusion editor when the card type is Occlusion', async () => {
+		await mountPanel();
+		await flush();
+		await publishCards([
+			card('o1', CardStatus.ACTIVE, '2026-01-01T00:00:00.000Z', CardType.Occlusion),
+		]);
+		await flush();
+
+		target.querySelector<HTMLAnchorElement>('.ml-sidabar-flashcard__wrapper')?.click();
+		await flush();
+
+		const request = latestParseRequest();
+		expect(request?.data.filepath).toBe('cards/o1.md');
+		await EventBus.instance.publish(occlusionResult('cards/o1.md', 'o1'));
+		await flush();
+
+		expect(target.querySelector('.ml-flashcard-form')).not.toBeNull();
+		expect(target.textContent).toContain('Choose image');
+		expect(target.textContent).toContain('Occlusion');
+	});
+
+	it('keeps the form open with the source error when the link is not a wikilink', async () => {
+		await mountPanel();
+		await flush();
+
+		buttonByText('New card').click();
+		await flush();
+		fillBasicForm('Question', 'Answer');
+
+		const source = sourceInput();
+		if (!source) throw new Error('Expected a source field');
+		source.value = 'not-a-link';
+		source.dispatchEvent(new Event('change', { bubbles: true }));
+
+		buttonByText('Create').click();
+		await flush();
+
+		expect(target.textContent).toContain('Source must be a [[wikilink]] or empty.');
+		expect(target.querySelector('.ml-flashcard-form')).not.toBeNull();
+		expect(published(FlashcardWriterCreateRequestEvent)).toBeUndefined();
+	});
+
+	it('keeps the list and reports a failed card fetch', async () => {
+		await mountPanel();
+		await flush();
+		await publishCards([card('a1', CardStatus.ACTIVE, '2026-01-01T00:00:00.000Z')]);
+		await flush();
+
+		target.querySelector<HTMLAnchorElement>('.ml-sidabar-flashcard__wrapper')?.click();
+		await flush();
+
+		const request = latestParseRequest();
+		expect(request).toBeDefined();
+		await EventBus.instance.publish(
+			new FlashcardParserParseResponseEvent({
+				entity: null,
+				stats: null,
+				filepath: request!.data.filepath,
+				success: false,
+				error: new Error('unreadable card'),
+			}),
+		);
+		await flush();
+
+		expect(target.querySelector('.ml-flashcard-form')).toBeNull();
+		expect(target.querySelector('.ml-sidabar-flashcard')).not.toBeNull();
+		expect(Notice).toHaveBeenCalledWith('Couldn’t open that flashcard.');
 	});
 });

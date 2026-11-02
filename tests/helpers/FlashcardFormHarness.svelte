@@ -2,8 +2,8 @@
 	import { onDestroy } from 'svelte';
 	import { Component } from 'obsidian';
 	import type { App } from 'obsidian';
-	import FlashcardFormInline from '@/ui/components/compositions/FlashcardForm/Inline/component.svelte';
-	import type FlashcardFormInlineProps from '@/ui/components/compositions/FlashcardForm/Inline/types';
+	import FlashcardFormInline from '@/ui/components/views/Sidebar/Flashcard/Form/component.svelte';
+	import type FlashcardFormInlineProps from '@/ui/components/views/Sidebar/Flashcard/Form/types';
 	import { setAppContext } from '@/ui/context/AppContext';
 
 	let { app, mode, card, prefillSource, onSaved, onCancel }: {
@@ -14,6 +14,8 @@
 	// itself takes no App and no modal store; this is the host's wiring.
 	const owner = new Component();
 	owner.load();
+	// The harness mounts once with fixed props.
+	// svelte-ignore state_referenced_locally
 	setAppContext({ app, component: owner });
 
 	onDestroy(() => {

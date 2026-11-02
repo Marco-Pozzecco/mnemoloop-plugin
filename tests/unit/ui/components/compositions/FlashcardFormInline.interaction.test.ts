@@ -110,7 +110,7 @@ describe('FlashcardForm interaction', () => {
 
 		fillBasicForm('New question', 'New answer');
 		await flush();
-		buttonByText('Save').click();
+		buttonByText('Create').click();
 		await flush();
 
 		const request = published(FlashcardWriterCreateRequestEvent);
@@ -163,7 +163,7 @@ describe('FlashcardForm interaction', () => {
 		mountForm({ mode: 'create' });
 		await flush();
 
-		buttonByText('Save').click();
+		buttonByText('Create').click();
 		await flush();
 
 		expect(target.textContent).toContain('Front is required.');
@@ -178,7 +178,7 @@ describe('FlashcardForm interaction', () => {
 
 		fillBasicForm('Question', 'Answer');
 		await flush();
-		buttonByText('Save').click();
+		buttonByText('Create').click();
 		await flush();
 
 		const request = published(FlashcardWriterCreateRequestEvent)!;
@@ -191,9 +191,9 @@ describe('FlashcardForm interaction', () => {
 		);
 		await flush();
 
-		expect(target.textContent).toContain('Could not save the flashcard');
+		expect(target.textContent).toContain('Couldn’t save the card');
 		expect(target.querySelector('.ml-flashcard-form')).not.toBeNull();
-		expect(buttonByText('Save').disabled).toBe(false);
+		expect(buttonByText('Create').disabled).toBe(false);
 		expect(onSaved).not.toHaveBeenCalled();
 	});
 
@@ -214,7 +214,7 @@ describe('FlashcardForm interaction', () => {
 		);
 		await flush();
 
-		expect(target.textContent).toContain('Could not save the flashcard');
+		expect(target.textContent).toContain('Couldn’t save the card');
 		expect(target.querySelector('.ml-flashcard-form')).not.toBeNull();
 		expect(onSaved).not.toHaveBeenCalled();
 	});
