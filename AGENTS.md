@@ -64,92 +64,7 @@ npm run lint:css-prefix
 
 ### Directory Structure
 
-```
-src/
-├── main.ts              # Plugin entry point (Obsidian Plugin class)
-├── interfaces/           # TypeScript interfaces
-│   ├── parser/           # Parser interfaces (IEntityParser, IContentParser, IYamlParser, utils)
-│   ├── migration/        # Migration interfaces (IDocumentStore, IMigrationContext, IMigration)
-│   ├── IAdapter.ts       # Adapter interface
-│   ├── ICommand.ts       # Command interface
-│   ├── IEvent.ts         # Event interfaces
-│   └── …                 # IEventBus, IEventHandler, IEventRegistry, IEventRouter,
-│                         # IIndexer, IReviewEngine, IReviewItem, IReviewQueue, IWriter
-├── modules/             # Core business logic
-│   ├── adapters/        # Data persistence (FlashcardAdapter, SettingsAdapter, StatisticsAdapter, EventLogAdapter)
-│   ├── commands/        # Obsidian commands (palette/, editor-menu/, file-menu/)
-│   ├── parsers/         # Markdown flashcard parsing
-│   │   ├── _core/       # Abstract base classes (Entity.ts, Content.ts, Yaml.ts)
-│   │   ├── entity/      # Entity parsers (FlashcardParser)
-│   │   ├── content/     # Per-card-type content parsers
-│   │   └── yaml/        # YAML frontmatter parsers (FlashcardYamlParser)
-│   ├── indexers/        # In-memory flashcard indexing/caching (FlashcardIndexer)
-│   ├── migration/       # Versioned data migrations: runner, document store, registry
-│   │   ├── _core/       # Core classes implementations
-│   │   ├── _utils/      # Migration utils
-│   │   └── migrations/  # Migration implementations, one file per version
-│   ├── events/          # Internal event system
-│   │   ├── core/        # EventBus, EventRegistry, EventRouter, Event, EventHandler
-│   │   ├── domains/     # Event type definitions organized by domain
-│   │   ├── handlers/    # Event handler implementations organized by domain
-│   │   └── routes/      # Event-to-handler route registrations by domain
-│   ├── review-engines/  # FSRS review algorithm integration
-│   ├── review-queues/   # Flashcard review queue management
-│   ├── review-items/    # Individual review item logic + ReviewItemFactory.ts
-│   └── writers/         # File write operations (FlashcardWriter)
-├── ui/                  # Svelte 5 components
-│   ├── components/      # Reusable Svelte components (elements/, compositions/, sections/, modals/, views/)
-│   ├── views/           # Main view containers
-│   │   ├── App/         # App.svelte, AppView.ts, types.ts
-│   │   ├── Settings/    # SettingsView.ts, FsrsIntervalPreview.svelte, settings-controls.ts
-│   │   └── Modal/       # Modal.svelte, ModalView.ts, types.ts
-│   ├── store/           # Svelte stores
-│   │   ├── base.store.ts            # BaseStoreManager<T> class
-│   │   ├── banner.store.ts          # Banner notifications
-│   │   ├── modal.store.ts           # Modal state
-│   │   ├── session.store.ts         # Review session state
-│   │   ├── settings.store.ts        # Plugin settings
-│   │   ├── deck-tree.store.ts       # Deck hierarchy tree
-│   │   ├── stats.store.ts           # Review statistics
-│   │   ├── analytics.store.ts       # Analytics data
-│   │   ├── chart.forecast.store.ts  # Forecast chart data
-│   │   └── ui.store.ts             # UI state
-│   ├── controllers/     # UI controllers
-│   │   ├── DashboardController.ts
-│   │   ├── AnalyticsController.ts
-│   │   ├── ForecastChartController.ts
-│   │   ├── ModalController.ts
-│   │   └── ReviewController.ts
-│   ├── styles/          # SCSS styles
-│   │   ├── main.scss
-│   │   ├── _theme.scss
-│   │   ├── _tokens.scss
-│   │   ├── _mobile.scss
-│   │   └── _breakpoints.scss
-│   ├── context/         # Svelte context providers
-│   └── actions/         # Svelte actions (markdown.ts, gestures.ts)
-├── types/               # TypeScript type definitions (adapters.ts, commands.ts, indexes.ts, parsers.ts, writers.ts)
-├── schemas/             # Zod validation schemas
-│   ├── flashcard.ts
-│   ├── flashcard.base.ts
-│   ├── flashcard.sequence.ts
-│   ├── flashcard.utils.ts   # CardType enum, CardTypeSchema, FlashcardYamlSchema
-│   ├── event-log.ts
-│   └── …                 # indexer.ts, settings.ts, statistics.ts, srs.ts
-└── utils/               # Utility functions
-    ├── Cache.ts
-    ├── Clone.ts
-    ├── constants.ts
-    ├── deck-utils.ts
-    ├── errors.ts
-    ├── Logger.ts
-    ├── Queue.ts
-    ├── statistics-utils.ts
-    ├── String.ts
-    ├── token.ts
-    ├── VaultWatcher.ts
-    └── Workspace.ts
-```
+Use command `codegraph files --filter apps/plugin` to understand codebase structure.
 
 ### Key Patterns
 
@@ -250,9 +165,6 @@ Four-layer architecture decoupling event declaration, routing, and handling:
 - **Compositions** (`compositions/`) — compositions are reusable compositions of primitives. A composition assembles elements (and other compositions) into a task-level unit such as `FlashcardForm`, exposes its data and callbacks through props, and is not tied to a single view. Sections and views consume compositions instead of rebuilding the same arrangement. Compositions may keep private subcomponents in nested folders (e.g. `FlashcardForm/DeckPicker/`).
 - Element APIs carry design intent as props (`Button variant`, `Badge variant`, `Chip appearance`, `Table.Row selected`). Sections must not restyle elements through `:global` class overrides; if two screens need the same change, add a variant.
 - A component owns its own geometry. Heights, widths and sizes only one component uses — table row 56px, header row 40px, badge 22px, its dot 6px, sheet 440px, mobile card 116px — are local `$var`s in that component's style block. `_tokens.scss` keeps only what components share: the control sizes (`$control-sm/md/lg`), the scales, and the theme roles.
-- `Badge` has exactly one semantic prop: `variant` (`neutral | accent | success | warning | error | ghost`), plus geometry (`radius`, `dot`). The tone maps to Obsidian ink + tint; never pass a raw colour. Card status is read from the tone alone — do not pass `dot` for it.
-- `Textarea` grows with its content through `ui/actions/autosize.ts`; `rows` is only the floor for a short field, and the field has no resize handle. The surrounding scroll container (usually the sheet body) does the scrolling.
-- `Sheet` is the non-modal, non-trapping side panel: 440px, no scrim, Escape closes, focus returns to the opener. At 768px and below it covers the leaf. `FlashcardForm` composes it for both editing an existing card and creating one; create mode adds a card-type field, hides status/delete, and drops the header meta row.
 
 **Stores** (`ui/store/`)
 
@@ -312,8 +224,8 @@ Four-layer architecture decoupling event declaration, routing, and handling:
 ### Browser playground
 
 - Run `npm run playground` (dev server) or `npm run playground:build` (static output in `playground-dist/`). The production `vite.config.ts` build is untouched.
-- The playground mounts the real `App.svelte` shell (Dashboard, Review, Manage, Analytics, Priming) and the flashcard sidebar panel, plus the flashcard form modal, against the in-memory host and fixture data. The settings tab is an Obsidian-rendered surface and is out of the playground's scope. The boot `playground/boot.ts` mirrors `main.ts` initialization order and publishes `FlashcardAdapterInitEvent`, `SettingsAdapterInitEvent`, `StatisticsAdapterInitEvent`, then `FlashcardIndexInitEvent` last.
-- URL contract: `?view=dashboard|review|manage|analytics|priming|sidebar`, `?fixture=<name>`, `?theme=light|dark`, `?modal=flashcard-form`, `?platform=desktop|mobile`. Unknown values fall back to defaults with a console warning. View/fixture/modal changes reload the page; theme and platform apply in place.
+- The playground mounts the real `App.svelte` shell (Dashboard, Review, Manage, Analytics, Priming) and the flashcard sidebar panel against the in-memory host and fixture data. The settings tab is an Obsidian-rendered surface and is out of the playground's scope. The retained flashcard modal is not mounted. The boot `playground/boot.ts` mirrors `main.ts` initialization order and publishes `FlashcardAdapterInitEvent`, `SettingsAdapterInitEvent`, `StatisticsAdapterInitEvent`, then `FlashcardIndexInitEvent` last.
+- URL contract: `?view=dashboard|review|manage|analytics|priming|sidebar`, `?fixture=<name>`, `?theme=light|dark`, `?platform=desktop|mobile`. Unknown values fall back to defaults with a console warning. View/fixture changes reload the page; theme and platform apply in place.
 - Fixtures live in `playground/fixtures/`. A fixture is `{ files: Map<path, markdown>, settings?, statistics?, fileStats? }`; card markdown uses flat frontmatter with JSON scalars (see `playground/fixtures/cards.ts`). Adding a fixture means adding a builder in `playground/fixtures/index.ts`, registering it in `FIXTURES`, and setting `expectedCards`/`expectedActiveCards` so `tests/unit/playground/fixtures.test.ts` keeps covering it.
 - `playground/obsidian/index.ts` is the browser `obsidian` module mock Vite aliases in; `playground/obsidian/dom.ts` installs Obsidian's DOM and `Array` extensions. Icons come from `playground/obsidian/icons.ts` (vendored Lucide nodes; unknown names render nothing, as in Obsidian) and `addIcon` registrations are supported.
 - The community review scans every TypeScript file in the repo and ignores `eslint.config.js` overrides, so `playground/` must itself comply with the review rules: no `any` (or `no-explicit-any` disables), no inline styles, and no `innerHTML` / `insertAdjacentHTML`. Build markdown and icon DOM with the detached helpers (`createEl`, `createDiv`, `createFragment`), `createTextNode` or `DOMParser` instead.
