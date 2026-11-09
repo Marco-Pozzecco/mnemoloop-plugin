@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { Flashcard, FlashcardMetadata } from '@/schemas';
-	import { FlashcardForm } from '@/ui/components/compositions';
 	import type { FlashcardFormSavePayload } from '@/ui/components/compositions/FlashcardForm/types';
 	import {
 		ManageFilterBar,
+		ManageFlashcardFormSheet,
 		ManageHeader,
 		ManagePagination,
 		ManageResults,
@@ -189,10 +189,15 @@
 	</div>
 
 	{#if sheetMode === 'create'}
-		<FlashcardForm mode="create" {deckOptions} onClose={handleCloseSheet} onSave={handleSave} />
+		<ManageFlashcardFormSheet
+			mode="create"
+			{deckOptions}
+			onClose={handleCloseSheet}
+			onSave={handleSave}
+		/>
 	{:else if sheetMode === 'edit' && editingCard}
 		{#key editingCard.uuid}
-			<FlashcardForm
+			<ManageFlashcardFormSheet
 				mode="edit"
 				card={editingCard}
 				label={(selectedCard ? storeState.previews[selectedCard.file] : undefined) ??

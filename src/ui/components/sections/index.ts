@@ -22,6 +22,8 @@ export { default as ManageDeleteConfirmation } from './Manage/DeleteConfirmation
 export type { default as ManageDeleteConfirmationProps } from './Manage/DeleteConfirmation/types';
 export { default as ManageFilterBar } from './Manage/FilterBar/component.svelte';
 export type { default as ManageFilterBarProps } from './Manage/FilterBar/types';
+export { default as ManageFlashcardFormSheet } from './Manage/FlashcardFormSheet/component.svelte';
+export type { default as ManageFlashcardFormSheetProps } from './Manage/FlashcardFormSheet/types';
 export { default as ManageHeader } from './Manage/Header/component.svelte';
 export type { default as ManageHeaderProps } from './Manage/Header/types';
 export { default as ManageLoadingState } from './Manage/LoadingState/component.svelte';

@@ -1,11 +1,11 @@
 import type { Flashcard } from '@/schemas';
+import type { FlashcardFormMode } from '../types';
 
-export type FlashcardFormMode = 'create' | 'edit';
+export type { FlashcardFormMode };
 
 /**
- * The flashcard fields, validation and write path, shared by the modal and the
- * sidebar panel. The form owns its own saving and error state; the caller only
- * decides what happens after a save (`onSaved`) or a cancel (`onCancel`).
+ * The retained modal's flashcard fields, validation and write path. The modal
+ * stack is not the capture surface; the sidebar uses the shared form body.
  */
 export default interface FlashcardFormInlineProps {
 	mode: FlashcardFormMode;
