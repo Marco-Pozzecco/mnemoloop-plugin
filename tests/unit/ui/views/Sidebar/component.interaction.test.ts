@@ -354,6 +354,11 @@ describe('flashcard sidebar panel', () => {
 
 		expect(target.querySelector('.ml-flashcard-form')).not.toBeNull();
 		expect(target.querySelector('.ml-sidabar-flashcard')).toBeNull();
+		expect(target.textContent).toContain('New flashcard');
+		expect(target.textContent).toContain('Content');
+		expect(target.textContent).toContain('Organization');
+		expect(target.querySelector('.ml-deck-picker')).not.toBeNull();
+		expect(sourceInput()).toBeDefined();
 		expect(sourceFieldValue()).toBe(`[[${NOTE_PATH}]]`);
 	});
 
@@ -474,6 +479,8 @@ describe('flashcard sidebar panel', () => {
 
 		expect(target.querySelector('.ml-flashcard-form')).not.toBeNull();
 		expect(target.querySelector('.ml-sidabar-flashcard')).toBeNull();
+		expect(target.textContent).toContain('Edit flashcard');
+		expect(target.textContent).toContain('Due');
 		expect(textareas().map((area) => area.value)).toEqual(['Full card front', 'back']);
 
 		fillBasicForm('Updated front', 'Updated back');
@@ -610,7 +617,7 @@ describe('flashcard sidebar panel', () => {
 		const source = sourceInput();
 		if (!source) throw new Error('Expected a source field');
 		source.value = 'not-a-link';
-		source.dispatchEvent(new Event('change', { bubbles: true }));
+		source.dispatchEvent(new Event('input', { bubbles: true }));
 
 		buttonByText('Create').click();
 		await flush();

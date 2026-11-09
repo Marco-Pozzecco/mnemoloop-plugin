@@ -2,13 +2,11 @@
 	import { onDestroy } from 'svelte';
 	import { Component } from 'obsidian';
 	import type { App } from 'obsidian';
-	import FlashcardFormInline from '@/ui/components/views/Sidebar/Flashcard/Form/component.svelte';
-	import type FlashcardFormInlineProps from '@/ui/components/views/Sidebar/Flashcard/Form/types';
+	import SidebarFlashcardForm from '@/ui/components/views/Sidebar/Flashcard/Form/component.svelte';
+	import type SidebarFlashcardFormProps from '@/ui/components/views/Sidebar/Flashcard/Form/types';
 	import { setAppContext } from '@/ui/context/AppContext';
 
-	let { app, mode, card, prefillSource, onSaved, onCancel }: {
-		app: App;
-	} & FlashcardFormInlineProps = $props();
+	let { app, ...formProps }: { app: App } & SidebarFlashcardFormProps = $props();
 
 	// The Occlusion content reads the vault through the app context. The form
 	// itself takes no App and no modal store; this is the host's wiring.
@@ -23,4 +21,4 @@
 	});
 </script>
 
-<FlashcardFormInline {mode} {card} {prefillSource} {onSaved} {onCancel} />
+<SidebarFlashcardForm {...formProps} />

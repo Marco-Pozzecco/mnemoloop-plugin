@@ -1,13 +1,14 @@
 import type { Flashcard } from '@/schemas';
-
-export type FlashcardFormMode = 'create' | 'edit';
+import type {
+	FlashcardFormMode,
+	FlashcardFormSavePayload,
+} from '@/ui/components/compositions/FlashcardForm/types';
 
 /**
- * The sidebar panel's flashcard form. It owns the fields, validation and write
- * path; the caller only decides what happens after a save (`onSaved`) or a
- * cancel (`onCancel`).
+ * The sidebar panel's flashcard form. The surface owns the title, note context
+ * and footer; the shared form body owns the fields.
  */
-export default interface FlashcardFormInlineProps {
+export default interface SidebarFlashcardFormProps {
 	mode: FlashcardFormMode;
 	/** The full card to edit. Required in edit mode. */
 	card?: Flashcard;
@@ -15,8 +16,9 @@ export default interface FlashcardFormInlineProps {
 	prefillSource?: string;
 	/** The note the form is bound to, shown under the form title. */
 	contextLabel?: string;
-	/** A write succeeded. The caller decides whether to navigate, close, or reset. */
-	onSaved: (filepath: string) => void;
-	/** The user cancelled. No write has happened. */
-	onCancel: () => void;
+	/** Every deck in the vault, for suggestions. */
+	deckOptions: string[];
+	onClose: () => void;
+	/** Resolves true when the write succeeded. */
+	onSave: (payload: FlashcardFormSavePayload) => Promise<boolean>;
 }

@@ -10,10 +10,23 @@ import {
 	FlashcardParserParseRequestEvent,
 	FlashcardParserParseResponseEvent,
 } from '@/modules/events/domains/flashcard/parsers';
-import { FlashcardWriterUpdateResponseEvent } from '@/modules/events/domains/flashcard/writer';
-import type { Flashcard, FlashcardMetadata } from '@/schemas';
+import {
+	FlashcardWriterCreateRequestEvent,
+	FlashcardWriterCreateResponseEvent,
+	FlashcardWriterUpdateRequestEvent,
+	FlashcardWriterUpdateResponseEvent,
+} from '@/modules/events/domains/flashcard/writer';
+import type { EventClass } from '@/interfaces/IEventRegistry';
+import type { IEvent } from '@/interfaces/IEvent';
+import type { CardStatus, Flashcard, FlashcardMetadata } from '@/schemas';
 import { buildCardPreview } from '@/ui/components/views/Manage/utils';
 import { selectSidebarCards, sidebarStore, type SidebarActiveNote } from '../store/sidebar.store';
+
+interface WriteResponseData {
+	filepath: string;
+	requestId: string;
+	success: boolean;
+}
 
 /**
  * Bridges the flashcard index and the workspace's active note to the sidebar
@@ -31,6 +44,7 @@ export class SidebarController {
 	/** One parse attempt per filepath, shared by every click on that card. */
 	private _pendingCardFetches = new Map<string, Promise<Flashcard | null>>();
 	private _pendingCardUnsubs = new Set<() => void>();
+	private _pendingWrites = new Set<() => void>();
 
 	constructor(private _app: App) {
 		this._unsubscribers.push(
@@ -134,7 +148,44 @@ export class SidebarController {
 		return promise;
 	}
 
+	/** Create a card from the panel form. Resolves true when the writer confirms it. */
+	async createCard(payload: {
+		content: Flashcard['content'];
+		decks: string[];
+		source: string | null;
+	}): Promise<boolean> {
+		const request = new FlashcardWriterCreateRequestEvent(payload);
+		return this._awaitWrite(request, FlashcardWriterCreateResponseEvent);
+	}
+
+	/** Update a card from the panel form. Resolves true when the writer confirms it. */
+	async updateCard(
+		card: Flashcard,
+		payload: {
+			content: Flashcard['content'];
+			decks: string[];
+			source: string | null;
+			status?: CardStatus;
+		},
+	): Promise<boolean> {
+		const request = new FlashcardWriterUpdateRequestEvent({
+			uuid: card.uuid,
+			content: payload.content,
+			decks: payload.decks,
+			source: payload.source,
+			status: payload.status ?? card.status,
+		} as Partial<Flashcard>);
+		return this._awaitWrite(request, FlashcardWriterUpdateResponseEvent);
+	}
+
+	/** Abandon every write still waiting for its response. */
+	cancelPendingWrites(): void {
+		for (const cancel of [...this._pendingWrites]) cancel();
+		this._pendingWrites.clear();
+	}
+
 	dispose(): void {
+		this.cancelPendingWrites();
 		for (const unsub of this._unsubscribers) {
 			unsub();
 		}
@@ -148,6 +199,33 @@ export class SidebarController {
 			this._app.workspace.offref(this._activeLeafRef);
 			this._activeLeafRef = null;
 		}
+	}
+
+	private _awaitWrite(
+		request: IEvent<unknown>,
+		responseClass: EventClass<WriteResponseData>,
+	): Promise<boolean> {
+		return new Promise((resolve) => {
+			let settled = false;
+			let unsubscribe: (() => void) | null = null;
+
+			const finish = (success: boolean): void => {
+				if (settled) return;
+				settled = true;
+				unsubscribe?.();
+				this._pendingWrites.delete(cancel);
+				resolve(success);
+			};
+			const cancel = (): void => finish(false);
+
+			unsubscribe = EventBus.instance.subscribe(responseClass, async (response) => {
+				if (response.data.requestId !== request.id) return;
+				finish(response.data.success);
+			});
+			this._pendingWrites.add(cancel);
+
+			void EventBus.instance.publish(request).catch(() => finish(false));
+		});
 	}
 
 	/** Re-read the active file; a non-markdown or absent file is the "no note" state. */
@@ -177,6 +255,11 @@ export class SidebarController {
 	}
 
 	private _recompute(): void {
+		const deckOptions = Array.from(
+			new Set(this._allCards.flatMap((card) => card.decks)),
+		).sort();
+		sidebarStore.setDeckOptions(deckOptions);
+
 		const cards = this._activeNote
 			? selectSidebarCards(this._allCards, this._activeNote.path, (source, fromPath) =>
 					this._resolveSourcePath(source, fromPath),

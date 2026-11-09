@@ -6,6 +6,9 @@ import {
 	FlashcardIndexStateEvent,
 	FlashcardParserParseRequestEvent,
 	FlashcardParserParseResponseEvent,
+	FlashcardWriterCreateRequestEvent,
+	FlashcardWriterCreateResponseEvent,
+	FlashcardWriterUpdateRequestEvent,
 	FlashcardWriterUpdateResponseEvent,
 } from '@/modules/events';
 import { CardStatus, CardType } from '@/schemas';
@@ -192,6 +195,87 @@ describe('SidebarController', () => {
 		await publishCards([deleted]);
 
 		expect(sidebarStore.state.cards).toEqual([]);
+	});
+
+	it('exposes every deck in the vault for the form picker', async () => {
+		await publishCards([
+			createFlashcardMetadata({
+				uuid: 'bio',
+				file: 'cards/bio.md',
+				decks: ['Biology', 'Science'],
+				source: `[[${NOTE_PATH}]]`,
+			}),
+			createFlashcardMetadata({
+				uuid: 'other',
+				file: 'cards/other.md',
+				decks: ['Maths', 'Biology'],
+				source: '[[notes/other.md]]',
+			}),
+		]);
+
+		expect(sidebarStore.state.deckOptions).toEqual(['Biology', 'Maths', 'Science']);
+	});
+
+	it('creates a card through the writer and resolves on the correlated response', async () => {
+		const publishSpy = vi.spyOn(EventBus.instance, 'publish');
+		const saved = controller.createCard({
+			content: { meta_type: CardType.Basic, front: 'Question', back: 'Answer' },
+			decks: ['Biology'],
+			source: `[[${NOTE_PATH}]]`,
+		});
+
+		const request = publishSpy.mock.calls
+			.map(([event]) => event)
+			.find(
+				(event): event is FlashcardWriterCreateRequestEvent =>
+					event instanceof FlashcardWriterCreateRequestEvent,
+			);
+		expect(request).toBeDefined();
+
+		await EventBus.instance.publish(
+			new FlashcardWriterCreateResponseEvent({
+				filepath: 'cards/new.md',
+				success: true,
+				requestId: request!.id,
+			}),
+		);
+
+		await expect(saved).resolves.toBe(true);
+	});
+
+	it('updates a card through the writer and resolves on the correlated response', async () => {
+		const card = createFlashcardMetadata({
+			uuid: 'bio',
+			file: 'cards/bio.md',
+			source: `[[${NOTE_PATH}]]`,
+		});
+		await publishCards([card]);
+
+		const publishSpy = vi.spyOn(EventBus.instance, 'publish');
+		const saved = controller.updateCard(card as unknown as Flashcard, {
+			content: { meta_type: CardType.Basic, front: 'Updated', back: 'Answer' },
+			decks: ['Biology'],
+			source: `[[${NOTE_PATH}]]`,
+			status: CardStatus.ACTIVE,
+		});
+
+		const request = publishSpy.mock.calls
+			.map(([event]) => event)
+			.find(
+				(event): event is FlashcardWriterUpdateRequestEvent =>
+					event instanceof FlashcardWriterUpdateRequestEvent,
+			);
+		expect(request).toBeDefined();
+
+		await EventBus.instance.publish(
+			new FlashcardWriterUpdateResponseEvent({
+				filepath: card.file,
+				success: true,
+				requestId: request!.id,
+			}),
+		);
+
+		await expect(saved).resolves.toBe(true);
 	});
 
 	it('recomputes the list when the active note changes', async () => {

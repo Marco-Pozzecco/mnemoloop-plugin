@@ -2,6 +2,7 @@
 	import type { Flashcard, FlashcardMetadata } from '@/schemas';
 	import { CardStatus } from '@/schemas';
 	import { Button, Collapsible, Icon, Skeleton } from '@/ui/components/elements';
+	import type { FlashcardFormSavePayload } from '@/ui/components/compositions/FlashcardForm/types';
 	import { SidebarFlashcardForm, SidebarFlashcardList } from '@/ui/components/views';
 	import { setAppContext } from '@/ui/context/AppContext';
 	import { SidebarController } from '@/ui/controllers/SidebarController';
@@ -64,6 +65,7 @@
 		const activePath = sidebarState.activeNote?.path ?? null;
 		if (activePath !== form.notePath) {
 			openRequest++;
+			controller.cancelPendingWrites();
 			form = null;
 		}
 	});
@@ -120,7 +122,20 @@
 
 	function closeForm(): void {
 		openRequest++;
+		controller.cancelPendingWrites();
 		form = null;
+	}
+
+	async function handleSave(payload: FlashcardFormSavePayload): Promise<boolean> {
+		if (!form) return false;
+
+		const saved =
+			form.kind === 'create'
+				? await controller.createCard(payload)
+				: await controller.updateCard(form.card, payload);
+
+		if (saved) closeForm();
+		return saved;
 	}
 </script>
 
@@ -167,14 +182,17 @@
 
 	<div class="ml-sidebar__body" class:ml-sidebar__body--form={form !== null}>
 		{#if form}
-			<SidebarFlashcardForm
-				mode={form.kind}
-				card={form.kind === 'edit' ? form.card : undefined}
-				prefillSource={form.kind === 'create' ? form.source : undefined}
-				{contextLabel}
-				onSaved={closeForm}
-				onCancel={closeForm}
-			/>
+			{#key form}
+				<SidebarFlashcardForm
+					mode={form.kind}
+					card={form.kind === 'edit' ? form.card : undefined}
+					prefillSource={form.kind === 'create' ? form.source : undefined}
+					{contextLabel}
+					deckOptions={sidebarState.deckOptions}
+					onClose={closeForm}
+					onSave={handleSave}
+				/>
+			{/key}
 		{:else if sidebarState.activeNote === null}
 			<!-- No active note: the head states it, and there is nothing to list. -->
 		{:else if sidebarState.isLoading}

@@ -25,6 +25,8 @@ export interface SidebarState {
 	cards: FlashcardMetadata[];
 	/** Content previews keyed by filepath. */
 	previews: Record<string, string>;
+	/** Every deck in the vault, for the form's deck picker. */
+	deckOptions: string[];
 	isLoading: boolean;
 	/** A one-shot request to open the panel's create form. */
 	pendingCreate: SidebarCreateRequest | null;
@@ -34,6 +36,7 @@ const initialState: SidebarState = {
 	activeNote: null,
 	cards: [],
 	previews: {},
+	deckOptions: [],
 	isLoading: true,
 	pendingCreate: null,
 };
@@ -53,6 +56,10 @@ export class SidebarStore extends BaseStoreManager<SidebarState> {
 
 	setCards(cards: FlashcardMetadata[]): void {
 		this.store.update((state) => ({ ...state, cards }));
+	}
+
+	setDeckOptions(deckOptions: string[]): void {
+		this.store.update((state) => ({ ...state, deckOptions }));
 	}
 
 	setPreview(filepath: string, preview: string): void {
