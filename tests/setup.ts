@@ -223,11 +223,19 @@ vi.mock('obsidian', () => ({
 		constructor(_leaf?: unknown) {
 			this.contentEl = {} as HTMLElement;
 		}
-		getViewType = vi.fn().mockReturnValue('');
-		getDisplayText = vi.fn().mockReturnValue('');
-		getIcon = vi.fn().mockReturnValue('');
-		onOpen = vi.fn();
-		onClose = vi.fn();
+		// Prototype methods, as in real Obsidian: a subclass override must win over
+		// the base. (Instance fields would shadow it.)
+		getViewType(): string {
+			return '';
+		}
+		getDisplayText(): string {
+			return '';
+		}
+		getIcon(): string {
+			return '';
+		}
+		onOpen(): void {}
+		onClose(): void {}
 	},
 
 	App: class MockApp {

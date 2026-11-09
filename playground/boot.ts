@@ -8,10 +8,7 @@ import { IndexKey } from '@/types/indexes';
 import { DashboardController } from '@/ui/controllers/DashboardController';
 import { PrimingController } from '@/ui/controllers/PrimingController';
 import { bannerStore } from '@/ui/store/banner.store';
-import { modalStore, ModalViewEnum } from '@/ui/store/modal.store';
 import { uiStore } from '@/ui/store/ui.store';
-import { SvelteModal } from '@/ui/views/Modal/ModalView';
-import { ModalClassNames } from '@/ui/views/Modal/types';
 import { buildRealStack, type RealStack } from '../tests/helpers/real-stack';
 import type { PlaygroundFixture } from './fixtures';
 import type { PlaygroundParams } from './routes';
@@ -74,14 +71,19 @@ export async function prepareView(stack: RealStack, params: PlaygroundParams): P
 			await controller.start({ deckFilter: undefined, deckLabel: 'All decks' });
 			return;
 		}
+		case 'sidebar': {
+			// The panel binds to the active note, so give it the fixture's source
+			// note: the first markdown file outside the flashcard watch directory.
+			const watchDir = String(stack.settings.data.flashcard.watch.directory).replace(/^\/+/, '');
+			const note = [...stack.vault.files.values()].find(
+				(file) =>
+					file.extension === 'md' && !file.path.replace(/^\/+/, '').startsWith(`${watchDir}/`),
+			);
+			stack.plugin.app.workspace.setActiveFile(note ?? null);
+			return;
+		}
 		default: {
 			uiStore.currentView = params.view;
 		}
 	}
-}
-
-export function openRequestedModal(stack: RealStack, params: PlaygroundParams): void {
-	if (params.modal !== 'flashcard-form') return;
-	modalStore.open(ModalViewEnum.flashcard, { mode: 'create' });
-	new SvelteModal(stack.plugin.app, ModalClassNames.flashcard).open();
 }

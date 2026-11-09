@@ -12,10 +12,10 @@ import { SettingsAdapter } from './modules/adapters/SettingsAdapter';
 import { StatisticsAdapter } from './modules/adapters/StatisticsAdapter';
 import {
 	CommandRegistry,
-	CreateFlashcardFromFileModalCommand,
-	CreateFlashcardModalCommand,
+	CreateFlashcardFromFileCommand,
 	DebugAddTestFlashcardCommand,
 	OpenDashboardCommand,
+	OpenFlashcardSidebarCommand,
 	SetAllFlashcardsDueNowCommand,
 } from './modules/commands';
 import {
@@ -45,6 +45,7 @@ import { ParserKey, Parsers } from './types/parsers';
 import { WriterKey, Writers } from './types/writers';
 import { APP_VIEW, AppView } from './ui/views/App/AppView';
 import { SettingsView } from './ui/views/Settings/SettingsView';
+import { FlashcardSidebarView, SIDEBAR_VIEW } from './ui/views/Sidebar/FlashcardSidebarView';
 import { VaultWatcher } from './utils/VaultWatcher';
 
 export default class MnemoloopPlugin extends Plugin {
@@ -174,11 +175,17 @@ export default class MnemoloopPlugin extends Plugin {
 			defaultMod: false,
 		});
 
+		this.registerView(SIDEBAR_VIEW, (leaf) => new FlashcardSidebarView(this.app, leaf));
+
 		this.addSettingTab(new SettingsView(this));
 	}
 
 	private loadCommands(): void {
 		this._commandRegistry.register(CommandKey.openDashboard, new OpenDashboardCommand());
+		this._commandRegistry.register(
+			CommandKey.openFlashcardSidebar,
+			new OpenFlashcardSidebarCommand(),
+		);
 		this._commandRegistry.register(
 			CommandKey.setAllFlashcardsDueNow,
 			new SetAllFlashcardsDueNowCommand(),
@@ -188,12 +195,8 @@ export default class MnemoloopPlugin extends Plugin {
 			new DebugAddTestFlashcardCommand(),
 		);
 		this._commandRegistry.register(
-			CommandKey.createFlashcardModal,
-			new CreateFlashcardModalCommand(),
-		);
-		this._commandRegistry.register(
-			CommandKey.createFlashcardFromFileModal,
-			new CreateFlashcardFromFileModalCommand(),
+			CommandKey.createFlashcardFromFile,
+			new CreateFlashcardFromFileCommand(),
 		);
 
 		this._commandRegistry.initialize({

@@ -1,251 +1,49 @@
 <script lang="ts">
-	import { EventBus } from '@/modules/events/core';
-	import {
-		FlashcardWriterCreateRequestEvent,
-		FlashcardWriterCreateResponseEvent,
-		FlashcardWriterUpdateRequestEvent,
-		FlashcardWriterUpdateResponseEvent,
-	} from '@/modules/events/domains/flashcard/writer';
-	import { CardType } from '@/schemas';
-	import type { Flashcard } from '@/schemas';
-	import { Banner, FormField, Input, Tabs } from '@/ui/components/elements';
+	import { FlashcardFormInline } from '@/ui/components/compositions';
+	import { getAppContext } from '@/ui/context/AppContext';
 	import { modalStore } from '@/ui/store/modal.store';
-	import { parseDeckList, formatDeckList } from '@/utils/deck-utils';
-	import ContentRouter from '@/ui/components/compositions/FlashcardForm/ContentRouter/component.svelte';
-	import type {
-		BuildContentFn,
-		ValidateFn,
-	} from '@/ui/components/compositions/FlashcardForm/Content/types';
 	import type { FlashcardFormModalData } from './types';
 	import type FlashcardFormModalProps from './types';
-	import { getAppContext } from '@/ui/context/AppContext';
 
-	let { controller, error, isLoading }: FlashcardFormModalProps = $props();
+	let { controller }: FlashcardFormModalProps = $props();
 	const { app } = getAppContext();
 
-	// Derive modal data from the store. `modalStore.state` is a plain field, so it
-	// never invalidates a rune; the writable the store manager wraps does.
+	// `modalStore.state` is a plain field, so it never invalidates a rune. Subscribe
+	// to the writable the store manager wraps instead.
 	const storeRef = modalStore.store;
-	let mode = $derived(
-		(($storeRef.data as FlashcardFormModalData | undefined)?.mode ?? 'create') as 'create' | 'edit',
-	);
-	let card = $derived(($storeRef.data as FlashcardFormModalData | undefined)?.card);
-	let prefillSource = $derived(
-		($storeRef.data as FlashcardFormModalData | undefined)?.prefillSource,
-	);
+	const data = $derived($storeRef.data as FlashcardFormModalData | undefined);
+	const mode = $derived(data?.mode ?? 'create');
 
-	const cardTypeOptions = [
-		{ value: CardType.Basic, label: 'Basic' },
-		{ value: CardType.Sequence, label: 'Sequence' },
-		{ value: CardType.Quiz, label: 'Quiz' },
-		{ value: CardType.Cloze, label: 'Cloze' },
-		{ value: CardType.Occlusion, label: 'Occlusion' },
-	];
-
-	// --- Form state ---
-	let selectedType: string = $state(CardType.Basic);
-
-	// Shared metadata (renders once for all types)
-	let deck: string[] = $state([]);
-	let deckFormatted = $derived(formatDeckList(deck));
-	let source = $state('');
-
-	// --- Content child API ---
-	let contentApi: { validate: ValidateFn; buildContent: BuildContentFn } | null = $state(null);
-
-	// --- Init from store data ---
-	$effect(() => {
-		if (mode === 'edit' && card) {
-			selectedType = card.card_type;
-			deck = card.decks ?? [];
-			source = card.source ?? '';
-		} else if (mode === 'create' && prefillSource) {
-			source = prefillSource;
-		}
-	});
-
-	// --- Type change (create mode only) ---
-	// Per-type state resets automatically via {#key selectedType} remount.
-	function handleTypeChange(value: string): void {
-		if (mode === 'edit') return;
-		selectedType = value;
+	function handleSaved(filepath: string): void {
+		// The modal keeps its long-standing behavior: open the card that was just
+		// written, then close. The sidebar panel, which never navigates, does not
+		// use this wrapper.
+		app.workspace.openLinkText(filepath, '', false);
+		controller.onClose();
 	}
 
-	// --- Content child registration ---
-	function handleRegister(api: { validate: ValidateFn; buildContent: BuildContentFn }): void {
-		contentApi = api;
+	function handleCancel(): void {
+		controller.onClose();
 	}
-
-	function handleDeckChange(value: string): void {
-		deck = parseDeckList(value);
-	}
-
-	// --- Submission ---
-	/**
-	 * Returns false when no submission started, so the controller keeps the modal
-	 * open on the error instead of closing over it.
-	 */
-	function handleSubmit(): boolean {
-		if (!contentApi) {
-			controller.store.setError('The form is not ready. Close the modal and try again.');
-			return false;
-		}
-
-		const validationError = contentApi.validate();
-		if (validationError) {
-			controller.store.setError(validationError);
-			return false;
-		}
-
-		controller.store.setError(null);
-		controller.store.setLoading(true);
-
-		const content = contentApi.buildContent();
-		const decks = deck.filter((d) => d.trim() !== '');
-		const sourceValue = source.trim() || null;
-
-		try {
-			if (mode === 'create') {
-				const event = new FlashcardWriterCreateRequestEvent({
-					content,
-					source: sourceValue,
-					decks,
-				});
-				EventBus.instance.publish(event);
-
-				const unsub = EventBus.instance.subscribe(
-					FlashcardWriterCreateResponseEvent,
-					async (response) => {
-						unsub();
-						if (!response.data.success) {
-							controller.store.setError(
-								'Couldn’t create the flashcard. The vault rejected the write.',
-							);
-							controller.store.setLoading(false);
-							return;
-						}
-						app.workspace.openLinkText(response.data.filepath, '', false);
-						controller.onClose();
-					},
-				);
-			} else if (card) {
-				const event = new FlashcardWriterUpdateRequestEvent({
-					uuid: card.uuid,
-					content,
-					decks,
-					source: sourceValue,
-				} as Partial<Flashcard>);
-				EventBus.instance.publish(event);
-
-				const unsub = EventBus.instance.subscribe(
-					FlashcardWriterUpdateResponseEvent,
-					async (response) => {
-						unsub();
-						if (!response.data.success) {
-							controller.store.setError(
-								'Couldn’t save the flashcard. The vault rejected the write.',
-							);
-							controller.store.setLoading(false);
-							return;
-						}
-						app.workspace.openLinkText(response.data.filepath, '', false);
-						controller.onClose();
-					},
-				);
-			}
-		} catch (e) {
-			controller.store.setError(e instanceof Error ? e.message : 'An error occurred');
-			controller.store.setLoading(false);
-			return false;
-		}
-
-		return true;
-	}
-
-	// --- Wire controller actions ---
-	$effect(() => {
-		controller.confirmAction = handleSubmit;
-		controller.cancelAction = () => controller.onClose();
-	});
 </script>
 
-<div class="ml-form-modal">
-	<h2 class="ml-form-modal-title">
-		{mode === 'edit' ? 'Edit flashcard' : 'Create flashcard'}
-	</h2>
+<h2 class="ml-form-modal-title">
+	{mode === 'edit' ? 'Edit flashcard' : 'Create flashcard'}
+</h2>
 
-	{#if error}
-		<Banner
-			banner={{ id: 'form-error', view: 'review', message: error, icon: 'alert-circle' }}
-			onDismiss={() => controller.store.setError(null)}
-		/>
-	{/if}
-
-	<!-- Card Type -->
-	<FormField label="Card type">
-		<Tabs.Root value={selectedType} onValueChange={handleTypeChange}>
-			<Tabs.List className="ml-card-type-tabs-list">
-				{#each cardTypeOptions as tab (tab.value)}
-					<Tabs.Trigger value={tab.value} disabled={mode === 'edit' || isLoading}>
-						{tab.label}
-					</Tabs.Trigger>
-				{/each}
-			</Tabs.List>
-		</Tabs.Root>
-	</FormField>
-
-	<ContentRouter {selectedType} {mode} {card} disabled={isLoading} onRegister={handleRegister} />
-
-	<!-- Shared metadata -->
-	<Input
-		label="Deck"
-		value={deckFormatted}
-		placeholder="Example::Nested, New deck"
-		helperText="Comma-separated list of decks"
-		disabled={isLoading}
-		onchange={handleDeckChange}
-	/>
-	<Input
-		label="Source"
-		value={source}
-		placeholder="[[path/to/file]]"
-		helperText="Wrap the path in double brackets, e.g. [[path/to/file]]"
-		disabled={isLoading}
-		onchange={(v) => (source = v)}
-	/>
-</div>
+<FlashcardFormInline
+	{mode}
+	card={data?.card}
+	prefillSource={data?.prefillSource}
+	onSaved={handleSaved}
+	onCancel={handleCancel}
+/>
 
 <style lang="scss">
 	@use 'tokens' as *;
 
-	.ml-form-modal {
-		display: flex;
-		flex-direction: column;
-		gap: $spacing-md;
-	}
-
 	.ml-form-modal-title {
-		margin: 0;
+		margin: 0 0 $spacing-md;
 		font-size: $font-lg;
-	}
-
-	/* --- Card Type Tabs --- */
-
-	/* Allow tabs to wrap and distribute equally */
-	:global(.ml-card-type-tabs-list) {
-		flex-wrap: wrap;
-	}
-
-	:global(.ml-card-type-tabs-list .ml-tabs__trigger) {
-		flex: 1 1 0;
-		width: auto;
-		min-width: 0;
-	}
-
-	/* On narrow viewports, show 2 triggers per row (2 rows of 2) */
-	@media (max-width: 480px) {
-		:global(.ml-card-type-tabs-list .ml-tabs__trigger) {
-			flex-basis: calc(50% - #{$spacing-sm});
-		}
 	}
 </style>

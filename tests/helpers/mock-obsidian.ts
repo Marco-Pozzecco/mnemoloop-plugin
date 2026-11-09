@@ -177,6 +177,7 @@ export function createMockWorkspace(): any {
 		createLeafInParent: vi.fn<any, any>(),
 		on: vi.fn<any, any>(),
 		revealLeaf: vi.fn<any, any>(),
+		openLinkText: vi.fn<any, any>(),
 	} as any;
 }
 

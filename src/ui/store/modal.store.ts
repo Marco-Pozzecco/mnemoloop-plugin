@@ -13,16 +13,12 @@ export type ModalView = ModalViewEnum | null;
 export interface ModalState {
 	currentView: ModalView;
 	isOpen: boolean;
-	isLoading: boolean;
-	error: string | null;
 	data: unknown;
 }
 
 const initialModalState: ModalState = {
 	currentView: null,
 	isOpen: false,
-	isLoading: false,
-	error: null,
 	data: undefined,
 };
 
@@ -36,14 +32,6 @@ export class ModalStore extends BaseStoreManager<ModalState> {
 	// Writable stores for Svelte
 	get currentView(): ModalState['currentView'] {
 		return this.state.currentView;
-	}
-
-	get isLoading(): ModalState['isLoading'] {
-		return this.state.isLoading;
-	}
-
-	get error(): ModalState['error'] {
-		return this.state.error;
 	}
 
 	get data(): ModalState['data'] {
@@ -64,24 +52,7 @@ export class ModalStore extends BaseStoreManager<ModalState> {
 			...state,
 			currentView: null,
 			isOpen: false,
-			isLoading: false,
-			error: null,
 			data: undefined,
-		}));
-	}
-
-	setLoading(value: boolean): void {
-		this.store.update((state) => ({ ...state, isLoading: value }));
-	}
-
-	setError(error: string | null): void {
-		this.store.update((state) => ({ ...state, error }));
-	}
-
-	setData(partialData: Partial<ModalState['data']>): void {
-		this.store.update((state) => ({
-			...state,
-			data: { ...(state.data || {}), ...partialData },
 		}));
 	}
 }

@@ -2,7 +2,7 @@
 import '../../../../helpers/dom-polyfills';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mount, unmount } from 'svelte';
-import FlashcardForm from '@/ui/components/compositions/FlashcardForm/component.svelte';
+import ManageFlashcardFormSheet from '@/ui/components/sections/Manage/FlashcardFormSheet/component.svelte';
 import { CardStatus, CardType } from '@/schemas';
 import type { Flashcard } from '@/schemas';
 
@@ -41,7 +41,7 @@ describe('FlashcardForm interaction', () => {
 		const onClose = vi.fn();
 		const onSave = vi.fn().mockResolvedValue(true);
 		const onDelete = vi.fn();
-		instance = mount(FlashcardForm, {
+		instance = mount(ManageFlashcardFormSheet, {
 			target,
 			props: {
 				mode: 'edit',
@@ -61,7 +61,7 @@ describe('FlashcardForm interaction', () => {
 		activeDocument.body.appendChild(target);
 		const onClose = vi.fn();
 		const onSave = vi.fn().mockResolvedValue(true);
-		instance = mount(FlashcardForm, {
+		instance = mount(ManageFlashcardFormSheet, {
 			target,
 			props: {
 				mode: 'create',

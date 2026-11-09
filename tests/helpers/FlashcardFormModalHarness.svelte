@@ -1,31 +1,22 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import { Component, type App } from 'obsidian';
-	import { setAppContext } from '@/ui/context/AppContext';
+	import { Component } from 'obsidian';
+	import type { App } from 'obsidian';
 	import FlashcardFormModal from '@/ui/components/modals/FlashcardFormModal/component.svelte';
-	import { modalStore } from '@/ui/store/modal.store';
 	import type { ModalController } from '@/ui/controllers/ModalController';
+	import { setAppContext } from '@/ui/context/AppContext';
 
-	let {
-		app,
-		controller,
-	}: {
-		app: App;
-		controller: ModalController;
-	} = $props();
+	let { app, controller }: { app: App; controller: ModalController } = $props();
 
 	const owner = new Component();
 	owner.load();
+	// The harness mounts once with fixed props.
+	// svelte-ignore state_referenced_locally
 	setAppContext({ app, component: owner });
-
-	const storeRef = modalStore.store;
-
-	const error = $derived($storeRef.error);
-	const isLoading = $derived($storeRef.isLoading);
 
 	onDestroy(() => {
 		owner.unload();
 	});
 </script>
 
-<FlashcardFormModal {controller} {isLoading} {error} />
+<FlashcardFormModal {controller} />

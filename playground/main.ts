@@ -4,7 +4,7 @@ import '@/ui/styles/main.scss';
 
 import { mount } from 'svelte';
 import { Platform } from 'obsidian';
-import { bootPlayground, openRequestedModal, prepareView } from './boot';
+import { bootPlayground, prepareView } from './boot';
 import { resolveFixture } from './fixtures';
 import { createDiv, createEl, installObsidianDomExtensions } from './obsidian/dom';
 import { applyTheme, readParams } from './routes';
@@ -13,7 +13,7 @@ import Playground from './Playground.svelte';
 installObsidianDomExtensions();
 
 function renderBootError(target: HTMLElement, error: unknown): void {
-	const message = error instanceof Error ? error.stack ?? error.message : String(error);
+	const message = error instanceof Error ? (error.stack ?? error.message) : String(error);
 	target.replaceChildren();
 	const box = createDiv();
 	box.className = 'ml-playground-boot-error';
@@ -39,7 +39,6 @@ async function main(): Promise<void> {
 		const stack = await bootPlayground(fixture);
 		await prepareView(stack, params);
 		mount(Playground, { target, props: { stack, fixture, params } });
-		openRequestedModal(stack, params);
 	} catch (error) {
 		console.error('[playground] Failed to boot', error);
 		renderBootError(target, error);

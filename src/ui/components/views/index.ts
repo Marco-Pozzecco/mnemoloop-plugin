@@ -16,3 +16,9 @@ export type { default as PrimingStateViewProps } from './Priming/StateView/types
 export { default as Priming } from './Priming/component.svelte';
 export type { default as PrimingProps } from './Priming/types';
 export { default as Review } from './Review/component.svelte';
+export { default as SidebarFlashcardCard } from './Sidebar/Flashcard/Card/component.svelte';
+export type { default as SidebarFlashcardCardProps } from './Sidebar/Flashcard/Card/types';
+export { default as SidebarFlashcardForm } from './Sidebar/Flashcard/Form/component.svelte';
+export type { default as SidebarFlashcardFormProps } from './Sidebar/Flashcard/Form/types';
+export { default as SidebarFlashcardList } from './Sidebar/Flashcard/List/component.svelte';
+export type { default as SidebarFlashcardListProps } from './Sidebar/Flashcard/List/types';

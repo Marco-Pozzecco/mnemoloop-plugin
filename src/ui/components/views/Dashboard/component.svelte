@@ -17,7 +17,7 @@
 	import { onMount } from 'svelte';
 	import { getAppContext } from '@/ui/context/AppContext';
 	import { PrimingController } from '@/ui/controllers/PrimingController';
-	import type { PrimingAvailability } from '@/ui/components/sections';
+	import type { PrimingAvailability } from '@/ui/components/sections/Dashboard/Footer/types';
 	import type { PrimingSelection } from '@/ui/store/priming.store';
 	import { settingsStore } from '@/ui/store/settings.store';
 

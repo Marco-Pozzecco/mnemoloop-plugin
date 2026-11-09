@@ -70,6 +70,8 @@
 			{/if}
 		</Collapsible.Trigger>
 		<Collapsible.Content
+			padding="none"
+			divided={false}
 			class={cn('ml-priming__cluster-content', {
 				'ml-priming__cluster-content-desktop': !isMobile,
 				'ml-priming__cluster-content-mobile': isMobile,
@@ -198,11 +200,6 @@
 				&:focus-visible {
 					outline: 2px solid $interactive-accent;
 					outline-offset: 2px;
-				}
-
-				&-content {
-					padding-block: 0;
-					border-top: none;
 				}
 			}
 

@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { Priming } from '@/ui/components/views';
-	import { Banner, Dashboard, Review } from '@/ui/components';
-	import { Analytics, Manage } from '@/ui/components/views';
+	import { Banner } from '@/ui/components/elements';
+	import { Analytics, Dashboard, Manage, Priming, Review } from '@/ui/components/views';
 	import { Navbar } from '@/ui/components/sections';
 	import { setAppContext } from '@/ui/context/AppContext';
 	import { uiStore } from '@/ui/store/ui.store';
@@ -21,6 +20,7 @@
 	});
 
 	// context — set synchronously during init; props ($props) are inherently reactive
+	// svelte-ignore state_referenced_locally
 	setAppContext({ app, component });
 </script>
 

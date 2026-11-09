@@ -22,6 +22,8 @@ export { default as ManageDeleteConfirmation } from './Manage/DeleteConfirmation
 export type { default as ManageDeleteConfirmationProps } from './Manage/DeleteConfirmation/types';
 export { default as ManageFilterBar } from './Manage/FilterBar/component.svelte';
 export type { default as ManageFilterBarProps } from './Manage/FilterBar/types';
+export { default as ManageFlashcardFormSheet } from './Manage/FlashcardFormSheet/component.svelte';
+export type { default as ManageFlashcardFormSheetProps } from './Manage/FlashcardFormSheet/types';
 export { default as ManageHeader } from './Manage/Header/component.svelte';
 export type { default as ManageHeaderProps } from './Manage/Header/types';
 export { default as ManageLoadingState } from './Manage/LoadingState/component.svelte';
@@ -30,8 +32,6 @@ export { default as ManagePagination } from './Manage/Pagination/component.svelt
 export type { default as ManagePaginationProps } from './Manage/Pagination/types';
 export { default as ManageResults } from './Manage/Results/component.svelte';
 export type { default as ManageResultsProps } from './Manage/Results/types';
-export { default as ModalControls } from './Modal/Controls/component.svelte';
-export type { default as ModalControlsProps } from './Modal/Controls/types';
 export { default as Navbar } from './Navbar/component.svelte';
 export type { default as NavbarProps } from './Navbar/types';
 export { default as ReviewEmptyState } from './Review/EmptyState/component.svelte';

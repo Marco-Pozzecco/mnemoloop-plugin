@@ -13,6 +13,8 @@
 		onRemove?: (deck: string) => void;
 	} = $props();
 
+	// The harness seeds local state once from its initial props.
+	// svelte-ignore state_referenced_locally
 	let decks = $state<string[]>([...initialDecks]);
 
 	function handleAdd(deck: string): void {

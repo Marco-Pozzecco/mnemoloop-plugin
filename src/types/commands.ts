@@ -1,25 +1,25 @@
 import { OpenDashboardCommand } from '@/modules/commands/palette/OpenDashboardCommand';
+import { OpenFlashcardSidebarCommand } from '@/modules/commands/palette/OpenFlashcardSidebarCommand';
 import { SetAllFlashcardsDueNowCommand } from '@/modules/commands/palette/SetAllFlashcardsDueNowCommand';
 import { DebugAddTestFlashcardCommand } from '@/modules/commands/palette/DebugAddTestFlashcardsCommand';
-import { CreateFlashcardModalCommand } from '@/modules/commands/palette/CreateFlashcardModalCommand';
-import { CreateFlashcardFromFileModalCommand } from '@/modules/commands/file-menu/CreateFlashcardFromFileModalCommand';
+import { CreateFlashcardFromFileCommand } from '@/modules/commands/file-menu/CreateFlashcardFromFileCommand';
 
 export enum CommandKey {
 	// palette
 	openDashboard = 'openDashboard',
+	openFlashcardSidebar = 'openFlashcardSidebar',
 	setAllFlashcardsDueNow = 'setAllFlashcardsDueNow',
 	debugAddTestFlashcards = 'debugAddTestFlashcards',
-	createFlashcardModal = 'createFlashcardModal',
 	// file menu
-	createFlashcardFromFileModal = 'createFlashcardFromFileModal',
+	createFlashcardFromFile = 'createFlashcardFromFile',
 }
 
 interface CommandMap {
 	[CommandKey.openDashboard]: OpenDashboardCommand;
+	[CommandKey.openFlashcardSidebar]: OpenFlashcardSidebarCommand;
 	[CommandKey.setAllFlashcardsDueNow]: SetAllFlashcardsDueNowCommand;
 	[CommandKey.debugAddTestFlashcards]: DebugAddTestFlashcardCommand;
-	[CommandKey.createFlashcardModal]: CreateFlashcardModalCommand;
-	[CommandKey.createFlashcardFromFileModal]: CreateFlashcardFromFileModalCommand;
+	[CommandKey.createFlashcardFromFile]: CreateFlashcardFromFileCommand;
 }
 
 export type Commands = Map<CommandKey, CommandMap[CommandKey]>;

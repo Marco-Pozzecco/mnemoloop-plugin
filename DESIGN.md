@@ -100,7 +100,8 @@ The plugin must work on Obsidian Mobile (`isDesktopOnly: false`). `_mobile.scss`
 - Markdown renders through `.ml-markdown-rendered`: tables, `pre`, and math scroll horizontally rather than overflowing; images and embeds are capped at 100%.
 - Use semantic elements — a real `<table>` on desktop, labelled cards on mobile — and give icon-only controls an accessible name and a visible focus treatment.
 - Element APIs express design intent, not raw CSS: `Button variant`/`size`, `Badge variant` (the semantic tone) and `radius`, `Chip variant` (surface) with `shape`/`size`, `Table.Row selected`, `Combobox.Trigger variant`. A section must not reach into an element's internal class names to restyle it; if two screens need the same change, it becomes a prop.
-- Compositions (`compositions/`) are reusable compositions of primitives: they assemble elements into a task-level unit such as `FlashcardForm`, take their data and callbacks through props, and are consumed by sections and views. They are not tied to one screen.
+- Compositions (`compositions/`) are reusable compositions of primitives: they assemble elements into a task-level unit such as `FlashcardForm`, take their data and callbacks through props, and are consumed by sections and views. They are not tied to one screen. `FlashcardForm` is the shared form body; `FlashcardFormActions` and `FlashcardFormMeta` are its sibling parts, and both the Manage sheet and the sidebar panel compose them.
+- Form state is a schema-backed `Form` class in `ui/forms/Form.svelte.ts` (`values`, `errors`, `isSubmitting`, `setValue`, `validate`, `submit`). Domain form models compose it: `FlashcardFormModel` adds the card-type editor and deck operations. The class owns state and validation only; surfaces own the write.
 - `Textarea` grows with its content (`ui/actions/autosize.ts`), so the field never scrolls internally and the sheet body is the only scroller. `rows` stays the floor for a short field; there is no resize handle.
 
 ### The Manage pattern
@@ -109,11 +110,22 @@ Manage is a **read-only index** plus a **single editor**:
 
 - The table and the mobile cards are scan surfaces. They carry no inline inputs: type and status are badges, decks are filled chips, and the last column is a chevron. The row's primary control is a real anchor (a vault deep link), stretched over the row, so modifier-click still opens the note. A cloze preview keeps every deletion as `[...]`, so the index never spoils an answer.
 - The deck cell shows at most two chips and folds the rest into `+N`. Deck names ellipsize in a narrow column: the chips shrink, the fold count never does. Truncation is not a hiding place — the fold carries the remaining names to assistive tech, and the cell's `title` gives the full list on hover.
-- The non-modal `Sheet`, rendered by the `FlashcardForm` composition, is the only editor. Rows open it for an existing card; Add opens the same sheet in create mode, empty, with a card-type field. It is 440px on desktop, overlays the table without a scrim, keeps the rows live, and closes on Escape or the close control. At 768px and below it covers the leaf, bottom nav included; its footer is sticky.
+- The non-modal `Sheet`, rendered by the `ManageFlashcardFormSheet` section around the shared `FlashcardForm` body, is the only editor in Manage. Rows open it for an existing card; Add opens the same sheet in create mode, empty, with a card-type field. It is 440px on desktop, overlays the table without a scrim, keeps the rows live, and closes on Escape or the close control. At 768px and below it covers the leaf, bottom nav included; its footer is sticky.
 - In create mode the sheet has no status field and no Delete action; Create writes a new card with the default ACTIVE status, and the row appears from the metadata parse without waiting for the index. Its header carries no meta row, because the card-type field already states the type.
 - Delete lives in the sheet footer and still goes through `AlertDialog`.
 - Status tones: ACTIVE `success`, PAUSED `neutral`, STALE `warning`, DELETED `error`. The tone carries the colour and the badge draws no dot. The type badge reads the stored enum as a title-cased label (`Basic`, `Cloze`).
 - The row for the open sheet keeps a marker: hover surface plus a 2px inset accent bar on its first cell.
+
+### The flashcard sidebar
+
+The sidebar is a **note-bound capture panel**, not a second Manage index:
+
+- The pinned head names the active note and carries one full-width “New card” action. With no active note, the head states that and the action stays disabled; the body has nothing to list.
+- Groups are **quiet sticky section headers**, not bordered cards: a small-caps label, its count, and a `chevron-right`; a hairline underneath and the panel background so cards scroll under it. STALE uses warning ink. The group is the only place status is stated; the row does not repeat it.
+- Rows use the sidebar-owned `SidebarFlashcardCard` inside `SidebarFlashcardList` — a type badge, due date, truncated preview, deck chips, and a real vault-link anchor. They carry no per-row status badge or chevron: the group header already states the status, and the row itself is the link. A plain click opens the inline form; modifier-click opens the card note. Manage keeps its own `ManageCardList`; the two cards share only the `Badge` and `ManageDeckChips` building blocks, not the card itself.
+- The inline form lives at `components/views/Sidebar/Flashcard/Form/` and is **panel-only**. It replaces the head and list: pinned header (back, “New flashcard” / “Edit flashcard”, note context, edit-mode type/status/due meta), a scrolling body using the shared `FlashcardForm`, and a pinned `FlashcardFormActions` footer. The body is the same Content/Organization layout as the Manage sheet: a card-type `Select` in create mode, `DeckPicker`, always-visible Source and a Status `Select` in edit mode. The shared `FlashcardFormModel` owns seeding, validation and submit state; the sidebar view owns the write through `SidebarController` and never navigates. The retained modal stack keeps its own `FlashcardFormInline` composition; no current command opens it and the playground does not mount it.
+- The sidebar imports from the `views`, `sections` and `elements` barrels, never the root `components` barrel: the root barrel pulls in the modal.
+- `Collapsible.Content` owns its inner rhythm through `padding` (`default | none`) and `divided`. Consumers must not override `.ml-collapsible__content-inner`; if the disclosure needs a different rhythm, add a prop. `Collapsible.Trigger` defaults to `type="button"`.
 
 ## Constraints the design must respect
 

@@ -345,6 +345,91 @@ function longContentFixture(): PlaygroundFixture {
 	};
 }
 
+function sidebarFixture(): PlaygroundFixture {
+	const cards: FixtureCard[] = [
+		{
+			path: '/flashcards/sidebar-stale.md',
+			uuid: uuidFor(601),
+			type: 'cloze',
+			decks: ['Biology'],
+			status: 'STALE',
+			due: minutesFromNow(-30),
+			// The sidebar resolves every link form Obsidian accepts, not just the
+			// exact [[path.md]] string the create flows pre-fill.
+			source: '[[notes/biology.md|Biology]]',
+			body: clozeBody('The {{c1::plasma membrane}} controls what enters and leaves the cell.'),
+		},
+		{
+			path: '/flashcards/sidebar-active-1.md',
+			uuid: uuidFor(602),
+			type: 'basic',
+			decks: ['Biology'],
+			due: minutesFromNow(-20),
+			source: '[[notes/biology.md]]',
+			body: basicBody(
+				'What is the role of the plasma membrane in a cell?',
+				'It is a selectively permeable phospholipid bilayer.',
+			),
+		},
+		{
+			path: '/flashcards/sidebar-active-2.md',
+			uuid: uuidFor(603),
+			type: 'quiz',
+			decks: ['Biology'],
+			due: minutesFromNow(-10),
+			source: '[[notes/biology]]',
+			body: quizBody('Which organelle stores DNA and coordinates gene expression?', [
+				{ text: 'The nucleus', correct: true },
+				{ text: 'The ribosome' },
+			]),
+		},
+		{
+			path: '/flashcards/sidebar-paused.md',
+			uuid: uuidFor(604),
+			type: 'sequence',
+			decks: ['Biology'],
+			status: 'PAUSED',
+			due: minutesFromNow(-5),
+			source: '[[biology]]',
+			body: sequenceBody('Order transport across the membrane.', [
+				'Diffusion',
+				'Facilitated diffusion',
+				'Active transport',
+			]),
+		},
+		{
+			path: '/flashcards/sidebar-deleted.md',
+			uuid: uuidFor(605),
+			type: 'basic',
+			decks: ['Biology'],
+			status: 'DELETED',
+			due: minutesFromNow(0),
+			source: '[[notes/biology.md]]',
+			body: basicBody('Soft-deleted card', 'Should not appear in the panel.'),
+		},
+	];
+
+	const note = [
+		'# Cell structure',
+		'',
+		'The cell is the smallest unit that can carry out all the processes of life.',
+		'',
+		'## Key components',
+		'',
+		'- Plasma membrane',
+		'- Cytoplasm',
+		'- Nucleus',
+	].join('\n');
+
+	return {
+		name: 'sidebar',
+		description: 'A source note with stale, active and paused cards for the flashcard sidebar',
+		documents: cardsFixture(cards, { files: [['notes/biology.md', note]] }),
+		expectedCards: cards.length,
+		expectedActiveCards: 2,
+	};
+}
+
 function emptyFixture(): PlaygroundFixture {
 	return {
 		name: 'empty',
@@ -362,6 +447,7 @@ export const FIXTURES: Record<string, PlaygroundFixture> = {
 	analytics: analyticsFixture(),
 	paused: pausedFixture(),
 	'long-content': longContentFixture(),
+	sidebar: sidebarFixture(),
 };
 
 export const DEFAULT_FIXTURE_NAME = 'mixed';

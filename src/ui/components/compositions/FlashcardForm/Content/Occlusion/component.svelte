@@ -233,14 +233,12 @@
 	}
 
 	/** Track each region row so canvas selection can reveal its editor. */
-	function rowRef(id: string) {
-		return (node: HTMLElement) => {
-			rowRefs[id] = node;
-			return {
-				destroy() {
-					delete rowRefs[id];
-				},
-			};
+	function rowRef(node: HTMLElement, id: string) {
+		rowRefs[id] = node;
+		return {
+			destroy() {
+				delete rowRefs[id];
+			},
 		};
 	}
 
