@@ -162,9 +162,15 @@ Four-layer architecture decoupling event declaration, routing, and handling:
 - Use Svelte 5 runes syntax (`$props()`, `$state()`)
 - Pattern: `ComponentName/component.svelte` with optional `types.ts`
 - Organized by: `elements/`, `compositions/`, `sections/`, `modals/`, `views/`
-- **Compositions** (`compositions/`) — compositions are reusable compositions of primitives. A composition assembles elements (and other compositions) into a task-level unit such as `FlashcardForm`, exposes its data and callbacks through props, and is not tied to a single view. Sections and views consume compositions instead of rebuilding the same arrangement. Compositions may keep private subcomponents in nested folders (e.g. `FlashcardForm/DeckPicker/`).
+- **Compositions** (`compositions/`) — compositions are reusable compositions of primitives. A composition assembles elements (and other compositions) into a task-level unit such as `FlashcardForm`, exposes its data and callbacks through props, and is not tied to a single view. Sections and views consume compositions instead of rebuilding the same arrangement. Compositions may keep private subcomponents in nested folders (e.g. `FlashcardForm/DeckPicker/`). The shared `FlashcardForm` body, `FlashcardFormActions` and `FlashcardFormMeta` are composed by both `ManageFlashcardFormSheet` and the sidebar form; the surface owns the Sheet/panel chrome, the write, and the footer placement.
 - Element APIs carry design intent as props (`Button variant`, `Badge variant`, `Chip appearance`, `Table.Row selected`). Sections must not restyle elements through `:global` class overrides; if two screens need the same change, add a variant.
 - A component owns its own geometry. Heights, widths and sizes only one component uses — table row 56px, header row 40px, badge 22px, its dot 6px, sheet 440px, mobile card 116px — are local `$var`s in that component's style block. `_tokens.scss` keeps only what components share: the control sizes (`$control-sm/md/lg`), the scales, and the theme roles.
+
+**Forms** (`ui/forms/`)
+
+- `Form.svelte.ts` is a small schema-backed form state class: `values`, `errors`, `isSubmitting`, `setValue`, `validate`, `submit`. It depends on zod and Svelte runes only — no Obsidian, events or domain imports.
+- Domain forms compose it rather than duplicating validation. `FlashcardFormModel` (in `compositions/FlashcardForm/model.svelte.ts`) adds the card-type editor, `contentApi` registration and deck operations. The shape of the model a field component may use is the `FlashcardFormViewModel` interface; submit stays in the surface shell.
+- A surface shell creates the domain form model, reads its status/saving state for the header, and owns the write. Field components never call the writer.
 
 **Stores** (`ui/store/`)
 
@@ -174,7 +180,8 @@ Four-layer architecture decoupling event declaration, routing, and handling:
 **Controllers** (`ui/controllers/`)
 
 - MVC-style controllers bridging stores and event system
-- Controllers: `DashboardController`, `AnalyticsController`, `ForecastChartController`, `ModalController`, `ReviewController`
+- Controllers: `DashboardController`, `AnalyticsController`, `ForecastChartController`, `ManageController`, `ModalController`, `ReviewController`, `SidebarController`
+- Controllers own writer correlation when a surface submits (see `ManageController.createCard`/`updateCard` and `SidebarController.createCard`/`updateCard`). Views and form components call the controller; they do not subscribe to writer events themselves.
 
 ---
 
