@@ -36,6 +36,15 @@
 	}
 
 	.ml-sidebar-flashcard__wrapper {
+		display: block;
+		border-radius: $radius-md;
 		text-decoration: none;
+	}
+
+	/* Inset so the ring survives in clipped containers, such as the sidebar's
+	   collapsible group content. */
+	.ml-sidebar-flashcard__wrapper:focus-visible {
+		outline: 2px solid $interactive-accent;
+		outline-offset: -2px;
 	}
 </style>

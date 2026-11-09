@@ -42,13 +42,6 @@
 		border-color: $line-strong;
 	}
 
-	/* Inset so the ring survives in clipped containers, such as the sidebar's
-	   collapsible group content. */
-	.ml-sidebar-flashcard:focus-visible {
-		outline: 2px solid $interactive-accent;
-		outline-offset: -2px;
-	}
-
 	.ml-sidebar-flashcard__meta {
 		display: flex;
 		align-items: center;
