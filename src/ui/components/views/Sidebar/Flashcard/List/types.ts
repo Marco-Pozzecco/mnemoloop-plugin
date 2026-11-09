@@ -1,6 +1,6 @@
 import type { FlashcardMetadata } from '@/schemas';
 
-export default interface ManageCardListProps {
+export default interface SidebarFlashcardListProps {
 	cards: FlashcardMetadata[];
 	previews: Record<string, string>;
 	hrefFor: (card: FlashcardMetadata) => string;

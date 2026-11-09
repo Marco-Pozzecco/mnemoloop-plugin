@@ -53,20 +53,20 @@ describe('SidebarFlashcardList', () => {
 		mountList(cards);
 		await tick();
 
-		const list = target.querySelector<HTMLElement>('.ml-sidabar-flashcard__list');
+		const list = target.querySelector<HTMLElement>('.ml-sidebar-flashcard__list');
 		expect(list).not.toBeNull();
 		expect(list?.classList.contains('ml-test-list')).toBe(true);
 
 		const wrappers = Array.from(
-			target.querySelectorAll<HTMLAnchorElement>('.ml-sidabar-flashcard__wrapper'),
+			target.querySelectorAll<HTMLAnchorElement>('.ml-sidebar-flashcard__wrapper'),
 		);
 		expect(wrappers).toHaveLength(2);
 		expect(wrappers[0].getAttribute('href')).toBe('obsidian://open?vault=vault&file=cards%2Fa.md');
 		expect(wrappers[1].getAttribute('href')).toBe('obsidian://open?vault=vault&file=cards%2Fb.md');
-		expect(wrappers[0].querySelector('.ml-sidabar-flashcard__preview')?.textContent).toBe(
+		expect(wrappers[0].querySelector('.ml-sidebar-flashcard__preview')?.textContent).toBe(
 			'Preview A',
 		);
-		expect(wrappers[1].querySelector('.ml-sidabar-flashcard__preview')?.textContent).toBe(
+		expect(wrappers[1].querySelector('.ml-sidebar-flashcard__preview')?.textContent).toBe(
 			'Preview B',
 		);
 	});
@@ -76,7 +76,7 @@ describe('SidebarFlashcardList', () => {
 		const onOpen = mountList(cards);
 		await tick();
 
-		const wrappers = target.querySelectorAll<HTMLAnchorElement>('.ml-sidabar-flashcard__wrapper');
+		const wrappers = target.querySelectorAll<HTMLAnchorElement>('.ml-sidebar-flashcard__wrapper');
 		const plainClick = new MouseEvent('click', { bubbles: true, cancelable: true });
 		wrappers[1].dispatchEvent(plainClick);
 
@@ -101,6 +101,6 @@ describe('SidebarFlashcardList', () => {
 		mountList([]);
 		await tick();
 
-		expect(target.querySelectorAll('.ml-sidabar-flashcard__wrapper')).toHaveLength(0);
+		expect(target.querySelectorAll('.ml-sidebar-flashcard__wrapper')).toHaveLength(0);
 	});
 });

@@ -43,14 +43,14 @@ describe('SidebarFlashcardCard', () => {
 		});
 		await tick();
 
-		const root = target.querySelector<HTMLElement>('.ml-sidabar-flashcard');
+		const root = target.querySelector<HTMLElement>('.ml-sidebar-flashcard');
 		expect(root).not.toBeNull();
 		expect(root?.classList.contains('ml-test-card')).toBe(true);
-		expect(root?.querySelector('.ml-sidabar-flashcard__meta .ml-badge')?.textContent?.trim()).toBe(
+		expect(root?.querySelector('.ml-sidebar-flashcard__meta .ml-badge')?.textContent?.trim()).toBe(
 			'Cloze',
 		);
-		expect(root?.querySelector('.ml-sidabar-flashcard__due')?.textContent).toBe('Due: 2026-01-05');
-		expect(root?.querySelector('.ml-sidabar-flashcard__preview')?.textContent).toBe(
+		expect(root?.querySelector('.ml-sidebar-flashcard__due')?.textContent).toBe('Due: 2026-01-05');
+		expect(root?.querySelector('.ml-sidebar-flashcard__preview')?.textContent).toBe(
 			'The mitochondria is the powerhouse of the cell.',
 		);
 

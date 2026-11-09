@@ -104,7 +104,7 @@ describe('flashcard sidebar playground path', () => {
 			await flush();
 
 			expect(target.querySelector('.ml-flashcard-form')).not.toBeNull();
-			expect(target.querySelector('.ml-sidabar-flashcard')).toBeNull();
+			expect(target.querySelector('.ml-sidebar-flashcard')).toBeNull();
 			const source = Array.from(target.querySelectorAll<HTMLInputElement>('input')).find((input) =>
 				input.value.startsWith('[['),
 			);

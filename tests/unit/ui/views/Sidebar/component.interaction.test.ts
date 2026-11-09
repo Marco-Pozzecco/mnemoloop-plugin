@@ -283,13 +283,13 @@ describe('flashcard sidebar panel', () => {
 		}
 		await flush();
 
-		const rows = Array.from(target.querySelectorAll<HTMLElement>('.ml-sidabar-flashcard'));
+		const rows = Array.from(target.querySelectorAll<HTMLElement>('.ml-sidebar-flashcard'));
 		expect(
 			rows.map((row) =>
-				row.querySelector('.ml-sidabar-flashcard__meta .ml-badge')?.textContent?.trim(),
+				row.querySelector('.ml-sidebar-flashcard__meta .ml-badge')?.textContent?.trim(),
 			),
 		).toEqual(['Cloze', 'Basic']);
-		expect(rows[0].querySelector('.ml-sidabar-flashcard__preview')?.textContent).toContain(
+		expect(rows[0].querySelector('.ml-sidebar-flashcard__preview')?.textContent).toContain(
 			'cards/new.md',
 		);
 	});
@@ -353,7 +353,7 @@ describe('flashcard sidebar panel', () => {
 		await flush();
 
 		expect(target.querySelector('.ml-flashcard-form')).not.toBeNull();
-		expect(target.querySelector('.ml-sidabar-flashcard')).toBeNull();
+		expect(target.querySelector('.ml-sidebar-flashcard')).toBeNull();
 		expect(target.textContent).toContain('New flashcard');
 		expect(target.textContent).toContain('Content');
 		expect(target.textContent).toContain('Organization');
@@ -419,7 +419,7 @@ describe('flashcard sidebar panel', () => {
 		await publishCards([card('new', CardStatus.ACTIVE, '2026-01-05T00:00:00.000Z')]);
 		await flush();
 
-		expect(target.querySelector('.ml-sidabar-flashcard__meta .ml-badge')?.textContent?.trim()).toBe(
+		expect(target.querySelector('.ml-sidebar-flashcard__meta .ml-badge')?.textContent?.trim()).toBe(
 			'Basic',
 		);
 	});
@@ -436,7 +436,7 @@ describe('flashcard sidebar panel', () => {
 		await flush();
 
 		expect(target.querySelector('.ml-flashcard-form')).toBeNull();
-		expect(target.querySelector('.ml-sidabar-flashcard')).not.toBeNull();
+		expect(target.querySelector('.ml-sidebar-flashcard')).not.toBeNull();
 		expect(published(FlashcardWriterCreateRequestEvent)).toBeUndefined();
 
 		// Reopening shows a fresh, empty form.
@@ -471,14 +471,14 @@ describe('flashcard sidebar panel', () => {
 		await flush();
 
 		const filepath = 'cards/a1.md';
-		target.querySelector<HTMLAnchorElement>('.ml-sidabar-flashcard__wrapper')?.click();
+		target.querySelector<HTMLAnchorElement>('.ml-sidebar-flashcard__wrapper')?.click();
 		await flush();
 
 		await EventBus.instance.publish(parseResult(filepath, 'Full card front', 'a1'));
 		await flush();
 
 		expect(target.querySelector('.ml-flashcard-form')).not.toBeNull();
-		expect(target.querySelector('.ml-sidabar-flashcard')).toBeNull();
+		expect(target.querySelector('.ml-sidebar-flashcard')).toBeNull();
 		expect(target.textContent).toContain('Edit flashcard');
 		expect(target.textContent).toContain('Due');
 		expect(textareas().map((area) => area.value)).toEqual(['Full card front', 'back']);
@@ -502,7 +502,7 @@ describe('flashcard sidebar panel', () => {
 		await flush();
 
 		expect(target.querySelector('.ml-flashcard-form')).toBeNull();
-		expect(target.querySelector('.ml-sidabar-flashcard')).not.toBeNull();
+		expect(target.querySelector('.ml-sidebar-flashcard')).not.toBeNull();
 		expect(app.workspace.openLinkText).not.toHaveBeenCalled();
 
 		// The update invalidated the cached preview and requested a fresh parse.
@@ -524,7 +524,7 @@ describe('flashcard sidebar panel', () => {
 		);
 		await flush();
 
-		expect(target.querySelector('.ml-sidabar-flashcard__preview')?.textContent).toBe(
+		expect(target.querySelector('.ml-sidebar-flashcard__preview')?.textContent).toBe(
 			'Updated front',
 		);
 	});
@@ -535,7 +535,7 @@ describe('flashcard sidebar panel', () => {
 		await publishCards([card('a1', CardStatus.ACTIVE, '2026-01-01T00:00:00.000Z')]);
 		await flush();
 
-		target.querySelector<HTMLAnchorElement>('.ml-sidabar-flashcard__wrapper')?.click();
+		target.querySelector<HTMLAnchorElement>('.ml-sidebar-flashcard__wrapper')?.click();
 		await flush();
 		await EventBus.instance.publish(parseResult('cards/a1.md', 'Full card front', 'a1'));
 		await flush();
@@ -545,7 +545,7 @@ describe('flashcard sidebar panel', () => {
 		await flush();
 
 		expect(target.querySelector('.ml-flashcard-form')).toBeNull();
-		expect(target.querySelector('.ml-sidabar-flashcard')).not.toBeNull();
+		expect(target.querySelector('.ml-sidebar-flashcard')).not.toBeNull();
 		expect(published(FlashcardWriterUpdateRequestEvent)).toBeUndefined();
 	});
 
@@ -575,7 +575,7 @@ describe('flashcard sidebar panel', () => {
 
 		expect(target.querySelector('.ml-flashcard-form')).toBeNull();
 		expect(target.querySelector('.ml-sidebar__source-name')?.textContent).toBe('chemistry');
-		const rows = Array.from(target.querySelectorAll<HTMLElement>('.ml-sidabar-flashcard'));
+		const rows = Array.from(target.querySelectorAll<HTMLElement>('.ml-sidebar-flashcard'));
 		expect(rows).toHaveLength(1);
 
 		// The discarded form does not come back; a new one binds to the new note.
@@ -593,7 +593,7 @@ describe('flashcard sidebar panel', () => {
 		]);
 		await flush();
 
-		target.querySelector<HTMLAnchorElement>('.ml-sidabar-flashcard__wrapper')?.click();
+		target.querySelector<HTMLAnchorElement>('.ml-sidebar-flashcard__wrapper')?.click();
 		await flush();
 
 		const request = latestParseRequest();
@@ -633,7 +633,7 @@ describe('flashcard sidebar panel', () => {
 		await publishCards([card('a1', CardStatus.ACTIVE, '2026-01-01T00:00:00.000Z')]);
 		await flush();
 
-		target.querySelector<HTMLAnchorElement>('.ml-sidabar-flashcard__wrapper')?.click();
+		target.querySelector<HTMLAnchorElement>('.ml-sidebar-flashcard__wrapper')?.click();
 		await flush();
 
 		const request = latestParseRequest();
@@ -650,7 +650,7 @@ describe('flashcard sidebar panel', () => {
 		await flush();
 
 		expect(target.querySelector('.ml-flashcard-form')).toBeNull();
-		expect(target.querySelector('.ml-sidabar-flashcard')).not.toBeNull();
+		expect(target.querySelector('.ml-sidebar-flashcard')).not.toBeNull();
 		expect(Notice).toHaveBeenCalledWith('Couldn’t open that flashcard.');
 	});
 });
