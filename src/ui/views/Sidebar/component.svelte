@@ -44,7 +44,7 @@
 	 */
 	type PanelForm =
 		| { kind: 'create'; notePath: string | null; source: string }
-		| { kind: 'edit'; notePath: string; card: Flashcard };
+		| { kind: 'edit'; notePath: string; card: Flashcard; file: string };
 
 	let form = $state<PanelForm | null>(null);
 	/** Guards against an older card fetch landing after a newer one. */
@@ -117,7 +117,7 @@
 			return;
 		}
 
-		form = { kind: 'edit', notePath, card: fullCard };
+		form = { kind: 'edit', notePath, card: fullCard, file: card.file };
 	}
 
 	function closeForm(): void {
@@ -136,6 +136,12 @@
 
 		if (saved) closeForm();
 		return saved;
+	}
+
+	function handleDelete(): void {
+		if (form?.kind !== 'edit') return;
+		controller.deleteCard(form.card);
+		closeForm();
 	}
 </script>
 
@@ -188,9 +194,13 @@
 					card={form.kind === 'edit' ? form.card : undefined}
 					prefillSource={form.kind === 'create' ? form.source : undefined}
 					{contextLabel}
+					label={form.kind === 'edit'
+						? (sidebarState.previews[form.file] ?? 'this flashcard')
+						: undefined}
 					deckOptions={sidebarState.deckOptions}
 					onClose={closeForm}
 					onSave={handleSave}
+					onDelete={form.kind === 'edit' ? handleDelete : undefined}
 				/>
 			{/key}
 		{:else if sidebarState.activeNote === null}

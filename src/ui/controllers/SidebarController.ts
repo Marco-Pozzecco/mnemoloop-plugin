@@ -13,6 +13,7 @@ import {
 import {
 	FlashcardWriterCreateRequestEvent,
 	FlashcardWriterCreateResponseEvent,
+	FlashcardWriterDeleteRequestEvent,
 	FlashcardWriterUpdateRequestEvent,
 	FlashcardWriterUpdateResponseEvent,
 } from '@/modules/events/domains/flashcard/writer';
@@ -178,6 +179,14 @@ export class SidebarController {
 		return this._awaitWrite(request, FlashcardWriterUpdateResponseEvent);
 	}
 
+	/** Delete a card from the panel. The index event confirms the removal. */
+	deleteCard(card: FlashcardMetadata): void {
+		this._allCards = this._allCards.filter((entry) => entry.uuid !== card.uuid);
+		sidebarStore.clearPreviews([card.file]);
+		this._recompute();
+		void EventBus.instance.publish(new FlashcardWriterDeleteRequestEvent({ uuid: card.uuid }));
+	}
+
 	/** Abandon every write still waiting for its response. */
 	cancelPendingWrites(): void {
 		for (const cancel of [...this._pendingWrites]) cancel();
@@ -255,9 +264,7 @@ export class SidebarController {
 	}
 
 	private _recompute(): void {
-		const deckOptions = Array.from(
-			new Set(this._allCards.flatMap((card) => card.decks)),
-		).sort();
+		const deckOptions = Array.from(new Set(this._allCards.flatMap((card) => card.decks))).sort();
 		sidebarStore.setDeckOptions(deckOptions);
 
 		const cards = this._activeNote

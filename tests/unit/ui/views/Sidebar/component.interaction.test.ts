@@ -12,6 +12,7 @@ import {
 	FlashcardParserParseResponseEvent,
 	FlashcardWriterCreateRequestEvent,
 	FlashcardWriterCreateResponseEvent,
+	FlashcardWriterDeleteRequestEvent,
 	FlashcardWriterUpdateRequestEvent,
 	FlashcardWriterUpdateResponseEvent,
 } from '@/modules/events';
@@ -360,6 +361,12 @@ describe('flashcard sidebar panel', () => {
 		expect(target.querySelector('.ml-deck-picker')).not.toBeNull();
 		expect(sourceInput()).toBeDefined();
 		expect(sourceFieldValue()).toBe(`[[${NOTE_PATH}]]`);
+		expect(buttonByText('Create')).toBeDefined();
+		expect(
+			Array.from(target.querySelectorAll('button')).some(
+				(button) => button.textContent?.trim() === 'Delete',
+			),
+		).toBe(false);
 	});
 
 	it('opens the create form when another surface requests it', async () => {
@@ -547,6 +554,34 @@ describe('flashcard sidebar panel', () => {
 		expect(target.querySelector('.ml-flashcard-form')).toBeNull();
 		expect(target.querySelector('.ml-sidebar-flashcard')).not.toBeNull();
 		expect(published(FlashcardWriterUpdateRequestEvent)).toBeUndefined();
+	});
+
+	it('deletes the open card only after the confirmation dialog is accepted', async () => {
+		await mountPanel();
+		await flush();
+		await publishCards([card('a1', CardStatus.ACTIVE, '2026-01-01T00:00:00.000Z')]);
+		await flush();
+
+		target.querySelector<HTMLAnchorElement>('.ml-sidebar-flashcard__wrapper')?.click();
+		await flush();
+		await EventBus.instance.publish(parseResult('cards/a1.md', 'Full card front', 'a1'));
+		await flush();
+
+		buttonByText('Delete').click();
+		await flush();
+
+		expect(target.querySelector('[role="alertdialog"]')?.textContent).toContain(
+			'Delete flashcard?',
+		);
+		expect(target.querySelector('[role="alertdialog"]')?.textContent).toContain('Full card front');
+		expect(published(FlashcardWriterDeleteRequestEvent)).toBeUndefined();
+
+		target.querySelector<HTMLButtonElement>('.ml-alert-dialog__action')?.click();
+		await flush();
+
+		expect(published(FlashcardWriterDeleteRequestEvent)?.data.uuid).toBe('a1');
+		expect(target.querySelector('.ml-flashcard-form')).toBeNull();
+		expect(target.querySelector('.ml-sidebar-flashcard')).toBeNull();
 	});
 
 	it('closes an open form and shows the new note’s list when the active note changes', async () => {

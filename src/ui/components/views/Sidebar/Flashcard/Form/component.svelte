@@ -3,6 +3,7 @@
 	import {
 		FlashcardForm,
 		FlashcardFormActions,
+		FlashcardFormDeleteConfirmation,
 		FlashcardFormMeta,
 	} from '@/ui/components/compositions';
 	import { FlashcardFormModel } from '@/ui/components/compositions/FlashcardForm/model.svelte';
@@ -13,20 +14,28 @@
 		card,
 		prefillSource,
 		contextLabel = '',
+		label = 'this flashcard',
 		deckOptions,
 		onClose,
 		onSave,
+		onDelete,
 	}: SidebarFlashcardFormProps = $props();
 
 	// The panel mounts a new form for each open, so seeding local state once is
 	// intentional (the card and mode do not change while it is open).
 	// svelte-ignore state_referenced_locally
 	const form = new FlashcardFormModel(mode, card, prefillSource);
+	let confirmingDelete = $state(false);
 	const canSubmit = $derived(form.contentApi !== null && !form.isSubmitting);
 	const title = $derived(mode === 'create' ? 'New flashcard' : 'Edit flashcard');
 
 	async function handleSubmit(): Promise<void> {
 		await form.submit(async (payload) => ({ success: await onSave(payload) }));
+	}
+
+	function handleConfirmDelete(): void {
+		confirmingDelete = false;
+		onDelete?.();
 	}
 </script>
 
@@ -67,9 +76,18 @@
 			{canSubmit}
 			onCancel={onClose}
 			onSubmit={handleSubmit}
+			onDelete={mode === 'edit' && onDelete ? () => (confirmingDelete = true) : undefined}
 		/>
 	</footer>
 </div>
+
+{#if confirmingDelete}
+	<FlashcardFormDeleteConfirmation
+		cardLabel={label}
+		onCancel={() => (confirmingDelete = false)}
+		onConfirm={handleConfirmDelete}
+	/>
+{/if}
 
 <style lang="scss">
 	@use 'tokens' as *;

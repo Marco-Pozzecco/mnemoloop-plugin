@@ -16,9 +16,13 @@ export default interface SidebarFlashcardFormProps {
 	prefillSource?: string;
 	/** The note the form is bound to, shown under the form title. */
 	contextLabel?: string;
+	/** Edit mode: the card label used by the delete dialog. */
+	label?: string;
 	/** Every deck in the vault, for suggestions. */
 	deckOptions: string[];
 	onClose: () => void;
 	/** Resolves true when the write succeeded. */
 	onSave: (payload: FlashcardFormSavePayload) => Promise<boolean>;
+	/** Edit mode only. The surface owns the delete request. */
+	onDelete?: () => void;
 }
