@@ -3,10 +3,10 @@
 	import {
 		FlashcardForm,
 		FlashcardFormActions,
+		FlashcardFormDeleteConfirmation,
 		FlashcardFormMeta,
 	} from '@/ui/components/compositions';
 	import { FlashcardFormModel } from '@/ui/components/compositions/FlashcardForm/model.svelte';
-	import DeleteConfirmation from '../DeleteConfirmation/component.svelte';
 	import type FlashcardFormSheetProps from './types';
 
 	let { mode, card, label = 'this flashcard', deckOptions, onClose, onSave, onDelete } =
@@ -54,7 +54,7 @@
 </Sheet>
 
 {#if !isCreate && confirmingDelete}
-	<DeleteConfirmation
+	<FlashcardFormDeleteConfirmation
 		cardLabel={label}
 		onCancel={() => (confirmingDelete = false)}
 		onConfirm={handleConfirmDelete}

@@ -18,8 +18,6 @@ export { default as ManageCardList } from './Manage/CardList/component.svelte';
 export type { default as ManageCardListProps } from './Manage/CardList/types';
 export { default as ManageDeckChips } from './Manage/DeckChips/component.svelte';
 export type { default as ManageDeckChipsProps } from './Manage/DeckChips/types';
-export { default as ManageDeleteConfirmation } from './Manage/DeleteConfirmation/component.svelte';
-export type { default as ManageDeleteConfirmationProps } from './Manage/DeleteConfirmation/types';
 export { default as ManageFilterBar } from './Manage/FilterBar/component.svelte';
 export type { default as ManageFilterBarProps } from './Manage/FilterBar/types';
 export { default as ManageFlashcardFormSheet } from './Manage/FlashcardFormSheet/component.svelte';

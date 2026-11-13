@@ -2,13 +2,13 @@
 import '../../../../../helpers/dom-polyfills';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mount, unmount } from 'svelte';
-import DeleteConfirmation from '@/ui/components/sections/Manage/DeleteConfirmation/component.svelte';
+import DeleteConfirmation from '@/ui/components/compositions/FlashcardForm/DeleteConfirmation/component.svelte';
 
 function tick(): Promise<void> {
 	return new Promise((resolve) => window.setTimeout(resolve, 30));
 }
 
-describe('ManageDeleteConfirmation interaction', () => {
+describe('FlashcardFormDeleteConfirmation interaction', () => {
 	let target: HTMLDivElement;
 	let instance: ReturnType<typeof mount>;
 
@@ -59,9 +59,11 @@ describe('ManageDeleteConfirmation interaction', () => {
 
 		const { onCancel: escapeCancel } = mountDialog();
 		await tick();
-		target.querySelector<HTMLElement>('[role="alertdialog"]')?.dispatchEvent(
-			new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
-		);
+		target
+			.querySelector<HTMLElement>('[role="alertdialog"]')
+			?.dispatchEvent(
+				new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+			);
 		await tick();
 		expect(escapeCancel).toHaveBeenCalledTimes(1);
 	});

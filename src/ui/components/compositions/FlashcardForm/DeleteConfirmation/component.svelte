@@ -1,8 +1,8 @@
 <script lang="ts">
 	import AlertDialog from '@/ui/components/elements/AlertDialog';
-	import type ManageDeleteConfirmationProps from './types';
+	import type FlashcardFormDeleteConfirmationProps from './types';
 
-	let { cardLabel, onCancel, onConfirm }: ManageDeleteConfirmationProps = $props();
+	let { cardLabel, onCancel, onConfirm }: FlashcardFormDeleteConfirmationProps = $props();
 	let open = $state(true);
 
 	function handleOpenChange(nextOpen: boolean): void {

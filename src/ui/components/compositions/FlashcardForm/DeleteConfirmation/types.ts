@@ -1,4 +1,4 @@
-export default interface ManageDeleteConfirmationProps {
+export default interface FlashcardFormDeleteConfirmationProps {
 	cardLabel: string;
 	onCancel: () => void;
 	onConfirm: () => void;

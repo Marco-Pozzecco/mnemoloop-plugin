@@ -4,6 +4,8 @@ export { default as FlashcardFormContentRouter } from './FlashcardForm/ContentRo
 export type { default as FlashcardFormContentRouterProps } from './FlashcardForm/ContentRouter/types';
 export { default as FlashcardFormDeckPicker } from './FlashcardForm/DeckPicker/component.svelte';
 export type { default as FlashcardFormDeckPickerProps } from './FlashcardForm/DeckPicker/types';
+export { default as FlashcardFormDeleteConfirmation } from './FlashcardForm/DeleteConfirmation/component.svelte';
+export type { default as FlashcardFormDeleteConfirmationProps } from './FlashcardForm/DeleteConfirmation/types';
 export { default as FlashcardFormInline } from './FlashcardForm/Inline/component.svelte';
 export type { default as FlashcardFormInlineProps } from './FlashcardForm/Inline/types';
 export { default as FlashcardFormMeta } from './FlashcardForm/Meta/component.svelte';
