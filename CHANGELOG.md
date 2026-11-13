@@ -1,3 +1,23 @@
+## [2.2.0](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/2.1.1...2.2.0) (2026-11-13)
+
+### Features
+
+* **cloze:** render previews with deletion placeholders ([b24dec6](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/b24dec6fbfde29ff6b3f87d7d5c5fcea807552a5))
+* **flashcard:** report write outcome and resolve files through the index ([302d309](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/302d3092ac5bfd5ec9f9f00b8d8fce2780bfa239))
+* **manage:** rebuild the view as a read-only index with a sheet editor ([58c4e01](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/58c4e01a9268e759a65c08b68e815600ec19df6b))
+* **sidebar:** add delete to the flashcard edit form ([26f77ea](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/26f77ea17d7f00f13b3c83122a1bc1594687c363))
+* **sidebar:** add the note-bound flashcard capture panel ([#38](https://github.com/Marco-Pozzecco/mnemoloop-plugin/issues/38)) ([228efd7](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/228efd771b8b6ce07e75ca49de89a5560a87cc89))
+* **ui:** add a visually-hidden utility ([c29352c](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/c29352c458e4af7629ade4cee9a2484131c2d501))
+* **ui:** add Badge and Sheet elements ([a527325](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/a527325b778501f4cefd6a0ffd4acc81049ec2eb))
+* **ui:** grow text fields with content and expose live input ([027ad7f](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/027ad7f82d62afaef546c4cef699278d9fece2c1))
+
+### Bug Fixes
+
+* **manage:** fold overflowing deck chips and name the hidden decks ([c973f0d](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/c973f0d6ba1e88282f0e5951f9a4d8eb94afe556))
+* **manage:** hand the index to scan cards at the tablet breakpoint ([3a90939](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/3a909393c95b3b3a4a83b930dee9483b15a12bae))
+* **release:** restore valid release metadata ([a840334](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/a840334f2fc1d534bd066f2b108335929ec08106))
+* resolve merge conflict markers in release metadata ([22cad6d](https://github.com/Marco-Pozzecco/mnemoloop-plugin/commit/22cad6dbd16d9d780b0ae94168356fb178bddac5))
+
 ## [2.1.1](https://github.com/Marco-Pozzecco/mnemoloop-plugin/compare/2.1.0...2.1.1) (2026-10-19)
 
 ### Bug Fixes
